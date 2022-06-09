@@ -1,26 +1,29 @@
 import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import Link from 'next/link'
-//import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/AuthContext'
 
 const Login = () => {
   const router = useRouter()
-  //const { user, login } = useAuth()
+  const { user, login } = useAuth()
   const [data, setData] = useState({
     email: '',
     password: '',
   })
+  const [error, setError] = useState()
 
   const handleLogin = async (e) => {
     e.preventDefault()
 
     //console.log(user)
-    /* try {
-      await login(data.email, data.password)
-      router.push('/dashboard')
+    try {
+        await login(data.email, data.password)
+        setError(null)
+        router.push('/dashboard')
     } catch (err) {
-      console.log(err)
-    } */
+        setError(err)
+        console.log(err)
+    }
   }
 
   const handleChange = (e) => {
@@ -45,9 +48,9 @@ const Login = () => {
                         value={data.email}
                         />
                 </div>
-                <div class="mb-6">
+                <div class="mb-1">
                     <input
-                        class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                        class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 mb-1 leading-tight focus:outline-none focus:shadow-outline"
                         id="password"
                         type="password"
                         placeholder="Password"
@@ -55,7 +58,8 @@ const Login = () => {
                         value={data.password}
                         />
                 </div>
-                <div class="flex-col items-center content-center">
+                {error && <span class="text-red-500 text-sm font-light">Incorrect password or username</span>}
+                <div class="mt-5 flex-col items-center content-center">
                     <button class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-4 px-6 rounded focus:outline-none focus:shadow-outline" type="submit">
                         Log In
                     </button>

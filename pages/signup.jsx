@@ -1,11 +1,12 @@
 import { useRouter } from 'next/router'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-//import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/AuthContext'
 
 const SignUp = () => {
     const router = useRouter()
-    //const { user, login } = useAuth()
+    const { user, signup } = useAuth()
+
     const [data, setData] = useState({
        teamName: '',
        email: '',
@@ -20,14 +21,12 @@ const SignUp = () => {
             return
         }
 
-        console.log(data)
-        //console.log(user)
-        /* try {
-        await login(data.email, data.password)
-        router.push('/dashboard')
+        try {
+            await signup(data.teamName, data.email, data.password)
+            router.push('/dashboard')
         } catch (err) {
-        console.log(err)
-        } */
+            console.log(err)
+        }
     }
 
     const handleChange = (e) => {
@@ -73,7 +72,7 @@ const SignUp = () => {
                             />
                     </div>
                     {data.password.length > 0 && data.password.length < 8 && <span class="text-red-500 text-sm font-light">Password must be atleast 8 characters</span>}
-                    <div class="mt-3 mb-1">
+                    <div class="mt-4 mb-1">
                         <input
                             class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="confirmPW"
