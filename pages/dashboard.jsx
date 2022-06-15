@@ -2,6 +2,7 @@ import { useRouter } from 'next/router'
 import React from 'react'
 import { useState } from 'react'
 import Home from '../components/Home'
+import Profile from '../components/Profile'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
 
@@ -16,6 +17,7 @@ const Dashboard = () => {
         <div class="flex h-full w-full">
             <Navbar tab={tab} setTab={setTab}/>
             { tab == 0 && <Home />}
+            { tab == 1 && <Profile />}
             {/* <a onClick={() => {
                 logout()
                 router.push('/login')
