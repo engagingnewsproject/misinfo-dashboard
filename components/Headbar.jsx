@@ -6,6 +6,8 @@ const Headbar = () => {
     const [search, setSearch] = useState()
 
     const handleSearch = (e) => {
+        if (search.length == 0) return
+
         e.preventDefault()
         console.log(search)
     }
@@ -34,7 +36,6 @@ const Headbar = () => {
                         id="search"
                         type="text"
                         placeholder="Search"
-                        required
                         value={search} />
                 </form>
             </div>
