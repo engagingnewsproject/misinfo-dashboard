@@ -2,7 +2,9 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { 
     createUserWithEmailAndPassword,
     onAuthStateChanged,
-    signInWithEmailAndPassword, 
+    signInWithEmailAndPassword,
+    reauthenticateWithCredential,
+    updatePassword,
     updateProfile,
     signOut,
     sendPasswordResetEmail
@@ -52,8 +54,16 @@ export const AuthContextProvider = ({children}) => {
         return sendPasswordResetEmail(auth, email)
     }
 
+    const updatePassword = (auth, currentPassword, newPassword) => {
+        reauthenticateWithCredential(auth, user.email, currentPassword).then(() => {
+            return updatePassword(auth, newPassword)
+        }).catch((error) => {
+            return error
+        })
+    }
+ 
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )

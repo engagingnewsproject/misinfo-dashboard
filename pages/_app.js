@@ -3,7 +3,7 @@ import ProtectedRoute from '../components/ProtectedRoute'
 import { AuthContextProvider } from '../context/AuthContext'
 import '../styles/globals.css'
 
-const noAuthRequired = ['/', '/login', '/signup', '/resetPassword']
+const noAuthRequired = ['/login', '/signup', '/resetPassword']
 
 function MyApp({ Component, pageProps }) {
 
