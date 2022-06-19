@@ -3,24 +3,34 @@ import { tagSystems } from './Settings'
 import { IoMdArrowRoundBack } from 'react-icons/io'
 import { AiOutlineSearch } from 'react-icons/ai'
 import { FaPlus } from 'react-icons/fa'
+import { GoPrimitiveDot } from 'react-icons/go'
+import { MdModeEditOutline } from 'react-icons/md'
+import { TiDelete } from 'react-icons/ti'
+import { IoIosRadioButtonOn } from 'react-icons/io'
+import warning from '../public/Dashboard/warning.svg'
+import Image from 'next/image'
 import { collection, setDoc, addDoc, getDoc, doc } from "firebase/firestore"; 
 import { useAuth } from '../context/AuthContext'
 import { db } from '../config/firebase'
 
 const maxTags = [6, 9, 6] // Topic, Source, Labels (respectively)
 
-const addData = async(tagSystem, list, user) => {
-    const docRef = await setDoc(doc(db, user.uid, "tags"), {
+const setData = async(tagSystem, list, active, user) => {
+    const docRef = await getDoc(doc(db, user.uid, "tags"))
+    const updatedDocRef = await setDoc(doc(db, user.uid, "tags"), {
+        ...docRef.data(),
         [tagSystems[tagSystem]]: {
-            list: list
+            list: list,
+            active: active
         }
     });
-    return docRef
+    return updatedDocRef
 }
 
 const TagSystem = ({ tagSystem, setTagSystem }) => {
 
-    const [list, setList] = useState(['Shooting At UT'])
+    const [list, setList] = useState([])
+    const [active, setActive] = useState([])
     //const docRef = getDoc(db, "tags", tagSystem)
     const { user } = useAuth()
     const [selected, setSelected] = useState("")
@@ -38,12 +48,37 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
         setList(tagsData.list)
     }
 
+    const updateTag = (e, updateType) => {
+        switch (updateType) {
+            case "activate":
+                active.push(search)
+                break
+            case "deactivate":
+                active.splice(active.indexOf(search), 1)
+                break
+            case "delete":
+                list.splice(list.indexOf(search), 1)
+                break
+            case "rename":
+                list[list.indexOf(selected)] = search
+                if (active.includes(list)) {
+                    active[active.indexOf(selected)] = search
+                }
+                break
+        }
+        setSelected("")
+        setData(tagSystem, list, active, user)
+    }
+
     const addNewTag = (e) => {
         e.preventDefault()
         let arr = list
-        arr.push(search)
-        setList(arr)
-        addData(tagSystem, list, user)
+        if (!arr.includes(search) && search.length != 0) {
+            arr.push(search)
+            setList(arr)
+            setData(tagSystem, list, active, user)
+            setSearch("")
+        }
     }
 
     const handleSearch = (e) => {
@@ -56,6 +91,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
     const handleChange = (e) => {
         setSearch(e.target.value)
         setSearchResult(list.filter(i => i.toLowerCase().includes(search.toLowerCase())))
+        setSelected("")
     }
 
     useEffect(() => {
@@ -67,7 +103,11 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
     }, [selected])
 
     return (
-        <div class="z-0 flex-col p-16">
+        <div class="z-0 flex-col p-16 h-full" onClick={(e) => {
+            if (e.target == e.currentTarget) {
+                setSearchResult([])
+            }
+            }}>
             <div class="flex items-center">
                 <button onClick={() => setTagSystem(0)}>
                     <IoMdArrowRoundBack size={25} />
@@ -78,13 +118,36 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                 <div class="text-sm font-light">
                     {"Maximum: " + maxTags[tagSystem - 1] + " + 1 Others Tags"}
                 </div>
-                <button
+                {selected.length == 0 ? <button
                     class="flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
                     type="submit"
                     onClick={addNewTag}>
                     <FaPlus class="text-blue-600" size={12}/>
                     <div class="px-2 font-normal tracking-wide">{"New " + tagSystems[tagSystem]}</div>
-                </button>
+                </button> :
+                <div class="flex items-center ml-auto mr-6">
+                    <button
+                        class="flex items-center shadow mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
+                        type="submit"
+                        onClick={(e) => updateTag(e, "delete")}>
+                        <TiDelete class="text-red-600" size={20}/>
+                        <div class="px-2 font-normal tracking-wide">Delete</div>
+                    </button>
+                    <button
+                        class="flex items-center shadow mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
+                        type="submit"
+                        onClick={(e) => updateTag(e, "rename")}>
+                        <MdModeEditOutline class="text-blue-600" size={18}/>
+                        <div class="px-2 font-normal tracking-wide">Rename</div>
+                    </button>
+                    <button
+                        class="flex items-center shadow bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
+                        type="submit"
+                        onClick={(e) => active.includes(search) ? updateTag(e, "deactivate") : updateTag(e, "activate")}>
+                        <IoIosRadioButtonOn class={active.includes(search) ? "text-red-600" : "text-green-600"} size={18}/>
+                        <div class="px-2 font-normal tracking-wide">{active.includes(search) ? "Mark as Inactive" : "Mark as Active"}</div>
+                    </button>
+                </div>}
             </div>
             <form class="static w-full mt-7 pr-6" onChange={handleChange} onSubmit={handleSearch}>
                 <button class="p-1 absolute right-[5.75rem] top-[8.2rem] bg-blue-500 text-white rounded-xl">
@@ -98,22 +161,47 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                     value={search}/>
             </form>
             {search.length > 0 &&
-            <div class="absolute z-20 mt-2 pr-6 w-1/2">
+            <div class="shadow-lg absolute rounded-lg z-20 mt-2 w-1/2">
                 <div class="bg-white w-full rounded-lg">
                     {searchResult.map((item) => {
-                        return <div onClick={() => setSelected(item)} class="text-light text-sm rounded-lg leading-tight py-2 pl-4 hover:bg-indigo-100 cursor-pointer">{item}</div>
+                        return (<div onClick={() => {
+                            setSelected(item)
+                            setSearchResult([])
+                        }} class="text-light text-sm rounded-lg leading-tight py-2 pl-4 hover:bg-indigo-100 cursor-pointer">{item}</div>)
                     })}
-                    {searchResult.length == 0 && <div onClick={() => setSelected(search)} class="text-light text-sm rounded-lg leading-tight py-2 pl-4 hover:bg-indigo-100 cursor-pointer">Other</div>}
                 </div>
             </div>}
             <div class="z-10 mt-12 pr-6">
-                <div class="grid bg-white w-full p-4 rounded-xl grid-cols-5">
-                    {list.map((item) => {
+                {list.length == 0 ? 
+                <div class="grid bg-white w-full py-6 px-4 rounded-xl text-center">
+                    <Image src={warning} width={156} height={120}/>
+                    <div class="py-3 text-sm">You have no tags right now</div>
+                </div>
+                : 
+                <div>
+                    {active.length != 0 && <div class="grid w-full p-4 mb-12 rounded-xl grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                    {active.map((item) => {
                         return (
-                            <div class="text-md my-5 cursor-pointer leading-normal text-center">{item}</div>
+                            <div onClick={() => setSelected(item)} class="text-md my-5 cursor-pointer leading-normal flex items-center justify-center">
+                                <GoPrimitiveDot size={25} class="text-green-600"/>
+                                <div class="pl-2">{item}</div>
+                            </div>
                         )
                     })}
-                </div>
+                    </div>}
+                    <div class="grid bg-white w-full p-4 rounded-xl grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                    {list.map((item) => {
+                        const normStyles = "text-md font-light p-2 my-3 md:mx-2 cursor-pointer leading-normal flex items-center justify-center"
+                        const selectedStyles = normStyles + " bg-blue-600 text-white rounded-lg"
+                        return (
+                            <div onClick={() => setSelected(item)} class={selected == item ? selectedStyles : normStyles}>
+                                { active.includes(item) && <GoPrimitiveDot size={25} class="text-green-600"/> }
+                                <div class="pl-2">{item}</div>
+                            </div>
+                        )
+                    })}
+                    </div>
+                </div>}
             </div>
         </div>
     )
