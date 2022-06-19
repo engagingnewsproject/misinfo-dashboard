@@ -1,17 +1,20 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyBkD07zb1NS6J8Um617Bxz2O16E0IOgB0Y",
-    authDomain: process.env.AUTH_DOMAIN,
-    projectId: process.env.PROJECT_ID,
-    storageBucket: process.env.STORAGE_BUCKET,
-    messagingSenderId: process.env.MESSAGING_SENDER_ID,
-    appId: process.env.APP_ID,
-    measurementId: process.env.MEASUREMENT_ID
+    authDomain: "misinfo-e2144.firebaseapp.com",
+    projectId: "misinfo-e2144",
+    storageBucket: "misinfo-e2144.appspot.com",
+    messagingSenderId: "10043942539",
+    appId: "1:10043942539:web:4d2ab14272000c38f4d68e",
+    measurementId: "G-EJ0G2CVELW"
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
 
 export const auth = getAuth()
