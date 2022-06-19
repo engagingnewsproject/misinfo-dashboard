@@ -9,7 +9,7 @@ import {
     signOut,
     sendPasswordResetEmail
 } from 'firebase/auth'
-import { auth } from '../config/firebase'
+import { auth, app } from '../config/firebase'
 
 const AuthContext = createContext({})
 
