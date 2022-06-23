@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import UpdatePwModal from './UpdatePwModal'
+import UpdatePwModal from './modals/UpdatePwModal'
 
 const Profile = () => {
 
