@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { IoClose } from "react-icons/io5"
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../../context/AuthContext'
 
 const UpdatePwModal = ({ setOpenModal }) => {
 
