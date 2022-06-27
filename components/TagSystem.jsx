@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { tagSystems } from './Settings'
 import NewTagModal from './modals/NewTagModal'
+import RenameTagModal from './modals/RenameTagModal'
 import { IoMdArrowRoundBack } from 'react-icons/io'
 import { AiOutlineSearch } from 'react-icons/ai'
 import { FaPlus } from 'react-icons/fa'
@@ -38,6 +39,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
     const [search, setSearch] = useState("")
     const [searchResult, setSearchResult] = useState(list)
     const [newTagModal, setNewTagModal] = useState(false)
+    const [renameModal, setRenameTagModal] = useState(false)
     const [maxTagsError, setMaxTagsError] = useState(false)
 
     // On page load (mount), update the tags from firebase
@@ -61,24 +63,37 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                 } else {
                     active.push(search)
                 }
+                setSelected("")
                 break
             case "deactivate":
                 active.splice(active.indexOf(search), 1)
                 setMaxTagsError(false)
+                setSelected("")
                 break
             case "delete":
-                list.splice(list.indexOf(search), 1)
+                if (list.includes(selected)) {
+                    list.splice(list.indexOf(selected), 1)
+                }
+                if (active.includes(selected)) {
+                    active.splice(active.indexOf(selected), 1)
+                }
+                setSelected("")
                 break
             case "rename":
-                list[list.indexOf(selected)] = search
-                if (active.includes(list)) {
-                    active[active.indexOf(selected)] = search
-                }
+                setSearchResult([])
+                setRenameTagModal(true)
                 break
         }
-        setSelected("")
         setData(tagSystem, list, active, user)
+    }
 
+    const replaceTag = (tag) => {
+        list[list.indexOf(selected)] = tag
+        if (active.includes(selected)) {
+            active[active.indexOf(selected)] = tag
+        }
+        setData(tagSystem, list, active, user)
+        setSelected("")
     }
 
     const addNewTag = (tag) => {
@@ -91,6 +106,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
 
     const handleAddNew = (e) => {
         e.preventDefault()
+        setSearchResult([])
         setNewTagModal(true)
     }
 
@@ -226,6 +242,14 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                     list={list}
                     setList={setList}
                     setNewTagModal={setNewTagModal}
+                    addNewTag={addNewTag} 
+                    />}
+            {renameModal && 
+                <RenameTagModal 
+                    replaceTag={replaceTag}
+                    selected={selected}
+                    list={list}
+                    setRenameTagModal={setRenameTagModal}
                     addNewTag={addNewTag} 
                     />}
         </div>
