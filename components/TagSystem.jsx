@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { tagSystems } from './Settings'
 import NewTagModal from './modals/NewTagModal'
 import RenameTagModal from './modals/RenameTagModal'
+import ConfirmModal from './modals/ConfirmModal'
 import { IoMdArrowRoundBack } from 'react-icons/io'
 import { AiOutlineSearch } from 'react-icons/ai'
 import { FaPlus } from 'react-icons/fa'
@@ -40,6 +41,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
     const [searchResult, setSearchResult] = useState(list)
     const [newTagModal, setNewTagModal] = useState(false)
     const [renameModal, setRenameTagModal] = useState(false)
+    const [deleteModal, setDeleteModal] = useState(false)
     const [maxTagsError, setMaxTagsError] = useState(false)
 
     // On page load (mount), update the tags from firebase
@@ -49,9 +51,14 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
 
     const getData = async() => {
         const docRef = await getDoc(doc(db, user.uid, "tags"))
-        const { [tagSystems[tagSystem]]: tagsData } = docRef.data()
-        setList(tagsData.list)
-        setActive(tagsData.active)
+        try {
+            const { [tagSystems[tagSystem]]: tagsData } = docRef.data()
+            setList(tagsData.list)
+            setActive(tagsData.active)
+        } catch (error) {
+            setData(tagSystem, list, active, user)
+            console.log(error)
+        }
     }
 
     const updateTag = (e, updateType) => {
@@ -71,13 +78,8 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                 setSelected("")
                 break
             case "delete":
-                if (list.includes(selected)) {
-                    list.splice(list.indexOf(selected), 1)
-                }
-                if (active.includes(selected)) {
-                    active.splice(active.indexOf(selected), 1)
-                }
-                setSelected("")
+                setSearchResult([])
+                setDeleteModal(true)
                 break
             case "rename":
                 setSearchResult([])
@@ -85,6 +87,19 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                 break
         }
         setData(tagSystem, list, active, user)
+    }
+
+    const deleteTag = (e) => {
+        e.preventDefault
+        if (list.includes(selected)) {
+            list.splice(list.indexOf(selected), 1)
+        }
+        if (active.includes(selected)) {
+            active.splice(active.indexOf(selected), 1)
+        }
+        setSelected("")
+        setData(tagSystem, list, active, user)
+        setDeleteModal(false)
     }
 
     const replaceTag = (tag) => {
@@ -251,6 +266,14 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                     list={list}
                     setRenameTagModal={setRenameTagModal}
                     addNewTag={addNewTag} 
+                    />}
+            {deleteModal && 
+                <ConfirmModal 
+                    func={deleteTag}
+                    title="Are you sure you want to delete this tag?"
+                    subtitle="You will permanently remove this tag. You can not undo this action."
+                    CTA="Delete"
+                    closeModal={setDeleteModal}
                     />}
         </div>
     )
