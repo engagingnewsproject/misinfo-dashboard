@@ -37,7 +37,7 @@ const Home = () => {
             </form>
             <div>Dates select</div>
           </div>
-          <ChartsSection />
+          <ChartsSection view={viewVal} />
           <ReportsSection />
         </div>
     </div>
