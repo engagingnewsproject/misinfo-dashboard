@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 const chartContainer = "bg-white flex justify-center items-center rounded-xl"
 
-const ChartsSection = () => {
+const ChartsSection = ({ view }) => {
   return (
     <div class="flex flex-col">
         <div class="text-lg font-bold text-blue-600 tracking-wider py-5">Top 3 Trendy Tag</div>
