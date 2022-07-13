@@ -28,6 +28,7 @@ export const AuthContextProvider = ({children}) => {
                     displayName: user.displayName,
                     email: user.email
                 })
+                localStorage.setItem("userId", user.uid)
             } else {
                 setUser(null)
             }

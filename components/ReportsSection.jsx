@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { collection, listCollections, getDoc, getDocs, doc } from "firebase/firestore"; 
 import { db } from '../config/firebase'
+import Link from 'next/link'
 
 const ReportsSection = () => {
 
   const [reports, setReports] = useState([])
   const { user } = useAuth()
 
-  const tableHeadings = "p-2 text-center text-sm font-semibold tracking-wide z-50"
+  const tableHeadings = "p-2 text-center text-sm font-semibold tracking-wide"
   const columnData = "text-center text-sm px-2 py-1 flex items-center justify-center"
 
   const getData = async() => {
@@ -18,9 +19,11 @@ const ReportsSection = () => {
     try {
       var arr = []
       snapshot.forEach(doc => {
-        arr.push(doc.data())
+        arr.push({
+          [doc.id]: doc.data(),
+        })
       })
-      console.log(arr)
+      //console.log(arr)
       setReports(arr)
     } catch (error) {
       console.log(error)
@@ -30,7 +33,6 @@ const ReportsSection = () => {
   // On page load (mount), get the reports from firebase
   useEffect(() => {
     getData()
-    console.log(reports)
   }, [])
 
   return (
@@ -44,19 +46,23 @@ const ReportsSection = () => {
           <div class={tableHeadings}>Sources</div>
           <div class={tableHeadings}>Labels</div>
         </div>
-        {reports.map((report) => {
+        {reports.map((reportObj) => {
+          const report = Object.values(reportObj)[0]
           const options = { day: '2-digit', year: 'numeric', month: 'short', hour: 'numeric', minute: 'numeric' }
           const posted = report["date/time"].toDate().toLocaleString('en-US', options).replace(/,/g,"").replace('at', '')
           return (
-          <div class="grid grid-cols-7 hover:bg-blue-200">
-            <div class={"col-span-2 truncate " + columnData}>{report.title}</div>
-            <div class={"col-span-2 " + columnData}>{posted}</div>
-            <div class={columnData}>{report.Topic}</div>
-            <div class={columnData}>{report.Source}</div>
-            <div class={columnData}>
-              <div class="overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl">{report.Labels}</div>
-            </div>
-          </div>)
+            <Link href={`/dashboard/reports/${Object.keys(reportObj)[0]}`}>
+              <a target="_blank" class="grid grid-cols-7 hover:bg-blue-200">
+                <div class={"col-span-2 truncate " + columnData}>{report.title}</div>
+                <div class={"col-span-2 " + columnData}>{posted}</div>
+                <div class={columnData}>{report.Topic}</div>
+                <div class={columnData}>{report.Source}</div>
+                <div class={columnData}>
+                  <div class="overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl">{report.Labels}</div>
+                </div>
+              </a>
+            </Link>
+          )
         })}
       </div>
     </div>
