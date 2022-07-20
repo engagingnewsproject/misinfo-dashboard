@@ -19,7 +19,7 @@ const Settings = () => {
             <button
                 onClick={() => setTagSystem(1)}
                 class="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                Edit Tags
+                Edit Topics
             </button>
         </div>
         <div class="flex justify-between mx-12 my-6 tracking-normal items-center">
@@ -27,7 +27,7 @@ const Settings = () => {
             <button
                 onClick={() => setTagSystem(2)}
                 class="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                Edit Tags
+                Edit Sources
             </button>
         </div>
         <div class="flex justify-between mx-12 my-6 tracking-normal items-center">
