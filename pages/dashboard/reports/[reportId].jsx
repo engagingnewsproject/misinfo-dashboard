@@ -89,7 +89,13 @@ const ReportDetails = () => {
           </div>
           <div class="mb-8">
             <div class={headerStyle}>Link Of The Information</div>
-            <a class="font-light text-sm underline underline-offset-1" href={info['link']}>{info['link']}</a>
+            <div class="flex flex-col">
+              {info['link'] && (info['link']).map((link) => {
+                return (
+                  <a class="font-light mb-1 text-sm underline underline-offset-1" href={link}>{link}</a>
+                )
+              })}
+            </div>
           </div>
           <div>
             <div class={headerStyle}>Description</div>
