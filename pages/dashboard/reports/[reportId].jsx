@@ -6,9 +6,9 @@ import { RiMessage2Fill } from 'react-icons/ri'
 import { BiEditAlt } from 'react-icons/bi'
 import { AiOutlineFieldTime } from 'react-icons/ai'
 
-const userId = localStorage.getItem("userId")
 
 const ReportDetails = () => {
+  const userId = localStorage.getItem("userId")
   const router = useRouter()
   const [info, setInfo] = useState({})
   const [postedDate, setPostedDate] = useState("")
