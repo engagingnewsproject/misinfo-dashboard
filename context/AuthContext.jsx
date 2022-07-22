@@ -9,7 +9,8 @@ import {
     signOut,
     sendPasswordResetEmail
 } from 'firebase/auth'
-import { auth, app } from '../config/firebase'
+import { auth, app, db } from '../config/firebase'
+import { getDoc, doc } from "firebase/firestore";
 
 const AuthContext = createContext({})
 
@@ -21,14 +22,17 @@ export const AuthContextProvider = ({children}) => {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
+                const ref = await getDoc(doc(db, "locations", "Texas"))
+                const localId = ref.data()['Austin']
                 setUser({
-                    uid: user.uid,
+                    uid: localId,
+                    accountId: user.uid,
                     displayName: user.displayName,
                     email: user.email
                 })
-                localStorage.setItem("userId", user.uid)
+                localStorage.setItem("userId", localId)
             } else {
                 setUser(null)
             }

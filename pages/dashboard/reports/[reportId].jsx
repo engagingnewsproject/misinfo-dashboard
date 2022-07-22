@@ -14,12 +14,15 @@ const ReportDetails = () => {
   const [postedDate, setPostedDate] = useState("")
   const [notes, setNotes] = useState("")
   const [update, setUpdate] = useState("")
+  const [activeLabels, setActiveLabels] = useState([])
   const { reportId } = router.query
   const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
 
   const getData = async () => {
-    const docRef = await getDoc(doc(db, userId, "data/reports/" + reportId))
+    const docRef = await getDoc(doc(db, "reports",  reportId))
     setInfo(docRef.data())
+    const tagsRef = await getDoc(doc(db, "tags", userId))
+    setActiveLabels(tagsRef.data()['Labels']['active'])
   }
 
   const handleNotesChange = (e) => {
@@ -36,24 +39,30 @@ const ReportDetails = () => {
   }
 
   const saveChanges = async () => {
-    const docRef = doc(db, userId, 'data/reports/' + reportId)
+    const docRef = doc(db, 'reports', reportId)
     const res = await updateDoc(docRef, { note: document.getElementById('notes').value})
     info['note'] = document.getElementById('notes').value
     setUpdate("")
   }
 
+  const handleLabelChanged = async (e) => {
+    e.preventDefault()
+    const docRef = doc(db, 'reports', reportId)
+    await updateDoc(docRef, { label: e.target.value })
+  }
+
   useEffect(() => {
     getData()
-    if (info['date/time']) {
+    if (info['createdDate']) {
       const options = { day: '2-digit', year: 'numeric', month: 'short', hour: 'numeric', minute: 'numeric' }
-      setPostedDate(info["date/time"].toDate().toLocaleString('en-US', options).replace(/,/g,"").replace('at', ''))
+      setPostedDate(info["createdDate"].toDate().toLocaleString('en-US', options).replace(/,/g,"").replace('at', ''))
     }
   }, [])
 
   useEffect(() => {
-    if (info['date/time']) {
+    if (info['createdDate']) {
       const options = { day: '2-digit', year: 'numeric', month: 'short', hour: 'numeric', minute: 'numeric' }
-      setPostedDate(info["date/time"].toDate().toLocaleString('en-US', options).replace(/,/g,"").replace('at', ''))
+      setPostedDate(info["createdDate"].toDate().toLocaleString('en-US', options).replace(/,/g,"").replace('at', ''))
     }
   }, [info])
 
@@ -68,18 +77,24 @@ const ReportDetails = () => {
           </div>
           <div class="mb-8">
             <div class={headerStyle}>Label</div>
-            <div class="text-sm inline-block px-5 bg-yellow-400 py-1 rounded-2xl">{info['Labels']}</div>
+            <select id="labels" onChange={(e) => handleLabelChanged(e)} defaultValue="default" class="text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl">
+              <option value="none">Choose a label</option>
+              {activeLabels.map((label) => {
+                return (<option value={label}>{label}</option>)
+                })
+              }
+            </select>
           </div>
           <div class="flex flex-col mb-5">
             <div class="flex flex-row mb-3 items-center">
               <RiMessage2Fill size={20} />
               <div class="font-semibold px-2 self-center pr-4">Tag</div>
-              <div class="text-md font-light">{info['Topic']}</div>
+              <div class="text-md font-light">{info['topic']}</div>
             </div>
             <div class="flex flex-row mb-3 items-center">
               <BiEditAlt size={20} />
               <div class="font-semibold px-2 self-center pr-4">Sources / Media</div>
-              <div class="text-md font-light">{info['Source']}</div>
+              <div class="text-md font-light">{info['source']}</div>
             </div>
             <div class="flex flex-row mb-3 items-center">
               <AiOutlineFieldTime size={20} />
@@ -99,7 +114,7 @@ const ReportDetails = () => {
           </div>
           <div>
             <div class={headerStyle}>Description</div>
-            <div class="font-light overflow-auto max-h-32">{info['description']}</div>
+            <div class="font-light overflow-auto max-h-32">{info['detail']}</div>
           </div>
         </div>
         <div class="right-side">
