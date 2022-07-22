@@ -13,7 +13,7 @@ const ReportsSection = () => {
   const columnData = "text-center text-sm px-2 py-1 flex items-center justify-center"
 
   const getData = async() => {
-    const reportsCollection = collection(db, user.uid, "data/reports")
+    const reportsCollection = collection(db, "reports")
     const snapshot = await getDocs(reportsCollection)
     
     try {
@@ -49,16 +49,16 @@ const ReportsSection = () => {
         {reports.map((reportObj) => {
           const report = Object.values(reportObj)[0]
           const options = { day: '2-digit', year: 'numeric', month: 'short', hour: 'numeric', minute: 'numeric' }
-          const posted = report["date/time"].toDate().toLocaleString('en-US', options).replace(/,/g,"").replace('at', '')
+          const posted = report["createdDate"].toDate().toLocaleString('en-US', options).replace(/,/g,"").replace('at', '')
           return (
             <Link href={`/dashboard/reports/${Object.keys(reportObj)[0]}`}>
               <a target="_blank" class="grid grid-cols-7 hover:bg-blue-200">
                 <div class={"col-span-2 truncate " + columnData}>{report.title}</div>
                 <div class={"col-span-2 " + columnData}>{posted}</div>
-                <div class={columnData}>{report.Topic}</div>
-                <div class={columnData}>{report.Source}</div>
+                <div class={columnData}>{report.topic}</div>
+                <div class={columnData}>{report.source}</div>
                 <div class={columnData}>
-                  <div class="overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl">{report.Labels}</div>
+                  <div class="overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl">{report.labels || "None"}</div>
                 </div>
               </a>
             </Link>
