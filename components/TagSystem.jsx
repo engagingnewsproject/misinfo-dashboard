@@ -12,15 +12,15 @@ import { TiDelete } from 'react-icons/ti'
 import { IoIosRadioButtonOn } from 'react-icons/io'
 import warning from '../public/Dashboard/warning.svg'
 import Image from 'next/image'
-import { collection, setDoc, addDoc, getDoc, doc } from "firebase/firestore"; 
+import { setDoc, getDoc, doc } from "firebase/firestore"; 
 import { useAuth } from '../context/AuthContext'
 import { db } from '../config/firebase'
 
 const maxTags = [0, 7, 10, 7] // default, Topic, Source, Labels (respectively)
 
 const setData = async(tagSystem, list, active, user) => {
-    const docRef = await getDoc(doc(db, user.uid, "tags"))
-    const updatedDocRef = await setDoc(doc(db, user.uid, "tags"), {
+    const docRef = await getDoc(doc(db, "tags", user.uid))
+    const updatedDocRef = await setDoc(doc(db, "tags", user.uid), {
         ...docRef.data(),
         [tagSystems[tagSystem]]: {
             list: list,
@@ -50,7 +50,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
     }, [])
 
     const getData = async() => {
-        const docRef = await getDoc(doc(db, user.uid, "tags"))
+        const docRef = await getDoc(doc(db, "tags", user.uid))
         try {
             const { [tagSystems[tagSystem]]: tagsData } = docRef.data()
             setList(tagsData.list)
