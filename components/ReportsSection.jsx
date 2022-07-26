@@ -41,7 +41,8 @@ const ReportsSection = () => {
       <div class="bg-white w-full rounded-xl p-1 overflow-auto h-72">
         <div class="grid grid-cols-7">
           <div class={"col-span-2 " + tableHeadings}>Title</div>
-          <div class={"col-span-2 " + tableHeadings}>Date/Time</div>
+          <div class={tableHeadings}>Date/Time</div>
+          <div class={tableHeadings}>Candidates</div>
           <div class={tableHeadings}>Topic Tags</div>
           <div class={tableHeadings}>Sources</div>
           <div class={tableHeadings}>Labels</div>
@@ -54,11 +55,12 @@ const ReportsSection = () => {
             <Link href={`/dashboard/reports/${Object.keys(reportObj)[0]}`}>
               <a target="_blank" class="grid grid-cols-7 hover:bg-blue-200">
                 <div class={"col-span-2 truncate " + columnData}>{report.title}</div>
-                <div class={"col-span-2 " + columnData}>{posted}</div>
+                <div class={columnData}>{posted}</div>
+                <div class={columnData}>None</div>
                 <div class={columnData}>{report.topic}</div>
                 <div class={columnData}>{report.source}</div>
                 <div class={columnData}>
-                  <div class="overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl">{report.labels || "None"}</div>
+                  <div class="overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl">{report.label || "None"}</div>
                 </div>
               </a>
             </Link>
