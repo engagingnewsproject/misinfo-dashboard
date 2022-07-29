@@ -1,9 +1,7 @@
 import React, { useState } from 'react'
 import { AiOutlineSearch } from 'react-icons/ai'
 
-const Headbar = () => {
-
-    const [search, setSearch] = useState()
+const Headbar = ({ search, setSearch}) => {
 
     const handleSearch = (e) => {
         if (search.length == 0) return
