@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Headbar from '../components/Headbar'
 import ChartsSection from './ChartsSection'
 import ReportsSection from './ReportsSection'
@@ -7,6 +7,7 @@ const views = ["Overview", "Comparison View"]
 
 const Home = () => {
   const [viewVal, setViewVal] = useState(0)
+  const [search, setSearch] = useState("")
 
   const handleChange = (e) => {
     const {value} = e.target
@@ -20,7 +21,7 @@ const Home = () => {
 
   return (
     <div class="w-full h-full flex flex-col py-5">
-        <Headbar />
+        <Headbar search={search} setSearch={setSearch} />
         <div class="w-full flex flex-col px-12 py-5">
           <div class="flex justify-between mb-2">
             <form onChange={handleChange}>
@@ -38,7 +39,7 @@ const Home = () => {
             <div>Dates select</div>
           </div>
           <ChartsSection view={viewVal} />
-          <ReportsSection />
+          <ReportsSection search={search} />
         </div>
     </div>
   )
