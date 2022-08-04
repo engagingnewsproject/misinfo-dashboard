@@ -1,9 +1,6 @@
 import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
-import illu_pw from '../public/Login/illu-Password.svg'
-import illu_email from '../public/Login/illu-email.svg'
 import { useAuth } from '../context/AuthContext'
 
 const ResetPassword = () => {
@@ -17,7 +14,7 @@ const ResetPassword = () => {
         heading: "Forget Your Password?",
         subtitle: "Don't worry! Enter your registered email below to receive password reset email",
         btnText: "Send",
-        icon: illu_pw
+        icon: "svgs/illu-Password.svg"
     })
 
     const handleReset = async (e) => {
@@ -34,7 +31,7 @@ const ResetPassword = () => {
                 heading: "Password Reset Email Has Been Sent!",
                 subtitle: "Please check your inbox and reset password via email for your privacy safety",
                 btnText: "Send it again",
-                icon: illu_email
+                icon: "svgs/illu-email.svg"
             })
         } catch (err) {
             console.log(err)
@@ -50,7 +47,7 @@ const ResetPassword = () => {
         <div class="w-screen h-screen flex justify-center items-center">
             <div class="w-full max-w-sm font-light">
                 <div class="grid justify-items-center mb-4">
-                    <Image src={template.icon} width={156} height={120}/>
+                    <img src={template.icon} />
                     <div class="flex-col mt-2 text-center tracking-wide">
                         <div class="text-lg font-bold my-2">{template.heading}</div>
                         <div class="text-sm font-light">{template.subtitle}</div>
