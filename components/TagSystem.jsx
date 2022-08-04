@@ -10,8 +10,6 @@ import { GoPrimitiveDot } from 'react-icons/go'
 import { MdModeEditOutline } from 'react-icons/md'
 import { TiDelete } from 'react-icons/ti'
 import { IoIosRadioButtonOn } from 'react-icons/io'
-import warning from '../public/Dashboard/warning.svg'
-import Image from 'next/image'
 import { setDoc, getDoc, doc } from "firebase/firestore"; 
 import { useAuth } from '../context/AuthContext'
 import { db } from '../config/firebase'
@@ -218,8 +216,8 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                 </div>}
                 <div class="z-10 mt-12 pr-6">
                     {list.length == 0 ? 
-                    <div class="grid bg-white w-full py-6 px-4 rounded-xl text-center">
-                        <Image src={warning} width={156} height={120}/>
+                    <div class="grid bg-white w-full py-6 px-4 rounded-xl text-center items-center">
+                        <img src="svgs/warning.svg" width={156} height={120}/>
                         <div class="py-3 text-sm">You have no tags right now</div>
                     </div>
                     : 

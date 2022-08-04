@@ -5,7 +5,6 @@ import { db } from '../../../config/firebase'
 import { RiMessage2Fill } from 'react-icons/ri'
 import { BiEditAlt } from 'react-icons/bi'
 import { AiOutlineFieldTime } from 'react-icons/ai'
-import Image from 'next/image';
 
 
 const ReportDetails = () => {
@@ -88,7 +87,7 @@ const ReportDetails = () => {
           { reporterInfo &&
           <div class="text-sm mb-6 font-light text-right">
             <div>
-              <span class="font-semibold">Reported by:</span> {reporterInfo['name']} (<a target="_blank" class="text-blue-600 hover:underline" href={"mailto:" + reporterInfo['email']}>{reporterInfo['email']}</a>)
+              <span class="font-semibold">Reported by:</span> {reporterInfo['name']} (<a target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline" href={"mailto:" + reporterInfo['email']}>{reporterInfo['email']}</a>)
             </div>
           </div>}
           <div class="mb-8">
