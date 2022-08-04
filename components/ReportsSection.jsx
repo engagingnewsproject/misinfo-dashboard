@@ -56,9 +56,13 @@ const ReportsSection = ({ search }) => {
         }
       }
 
-      for (var i = 0; i < arr.length; i++) {
-        if (arr[i].includes(search.toLowerCase())) return true
+      // check if the search text is in the collected fields
+      for (const str of arr) {
+        if (str.includes(search.toLowerCase())) {
+          return true
+        }
       }
+
     }))
   }, [search])
 
