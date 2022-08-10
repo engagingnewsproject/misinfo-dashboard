@@ -12,6 +12,10 @@ const Login = () => {
   })
   const [error, setError] = useState()
 
+  if (user) {
+    router.push('/dashboard')
+  }
+
   const handleLogin = async (e) => {
     e.preventDefault()
 
