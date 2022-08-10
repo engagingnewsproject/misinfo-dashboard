@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 
 const SignUp = () => {
     const router = useRouter()
+    const [signUpError, setSignUpError] = useState("")
     const { user, signup } = useAuth()
 
     const [data, setData] = useState({
@@ -23,9 +24,14 @@ const SignUp = () => {
 
         try {
             await signup(data.teamName, data.email, data.password)
+            setSignUpError("")
             router.push('/dashboard')
         } catch (err) {
-            console.log(err)
+            if (err.message == "Firebase: Error (auth/email-already-in-use).") {
+                setSignUpError("Email already in use. Please log in.")
+            } else {
+                setSignUpError(err.message)
+            }
         }
     }
 
@@ -83,6 +89,7 @@ const SignUp = () => {
                             />
                     </div>
                     {data.password !== data.confirmPW && <span class="text-red-500 text-sm font-light">Passwords don't match</span>}
+                    {signUpError && <div class="text-red-500 text-sm font-normal pt-3">{signUpError}</div>}
                     <div class="flex-col items-center content-center mt-7">
                         <button disabled={data.password !== data.confirmPW} class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" type="submit">
                             Sign Up

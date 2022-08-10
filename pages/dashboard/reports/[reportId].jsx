@@ -85,7 +85,7 @@ const ReportDetails = () => {
             <div class="text-sm bg-white rounded-xl p-4">{info['title'] || <span class="italic text-gray-400">No Title</span>}</div>
           </div>
           { reporterInfo &&
-          <div class="text-sm mb-6 font-light text-right">
+          <div class="text-md mb-4 font-light text-right">
             <div>
               <span class="font-semibold">Reported by:</span> {reporterInfo['name']} (<a target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline" href={"mailto:" + reporterInfo['email']}>{reporterInfo['email']}</a>)
             </div>
@@ -120,9 +120,9 @@ const ReportDetails = () => {
           <div class="mb-8">
             <div class={headerStyle}>Link Of The Information</div>
             <div class="flex flex-col">
-              {info['link'] && <a class={linkStyle} href={info['link']}>{info['link']}</a>}
-              {info['secondLink'] && <a class={linkStyle} href={info['secondLink']}>{info['secondLink']}</a>}
-              {info['thirdLink'] && <a class={linkStyle} href={info['thirdLink']}>{info['thirdLink']}</a>}
+              {info['link'] && <a class={linkStyle} target="_blank" href={"//" + info['link']}>{info['link']}</a>}
+              {info['secondLink'] && <a class={linkStyle} target="_blank" href={"//" + info['secondLink']}>{info['secondLink']}</a>}
+              {info['thirdLink'] && <a class={linkStyle} target="_blank" href={"//" + info['thirdLink']}>{info['thirdLink']}</a>}
             </div>
           </div>
           <div>
