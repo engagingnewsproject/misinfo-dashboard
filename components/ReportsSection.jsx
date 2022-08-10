@@ -82,7 +82,7 @@ const ReportsSection = ({ search }) => {
           <div class={tableHeadings}>Candidates</div>
           <div class={tableHeadings}>Topic Tags</div>
           <div class={tableHeadings}>Sources</div>
-          <div class={tableHeadings}>Labels</div>
+          <div class={tableHeadings + " p-1"}>Labels (<button class="bg-blue-500 py-1 px-2 text-white rounded text-xs hover:bg-blue-700" onClick={() => getData()}>Refresh</button>)</div>
         </div>
         <div class="overflow-auto h-56 md:h-60">
           {filteredReports
