@@ -120,9 +120,9 @@ const ReportDetails = () => {
           <div class="mb-8">
             <div class={headerStyle}>Link Of The Information</div>
             <div class="flex flex-col">
-              {info['link'] && <a class={linkStyle} target="_blank" href={"//" + info['link']}>{info['link']}</a>}
-              {info['secondLink'] && <a class={linkStyle} target="_blank" href={"//" + info['secondLink']}>{info['secondLink']}</a>}
-              {info['thirdLink'] && <a class={linkStyle} target="_blank" href={"//" + info['thirdLink']}>{info['thirdLink']}</a>}
+              {info['link'] && <a class={linkStyle} target="_blank" rel="noreferrer" href={"//" + info['link']}>{info['link']}</a>}
+              {info['secondLink'] && <a class={linkStyle} target="_blank" rel="noreferrer" href={"//" + info['secondLink']}>{info['secondLink']}</a>}
+              {info['thirdLink'] && <a class={linkStyle} target="_blank" rel="noreferrer" href={"//" + info['thirdLink']}>{info['thirdLink']}</a>}
             </div>
           </div>
           <div>
