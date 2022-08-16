@@ -13,7 +13,8 @@ const ReportDetails = () => {
   const [info, setInfo] = useState({})
   const [reporterInfo, setReporterInfo] = useState({})
   const [postedDate, setPostedDate] = useState("")
-  const [notes, setNotes] = useState("")
+  const [selectedLabel, setSelectedLabel] = useState("")
+  const [changeStatus, setChangeStatus] = useState("")
   const [update, setUpdate] = useState("")
   const [activeLabels, setActiveLabels] = useState([])
 
@@ -55,9 +56,11 @@ const ReportDetails = () => {
   }
 
   const handleLabelChanged = async (e) => {
+    setChangeStatus("Saving changes...")
     e.preventDefault()
     const docRef = doc(db, 'reports', reportId)
     await updateDoc(docRef, { label: e.target.value })
+    setChangeStatus("Label changes saved successfully")
   }
 
   useEffect(() => {
@@ -72,6 +75,9 @@ const ReportDetails = () => {
     if (info['createdDate']) {
       const options = { day: '2-digit', year: 'numeric', month: 'short', hour: 'numeric', minute: 'numeric' }
       setPostedDate(info["createdDate"].toDate().toLocaleString('en-US', options).replace(/,/g,"").replace('at', ''))
+    }
+    if (info['label']) {
+      setSelectedLabel(info['label'])
     }
   }, [info])
 
@@ -91,14 +97,15 @@ const ReportDetails = () => {
             </div>
           </div>}
           <div class="mb-8">
-            <div class={headerStyle}>Label</div>
-            <select id="labels" onChange={(e) => handleLabelChanged(e)} defaultValue="default" class="text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl">
-              <option value="none">Choose a label</option>
-              {activeLabels.map((label) => {
+          <div class={headerStyle}>Label</div>
+            <select id="labels" onChange={(e) => handleLabelChanged(e)} defaultValue={selectedLabel} class="text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl">
+              <option value={selectedLabel ? selectedLabel : "none"}>{selectedLabel ? selectedLabel : 'Choose a label'}</option>
+              {activeLabels.filter(label => label != selectedLabel).map((label) => {
                 return (<option value={label}>{label}</option>)
                 })
               }
             </select>
+            {changeStatus && <span class="ml-5 font-light text-sm italic">{changeStatus}</span>}
           </div>
           <div class="flex flex-col mb-5">
             <div class="flex flex-row mb-3 items-center">

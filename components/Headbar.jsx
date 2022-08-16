@@ -4,9 +4,9 @@ import { AiOutlineSearch } from 'react-icons/ai'
 const Headbar = ({ search, setSearch}) => {
 
     const handleSearch = (e) => {
+        e.preventDefault()
         if (search.length == 0) return
 
-        e.preventDefault()
         console.log(search)
     }
 
