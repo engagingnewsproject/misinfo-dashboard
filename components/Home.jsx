@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import Headbar from '../components/Headbar'
-import ChartsSection from './ChartsSection'
 import ReportsSection from './ReportsSection'
 
 const views = ["Overview", "Comparison View"]
@@ -22,23 +21,7 @@ const Home = () => {
   return (
     <div class="w-full h-full flex flex-col py-5">
         <Headbar search={search} setSearch={setSearch} />
-        <div class="w-full flex flex-col px-12 py-5">
-          <div class="flex justify-between mb-2">
-            <form onChange={handleChange}>
-              <input type="radio" id="overview" defaultChecked value="0" name="view" class="hidden" />
-              <label for="overview"
-                class={viewVal == 0 ? styles.checked : styles.unchecked}>
-                Overview
-              </label>
-              <input type="radio" id="comparison view" value="1" name="view" class="hidden"/>
-              <label for="comparison view"
-                class={viewVal == 1 ? styles.checked : styles.unchecked}>
-                Comparison View
-              </label>
-            </form>
-            <div>Dates select</div>
-          </div>
-          <ChartsSection view={viewVal} />
+        <div class="w-full h-full flex flex-col px-12 py-5 mb-5 overflow-y-hidden">
           <ReportsSection search={search} />
         </div>
     </div>
