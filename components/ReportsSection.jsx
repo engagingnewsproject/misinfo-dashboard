@@ -8,6 +8,7 @@ const ReportsSection = ({ search }) => {
 
   const [reports, setReports] = useState([])
   const [filteredReports, setFilteredReports] = useState([])
+  const [reportWeek, setReportWeek] = useState("4")
   const { user } = useAuth()
   const dateOptions = { day: '2-digit', year: 'numeric', month: 'short', hour: 'numeric', minute: 'numeric' }
 
@@ -35,6 +36,11 @@ const ReportsSection = ({ search }) => {
     } catch (error) {
       console.log(error)
     }
+  }
+
+  const handleDateChanged = (e) => {
+    e.preventDefault()
+    setReportWeek(e.target.value)
   }
 
   // Filter the reports based on the search text
@@ -73,9 +79,19 @@ const ReportsSection = ({ search }) => {
 
 
   return (
-    <div class="flex flex-col">
-      <div class="text-lg font-bold text-blue-600 tracking-wider py-5">List of Reports</div>
-      <div class="bg-white w-full rounded-xl p-1 h-72">
+    <div class="flex flex-col h-full">
+      <div class="flex flex-row justify-between py-5">
+        <div class="text-lg font-bold text-blue-600 tracking-wider">List of Reports</div>
+        <div>
+          <select id="labels" onChange={(e) => handleDateChanged(e)} defaultValue="4" class="text-sm font-semibold bg-white inline-block px-8 border-none text-black py-1 rounded-md">
+            <option value="4">Last four weeks</option>
+            <option value="3">Last three weeks</option>
+            <option value="2">Last two weeks</option>
+            <option value="1">Last week</option>
+          </select>
+        </div>
+      </div>
+      <div class="bg-white w-full rounded-xl p-1 h-full">
         <div class="grid grid-cols-7">
           <div class={"col-span-2 " + tableHeadings}>Title</div>
           <div class={tableHeadings}>Date/Time</div>
@@ -84,8 +100,12 @@ const ReportsSection = ({ search }) => {
           <div class={tableHeadings}>Sources</div>
           <div class={tableHeadings + " p-1"}>Labels (<button class="bg-blue-500 py-1 px-2 text-white rounded text-xs hover:bg-blue-700" onClick={() => getData()}>Refresh</button>)</div>
         </div>
-        <div class="overflow-auto h-56 md:h-60">
+        <div class="oveflow-scroll ">
           {filteredReports
+            .filter((reportObj) => {
+              const report = Object.values(reportObj)[0]
+              return report["createdDate"].toDate() >= new Date(new Date().setDate(new Date().getDate() - reportWeek * 7))
+            })
             .sort((objA, objB) => Object.values(objA)[0]["createdDate"] > Object.values(objB)[0]["createdDate"] ? -1 : 1)
             .map((reportObj) => {
             const report = Object.values(reportObj)[0]
