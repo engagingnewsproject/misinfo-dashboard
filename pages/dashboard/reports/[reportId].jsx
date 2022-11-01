@@ -22,6 +22,8 @@ const ReportDetails = () => {
   const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
   const linkStyle = "font-light mb-1 text-sm underline underline-offset-1"
 
+  console.log('current URL 👉️', window.location.href);
+
   const getData = async () => {
     const infoRef = await getDoc(doc(db, "reports",  reportId))
     setInfo(infoRef.data())
@@ -81,6 +83,16 @@ const ReportDetails = () => {
     }
   }, [info])
 
+  function SendLinkByMail(href) {
+    var subject= "Misinformation Report";
+    var body = "Link to report:\r\n";
+    body += window.location.href;
+    var uri = "mailto:?subject=";
+    uri += encodeURIComponent(subject);
+    uri += "&body=";
+    uri += encodeURIComponent(body);
+    window.open(uri);
+}
   return (
     <div class="p-16">
       <div class="text-2xl font-bold text-blue-600 tracking-wider mb-8">More Information</div>
@@ -157,6 +169,12 @@ const ReportDetails = () => {
               <button onClick={saveChanges}
                 class="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold ml-4 py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">Save Changes</button>
             </div>}
+          </div>
+          <div class = "mb-8">
+            <button
+                  class="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl" onClick={SendLinkByMail}>        
+                  Share Report
+            </button>
           </div>
           <div class="w-full">
             <div class={headerStyle}>Images</div>
