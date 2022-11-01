@@ -4,6 +4,7 @@ import { getDoc, getDocs, doc, setDoc, collection, updateDoc } from "firebase/fi
 import { db } from '../../../config/firebase'
 import { RiMessage2Fill } from 'react-icons/ri'
 import { BiEditAlt } from 'react-icons/bi'
+import { BsShareFill } from 'react-icons/bs'
 import { AiOutlineFieldTime } from 'react-icons/ai'
 
 
@@ -172,8 +173,9 @@ const ReportDetails = () => {
           </div>
           <div class = "mb-8">
             <button
-                  class="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl" onClick={SendLinkByMail}>        
-                  Share Report
+                  class="flex flex-row text-sm bg-white inline-block px-4 border-none text-black py-1 rounded-md" onClick={SendLinkByMail}> 
+                  <BsShareFill class = "my-1" size = {15}/> 
+                  <div class = "px-3 py-1">Share The Report</div>
             </button>
           </div>
           <div class="w-full">
