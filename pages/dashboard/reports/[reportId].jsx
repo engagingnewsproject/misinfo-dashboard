@@ -4,6 +4,7 @@ import { getDoc, getDocs, doc, setDoc, collection, updateDoc } from "firebase/fi
 import { db } from '../../../config/firebase'
 import { RiMessage2Fill } from 'react-icons/ri'
 import { BiEditAlt } from 'react-icons/bi'
+import { BsShareFill } from 'react-icons/bs'
 import { AiOutlineFieldTime } from 'react-icons/ai'
 
 
@@ -21,6 +22,8 @@ const ReportDetails = () => {
   const { reportId } = router.query
   const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
   const linkStyle = "font-light mb-1 text-sm underline underline-offset-1"
+
+  console.log('current URL 👉️', window.location.href);
 
   const getData = async () => {
     const infoRef = await getDoc(doc(db, "reports",  reportId))
@@ -81,6 +84,16 @@ const ReportDetails = () => {
     }
   }, [info])
 
+  function SendLinkByMail(href) {
+    var subject= "Misinformation Report";
+    var body = "Link to report:\r\n";
+    body += window.location.href;
+    var uri = "mailto:?subject=";
+    uri += encodeURIComponent(subject);
+    uri += "&body=";
+    uri += encodeURIComponent(body);
+    window.open(uri);
+}
   return (
     <div class="p-16">
       <div class="text-2xl font-bold text-blue-600 tracking-wider mb-8">More Information</div>
@@ -157,6 +170,13 @@ const ReportDetails = () => {
               <button onClick={saveChanges}
                 class="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold ml-4 py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">Save Changes</button>
             </div>}
+          </div>
+          <div class = "mb-8">
+            <button
+                  class="flex flex-row text-sm bg-white inline-block px-4 border-none text-black py-1 rounded-md" onClick={SendLinkByMail}> 
+                  <BsShareFill class = "my-1" size = {15}/> 
+                  <div class = "px-3 py-1">Share The Report</div>
+            </button>
           </div>
           <div class="w-full">
             <div class={headerStyle}>Images</div>
