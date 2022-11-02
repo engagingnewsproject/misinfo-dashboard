@@ -50,37 +50,37 @@ const TagGraph = () => {
     // Retrieve array of all topics
     const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
     const topicRef = await getDoc(topicDoc);
-    const topics = topicRef.get("Topic")['list']
+    const topics = topicRef.get("Topic")['active']
     
     // Maintain count of reports for each topic in the previous day
     const topicReportArr = []
     for (let index = 0; index < topics.length; index++) {
-      console.log(topics[index])
+
       // Filters report collection so it only shows reports from yesterday and for the current topic
       const q = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay()),
       where("createdDate", "<", getEndOfDay()))      
       const topicData = await getDocs(q);
-
-      const newReport = {
-        topic: topics[index],
-        reports: topicData.size
-      }
-
-      // Maps current topic to the topic's reports and pushes to array
-      topicReportArr.push(newReport)
+      
+      // Excludes topics who had no reports yesterday 
+      if (topicData.size != 0)
+        {
+          const newReport = {
+            topic: topics[index],
+            reports: topicData.size
+          }
+          
+          // Maps current topic to the topic's reports and pushes to array
+          topicReportArr.push(newReport)
+        }
     }
-    console.log(topicReportArr.length)
-    // TODO: Work out sorting issue
-    //const sortedArray = [...topicReportArr].sort((a,b) => b.numReports - a.numReports).slice(0,3);
+    
+    // If more than 3 topics were reported, show only the top three trending.
+    const numTrendingTopics = topicReportArr.length > 2 ? 3: topicReportArr.length
+ 
+    // TODO: Sorts topics from most frequently reported to least frequently reported
+    const sortedArray = [...topicReportArr].sort((a,b) => b.reports - a.reports).slice(0,numTrendingTopics);
+    setTopicReports(sortedArray)
 
-    setTopicReports(topicReportArr)
-
-    // Logs each topic name and the number of times it was reported in the previous day
-    topicReports.forEach(item=> {
-      console.log(item.topic + ": " + item.numReports)
-    })
-    console.log(topicReports.length)
-    //sortTopics()
   };
   
   // On page load (mount), retrieve the reports collection to determine top three trending topics
@@ -89,10 +89,18 @@ const TagGraph = () => {
       getTopicReports()
       
       // Logs each topic name and the number of times it was reported in the previous day
+      /*
       topicReports.forEach(item=> {
         console.log(item.topic + ": " + item.numReports)
       })
       console.log(topicReports.length)
+      
+      // Logs each topic name and the number of times it was reported in the previous day
+      topicReports.forEach(item=> {
+        console.log(item.topic + ": " + item.numReports)
+      })
+      console.log(topicReports.length)
+      */
   }, [])
 
   // Query into the reports collection to only retrieve reports whose dates are within the past 3 days
