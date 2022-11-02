@@ -16,12 +16,12 @@ const Toggle = ({ viewVal, setViewVal }) => {
     <div>
         <button id="overview"
             onClick={handleViewChanged} 
-            class={viewVal == "overview" ? active: nonactive}>
+            className ={viewVal == "overview" ? active: nonactive}>
             Overview
         </button>
         <button id="comparison"
             onClick={handleViewChanged} 
-            class = {viewVal == "comparison" ? active : nonactive}>
+            className = {viewVal == "comparison" ? active : nonactive}>
             Comparison View 
         </button>
     </div>
