@@ -1,11 +1,16 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/router'
-import { MdHomeFilled } from 'react-icons/md';
-import { CgProfile } from 'react-icons/cg'
-import { IoSettingsSharp, IoAddCircleSharp, IoPricetagsSharp } from "react-icons/io5";
-import { BiLogOut } from 'react-icons/bi'
+import {
+	IoHomeOutline,
+	IoSettingsOutline,
+	IoAddCircleOutline,
+	IoPricetagsOutline,
+	IoLogOutOutline
+} from "react-icons/io5";
+import ReactTooltip from "react-tooltip";
 import { useAuth } from '../context/AuthContext';
 import ConfirmModal from './modals/ConfirmModal';
+import ReportModal from "./modals/ReportModal";
 
 const Navbar = ({tab, setTab}) => {
 
@@ -31,21 +36,22 @@ const Navbar = ({tab, setTab}) => {
                 <div>
                     <button 
                         onClick={() => setTab(0)}
-                        title="Home"
+                        data-tip="Home"
                         class={tab == 0 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
-                        <MdHomeFilled size={30}/>
+                        <IoHomeOutline size={30}/>
+                        <ReactTooltip delayShow={1000} place="bottom" type='light'/>
                     </button>
                     <button
                         onClick={() => setTab(2)}
                         title="Tagging Systems"
                         class={tab == 2 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
-                        <IoPricetagsSharp size={30}/>
+                        <IoPricetagsOutline size={30}/>
                     </button>
                     <button
                         onClick={() => setReportModal(true)}
                         title="New Report"
                         class={basicStyle}>
-                        <IoAddCircleSharp size={30}/>
+                        <IoAddCircleOutline size={30}/>
                     </button>
                 </div>
                 <div>
@@ -53,13 +59,13 @@ const Navbar = ({tab, setTab}) => {
                         onClick={() => setTab(1)}
                         title="Profile"
                         class={tab == 1 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
-                        <IoSettingsSharp size={30}/>
+                        <IoSettingsOutline size={30}/>
                     </button>
                     <button
                         onClick={() => setLogoutModal(true)}
                         title="Logout"
                         class={basicStyle}>
-                        <BiLogOut size={30}/>
+                        <IoLogOutOutline size={30}/>
                     </button>
                 </div>
             </div>
@@ -70,7 +76,7 @@ const Navbar = ({tab, setTab}) => {
                 CTA="Log out"
                 closeModal={setLogoutModal}
                 />}
-            { reportModal && <ConfirmModal
+            { reportModal && <ReportModal
                 func={handleReport}
                 title="New Report"
                 subtitle=""
