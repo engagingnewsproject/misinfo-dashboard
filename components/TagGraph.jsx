@@ -70,16 +70,21 @@ const TagGraph = () => {
           }
           
           // Maps current topic to the topic's reports and pushes to array
-          topicReportArr.push(newReport)
+          topicReportArr.push([topics[index], topicData.size])
         }
     }
     
     // If more than 3 topics were reported, show only the top three trending.
     const numTrendingTopics = topicReportArr.length > 2 ? 3: topicReportArr.length
- 
+
     // TODO: Sorts topics from most frequently reported to least frequently reported
-    const sortedArray = [...topicReportArr].sort((a,b) => b.reports - a.reports).slice(0,numTrendingTopics);
-    setTopicReports(sortedArray)
+    const sortedArray = [...topicReportArr].sort((a,b) => b[1] - a[1]).slice(0,numTrendingTopics);
+    for (let index = 0; index < sortedArray.length; index++) {
+      console.log (sortedArray[index])
+  
+    }
+    const trendingTopics = [["Topics", "Number Reports"]];
+    setTopicReports(trendingTopics.concat(sortedArray))
 
   };
   
@@ -87,7 +92,6 @@ const TagGraph = () => {
   // TODO: figure out how to get Topic Reports before printing
   useEffect(() => {
       getTopicReports()
-      
       // Logs each topic name and the number of times it was reported in the previous day
       /*
       topicReports.forEach(item=> {
@@ -109,8 +113,6 @@ const TagGraph = () => {
     <Toggle viewVal={viewVal} setViewVal={setViewVal}/>
     { viewVal == "overview" ? <OverviewGraph topicReports={topicReports}/> : <h1>Comparison view</h1>}
     </div>
-    // {/* Following code will be used to determing which display to show. 
-    //     Components need to be made for each display.*/}
   )
 }
 export default TagGraph
