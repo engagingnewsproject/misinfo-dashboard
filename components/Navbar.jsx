@@ -39,33 +39,37 @@ const Navbar = ({tab, setTab}) => {
                         data-tip="Home"
                         class={tab == 0 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
                         <IoHomeOutline size={30}/>
-                        <ReactTooltip delayShow={1000} place="bottom" type='light'/>
+                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     <button
                         onClick={() => setTab(2)}
-                        title="Tagging Systems"
+                        data-tip="Tagging Systems"
                         class={tab == 2 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
                         <IoPricetagsOutline size={30}/>
+                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     <button
                         onClick={() => setReportModal(true)}
-                        title="New Report"
+                        data-tip="New Report"
                         class={basicStyle}>
                         <IoAddCircleOutline size={30}/>
+                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                 </div>
                 <div>
                     <button
                         onClick={() => setTab(1)}
-                        title="Profile"
+                        data-tip="Settings"
                         class={tab == 1 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
                         <IoSettingsOutline size={30}/>
+                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     <button
                         onClick={() => setLogoutModal(true)}
-                        title="Logout"
+                        data-tip="Logout"
                         class={basicStyle}>
                         <IoLogOutOutline size={30}/>
+                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                 </div>
             </div>
