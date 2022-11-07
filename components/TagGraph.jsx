@@ -8,8 +8,8 @@ import OverviewGraph from './OverviewGraph'
 
 const TagGraph = () => {
   const [viewVal, setViewVal] = useState("overview")
-
   const [topicReports, setTopicReports] = useState([])
+  const [numTrendingTopics, setNumTrendingTopics] = useState(0)
   const styles = {
     checked: "bg-blue-600 text-white py-2 px-5 shadow-sm text-sm font-light tracking-wide",
     unchecked: "bg-white py-2 px-5 shadow-sm text-sm font-light tracking-wide"
@@ -75,10 +75,11 @@ const TagGraph = () => {
     }
     
     // If more than 3 topics were reported, show only the top three trending.
-    const numTrendingTopics = topicReportArr.length > 2 ? 3: topicReportArr.length
-
+    const reportedTopics = topicReportArr.length > 2 ? 3: topicReportArr.length
+    setNumTrendingTopics (reportedTopics)
+    console.log(numTrendingTopics)
     // TODO: Sorts topics from most frequently reported to least frequently reported
-    const sortedArray = [...topicReportArr].sort((a,b) => b[1] - a[1]).slice(0,numTrendingTopics);
+    const sortedArray = [...topicReportArr].sort((a,b) => b[1] - a[1]).slice(0, reportedTopics);
     for (let index = 0; index < sortedArray.length; index++) {
       console.log (sortedArray[index])
   
@@ -111,7 +112,7 @@ const TagGraph = () => {
   return (
     <div>
     <Toggle viewVal={viewVal} setViewVal={setViewVal}/>
-    { viewVal == "overview" ? <OverviewGraph topicReports={topicReports}/> : <h1>Comparison view</h1>}
+    { viewVal == "overview" ? <OverviewGraph topicReports={topicReports} numTopics={numTrendingTopics}/> : <h1>Comparison view</h1>}
     </div>
   )
 }
