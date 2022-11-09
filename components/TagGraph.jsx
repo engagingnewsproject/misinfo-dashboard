@@ -8,19 +8,20 @@ import OverviewGraph from './OverviewGraph'
 
 const TagGraph = () => {
   const [viewVal, setViewVal] = useState("overview")
-  const [topicReports, setTopicReports] = useState([])
-  const [numTrendingTopics, setNumTrendingTopics] = useState(0)
+  const [yesterdayReports, setYesterdayReports] = useState([])
+  const [threeDayReports, setThreeDayReports] = useState([])
+  const [sevenDayReports, setSevenDayReports] = useState([])
+  const [numTrendingTopics, setNumTrendingTopics] = useState([])
   const styles = {
     checked: "bg-blue-600 text-white py-2 px-5 shadow-sm text-sm font-light tracking-wide",
     unchecked: "bg-white py-2 px-5 shadow-sm text-sm font-light tracking-wide"
   }
 
-  const getStartOfDay = () => {
-    var days = 1
+  const getStartOfDay = (daysAgo) => {
     var starting_date = new Date()
     // Gets the start of yesterday, it will begin topic search
     // at this time
-    starting_date.setHours(-24,0,0,0) // Sets time to midnight of yesterday
+    starting_date.setHours(-24 * daysAgo,0,0,0) // Sets time to midnight of yesterday
     const timestamp = Timestamp.fromDate(starting_date)
     return timestamp
   }
@@ -38,7 +39,7 @@ const TagGraph = () => {
 
   // Sorts array that stores topics and their number of reports in trending topics order
   const sortTopics = () => {
-    const sortedArray = [...topicReports].sort((a,b) => b.numReports - a.numReports);
+    const sortedArray = [...yesterdayReports].sort((a,b) => b.numReports - a.numReports);
     // Sets topic reports to the top three trending topics
     setTopicReports(sortedArray)
   };
@@ -52,67 +53,91 @@ const TagGraph = () => {
     const topicRef = await getDoc(topicDoc);
     const topics = topicRef.get("Topic")['active']
     
-    // Maintain count of reports for each topic in the previous day
-    const topicReportArr = []
+    // Maintain count of reports for each topic in the previous day, past three days and past seven days
+    const topicsYesterday = []
+    const topicsThreeDays = []
+    const topicsSevenDays = []
+
     for (let index = 0; index < topics.length; index++) {
 
       // Filters report collection so it only shows reports from yesterday and for the current topic
-      const q = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay()),
+      const queryYesterday = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(1)),
       where("createdDate", "<", getEndOfDay()))      
-      const topicData = await getDocs(q);
+      const dataYesterday = await getDocs(queryYesterday);
+      
+      const queryThreeDays= query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(3)),
+      where("createdDate", "<", getEndOfDay()))      
+      const dataThreeDays = await getDocs(queryThreeDays);
+
+      // Filters report collection so it only shows reports from 7 days ago
+      const querySevenDays = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(7)),
+      where("createdDate", "<", getEndOfDay()))      
+      const dataSevenDays = await getDocs(querySevenDays);
       
       // Excludes topics who had no reports yesterday 
-      if (topicData.size != 0)
+      if (dataYesterday.size != 0)
         {
-          const newReport = {
-            topic: topics[index],
-            reports: topicData.size
-          }
-          
           // Maps current topic to the topic's reports and pushes to array
-          topicReportArr.push([topics[index], topicData.size])
+          topicsYesterday.push([topics[index], dataYesterday.size])
+        }
+      if (dataThreeDays.size != 0)
+        {
+          topicsThreeDays.push([topics[index], dataThreeDays.size])
+        }
+      if (dataSevenDays.size != 0)
+        {
+          // Maps current topic to the topic's reports and pushes to array
+          topicsSevenDays.push([topics[index], dataSevenDays.size])
         }
     }
     
     // If more than 3 topics were reported, show only the top three trending.
-    const reportedTopics = topicReportArr.length > 2 ? 3: topicReportArr.length
-    setNumTrendingTopics (reportedTopics)
+    const numTopics = []
+    const numTopicsYesterday = topicsYesterday.length > 2 ? 3: topicsYesterday.length
+    numTopics.push(numTopicsYesterday)
+    const numTopicsThreeDays = topicsThreeDays.length > 2 ? 3: topicsThreeDays.length
+    numTopics.push(numTopicsThreeDays)
+    const numTopicsSevenDays = topicsSevenDays.length > 2 ? 3: topicsSevenDays.length
+    numTopics.push(numTopicsSevenDays)
+    
+    
+    setNumTrendingTopics (numTopics)
     console.log(numTrendingTopics)
+    
     // TODO: Sorts topics from most frequently reported to least frequently reported
-    const sortedArray = [...topicReportArr].sort((a,b) => b[1] - a[1]).slice(0, reportedTopics);
-    for (let index = 0; index < sortedArray.length; index++) {
-      console.log (sortedArray[index])
-  
+    const sortedYesterday = [...topicsYesterday].sort((a,b) => b[1] - a[1]).slice(0, numTopics[0]);
+    for (let index = 0; index < sortedYesterday.length; index++) {
+      console.log (sortedYesterday[index])
+    }
+
+    const sortedThreeDays = [...topicsThreeDays].sort((a,b) => b[1] - a[1]).slice(0, numTopics[1]);
+    for (let index = 0; index < sortedThreeDays.length; index++) {
+      console.log (sortedThreeDays[index])
+    }
+
+    const sortedSevenDays = [...topicsSevenDays].sort((a,b) => b[1] - a[1]).slice(0, numTopics[2]);
+    for (let index = 0; index < sortedSevenDays.length; index++) {
+      console.log (sortedSevenDays[index])
     }
     const trendingTopics = [["Topics", "Number Reports"]];
-    setTopicReports(trendingTopics.concat(sortedArray))
+    setYesterdayReports(trendingTopics.concat(sortedYesterday))
+    setThreeDayReports(trendingTopics.concat(sortedThreeDays))
+    setSevenDayReports(trendingTopics.concat(sortedSevenDays))
 
   };
   
   // On page load (mount), retrieve the reports collection to determine top three trending topics
-  // TODO: figure out how to get Topic Reports before printing
   useEffect(() => {
       getTopicReports()
-      // Logs each topic name and the number of times it was reported in the previous day
-      /*
-      topicReports.forEach(item=> {
-        console.log(item.topic + ": " + item.numReports)
-      })
-      console.log(topicReports.length)
-      
-      // Logs each topic name and the number of times it was reported in the previous day
-      topicReports.forEach(item=> {
-        console.log(item.topic + ": " + item.numReports)
-      })
-      console.log(topicReports.length)
-      */
   }, [])
 
   // Query into the reports collection to only retrieve reports whose dates are within the past 3 days
   return (
     <div>
     <Toggle viewVal={viewVal} setViewVal={setViewVal}/>
-    { viewVal == "overview" ? <OverviewGraph topicReports={topicReports} numTopics={numTrendingTopics}/> : <h1>Comparison view</h1>}
+    { viewVal == "overview" ? <OverviewGraph yesterdayReports={yesterdayReports} threeDayReports={threeDayReports} 
+       sevenDayReports={sevenDayReports}
+       numTopics={numTrendingTopics}/> : <h1>Comparison view</h1>}
     </div>
   )
 }
