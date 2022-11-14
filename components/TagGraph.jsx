@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { collection, query, where, getDocs, Timestamp, getDoc, doc } from "firebase/firestore";
-import { useAuth } from '../context/AuthContext'
 import { db } from '../config/firebase'
 import Toggle from './Toggle'
-
 import OverviewGraph from './OverviewGraph'
 
 const TagGraph = () => {
@@ -12,11 +10,8 @@ const TagGraph = () => {
   const [threeDayReports, setThreeDayReports] = useState([])
   const [sevenDayReports, setSevenDayReports] = useState([])
   const [numTrendingTopics, setNumTrendingTopics] = useState([])
-  const styles = {
-    checked: "bg-blue-600 text-white py-2 px-5 shadow-sm text-sm font-light tracking-wide",
-    unchecked: "bg-white py-2 px-5 shadow-sm text-sm font-light tracking-wide"
-  }
 
+  // Returns the Firebase timestamp for the beginning of yesterday
   const getStartOfDay = (daysAgo) => {
     var starting_date = new Date()
     // Gets the start of yesterday, it will begin topic search
@@ -26,6 +21,7 @@ const TagGraph = () => {
     return timestamp
   }
 
+  // Returns the Firebase timestamp for the beginning of today
   const getEndOfDay = () => {
 
     const now = new Date()
@@ -34,7 +30,7 @@ const TagGraph = () => {
     // Convert to Firebase timestamp to easily compare
     // Gets the time: 11:59 yesterday so it will limit the queries to that date
     const timestamp = Timestamp.fromDate(now)
-    return timestamp // ex. 1631246400
+    return timestamp
   }
 
   // Sorts array that stores topics and their number of reports in trending topics order
@@ -104,7 +100,8 @@ const TagGraph = () => {
     setNumTrendingTopics (numTopics)
     console.log(numTrendingTopics)
     
-    // TODO: Sorts topics from most frequently reported to least frequently reported
+    // Sorts trending topics for the past day, past three days, and past seven days 
+    // so that array is ordered from most reported to least reported topics
     const sortedYesterday = [...topicsYesterday].sort((a,b) => b[1] - a[1]).slice(0, numTopics[0]);
     for (let index = 0; index < sortedYesterday.length; index++) {
       console.log (sortedYesterday[index])
@@ -131,11 +128,11 @@ const TagGraph = () => {
       getTopicReports()
   }, [])
 
-  // Query into the reports collection to only retrieve reports whose dates are within the past 3 days
+  
   return (
     <div>
     <Toggle viewVal={viewVal} setViewVal={setViewVal}/>
-    { viewVal == "overview" ? <OverviewGraph yesterdayReports={yesterdayReports} threeDayReports={threeDayReports} 
+    { viewVal == "overview" ? <OverviewGraph id="overview" yesterdayReports={yesterdayReports} threeDayReports={threeDayReports} 
        sevenDayReports={sevenDayReports}
        numTopics={numTrendingTopics}/> : <h1>Comparison view</h1>}
     </div>
