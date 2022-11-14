@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { collection, query, where, getDocs, Timestamp, getDoc, doc } from "firebase/firestore";
-import { useAuth } from '../context/AuthContext'
-import { db } from '../config/firebase'
 import { Chart } from "react-google-charts";
 
 const OverviewGraph = ({yesterdayReports, threeDayReports, sevenDayReports, numTopics}) => {
@@ -9,10 +6,10 @@ const OverviewGraph = ({yesterdayReports, threeDayReports, sevenDayReports, numT
   console.log(numTopics)
   console.log(yesterdayReports)
   
+  // Formats and returns today's date
   const getTodayDate = () => {
-    // Fprmats and returns today's date
     const today = new Date()
-    return today.toLocaleString('en-us', { month: "long" }) + ' ' + today.getDate()
+    return today.toLocaleString('en-us', { month: "long"}) + ' ' + today.getDate()
   }
 
   const date = getTodayDate()
@@ -26,17 +23,18 @@ const OverviewGraph = ({yesterdayReports, threeDayReports, sevenDayReports, numT
     legend: {backgroundColor: 'white'},
     backgroundColor: 'none',
     chartArea: {
-      right: 60,   // set this to adjust the legend width
-      left: 20,     // set this eventually, to adjust the left margin
+      right: 60, // Adjusts the legend width
+      left: 20,  // Adjusts the left margin
     },
   };
   return (
   <div>
-  <div class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">{getTodayDate()} Trending Topic Reports</div>
-    <div class="grid grid-cols-3 grid-rows-1 mt-3 gap-x-4">
+  <div class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">{getTodayDate()} Trending Topics</div>
+    <div class="grid grid-cols-1 grid-rows-3 mt-3 gap-y-4 md:grid md:grid-cols-3 md:grid-rows-1 md:mt-3 md:gap-x-4">
       <div class="col-span-1 bg-white rounded-xl mt-3 pr-2">
         <h1 class="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Yesterday's Reports</h1>
-        {numTopics[0] == 0 ? <h1>No topics reported</h1> :
+        {/* Pie chart for topics reported yesterday. */}
+        {numTopics[0] == 0 ? <h1 class="py-24 text-center">No topics reported.</h1> :
         
         <Chart
         chartType="PieChart"
@@ -49,7 +47,9 @@ const OverviewGraph = ({yesterdayReports, threeDayReports, sevenDayReports, numT
       </div>
       <div class="col-span-1 bg-white rounded-xl mt-3 pr-2">
         <h1 class="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Three Days Ago</h1>
-        {numTopics[1] == 0 ? <h1>No topics reported.</h1> :
+        
+        {/* Pie chart for topics reported within the past three days. */}
+        {numTopics[1] == 0 ? <h1 class="py-24 text-center">No topics reported.</h1> :
         <Chart
           chartType="PieChart"
           data={threeDayReports}
@@ -60,8 +60,9 @@ const OverviewGraph = ({yesterdayReports, threeDayReports, sevenDayReports, numT
       </div>
       <div class="col-span-1 bg-white rounded-xl mt-3 pr-2">
         <h1 class="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Seven Days Ago</h1>
-        {numTopics[2] == 0 ? <h1>No topics reported.</h1> :
-
+        
+        {/* Pie chart for topics reported within the past seven days. */}
+        {numTopics[2] == 0 ? <h1 class="py-24 text-center">No topics reported.</h1> :
         <Chart
             chartType="PieChart"
             data={sevenDayReports}
