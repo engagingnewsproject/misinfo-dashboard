@@ -3,10 +3,13 @@ import { useAuth } from '../context/AuthContext'
 import { collection, listCollections, getDoc, getDocs, doc } from "firebase/firestore"; 
 import { db } from '../config/firebase'
 import Link from 'next/link'
+import NewReportModal from './modals/NewReportModal'
+import { AiOutlinePlus } from 'react-icons/ai'
 
 const ReportsSection = ({ search }) => {
 
   const [reports, setReports] = useState([])
+  const [newReport, setNewReport] = useState(false)
   const [filteredReports, setFilteredReports] = useState([])
   const [reportWeek, setReportWeek] = useState("4")
   const { user } = useAuth()
@@ -82,6 +85,15 @@ const ReportsSection = ({ search }) => {
     <div class="flex flex-col h-full">
       <div class="flex flex-row justify-between py-5">
         <div class="text-lg font-bold text-blue-600 tracking-wider">List of Reports</div>
+        <div>
+          <button
+            onClick={() => setNewReport(true)}
+            class="flex flex-row text-sm bg-white inline-block px-4 border-none text-black py-1 rounded-md">
+            <AiOutlinePlus class = "my-1" size = {15}/> 
+            Create New Report
+          </button>
+        </div>
+        {newReport && <NewReportModal setNewReport={setNewReport} />}
         <div>
           <select id="labels" onChange={(e) => handleDateChanged(e)} defaultValue="4" class="text-sm font-semibold bg-white inline-block px-8 border-none text-black py-1 rounded-md">
             <option value="4">Last four weeks</option>
