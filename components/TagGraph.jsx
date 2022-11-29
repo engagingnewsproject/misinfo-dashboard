@@ -3,6 +3,7 @@ import { collection, query, where, getDocs, Timestamp, getDoc, doc } from "fireb
 import { db } from '../config/firebase'
 import Toggle from './Toggle'
 import OverviewGraph from './OverviewGraph'
+import ComparisonGraph from './ComparisonGraph'
 
 const TagGraph = () => {
   const [viewVal, setViewVal] = useState("overview")
@@ -134,7 +135,7 @@ const TagGraph = () => {
     <Toggle viewVal={viewVal} setViewVal={setViewVal}/>
     { viewVal == "overview" ? <OverviewGraph id="overview" yesterdayReports={yesterdayReports} threeDayReports={threeDayReports} 
        sevenDayReports={sevenDayReports}
-       numTopics={numTrendingTopics}/> : <h1>Comparison view</h1>}
+       numTopics={numTrendingTopics}/> : <ComparisonGraph sevenDayReports={sevenDayReports} numTopics = {numTrendingTopics} dateRange={7}/>}
     </div>
   )
 }
