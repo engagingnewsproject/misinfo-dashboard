@@ -2,10 +2,15 @@ import React, { useState } from 'react'
 import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../context/AuthContext'
 import moment from "moment"
+import { Country, State, City }  from 'country-state-city';
+import csc from "country-state-city";
+import { useFormik } from 'formik';
+import auth from "@firebase/auth";
+
 
 const NewReport = ({ setNewReport, addNewReport }) => {
     const [data, setData] = useState({
-        userID: "",
+        userID: auth().currentUser.uid,
         state: "",
         city: "",
         topic: "",
@@ -28,6 +33,18 @@ const NewReport = ({ setNewReport, addNewReport }) => {
         addNewReport(data)
         setNewReport(false)
     }
+
+    const countries = csc.getAllCountries();
+
+    const updatedStates = () => {
+        csc.getStatesOfCountry("United States").map((state) => ({ label: state.name, value: state.id, ...state }));   
+    }
+
+    const updatedCities = (stateId) =>
+    csc
+      .getCitiesOfState(stateId)
+      .map((city) => ({ label: city.name, value: city.id, ...city }));
+
 
     return (
         <div>
