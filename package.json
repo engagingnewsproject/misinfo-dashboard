@@ -11,16 +11,19 @@
   },
   "dependencies": {
     "@firebase/firestore": "^3.4.10",
+    "country-state-city": "^3.1.2",
     "dotenv": "^16.0.1",
     "firebase": "^9.8.3",
     "firebase-admin": "^11.0.0",
+    "formik": "^2.2.9",
     "moment": "^2.29.4",
     "next": "^12.1.6",
     "node": "^18.7.0",
     "react": "18.1.0",
     "react-dom": "18.1.0",
     "react-icons": "^4.4.0",
-    "react-responsive-carousel": "^3.2.23"
+    "react-responsive-carousel": "^3.2.23",
+    "react-select": "^5.7.0"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.2",
