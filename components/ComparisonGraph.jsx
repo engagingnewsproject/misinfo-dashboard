@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react'
+import { DateRangePicker } from 'react-date-range'
+import 'react-date-range/dist/styles.css'; // main style file
+import 'react-date-range/dist/theme/default.css'; // theme css file
+import { addDays } from 'date-fns'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,12 +17,20 @@ import { Line } from 'react-chartjs-2';
 import { collection, query, where, getDocs, Timestamp, getDoc, doc } from "firebase/firestore";
 import { db } from '../config/firebase'
 
-const ComparisonGraph = ({sevenDayReports, numTopics, dateRange}) => {
+const ComparisonGraph = ({sevenDayReports, numTopics}) => {
   const [dates, setDates] = useState([])
   const [reportData, setData] = useState([])
   const [dateLabels, setDateLabels] = useState([])
+  const [dateRange, setDateRange] = useState([
+    {
+      startDate: new Date(),
+      endDate: addDays(new Date(), 7),
+      key: 'selection'
+    }]
+  )
+  const [showCalendar, setShowCalendar] = useState(0)
   
-  // Returns array that holds array of Firebase timestamp for dates within the rage beginning at DateRange until today,
+  // Returns array that holds array of Firebase timestamp for dates within the rage beginning yesterday up until daysAgo.
   // and an array of formatted dates for each of the timestamps, which will be used as the labels for the graph. 
   const getDates = (daysAgo) => {
     var starting_date = new Date()
@@ -49,7 +61,7 @@ const ComparisonGraph = ({sevenDayReports, numTopics, dateRange}) => {
   }
 
   async function getDailyTopicReports() {
-    const array = getDates(dateRange)
+    const array = getDates(7)
     setDates(array[0])
     setDateLabels (array[1])
 
@@ -85,6 +97,9 @@ const ComparisonGraph = ({sevenDayReports, numTopics, dateRange}) => {
 
   }, [])
 
+  function populateGraph() {
+    getDailyTopicReports ()
+  }
   
   
   ChartJS.register(
@@ -139,17 +154,44 @@ const ComparisonGraph = ({sevenDayReports, numTopics, dateRange}) => {
     }
     arr.push(topicData)
   }
-
+  function handleSelect () {
+    if (showCalendar == 1)
+      {  
+        setShowCalendar(0)
+      }
+    else
+      {
+        setShowCalendar(1)
+      }
+  }
   const data = {
   labels,
   datasets: arr,
 
   }
-
+  const selectionRange = {
+    startDate: new Date(),
+    endDate: new Date(),
+    key: 'selection',
+  }
   return (
     <div>
       <div class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Daily Topic Reports</div>
         <div class="bg-white rounded-xl mt-6 py-5">
+          {showCalendar == 0 ?         
+          <button className = "justify-self-end bg-blue-600 text-white py-2 px-5 ml-3 drop-shadow-lg text-sm font-light tracking-wide"
+          onClick={() => handleSelect()}>Select dates</button> : 
+          <div><button className = "justify-self-end bg-blue-600 text-white py-2 px-5 ml-3 drop-shadow-lg text-sm font-light tracking-wide"
+          onClick={() => handleSelect()}>Close calendar</button> 
+          <DateRangePicker
+          onChange={item => setDateRange([item.selection])}
+          showSelectionPreview={true}
+          moveRangeOnFirstSelection={false}
+          months={2}
+          ranges={dateRange}
+          direction="horizontal"/></div>}
+          <button className = "justify-self-end bg-blue-600 text-white py-2 px-5 ml-3 drop-shadow-lg text-sm font-light tracking-wide"
+          onClick={() => populateGraph ()}>Refresh graph</button>
         <Line class="pl-20 pr-20" options={options} data={data} />
       </div>
     </div>
