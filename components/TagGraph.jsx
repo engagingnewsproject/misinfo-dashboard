@@ -135,7 +135,7 @@ const TagGraph = () => {
     <Toggle viewVal={viewVal} setViewVal={setViewVal}/>
     { viewVal == "overview" ? <OverviewGraph id="overview" yesterdayReports={yesterdayReports} threeDayReports={threeDayReports} 
        sevenDayReports={sevenDayReports}
-       numTopics={numTrendingTopics}/> : <ComparisonGraph sevenDayReports={sevenDayReports} numTopics = {numTrendingTopics} />}
+       numTopics={numTrendingTopics}/> : <ComparisonGraph sevenDayReports={sevenDayReports.splice(0)} numTopics = {numTrendingTopics} />}
     </div>
   )
 }
