@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { DateRangePicker } from 'react-date-range'
+
+import Select from 'react-select';
+import makeAnimated from 'react-select/animated';
+
 import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css'; // theme css file
 import { startOfDay, endOfDay, addDays, subDays } from 'date-fns'
@@ -26,6 +30,9 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
   const [updateGraph, setUpdateGraph] = useState(true)
   const [loaded, setLoaded] = useState(false)
   const defaultStartDay = startOfDay(new Date())
+  // ?
+  const [listTopicChoices, setTopicChoices] = useState([])
+
   defaultStartDay.setHours (-24 * 6, 0, 0, 0)
   const [dateRange, setDateRange] = useState([
     {
@@ -115,11 +122,11 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
   }
 
   async function getDailyTopicReports() {
-    console.log(dateRange[0].startDate)
-    console.log(dateRange[0].endDate)
-    console.log(dateRange[0])
+    // console.log(dateRange[0].startDate)
+    // console.log(dateRange[0].endDate)
+    // console.log(dateRange[0])
     const days = Math.ceil((dateRange[0].endDate.getTime()- dateRange[0].startDate.getTime()) / 86400000)
-    console.log("days" + days)
+    // console.log("days" + days)
     const array = getDates(days, dateRange[0].startDate)
 
     // Stores dates in format used to query the reports. 
@@ -127,14 +134,14 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
     
     // Stores date labels used for the x-axis on the comparison chart
     
-    console.log("labels: " + array[1])
+    // console.log("labels: " + array[1])
     setDateLabels (array[1])
 
     const reportsList = collection(db, "reports");
   
     // Stores the number of times that the topic was reported for each day within timeline
     const topicArray = []
-    console.log(trendingTopics.length)
+    // console.log(trendingTopics.length)
     // Maintain daily count of reports for top three topics within given timeline
     for (let topic = 0; topic < trendingTopics.length; topic++) {
       const numReports = []
@@ -145,9 +152,9 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
         where("createdDate", "<", array[0][index + 1]))
         const dailyReports = await getDocs(queryDaily);
         numReports.push(dailyReports.size)
-        console.log(trendingTopics[topic][0])
-        console.log("day:" + array[0][index])
-        console.log(dailyReports.size)
+        // console.log(trendingTopics[topic][0])
+        // console.log("day:" + array[0][index])
+        // console.log(dailyReports.size)
       }
 
       // Keeps track of each topic and the amount of times it was reported each day for the specified timeline
@@ -161,7 +168,7 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
     
     // Populates data used for the comparison graph
     for (let topic = 0; topic < trendingTopics.length; topic++) {
-      console.log("report data" + reportData[topic])
+      // console.log("report data" + reportData[topic])
       const topicData = {
         label: trendingTopics[topic][0],
         data: reportData[topic],
@@ -175,7 +182,7 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
 
   // On page load (mount), retrieve the reports collection to determine top three trending topics
   useEffect(() => {
-    console.log(updateGraph)
+    // console.log(updateGraph)
     if (updateGraph == true)
       {
         setLoaded(false)
@@ -193,6 +200,12 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
     setUpdateGraph(false)
   }, [reportData]);
   
+  // Get all the topic choices
+  useEffect (()=> {
+    getTopicChoices()
+  });
+  
+
   ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -233,6 +246,27 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
   
   }
 
+  // const listChoices = []
+  async function getTopicChoices() {
+    const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
+    const topicRef = await getDoc(topicDoc);
+    const topics = topicRef.get("Topic")['active']
+    const topicChoices = []
+    for (let index = 0; index < topics.length; index++) {
+      console.log(topics[index] + " testing")
+    }
+    topics.forEach(function(element) {
+      topicChoices.push({ label: element, value: element})
+    });
+    setTopicChoices(topicChoices)
+    // return listChoices
+  }
+
+  const animatedComponents = makeAnimated();
+  const Countries = [
+    'this','test'
+  ];
+
   return (
     <div>
       <div class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Daily Topic Reports</div>
@@ -253,6 +287,8 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
           direction="horizontal"/></div>}
           <button className = "justify-self-end bg-blue-600 text-white py-2 px-5 ml-3 drop-shadow-lg text-sm font-light tracking-wide"
           onClick={() => setUpdateGraph(true)}>Refresh graph</button>
+          <Select options={listTopicChoices} components={animatedComponents}
+              isMulti />
         {loaded ? 
         <Line class="pl-20 pr-20" options={options} data={graphData} /> : <h1>Loading data.</h1>}
       </div>
