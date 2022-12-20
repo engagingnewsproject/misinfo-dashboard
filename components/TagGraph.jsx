@@ -11,6 +11,7 @@ const TagGraph = () => {
   const [threeDayReports, setThreeDayReports] = useState([])
   const [sevenDayReports, setSevenDayReports] = useState([])
   const [numTrendingTopics, setNumTrendingTopics] = useState([])
+  const [loaded, setLoaded] = useState(false)
 
   // Returns the Firebase timestamp for the beginning of yesterday
   const getStartOfDay = (daysAgo) => {
@@ -40,7 +41,6 @@ const TagGraph = () => {
     // Sets topic reports to the top three trending topics
     setTopicReports(sortedArray)
   };
-
 
   async function getTopicReports() {
     const reportsList = collection(db, "reports");
@@ -121,7 +121,7 @@ const TagGraph = () => {
     setYesterdayReports(trendingTopics.concat(sortedYesterday))
     setThreeDayReports(trendingTopics.concat(sortedThreeDays))
     setSevenDayReports(trendingTopics.concat(sortedSevenDays))
-
+    setLoaded(true)
   };
   
   // On page load (mount), retrieve the reports collection to determine top three trending topics
@@ -133,10 +133,11 @@ const TagGraph = () => {
   return (
     <div>
     <Toggle viewVal={viewVal} setViewVal={setViewVal}/>
-    { viewVal == "overview" ? <OverviewGraph id="overview" yesterdayReports={yesterdayReports} threeDayReports={threeDayReports} 
+    { viewVal == "overview" ? <OverviewGraph id="overview" loaded={loaded} yesterdayReports={yesterdayReports} threeDayReports={threeDayReports} 
        sevenDayReports={sevenDayReports}
        numTopics={numTrendingTopics}/> : <ComparisonGraph sevenDayReports={sevenDayReports.splice(0)} numTopics = {numTrendingTopics} />}
     </div>
   )
 }
 export default TagGraph
+

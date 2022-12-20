@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { DateRangePicker } from 'react-date-range'
-
-import Select from 'react-select';
-import makeAnimated from 'react-select/animated';
-
 import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css'; // theme css file
 import { startOfDay, endOfDay, addDays, subDays } from 'date-fns'
@@ -20,19 +16,27 @@ import {
 import { Line } from 'react-chartjs-2';
 import { collection, query, where, getDocs, Timestamp, getDoc, doc } from "firebase/firestore";
 import { db } from '../config/firebase'
+import {
+  IoMdCalendar,
+  IoMdRefresh,
+  IoMdRemove
+} from "react-icons/io";
+import ReactTooltip from "react-tooltip";
+import Select from 'react-select';
+import makeAnimated from 'react-select/animated';
 
 const ComparisonGraph = ({sevenDayReports, numTopics}) => {
-  const [trendingTopics, setTrendingTopics] = useState(sevenDayReports)
+  const [trendingTopics, setTrendingTopics] = useState([])
   const [dates, setDates] = useState([])
   const [reportData, setData] = useState([])
   const [graphData, setGraphData] = useState([])
   const [dateLabels, setDateLabels] = useState([])
-  const [updateGraph, setUpdateGraph] = useState(true)
+  const [updateGraph, setUpdateGraph] = useState(false)
   const [loaded, setLoaded] = useState(false)
-  const defaultStartDay = startOfDay(new Date())
-  // ?
+  const [plotGraph, setPlotGraph] = useState(false)
   const [listTopicChoices, setTopicChoices] = useState([])
 
+  const defaultStartDay = startOfDay(new Date())
   defaultStartDay.setHours (-24 * 6, 0, 0, 0)
   const [dateRange, setDateRange] = useState([
     {
@@ -43,9 +47,12 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
   )
   const [showCalendar, setShowCalendar] = useState(0)
 
+  // Styling for graph setting buttons.
+  const basicStyle = "flex p-2 my-6 mx-2 text-gray-500 hover:bg-blue-100 rounded-lg"
+
   // Retrieves the top three trending topics for the requested date range
   async function getTopics(startDate, endDate) {
-    const reportsList = collection(db, "reports");
+    const reportsList = collection(db, "reports")
   
     // Retrieve array of all topics
     const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
@@ -71,7 +78,6 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
     
     // Sorts trending topics for the date range 
     // so that array is ordered from most reported to least reported topics
-
     const numTopics = topicsTrending.length > 3 ? 3: topicsTrending.length
     const sortedDateRange = [...topicsTrending].sort((a,b) => b[1] - a[1]).slice(0, numTopics);
     setTrendingTopics(sortedDateRange)
@@ -109,8 +115,8 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
     return arr
   }
 
-
-  function handleSelect () {
+  // Handles selection for the calendar dropdown. 
+  const handleSelect = () =>  {
     if (showCalendar == 1)
       {  
         setShowCalendar(0)
@@ -122,26 +128,21 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
   }
 
   async function getDailyTopicReports() {
-    // console.log(dateRange[0].startDate)
-    // console.log(dateRange[0].endDate)
-    // console.log(dateRange[0])
     const days = Math.ceil((dateRange[0].endDate.getTime()- dateRange[0].startDate.getTime()) / 86400000)
-    // console.log("days" + days)
     const array = getDates(days, dateRange[0].startDate)
 
     // Stores dates in format used to query the reports. 
     setDates(array[0])
     
     // Stores date labels used for the x-axis on the comparison chart
-    
-    // console.log("labels: " + array[1])
+    console.log("labels: " + array[1])
     setDateLabels (array[1])
 
     const reportsList = collection(db, "reports");
   
     // Stores the number of times that the topic was reported for each day within timeline
     const topicArray = []
-    // console.log(trendingTopics.length)
+    
     // Maintain daily count of reports for top three topics within given timeline
     for (let topic = 0; topic < trendingTopics.length; topic++) {
       const numReports = []
@@ -152,9 +153,9 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
         where("createdDate", "<", array[0][index + 1]))
         const dailyReports = await getDocs(queryDaily);
         numReports.push(dailyReports.size)
-        // console.log(trendingTopics[topic][0])
-        // console.log("day:" + array[0][index])
-        // console.log(dailyReports.size)
+        console.log(trendingTopics[topic][0])
+        console.log("day:" + array[0][index])
+        console.log(dailyReports.size)
       }
 
       // Keeps track of each topic and the amount of times it was reported each day for the specified timeline
@@ -162,13 +163,30 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
     }
     setData(topicArray)
   }
+  
+  // Determines if graph should be refreshed. 
+  const handleGraphUpdate = () => {
+    if (updateGraph == true)
+      {
+        setLoaded(false)
+        setShowCalendar(0)
+        console.log(dateRange)
+        getTopics(Timestamp.fromDate(dateRange[0].startDate), Timestamp.fromDate(dateRange[0].endDate))
+      }
+  }
 
-  async function getGraphData () {
+  const handleDateSelection = (date) =>  {
+    console.log(date)
+    setDateRange(date)
+    setUpdateGraph(true)
+  }
+
+  async function getGraphData() {
     const arr = []
     
     // Populates data used for the comparison graph
     for (let topic = 0; topic < trendingTopics.length; topic++) {
-      // console.log("report data" + reportData[topic])
+      console.log("report data" + reportData[topic])
       const topicData = {
         label: trendingTopics[topic][0],
         data: reportData[topic],
@@ -180,31 +198,23 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
     setGraphData({labels:dateLabels, datasets:arr})
   }
 
-  // On page load (mount), retrieve the reports collection to determine top three trending topics
-  useEffect(() => {
-    // console.log(updateGraph)
-    if (updateGraph == true)
-      {
-        setLoaded(false)
-        getTopics(Timestamp.fromDate(dateRange[0].startDate), Timestamp.fromDate(dateRange[0].endDate))
-      }
- 
-  }, [updateGraph]);
-
+  // Retrieves topic report information when list of topics changes. 
   useEffect (()=> {
     getDailyTopicReports()
   }, [trendingTopics]);
+
+  // Populates graph with new data for the selected date range and topics. 
   useEffect(()=> {
-    getGraphData()
-    setLoaded(true)
-    setUpdateGraph(false)
+    if (updateGraph) {
+      getGraphData()
+      setLoaded(true)
+      setUpdateGraph(false)
+    }
   }, [reportData]);
-  
-  // Get all the topic choices
+    // Get all the topic choices
   useEffect (()=> {
     getTopicChoices()
-  });
-  
+  }, []);
 
   ChartJS.register(
     CategoryScale,
@@ -216,7 +226,6 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
     Legend
   )
 
-  // const labels = dateLabels // stores date range which is used as the labels for the X axis
   const colors = ['#F6413A', '#FFCA29', '#2196F3']
   const options = {
     responsive: true,
@@ -267,32 +276,70 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
     'this','test'
   ];
 
+
   return (
     <div>
-      <div class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Daily Topic Reports</div>
+      <div class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Compare Topic Reports</div>
         <div class="bg-white rounded-xl mt-6 py-5">
-          {showCalendar == 0 ?         
-          <button className = "justify-self-end bg-blue-600 text-white py-2 px-5 ml-3 drop-shadow-lg text-sm font-light tracking-wide"
-          onClick={() => handleSelect()}>Select dates</button> : 
-          <div><button className = "justify-self-end bg-blue-600 text-white py-2 px-5 ml-3 drop-shadow-lg text-sm font-light tracking-wide"
-          onClick={() => handleSelect()}>Close calendar</button> 
-          
-          <DateRangePicker
-          onChange={item => setDateRange([item.selection])}
-          showSelectionPreview={true}
-          moveRangeOnFirstSelection={false}
-          months={1}
-          maxDate={new Date()}
-          ranges={dateRange}
-          direction="horizontal"/></div>}
-          <button className = "justify-self-end bg-blue-600 text-white py-2 px-5 ml-3 drop-shadow-lg text-sm font-light tracking-wide"
-          onClick={() => setUpdateGraph(true)}>Refresh graph</button>
-          <Select options={listTopicChoices} components={animatedComponents}
-              isMulti />
-        {loaded ? 
-        <Line class="pl-20 pr-20" options={options} data={graphData} /> : <h1>Loading data.</h1>}
-      </div>
+          {!loaded && !updateGraph && <h1 class="pl-3">Select a date range and choose three topics to display graph.</h1>}
+
+          <div class="grid grid-flow-col auto-cols-max">
+            {showCalendar == 0 ? 
+              <button
+                    onClick={() => handleSelect()}
+                    data-tip="Select Dates"
+                    class={showCalendar == 1 ? basicStyle + " text-stone-400 bg-blue-100" : basicStyle}>
+                    <IoMdCalendar size={25} />
+                    <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+              </button>
+              :
+              <button
+              onClick={() => handleSelect()}
+              data-tip="Close calendar"
+              class={showCalendar == 1 ? basicStyle + " text-stone-400 bg-blue-100" : basicStyle}>
+              <IoMdRemove size={25} />
+              <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+              </button> 
+            }
+            <button
+                  onClick={() => handleGraphUpdate()}
+                  data-tip="Refresh Graph"
+                  class={basicStyle}>
+                  <IoMdRefresh size={25} />
+                  <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+            </button>
+            <Select options={listTopicChoices} components={animatedComponents} class="flex p-2 my-6 mx-2 text-gray-500"
+                isMulti />
+            {loaded ? <div class="justify-self-end"><h1 class="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Topic Reports</h1></div> : null}
+
+          </div>
+          {showCalendar == 1 ?     
+            <div>    
+              <div><DateRangePicker
+              onChange={item => handleDateSelection([item.selection])}
+              showSelectionPreview={true}
+              moveRangeOnFirstSelection={true}
+              months={1}
+              maxDate={new Date()}
+              ranges={dateRange}
+              direction="horizontal"/></div>
+              {updateGraph && <button
+              onClick={() => handleGraphUpdate()}
+              data-tip="Refresh Graph"
+              class="bg-blue-600 text-white py-2 px-5 pr-20 drop-shadow-lg text-sm font-light align-right justify-end">
+                Select dates
+              </button>}
+
+            </div>
+           : null}
+      
+          {loaded && <Line class="pl-20 pr-20" options={options} data={graphData} />}
+          {!loaded && updateGraph && <h1>Loading data.</h1>}
+        </div>
     </div>
   )
 }
 export default ComparisonGraph
+
+
+
