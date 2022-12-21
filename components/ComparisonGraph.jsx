@@ -19,7 +19,10 @@ import { db } from '../config/firebase'
 import {
   IoMdCalendar,
   IoMdRefresh,
-  IoMdRemove
+  IoMdRemove,
+  IoIosArrowForward,
+  IoIosArrowBack,
+  IoIosWarning
 } from "react-icons/io";
 import ReactTooltip from "react-tooltip";
 import Select from 'react-select';
@@ -35,7 +38,8 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
   const [loaded, setLoaded] = useState(false)
   const [plotGraph, setPlotGraph] = useState(false)
   const [listTopicChoices, setTopicChoices] = useState([])
-
+  const [tab, setTab] = useState(0)
+  const [error, setError] = useState(false)
   const defaultStartDay = startOfDay(new Date())
   defaultStartDay.setHours (-24 * 6, 0, 0, 0)
   const [dateRange, setDateRange] = useState([
@@ -67,13 +71,10 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
       const queryTopics= query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", startDate),
       where("createdDate", "<", endDate))      
       const dataReports = await getDocs(queryTopics);
-      
-      // Excludes topics who had no reports within date range
-      if (dataReports.size != 0)
-        {
-          // Maps current topic to the topic's reports and pushes to array
-          topicsTrending.push([topics[index], dataReports.size])
-        }
+
+      // Maps current topic to the topic's reports and pushes to array
+      topicsTrending.push([topics[index], dataReports.size])
+
     }
     
     // Sorts trending topics for the date range 
@@ -108,8 +109,8 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
     const timestamp = Timestamp.fromDate(starting_date)
     dates.push(timestamp)
 
-    // arr stores two arrays: one for the timestamps used to filter reports for the specified date, 
-    // and one with the formatted date for the graph labels
+    // arr stores two arrays: one for the timestamps used to filter reports for the specified dates, 
+    // and one with the formatted dates for the graph labels
     arr.push (dates)
     arr.push (formattedDates)
     return arr
@@ -181,6 +182,7 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
     setUpdateGraph(true)
   }
 
+  // Formats data using date range and selected topics to display graph.
   async function getGraphData() {
     const arr = []
     
@@ -211,6 +213,7 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
       setUpdateGraph(false)
     }
   }, [reportData]);
+
     // Get all the topic choices
   useEffect (()=> {
     getTopicChoices()
@@ -255,6 +258,17 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
   
   }
 
+  const handleGraphChange = () => {
+    setPlotGraph(true)
+    handleGraphUpdate()
+  }
+
+  // Ensures that only three topics are selected and displays error otherwise.
+  const handleTopicSelection = () => {
+    console.log(listTopicChoices.length)
+    setError(false)
+    setTab(1)
+  }
   // const listChoices = []
   async function getTopicChoices() {
     const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
@@ -280,62 +294,112 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
   return (
     <div>
       <div class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Compare Topic Reports</div>
-        <div class="bg-white rounded-xl mt-6 py-5">
-          {!loaded && !updateGraph && <h1 class="pl-3">Select a date range and choose three topics to display graph.</h1>}
-
-          <div class="grid grid-flow-col auto-cols-max">
-            {showCalendar == 0 ? 
-              <button
-                    onClick={() => handleSelect()}
-                    data-tip="Select Dates"
+          {!plotGraph &&
+            <div>
+              {tab == 0 && 
+                <div class="flex items-center justify-center">
+                <div class="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-1/2">
+                  <h1 class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select three topics.</h1>
+                  <h1 class="pl-3 pb-4 text-center">Choose which topics you would like to compare.</h1>
+                  {error && <h1 class="pl-3 pb-4 text-center text-red-500">You must choose three topics to compare.</h1>}
+                  <Select options={listTopicChoices} components={animatedComponents}
+                  isMulti />
+                </div>
+                <button
+                  onClick={() => handleTopicSelection()}
+                  data-tip="Next"
+                  class={showCalendar == 1 ? basicStyle + " text-stone-400 bg-blue-100" : basicStyle}>
+                  <IoIosArrowForward size={25} />
+                  <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+                </button>
+                </div>
+              }
+              {tab == 1 &&
+                <div class="flex items-center justify-center">
+                 <button
+                    onClick={() => setTab(0)}
+                    data-tip="Previous"
                     class={showCalendar == 1 ? basicStyle + " text-stone-400 bg-blue-100" : basicStyle}>
-                    <IoMdCalendar size={25} />
+                    <IoIosArrowBack size={25} />
+                    <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+                  </button>
+                  <div class="bg-white rounded-xl mt-6 py-5 pl-3 pr-3">
+                    <h1 class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select dates</h1>
+                    <h1 class="pl-3 text-center">Select a date range to collect the number of reports for the selected topics. </h1>
+                    <DateRangePicker
+                    onChange={item => handleDateSelection([item.selection])}
+                    showSelectionPreview={true}
+                    moveRangeOnFirstSelection={false}
+                    months={1}
+                    maxDate={new Date()}
+                    ranges={dateRange}
+                    direction="horizontal"/>
+                  </div>
+                  <button
+                    onClick={() => handleGraphChange()}
+                    data-tip="Display graph"
+                    class={showCalendar == 1 ? basicStyle + " text-stone-400 bg-blue-100" : basicStyle}>
+                    <IoIosArrowForward size={25} />
+                    <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+                  </button>
+                </div>
+              }
+            </div>}
+          {plotGraph && loaded && 
+            <div class="bg-white rounded-xl mt-6 py-5">
+            {!loaded && !updateGraph && <h1 class="pl-3">Select a date range and choose three topics to display graph.</h1>}
+
+            <div class="grid grid-flow-col auto-cols-max">
+              {showCalendar == 0 ? 
+                <button
+                      onClick={() => handleSelect()}
+                      data-tip="Select Dates"
+                      class={showCalendar == 1 ? basicStyle + " text-stone-400 bg-blue-100" : basicStyle}>
+                      <IoMdCalendar size={25} />
+                      <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+                </button>
+                :
+                <button
+                onClick={() => handleSelect()}
+                data-tip="Close calendar"
+                class={showCalendar == 1 ? basicStyle + " text-stone-400 bg-blue-100" : basicStyle}>
+                <IoMdRemove size={25} />
+                <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+                </button> 
+              }
+              <button
+                    onClick={() => handleGraphUpdate()}
+                    data-tip="Refresh Graph"
+                    class={basicStyle}>
+                    <IoMdRefresh size={25} />
                     <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
               </button>
-              :
-              <button
-              onClick={() => handleSelect()}
-              data-tip="Close calendar"
-              class={showCalendar == 1 ? basicStyle + " text-stone-400 bg-blue-100" : basicStyle}>
-              <IoMdRemove size={25} />
-              <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
-              </button> 
-            }
-            <button
-                  onClick={() => handleGraphUpdate()}
-                  data-tip="Refresh Graph"
-                  class={basicStyle}>
-                  <IoMdRefresh size={25} />
-                  <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
-            </button>
-            <Select options={listTopicChoices} components={animatedComponents} class="flex p-2 my-6 mx-2 text-gray-500"
-                isMulti />
-            {loaded ? <div class="justify-self-end"><h1 class="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Topic Reports</h1></div> : null}
-
-          </div>
-          {showCalendar == 1 ?     
-            <div>    
-              <div><DateRangePicker
-              onChange={item => handleDateSelection([item.selection])}
-              showSelectionPreview={true}
-              moveRangeOnFirstSelection={true}
-              months={1}
-              maxDate={new Date()}
-              ranges={dateRange}
-              direction="horizontal"/></div>
-              {updateGraph && <button
-              onClick={() => handleGraphUpdate()}
-              data-tip="Refresh Graph"
-              class="bg-blue-600 text-white py-2 px-5 pr-20 drop-shadow-lg text-sm font-light align-right justify-end">
-                Select dates
-              </button>}
-
+              <Select options={listTopicChoices} components={animatedComponents}
+                  isMulti />
             </div>
-           : null}
-      
-          {loaded && <Line class="pl-20 pr-20" options={options} data={graphData} />}
-          {!loaded && updateGraph && <h1>Loading data.</h1>}
-        </div>
+            {showCalendar == 1 &&  
+              <div>    
+                <div><DateRangePicker
+                onChange={item => handleDateSelection([item.selection])}
+                showSelectionPreview={true}
+                moveRangeOnFirstSelection={false}
+                months={1}
+                maxDate={new Date()}
+                ranges={dateRange}
+                direction="horizontal"/></div>
+
+              </div>
+            }
+            {loaded && <Line class="pl-20 pr-20" options={options} data={graphData} />} 
+            {!loaded && updateGraph && <h1>Loading data.</h1>}
+          </div>   
+        }
+        {plotGraph && !loaded && 
+          <div class="flex items-center justify-center">
+            <div class="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-1/2">
+              <h1 class="text-center">Collecting data...</h1>
+            </div>
+          </div>}
     </div>
   )
 }
