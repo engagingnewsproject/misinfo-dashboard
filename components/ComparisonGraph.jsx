@@ -30,6 +30,7 @@ import makeAnimated from 'react-select/animated';
 
 const ComparisonGraph = ({sevenDayReports, numTopics}) => {
   const [trendingTopics, setTrendingTopics] = useState([])
+  const [selectedTopics, setSelectedTopics] = useState([])
   const [dates, setDates] = useState([])
   const [reportData, setData] = useState([])
   const [graphData, setGraphData] = useState([])
@@ -53,6 +54,23 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
 
   // Styling for graph setting buttons.
   const basicStyle = "flex p-2 my-6 mx-2 text-gray-500 hover:bg-blue-100 rounded-lg"
+
+  // Formats and returns date range
+  const formatDates = () => {
+    // const startRange = dateRange[0].startDate
+    // const endRange = dateRange[0].endDate
+    const startRange = new Date(dates[0] * 1000)
+    console.log(dates.length)
+    console.log(new Date(dates[dates.length - 2] * 1000))
+    const endRange = new Date(dates[dates.length - 2]  * 1000)
+    console.log(dates)
+    var newDateOptions = {
+      month: "2-digit",
+      day: "2-digit"
+    };
+
+    return startRange.toLocaleString('en-us', newDateOptions) + '-' + endRange.toLocaleString('en-us', newDateOptions)
+  }
 
   // Retrieves the top three trending topics for the requested date range
   async function getTopics(startDate, endDate) {
@@ -80,8 +98,8 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
     // Sorts trending topics for the date range 
     // so that array is ordered from most reported to least reported topics
     const numTopics = topicsTrending.length > 3 ? 3: topicsTrending.length
-    const sortedDateRange = [...topicsTrending].sort((a,b) => b[1] - a[1]).slice(0, numTopics);
-    setTrendingTopics(sortedDateRange)
+    const sortedTopics= [...topicsTrending].sort((a,b) => b[1] - a[1]).slice(0, numTopics);
+    setTrendingTopics(sortedTopics)
 
   }
   
@@ -145,16 +163,16 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
     const topicArray = []
     
     // Maintain daily count of reports for top three topics within given timeline
-    for (let topic = 0; topic < trendingTopics.length; topic++) {
+    for (let topic = 0; topic < selectedTopics.length; topic++) {
       const numReports = []
       for (let index = 0; index < array[0].length - 1; index++) {
 
         // Filters report collection so it only shows reports for the current topic on the day at current index in array
-        const queryDaily = query(reportsList, where("topic", "==", trendingTopics[topic][0]), where("createdDate", ">=", array[0][index]),
+        const queryDaily = query(reportsList, where("topic", "==", selectedTopics[topic].value), where("createdDate", ">=", array[0][index]),
         where("createdDate", "<", array[0][index + 1]))
         const dailyReports = await getDocs(queryDaily);
         numReports.push(dailyReports.size)
-        console.log(trendingTopics[topic][0])
+        console.log(selectedTopics[topic].value)
         console.log("day:" + array[0][index])
         console.log(dailyReports.size)
       }
@@ -172,7 +190,10 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
         setLoaded(false)
         setShowCalendar(0)
         console.log(dateRange)
-        getTopics(Timestamp.fromDate(dateRange[0].startDate), Timestamp.fromDate(dateRange[0].endDate))
+        console.log("selected topics" + selectedTopics)
+        getDailyTopicReports()
+
+       // getTopics(Timestamp.fromDate(dateRange[0].startDate), Timestamp.fromDate(dateRange[0].endDate))
       }
   }
 
@@ -187,10 +208,10 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
     const arr = []
     
     // Populates data used for the comparison graph
-    for (let topic = 0; topic < trendingTopics.length; topic++) {
+    for (let topic = 0; topic < selectedTopics.length; topic++) {
       console.log("report data" + reportData[topic])
       const topicData = {
-        label: trendingTopics[topic][0],
+        label: selectedTopics[topic].label,
         data: reportData[topic],
         borderColor: colors[topic],
         backgroundColor: colors[topic],
@@ -218,6 +239,12 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
   useEffect (()=> {
     getTopicChoices()
   }, []);
+
+  // Sets update graph to be true whenever the selected topics are changed.
+  useEffect (()=> {
+    setUpdateGraph(true)
+  }, [selectedTopics]);
+
 
   ChartJS.register(
     CategoryScale,
@@ -265,7 +292,7 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
 
   // Ensures that only three topics are selected and displays error otherwise.
   const handleTopicSelection = () => {
-    console.log(listTopicChoices.length)
+    console.log(selectedTopics)
     setError(false)
     setTab(1)
   }
@@ -303,7 +330,11 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
                   <h1 class="pl-3 pb-4 text-center">Choose which topics you would like to compare.</h1>
                   {error && <h1 class="pl-3 pb-4 text-center text-red-500">You must choose three topics to compare.</h1>}
                   <Select options={listTopicChoices} components={animatedComponents}
-                  isMulti />
+                  isMulti 
+                  onChange={item => setSelectedTopics(item)}
+                  closeMenuOnSelect={false}
+                  value={selectedTopics}
+                  />
                 </div>
                 <button
                   onClick={() => handleTopicSelection()}
@@ -345,10 +376,8 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
                 </div>
               }
             </div>}
-          {plotGraph && loaded && 
+          {plotGraph && 
             <div class="bg-white rounded-xl mt-6 py-5">
-            {!loaded && !updateGraph && <h1 class="pl-3">Select a date range and choose three topics to display graph.</h1>}
-
             <div class="grid grid-flow-col auto-cols-max">
               {showCalendar == 0 ? 
                 <button
@@ -374,32 +403,37 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
                     <IoMdRefresh size={25} />
                     <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
               </button>
+              <div class="flex items-center justify-center">
               <Select options={listTopicChoices} components={animatedComponents}
-                  isMulti />
+                  isMulti 
+                  onChange={item => setSelectedTopics(item)}
+                  closeMenuOnSelect={false}
+                  value={selectedTopics}
+                />
+              </div>
             </div>
             {showCalendar == 1 &&  
               <div>    
-                <div><DateRangePicker
-                onChange={item => handleDateSelection([item.selection])}
-                showSelectionPreview={true}
-                moveRangeOnFirstSelection={false}
-                months={1}
-                maxDate={new Date()}
-                ranges={dateRange}
-                direction="horizontal"/></div>
-
+                <div>
+                  <DateRangePicker
+                  onChange={item => handleDateSelection([item.selection])}
+                  showSelectionPreview={true}
+                  moveRangeOnFirstSelection={false}
+                  months={1}
+                  maxDate={new Date()}
+                  ranges={dateRange}
+                  direction="horizontal"/>
+                </div>
               </div>
             }
-            {loaded && <Line class="pl-20 pr-20" options={options} data={graphData} />} 
-            {!loaded && updateGraph && <h1>Loading data.</h1>}
+
+            {loaded && <div>
+              <h1>{formatDates()}</h1>
+              <Line class="pl-20 pr-20" options={options} data={graphData} />
+              </div>} 
+            {!loaded && <h1 class="text-center">Collecting data...</h1>}
           </div>   
         }
-        {plotGraph && !loaded && 
-          <div class="flex items-center justify-center">
-            <div class="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-1/2">
-              <h1 class="text-center">Collecting data...</h1>
-            </div>
-          </div>}
     </div>
   )
 }
