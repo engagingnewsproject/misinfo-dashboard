@@ -27,8 +27,9 @@ import {
 import ReactTooltip from "react-tooltip";
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
+import _ from "lodash";
 
-const ComparisonGraph = ({sevenDayReports, numTopics}) => {
+const ComparisonGraph = () => {
   const [trendingTopics, setTrendingTopics] = useState([])
   const [selectedTopics, setSelectedTopics] = useState([])
   const [dates, setDates] = useState([])
@@ -45,8 +46,8 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
   defaultStartDay.setHours (-24 * 6, 0, 0, 0)
   const [dateRange, setDateRange] = useState([
     {
-      startDate: startOfDay(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)),
-      endDate: startOfDay(new Date(Date.now()-1 * 24 * 60 * 60 *1000)),
+      startDate: subDays(new Date(), 7),
+      endDate: new Date(),
       key: 'selection'
     }]
   )
@@ -105,15 +106,16 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
   
   // Returns array that holds array of Firebase timestamp for dates within the rage beginning yesterday up until daysAgo.
   // and an array of formatted dates for each of the timestamps, which will be used as the labels for the graph. 
-  const getDates = (daysAgo, startDate) => {
-    var starting_date = startDate
+  const getDates = (daysAgo) => {
+
+    // Create deep copy of the starting date to prevent the mutation of the original date range state
+    const starting_date = _.cloneDeep(dateRange[0].startDate);
     const arr = []
     const dates = []
     const formattedDates = []
 
     // Adds last date in range to the array
     starting_date.setHours(0, 0, 0, 0) 
-
     // Gets the start of each day within timeline and adds it to the dates array. 
     for (let index = 0; index <= daysAgo; index++) {
 
@@ -131,6 +133,7 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
     // and one with the formatted dates for the graph labels
     arr.push (dates)
     arr.push (formattedDates)
+    console.log("end of function: " + dateRange[0].startDate)
     return arr
   }
 
@@ -146,13 +149,18 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
       }
   }
 
-  async function getDailyTopicReports() {
+  const getDailyTopicReports = async() => {
+    console.log("in topic report function before start" + dateRange[0].startDate)
+    console.log("in topic report function before end" + dateRange[0].endDate)
     const days = Math.ceil((dateRange[0].endDate.getTime()- dateRange[0].startDate.getTime()) / 86400000)
-    const array = getDates(days, dateRange[0].startDate)
-
+    const array = getDates(days)
+    
+    console.log("in topic report function" + dateRange[0].startDate)
+    console.log("in topic report function" + dateRange[0].endDate)
     // Stores dates in format used to query the reports. 
     setDates(array[0])
-    
+
+
     // Stores date labels used for the x-axis on the comparison chart
     console.log("labels: " + array[1])
     setDateLabels (array[1])
@@ -185,22 +193,30 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
   
   // Determines if graph should be refreshed. 
   const handleGraphUpdate = () => {
-    if (updateGraph == true)
+    if (updateGraph == true && selectedTopics.length == 3)
       {
+        setError(false)
         setLoaded(false)
         setShowCalendar(0)
         console.log(dateRange)
         console.log("selected topics" + selectedTopics)
         getDailyTopicReports()
-
        // getTopics(Timestamp.fromDate(dateRange[0].startDate), Timestamp.fromDate(dateRange[0].endDate))
       }
+    else if (updateGraph == true && selectedTopics.length != 3) {
+      setError(true)
+    }
   }
 
-  const handleDateSelection = (date) =>  {
-    console.log(date)
-    setDateRange(date)
-    setUpdateGraph(true)
+  const handleDateSelection = (item) =>  {
+    if (item.selection.endDate !== item.selection.startDate) {
+        console.log(item)
+        setDateRange([item.selection])
+        setUpdateGraph(true)
+    } else {
+      console.log("end date and start date are equal")
+    }
+ 
   }
 
   // Formats data using date range and selected topics to display graph.
@@ -218,8 +234,17 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
       }
       arr.push(topicData)
     }
+    console.log("date range" + dateRange[0].startDate)    
+    console.log("end date range" + dateRange[0].endDate)
+
     setGraphData({labels:dateLabels, datasets:arr})
   }
+
+  useEffect (()=> {
+    console.log("date range changed")
+    console.log("new start" + dateRange[0].startDate)
+    console.log("new end" + dateRange[0].endDate)
+  }, [dateRange]);
 
   // Retrieves topic report information when list of topics changes. 
   useEffect (()=> {
@@ -293,8 +318,12 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
   // Ensures that only three topics are selected and displays error otherwise.
   const handleTopicSelection = () => {
     console.log(selectedTopics)
-    setError(false)
-    setTab(1)
+    if (selectedTopics.length != 3) {
+      setError(true)
+    } else  {
+      setError(false)
+      setTab(1)
+    }
   }
   // const listChoices = []
   async function getTopicChoices() {
@@ -320,7 +349,7 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
 
   return (
     <div>
-      <div class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Compare Topic Reports</div>
+      <h1 class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Compare Topic Reports</h1>
           {!plotGraph &&
             <div>
               {tab == 0 && 
@@ -358,7 +387,7 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
                     <h1 class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select dates</h1>
                     <h1 class="pl-3 text-center">Select a date range to collect the number of reports for the selected topics. </h1>
                     <DateRangePicker
-                    onChange={item => handleDateSelection([item.selection])}
+                    onChange={item => handleDateSelection(item)}
                     showSelectionPreview={true}
                     moveRangeOnFirstSelection={false}
                     months={1}
@@ -403,32 +432,39 @@ const ComparisonGraph = ({sevenDayReports, numTopics}) => {
                     <IoMdRefresh size={25} />
                     <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
               </button>
-              <div class="flex items-center justify-center">
+              <div class="flex items-center justify-between">
               <Select options={listTopicChoices} components={animatedComponents}
                   isMulti 
                   onChange={item => setSelectedTopics(item)}
                   closeMenuOnSelect={false}
                   value={selectedTopics}
                 />
+              {error && <h1 class="pl-3 text-red-500">You must choose three topics to compare.</h1>}
               </div>
+
             </div>
             {showCalendar == 1 &&  
               <div>    
                 <div>
                   <DateRangePicker
-                  onChange={item => handleDateSelection([item.selection])}
+                  onChange={item => handleDateSelection(item)}
                   showSelectionPreview={true}
-                  moveRangeOnFirstSelection={false}
+                  moveRangeOnFirstSelection={true}
                   months={1}
                   maxDate={new Date()}
                   ranges={dateRange}
+                  shownDate={subDays(new Date(), 3)}
+                  focusedRange={[0,1]}
+                  editableDateInputs={true}
+                  inputRanges={[]}
                   direction="horizontal"/>
                 </div>
               </div>
             }
 
             {loaded && <div>
-              <h1>{formatDates()}</h1>
+              <div class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Topic Reports - {formatDates()}</div>
+
               <Line class="pl-20 pr-20" options={options} data={graphData} />
               </div>} 
             {!loaded && <h1 class="text-center">Collecting data...</h1>}

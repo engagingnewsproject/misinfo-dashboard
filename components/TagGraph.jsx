@@ -131,11 +131,11 @@ const TagGraph = () => {
 
   
   return (
-    <div>
+    <div class="w-full">
     <Toggle viewVal={viewVal} setViewVal={setViewVal}/>
     { viewVal == "overview" ? <OverviewGraph id="overview" loaded={loaded} yesterdayReports={yesterdayReports} threeDayReports={threeDayReports} 
        sevenDayReports={sevenDayReports}
-       numTopics={numTrendingTopics}/> : <ComparisonGraph sevenDayReports={sevenDayReports.splice(0)} numTopics = {numTrendingTopics} />}
+       numTopics={numTrendingTopics}/> : <ComparisonGraph />}
     </div>
   )
 }
