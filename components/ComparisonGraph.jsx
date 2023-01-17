@@ -41,7 +41,9 @@ const ComparisonGraph = () => {
   const [plotGraph, setPlotGraph] = useState(false)
   const [listTopicChoices, setTopicChoices] = useState([])
   const [tab, setTab] = useState(0)
-  const [error, setError] = useState(false)
+  const [topicError, setTopicError] = useState(false)
+  const [dateError, setDateError] = useState(false)
+
   const defaultStartDay = startOfDay(new Date())
   defaultStartDay.setHours (-24 * 6, 0, 0, 0)
   const [dateRange, setDateRange] = useState([
@@ -148,15 +150,12 @@ const ComparisonGraph = () => {
         setShowCalendar(1)
       }
   }
-
+  
+  // Retrieves the number of reports for the selected topics and date range.
   const getDailyTopicReports = async() => {
-    console.log("in topic report function before start" + dateRange[0].startDate)
-    console.log("in topic report function before end" + dateRange[0].endDate)
     const days = Math.ceil((dateRange[0].endDate.getTime()- dateRange[0].startDate.getTime()) / 86400000)
     const array = getDates(days)
     
-    console.log("in topic report function" + dateRange[0].startDate)
-    console.log("in topic report function" + dateRange[0].endDate)
     // Stores dates in format used to query the reports. 
     setDates(array[0])
 
@@ -193,9 +192,11 @@ const ComparisonGraph = () => {
   
   // Determines if graph should be refreshed. 
   const handleGraphUpdate = () => {
-    if (updateGraph == true && selectedTopics.length == 3)
+    const daysSelected = (dateRange[0].endDate - dateRange[0].startDate)/(1000*60*60*24)
+    if (updateGraph == true && selectedTopics.length == 3 && daysSelected > 2 && daysSelected < 22)
       {
-        setError(false)
+        setTopicError(false)
+        setDateError(false)
         setLoaded(false)
         setShowCalendar(0)
         console.log(dateRange)
@@ -203,8 +204,11 @@ const ComparisonGraph = () => {
         getDailyTopicReports()
        // getTopics(Timestamp.fromDate(dateRange[0].startDate), Timestamp.fromDate(dateRange[0].endDate))
       }
-    else if (updateGraph == true && selectedTopics.length != 3) {
-      setError(true)
+    if (updateGraph == true && selectedTopics.length != 3) {
+      setTopicError(true)
+    }
+    if (updateGraph && (daysSelected < 3 || daysSelected > 22)) {
+      setDateError(true)
     }
   }
 
@@ -213,10 +217,7 @@ const ComparisonGraph = () => {
         console.log(item)
         setDateRange([item.selection])
         setUpdateGraph(true)
-    } else {
-      console.log("end date and start date are equal")
-    }
- 
+    } 
   }
 
   // Formats data using date range and selected topics to display graph.
@@ -239,12 +240,6 @@ const ComparisonGraph = () => {
 
     setGraphData({labels:dateLabels, datasets:arr})
   }
-
-  useEffect (()=> {
-    console.log("date range changed")
-    console.log("new start" + dateRange[0].startDate)
-    console.log("new end" + dateRange[0].endDate)
-  }, [dateRange]);
 
   // Retrieves topic report information when list of topics changes. 
   useEffect (()=> {
@@ -311,7 +306,13 @@ const ComparisonGraph = () => {
   }
 
   const handleGraphChange = () => {
-    setPlotGraph(true)
+    const daysSelected = (dateRange[0].endDate - dateRange[0].startDate)/(1000*60*60*24)
+    if (daysSelected > 2 && daysSelected < 22) {
+      setPlotGraph(true)
+    } else {
+      setPlotGraph(false)
+      setDateError(true)
+    }
     handleGraphUpdate()
   }
 
@@ -319,9 +320,9 @@ const ComparisonGraph = () => {
   const handleTopicSelection = () => {
     console.log(selectedTopics)
     if (selectedTopics.length != 3) {
-      setError(true)
+      setTopicError(true)
     } else  {
-      setError(false)
+      setTopicError(false)
       setTab(1)
     }
   }
@@ -357,7 +358,7 @@ const ComparisonGraph = () => {
                 <div class="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-1/2">
                   <h1 class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select three topics.</h1>
                   <h1 class="pl-3 pb-4 text-center">Choose which topics you would like to compare.</h1>
-                  {error && <h1 class="pl-3 pb-4 text-center text-red-500">You must choose three topics to compare.</h1>}
+                  {topicError && <h1 class="pl-3 pb-4 text-center text-red-500">You must choose three topics to compare.</h1>}
                   <Select options={listTopicChoices} components={animatedComponents}
                   isMulti 
                   onChange={item => setSelectedTopics(item)}
@@ -386,6 +387,7 @@ const ComparisonGraph = () => {
                   <div class="bg-white rounded-xl mt-6 py-5 pl-3 pr-3">
                     <h1 class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select dates</h1>
                     <h1 class="pl-3 text-center">Select a date range to collect the number of reports for the selected topics. </h1>
+                    {dateError && <h1 class="pl-3 pb-4 text-center text-red-500">You must select a date range of at least three days and no more than three weeks.</h1>}
                     <DateRangePicker
                     onChange={item => handleDateSelection(item)}
                     showSelectionPreview={true}
@@ -439,7 +441,9 @@ const ComparisonGraph = () => {
                   closeMenuOnSelect={false}
                   value={selectedTopics}
                 />
-              {error && <h1 class="pl-3 text-red-500">You must choose three topics to compare.</h1>}
+              {topicError && <h1 class="pl-3 text-red-500">You must choose three topics to compare.</h1>}
+              {dateError && <h1 class="pl-3 text-red-500">You must select a date range of at least three days and no more than three weeks.</h1>}
+
               </div>
 
             </div>
