@@ -20,6 +20,7 @@ import {
   IoMdCalendar,
   IoMdRefresh,
   IoMdRemove,
+  IoIosAlert,
   IoIosArrowForward,
   IoIosArrowBack,
   IoIosWarning
@@ -57,6 +58,17 @@ const ComparisonGraph = () => {
 
   // Styling for graph setting buttons.
   const basicStyle = "flex p-2 my-6 mx-2 text-gray-500 hover:bg-blue-100 rounded-lg"
+
+  // Border style used for the topic select dropdown for error handling.
+  const borderStyle = {
+    control: (base) => ({
+      ...base,
+      border: 0,
+      boxShadow: "none"
+    })
+  };
+
+  const errorOutline = "border-2 border-rose-600"
 
   // Formats and returns date range
   const formatDates = () => {
@@ -434,16 +446,27 @@ const ComparisonGraph = () => {
                     <IoMdRefresh size={25} />
                     <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
               </button>
-              <div class="flex items-center justify-between">
-              <Select options={listTopicChoices} components={animatedComponents}
-                  isMulti 
-                  onChange={item => setSelectedTopics(item)}
-                  closeMenuOnSelect={false}
-                  value={selectedTopics}
-                />
-              {topicError && <h1 class="pl-3 text-red-500">You must choose three topics to compare.</h1>}
-              {dateError && <h1 class="pl-3 text-red-500">You must select a date range of at least three days and no more than three weeks.</h1>}
-
+              <div class={"flex justify-between items-center"}>
+                
+                <div class={topicError ? errorOutline : null}>
+                  <Select options={listTopicChoices} components={animatedComponents}
+                      isMulti 
+                      error={topicError}
+                      onChange={item => setSelectedTopics(item)}
+                      closeMenuOnSelect={false}
+                      value={selectedTopics}
+                      styles={topicError && borderStyle}
+                    />
+                </div>
+                {(topicError || dateError) && 
+                  <div class="flex flex-cols text-black	bg-red-200 rounded p-3 ml-2 border-2 border-rose-600">
+                    <IoIosAlert size={25} />
+                    <div class="inline-block">
+                        {topicError && <h1 class="pl-3">Select a date range to collect the number of reports for the selected topics. </h1>}
+                        {dateError && <h1 class="pl-3">You must select a date range of at least three days and no more than three weeks.</h1>}
+                    </div>
+                  </div>
+                }
               </div>
 
             </div>
