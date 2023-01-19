@@ -133,9 +133,12 @@ const TagGraph = () => {
   return (
     <div class="w-full">
     <Toggle viewVal={viewVal} setViewVal={setViewVal}/>
-    { viewVal == "overview" ? <OverviewGraph id="overview" loaded={loaded} yesterdayReports={yesterdayReports} threeDayReports={threeDayReports} 
+    <div class={viewVal=="overview" ? "block" : "hidden"}><OverviewGraph id="overview" loaded={loaded} yesterdayReports={yesterdayReports} threeDayReports={threeDayReports} 
        sevenDayReports={sevenDayReports}
-       numTopics={numTrendingTopics}/> : <ComparisonGraph />}
+       numTopics={numTrendingTopics}/>
+    </div>
+       
+    <div class={viewVal=="comparison" ? "block": "hidden"}><ComparisonGraph /></div>
     </div>
   )
 }
