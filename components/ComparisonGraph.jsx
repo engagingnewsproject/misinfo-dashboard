@@ -462,7 +462,7 @@ const ComparisonGraph = () => {
                   <div class="flex flex-cols text-black	bg-red-200 rounded p-3 ml-2 border-2 border-rose-600">
                     <IoIosAlert size={25} />
                     <div class="inline-block">
-                        {topicError && <h1 class="pl-3">Select a date range to collect the number of reports for the selected topics. </h1>}
+                        {topicError && <h1 class="pl-3">You must choose three topics to compare.</h1>}
                         {dateError && <h1 class="pl-3">You must select a date range of at least three days and no more than three weeks.</h1>}
                     </div>
                   </div>
