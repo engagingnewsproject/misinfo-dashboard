@@ -69,6 +69,8 @@ const ComparisonGraph = () => {
   };
 
   const errorOutline = "border-2 border-rose-600"
+  let calendarErrorStyle = {borderwidth: '2px red', color: 'red'}
+  const errorOutlineCalendar = dateError ? calendarErrorStyle : null
 
   // Formats and returns date range
   const formatDates = () => {
@@ -427,8 +429,8 @@ const ComparisonGraph = () => {
                       onClick={() => handleSelect()}
                       data-tip="Select Dates"
                       class={showCalendar == 1 ? basicStyle + " text-stone-400 bg-blue-100" : basicStyle}>
-                      <IoMdCalendar size={25} />
-                      <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+                      <IoMdCalendar size={25} style={errorOutlineCalendar}/>
+                      <ReactTooltip place="top" type="dark" effect="solid" delayShow={500} />
                 </button>
                 :
                 <button
