@@ -6,13 +6,15 @@ import { Country, State, City }  from 'country-state-city';
 import csc from "country-state-city";
 import { useFormik } from 'formik';
 import auth from "@firebase/auth";
+import Select from "react-select";
 
 
 const NewReport = ({ setNewReport, addNewReport }) => {
     const [data, setData] = useState({
         userID: auth().currentUser.uid,
-        state: "",
-        city: "",
+        country: "United States",
+        state: null,
+        city: null,
         topic: "",
         hearFrom: "",
         title: "",
