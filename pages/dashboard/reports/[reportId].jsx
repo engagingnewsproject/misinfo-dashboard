@@ -16,7 +16,7 @@ const ReportDetails = () => {
 	const [reporterInfo, setReporterInfo] = useState({});
 	const [postedDate, setPostedDate] = useState("");
 	const [selectedLabel, setSelectedLabel] = useState("");
-	const [selectedRead, setSelectedRead] = useState(true);
+	const [selectedRead, setSelectedRead] = useState(false);
 	const [changeStatus, setChangeStatus] = useState("");
 	const [update, setUpdate] = useState("");
 	const [activeLabels, setActiveLabels] = useState([]);
@@ -125,29 +125,29 @@ const ReportDetails = () => {
 		window.open(uri);
 	}
 	return (
-		<div class="p-16">
-			<div class="text-2xl font-bold text-blue-600 tracking-wider mb-8">
+		<div className="p-16">
+			<div className="text-2xl font-bold text-blue-600 tracking-wider mb-8">
 				More Information
 			</div>
-			<div class="grid grid-cols-2 gap-24">
-				<div class="left-side">
-					<div class="mb-2">
-						<div class={headerStyle}>Title</div>
-						<div class="text-sm bg-white rounded-xl p-4">
+			<div className="grid grid-cols-2 gap-24">
+				<div className="left-side">
+					<div className="mb-2">
+						<div className={headerStyle}>Title</div>
+						<div className="text-sm bg-white rounded-xl p-4">
 							{info["title"] || (
-								<span class="italic text-gray-400">No Title</span>
+								<span className="italic text-gray-400">No Title</span>
 							)}
 						</div>
 					</div>
 					{reporterInfo && (
-						<div class="text-md mb-4 font-light text-right">
+						<div className="text-md mb-4 font-light text-right">
 							<div>
-								<span class="font-semibold">Reported by:</span>{" "}
+								<span className="font-semibold">Reported by:</span>{" "}
 								{reporterInfo["name"]} (
 								<a
 									target="_blank"
 									rel="noopener noreferrer"
-									class="text-blue-600 hover:underline"
+									className="text-blue-600 hover:underline"
 									href={"mailto:" + reporterInfo["email"]}>
 									{reporterInfo["email"]}
 								</a>
@@ -155,8 +155,8 @@ const ReportDetails = () => {
 							</div>
 						</div>
 					)}
-					<div class="mb-8 READ/UNREAD">
-						<div class={headerStyle}>Read / Unread</div>
+					<div className="mb-8 READ/UNREAD">
+						<div className={headerStyle}>Read / Unread</div>
 						<Switch
 							checked={selectedRead}
 							onChange={setSelectedRead}
@@ -171,13 +171,13 @@ const ReportDetails = () => {
 							/>
 						</Switch>
 					</div>
-					<div class="mb-8">
-						<div class={headerStyle}>Label</div>
+					<div className="mb-8">
+						<div className={headerStyle}>Label</div>
 						<select
 							id="labels"
 							onChange={(e) => handleLabelChanged(e)}
 							defaultValue={selectedLabel}
-							class="text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl">
+							className="text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl">
 							<option value={selectedLabel ? selectedLabel : "none"}>
 								{selectedLabel ? selectedLabel : "Choose a label"}
 							</option>
@@ -188,34 +188,34 @@ const ReportDetails = () => {
 								})}
 						</select>
 						{changeStatus && (
-							<span class="ml-5 font-light text-sm italic">{changeStatus}</span>
+							<span className="ml-5 font-light text-sm italic">{changeStatus}</span>
 						)}
 					</div>
-					<div class="flex flex-col mb-5">
-						<div class="flex flex-row mb-3 items-center">
+					<div className="flex flex-col mb-5">
+						<div className="flex flex-row mb-3 items-center">
 							<RiMessage2Fill size={20} />
-							<div class="font-semibold px-2 self-center pr-4">Tag</div>
-							<div class="text-md font-light">{info["topic"]}</div>
+							<div className="font-semibold px-2 self-center pr-4">Tag</div>
+							<div className="text-md font-light">{info["topic"]}</div>
 						</div>
-						<div class="flex flex-row mb-3 items-center">
+						<div className="flex flex-row mb-3 items-center">
 							<BiEditAlt size={20} />
-							<div class="font-semibold px-2 self-center pr-4">
+							<div className="font-semibold px-2 self-center pr-4">
 								Sources / Media
 							</div>
-							<div class="text-md font-light">{info["hearFrom"]}</div>
+							<div className="text-md font-light">{info["hearFrom"]}</div>
 						</div>
-						<div class="flex flex-row mb-3 items-center">
+						<div className="flex flex-row mb-3 items-center">
 							<AiOutlineFieldTime size={20} />
-							<div class="font-semibold px-2 self-center pr-4">Date / Time</div>
-							<div class="text-md font-light">{postedDate}</div>
+							<div className="font-semibold px-2 self-center pr-4">Date / Time</div>
+							<div className="text-md font-light">{postedDate}</div>
 						</div>
 					</div>
-					<div class="mb-8">
-						<div class={headerStyle}>Link Of The Information</div>
-						<div class="flex flex-col">
+					<div className="mb-8">
+						<div className={headerStyle}>Link Of The Information</div>
+						<div className="flex flex-col">
 							{info["link"] && (
 								<a
-									class={linkStyle}
+									className={linkStyle}
 									target="_blank"
 									rel="noreferrer"
 									href={"//" + info["link"]}>
@@ -224,7 +224,7 @@ const ReportDetails = () => {
 							)}
 							{info["secondLink"] && (
 								<a
-									class={linkStyle}
+									className={linkStyle}
 									target="_blank"
 									rel="noreferrer"
 									href={"//" + info["secondLink"]}>
@@ -233,7 +233,7 @@ const ReportDetails = () => {
 							)}
 							{info["thirdLink"] && (
 								<a
-									class={linkStyle}
+									className={linkStyle}
 									target="_blank"
 									rel="noreferrer"
 									href={"//" + info["thirdLink"]}>
@@ -243,54 +243,54 @@ const ReportDetails = () => {
 						</div>
 					</div>
 					<div>
-						<div class={headerStyle}>Description</div>
-						<div class="font-light overflow-auto max-h-32">
+						<div className={headerStyle}>Description</div>
+						<div className="font-light overflow-auto max-h-32">
 							{info["detail"]}
 						</div>
 					</div>
 				</div>
-				<div class="right-side">
+				<div className="right-side">
 					<div>
-						<div class={headerStyle}>Newsroom's Notes</div>
+						<div className={headerStyle}>Newsroom's Notes</div>
 						<textarea
 							id="notes"
 							onChange={handleNotesChange}
 							placeholder="No notes yet..."
-							class="border transition ease-in-out w-full text-md font-light bg-white rounded-xl p-4 border-none
+							className="border transition ease-in-out w-full text-md font-light bg-white rounded-xl p-4 border-none
               focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none mb-12"
 							rows="4"
 							defaultValue={info["note"]}></textarea>
 						{update && (
-							<div class="-mt-8 flex float-right mb-6">
+							<div className="-mt-8 flex float-right mb-6">
 								<button
 									onClick={revertBack}
-									class="bg-white hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline">
+									className="bg-white hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline">
 									Cancel
 								</button>
 								<button
 									onClick={saveChanges}
-									class="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold ml-4 py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
+									className="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold ml-4 py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
 									type="submit">
 									Save Changes
 								</button>
 							</div>
 						)}
 					</div>
-					<div class="mb-8">
+					<div className="mb-8">
 						<button
-							class="flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md"
+							className="flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md"
 							onClick={SendLinkByMail}>
-							<BsShareFill class="my-1" size={15} />
-							<div class="px-3 py-1">Share The Report</div>
+							<BsShareFill className="my-1" size={15} />
+							<div className="px-3 py-1">Share The Report</div>
 						</button>
 					</div>
-					<div class="w-full">
-						<div class={headerStyle}>Images</div>
+					<div className="w-full">
+						<div className={headerStyle}>Images</div>
 						{info["images"] && info["images"][0] ? (
-							<div class="flex w-full overflow-y-auto">
+							<div className="flex w-full overflow-y-auto">
 								{info["images"].map((image) => {
 									return (
-										<div class="flex px-1">
+										<div className="flex px-1">
 											<Image src={image} alt="image" width={150} height={150} />
 											{/* <img src={image} width={150} height={150} alt="image" /> */}
 										</div>
@@ -298,7 +298,7 @@ const ReportDetails = () => {
 								})}
 							</div>
 						) : (
-							<div class="italic font-light">No images for this report</div>
+							<div className="italic font-light">No images for this report</div>
 						)}
 					</div>
 				</div>
