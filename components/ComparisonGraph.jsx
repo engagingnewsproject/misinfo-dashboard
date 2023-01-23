@@ -1,3 +1,8 @@
+/*
+This component displays the comparison view of the topics selected for the request date range.
+The customization features, including the topics list and calendar dropdown, allow the user
+to select which topics will be displayed
+*/
 import React, { useState, useEffect } from 'react'
 import { DateRangePicker } from 'react-date-range'
 import 'react-date-range/dist/styles.css'; // main style file
@@ -31,20 +36,10 @@ import makeAnimated from 'react-select/animated';
 import _ from "lodash";
 
 const ComparisonGraph = () => {
-  const [trendingTopics, setTrendingTopics] = useState([])
-  const [selectedTopics, setSelectedTopics] = useState([])
-  const [dates, setDates] = useState([])
-  const [reportData, setData] = useState([])
-  const [graphData, setGraphData] = useState([])
-  const [dateLabels, setDateLabels] = useState([])
-  const [updateGraph, setUpdateGraph] = useState(false)
-  const [loaded, setLoaded] = useState(false)
-  const [plotGraph, setPlotGraph] = useState(false)
-  const [listTopicChoices, setTopicChoices] = useState([])
-  const [tab, setTab] = useState(0)
-  const [topicError, setTopicError] = useState(false)
-  const [dateError, setDateError] = useState(false)
 
+  // Indicates which topics and dates have been selected in the dropdowns. 
+  const [selectedTopics, setSelectedTopics] = useState([])
+  const [listTopicChoices, setTopicChoices] = useState([])
   const defaultStartDay = startOfDay(new Date())
   defaultStartDay.setHours (-24 * 6, 0, 0, 0)
   const [dateRange, setDateRange] = useState([
@@ -54,6 +49,25 @@ const ComparisonGraph = () => {
       key: 'selection'
     }]
   )
+
+  // Data that is displayed via the graph. 
+  const [reportData, setData] = useState([])
+  const [graphData, setGraphData] = useState([])
+  const [dates, setDates] = useState([])
+  const [dateLabels, setDateLabels] = useState([])
+
+  // Indicates when data is ready to be displayed via the graph. 
+  const [updateGraph, setUpdateGraph] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+  const [plotGraph, setPlotGraph] = useState(false)
+
+  // Indicates which initial screen the user is on before displaying the graph.
+  const [tab, setTab] = useState(0)
+
+  // Indicates if the number of topics and date range are valid. 
+  const [topicError, setTopicError] = useState(false)
+  const [dateError, setDateError] = useState(false)
+
   const [showCalendar, setShowCalendar] = useState(0)
 
   // Styling for graph setting buttons.
@@ -67,15 +81,13 @@ const ComparisonGraph = () => {
       boxShadow: "none"
     })
   };
-
   const errorOutline = "border-2 border-rose-600"
   let calendarErrorStyle = {borderwidth: '2px red', color: 'red'}
-  const errorOutlineCalendar = dateError ? calendarErrorStyle : null
+	const errorOutlineCalendar = dateError ? calendarErrorStyle : null
 
-  // Formats and returns date range
+
+  // Formats and returns date range for the title of the graph.
   const formatDates = () => {
-    // const startRange = dateRange[0].startDate
-    // const endRange = dateRange[0].endDate
     const startRange = new Date(dates[0] * 1000)
     console.log(dates.length)
     console.log(new Date(dates[dates.length - 2] * 1000))
@@ -87,37 +99,6 @@ const ComparisonGraph = () => {
     };
 
     return startRange.toLocaleString('en-us', newDateOptions) + '-' + endRange.toLocaleString('en-us', newDateOptions)
-  }
-
-  // Retrieves the top three trending topics for the requested date range
-  async function getTopics(startDate, endDate) {
-    const reportsList = collection(db, "reports")
-  
-    // Retrieve array of all topics
-    const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
-    const topicRef = await getDoc(topicDoc);
-    const topics = topicRef.get("Topic")['active']
-    
-    // Maintain count of reports for each topic in the previous day, past three days and past seven days
-    const topicsTrending = []
-
-    for (let index = 0; index < topics.length; index++) {
-      // Filters report collection so it only shows reports within date range
-      const queryTopics= query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", startDate),
-      where("createdDate", "<", endDate))      
-      const dataReports = await getDocs(queryTopics);
-
-      // Maps current topic to the topic's reports and pushes to array
-      topicsTrending.push([topics[index], dataReports.size])
-
-    }
-    
-    // Sorts trending topics for the date range 
-    // so that array is ordered from most reported to least reported topics
-    const numTopics = topicsTrending.length > 3 ? 3: topicsTrending.length
-    const sortedTopics= [...topicsTrending].sort((a,b) => b[1] - a[1]).slice(0, numTopics);
-    setTrendingTopics(sortedTopics)
-
   }
   
   // Returns array that holds array of Firebase timestamp for dates within the rage beginning yesterday up until daysAgo.
@@ -132,6 +113,7 @@ const ComparisonGraph = () => {
 
     // Adds last date in range to the array
     starting_date.setHours(0, 0, 0, 0) 
+
     // Gets the start of each day within timeline and adds it to the dates array. 
     for (let index = 0; index <= daysAgo; index++) {
 
@@ -149,7 +131,6 @@ const ComparisonGraph = () => {
     // and one with the formatted dates for the graph labels
     arr.push (dates)
     arr.push (formattedDates)
-    console.log("end of function: " + dateRange[0].startDate)
     return arr
   }
 
@@ -173,9 +154,7 @@ const ComparisonGraph = () => {
     // Stores dates in format used to query the reports. 
     setDates(array[0])
 
-
     // Stores date labels used for the x-axis on the comparison chart
-    console.log("labels: " + array[1])
     setDateLabels (array[1])
 
     const reportsList = collection(db, "reports");
@@ -211,21 +190,25 @@ const ComparisonGraph = () => {
       {
         setTopicError(false)
         setDateError(false)
+        
+        // Prevents the graph from displaying until data has been collected.
         setLoaded(false)
         setShowCalendar(0)
-        console.log(dateRange)
-        console.log("selected topics" + selectedTopics)
         getDailyTopicReports()
-       // getTopics(Timestamp.fromDate(dateRange[0].startDate), Timestamp.fromDate(dateRange[0].endDate))
       }
+
+    // Update error state if there are not three selected topics
     if (updateGraph == true && selectedTopics.length != 3) {
       setTopicError(true)
     }
+
+    // Update error state if the date range does not fall within 3 days and one month
     if (updateGraph && (daysSelected < 3 || daysSelected > 22)) {
       setDateError(true)
     }
   }
 
+  // Handles the selection of a new date range.
   const handleDateSelection = (item) =>  {
     if (item.selection.endDate !== item.selection.startDate) {
         console.log(item)
@@ -240,7 +223,6 @@ const ComparisonGraph = () => {
     
     // Populates data used for the comparison graph
     for (let topic = 0; topic < selectedTopics.length; topic++) {
-      console.log("report data" + reportData[topic])
       const topicData = {
         label: selectedTopics[topic].label,
         data: reportData[topic],
@@ -249,16 +231,8 @@ const ComparisonGraph = () => {
       }
       arr.push(topicData)
     }
-    console.log("date range" + dateRange[0].startDate)    
-    console.log("end date range" + dateRange[0].endDate)
-
     setGraphData({labels:dateLabels, datasets:arr})
   }
-
-  // Retrieves topic report information when list of topics changes. 
-  useEffect (()=> {
-    getDailyTopicReports()
-  }, [trendingTopics]);
 
   // Populates graph with new data for the selected date range and topics. 
   useEffect(()=> {
@@ -269,7 +243,7 @@ const ComparisonGraph = () => {
     }
   }, [reportData]);
 
-    // Get all the topic choices
+  // Retrieves the list of topics upon the first render.
   useEffect (()=> {
     getTopicChoices()
   }, []);
@@ -278,7 +252,6 @@ const ComparisonGraph = () => {
   useEffect (()=> {
     setUpdateGraph(true)
   }, [selectedTopics]);
-
 
   ChartJS.register(
     CategoryScale,
@@ -319,6 +292,7 @@ const ComparisonGraph = () => {
   
   }
 
+  // Upon the initial screen for the compraison chart, plots graph if the date range is correct.
   const handleGraphChange = () => {
     const daysSelected = (dateRange[0].endDate - dateRange[0].startDate)/(1000*60*60*24)
     if (daysSelected > 2 && daysSelected < 22) {
@@ -340,20 +314,18 @@ const ComparisonGraph = () => {
       setTab(1)
     }
   }
-  // const listChoices = []
+
+  // Retrieves list of topic choices
   async function getTopicChoices() {
     const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
     const topicRef = await getDoc(topicDoc);
     const topics = topicRef.get("Topic")['active']
     const topicChoices = []
-    for (let index = 0; index < topics.length; index++) {
-      console.log(topics[index] + " testing")
-    }
+
     topics.forEach(function(element) {
       topicChoices.push({ label: element, value: element})
     });
     setTopicChoices(topicChoices)
-    // return listChoices
   }
 
   const animatedComponents = makeAnimated();
@@ -361,12 +333,12 @@ const ComparisonGraph = () => {
     'this','test'
   ];
 
-
   return (
     <div>
       <h1 class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Compare Topic Reports</h1>
           {!plotGraph &&
             <div>
+              {/* Initial screen that appears when user selects the comparison view. Allows user to select three topics. */}
               {tab == 0 && 
                 <div class="flex items-center justify-center">
                 <div class="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-1/2">
@@ -389,6 +361,8 @@ const ComparisonGraph = () => {
                 </button>
                 </div>
               }
+              {/* Second screen that appears when user selects the comparison view. Allows user to select date range. */}
+
               {tab == 1 &&
                 <div class="flex items-center justify-center">
                  <button
@@ -421,15 +395,18 @@ const ComparisonGraph = () => {
                 </div>
               }
             </div>}
+          {/* Once user selects the topics and date range, graph of topic reports will be plotted. */}
           {plotGraph && 
             <div class="bg-white rounded-xl mt-6 py-5">
             <div class="grid grid-flow-col auto-cols-max">
+              
+              {/* Calendar allows user to change date range. */}
               {showCalendar == 0 ? 
                 <button
                       onClick={() => handleSelect()}
                       data-tip="Select Dates"
                       class={showCalendar == 1 ? basicStyle + " text-stone-400 bg-blue-100" : basicStyle}>
-                      <IoMdCalendar size={25} style={errorOutlineCalendar}/>
+               <IoMdCalendar size={25} style={errorOutlineCalendar}/>
                       <ReactTooltip place="top" type="dark" effect="solid" delayShow={500} />
                 </button>
                 :
@@ -441,6 +418,8 @@ const ComparisonGraph = () => {
                 <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
                 </button> 
               }
+
+              {/* Allows user to refresh graph when new topics or date range have been selected. */}
               <button
                     onClick={() => handleGraphUpdate()}
                     data-tip="Refresh Graph"
@@ -450,6 +429,7 @@ const ComparisonGraph = () => {
               </button>
               <div class={"flex justify-between items-center"}>
                 
+                {/* Allows user to change the selected topics. */}
                 <div class={topicError ? errorOutline : null}>
                   <Select options={listTopicChoices} components={animatedComponents}
                       isMulti 
@@ -460,11 +440,13 @@ const ComparisonGraph = () => {
                       styles={topicError && borderStyle}
                     />
                 </div>
+
+                {/* Displays error when there are not three selected topics, or the date range is not valid. */}
                 {(topicError || dateError) && 
-                  <div class="flex flex-cols text-black	bg-red-200 rounded p-3 ml-2 border-2 border-rose-600">
+                  <div class="flex flex-cols text-black bg-red-200 rounded p-3 ml-2 border-2 border-rose-600">
                     <IoIosAlert size={25} />
                     <div class="inline-block">
-                        {topicError && <h1 class="pl-3">You must choose three topics to compare.</h1>}
+                        {topicError && <h1 class="pl-3">Select a date range to collect the number of reports for the selected topics. </h1>}
                         {dateError && <h1 class="pl-3">You must select a date range of at least three days and no more than three weeks.</h1>}
                     </div>
                   </div>
@@ -491,11 +473,13 @@ const ComparisonGraph = () => {
               </div>
             }
 
-            {loaded && <div>
-              <div class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Topic Reports - {formatDates()}</div>
-
-              <Line class="pl-20 pr-20" options={options} data={graphData} />
-              </div>} 
+            {/* Displays graph once data is collected for the topics. */}
+            {loaded && 
+              <div>
+                <div class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Topic Reports - {formatDates()}</div>
+                <Line class="pl-20 pr-20" options={options} data={graphData} />
+              </div>
+            } 
             {!loaded && <h1 class="text-center">Collecting data...</h1>}
           </div>   
         }
@@ -503,6 +487,7 @@ const ComparisonGraph = () => {
   )
 }
 export default ComparisonGraph
+
 
 
 

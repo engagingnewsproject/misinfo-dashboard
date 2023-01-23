@@ -1,3 +1,4 @@
+/* Displays pie chart for the trending topics from the past day, three days, and seven days. */
 import React from 'react'
 import { Chart } from "react-google-charts";
 
