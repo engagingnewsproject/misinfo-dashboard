@@ -1,3 +1,4 @@
+/* Displays pie charts or line graph for the trending topics based on which view is selected. */
 import React, { useState, useEffect } from 'react'
 import { collection, query, where, getDocs, Timestamp, getDoc, doc } from "firebase/firestore";
 import { db } from '../config/firebase'
@@ -16,6 +17,7 @@ const TagGraph = () => {
   // Returns the Firebase timestamp for the beginning of yesterday
   const getStartOfDay = (daysAgo) => {
     var starting_date = new Date()
+
     // Gets the start of yesterday, it will begin topic search
     // at this time
     starting_date.setHours(-24 * daysAgo,0,0,0) // Sets time to midnight of yesterday
@@ -25,7 +27,6 @@ const TagGraph = () => {
 
   // Returns the Firebase timestamp for the beginning of today
   const getEndOfDay = () => {
-
     const now = new Date()
     now.setHours(0, 0, 0, 0) // Sets time to midnight of today
 
@@ -34,13 +35,6 @@ const TagGraph = () => {
     const timestamp = Timestamp.fromDate(now)
     return timestamp
   }
-
-  // Sorts array that stores topics and their number of reports in trending topics order
-  const sortTopics = () => {
-    const sortedArray = [...yesterdayReports].sort((a,b) => b.numReports - a.numReports);
-    // Sets topic reports to the top three trending topics
-    setTopicReports(sortedArray)
-  };
 
   async function getTopicReports() {
     const reportsList = collection(db, "reports");
