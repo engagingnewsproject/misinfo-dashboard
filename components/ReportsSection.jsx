@@ -92,13 +92,14 @@ const ReportsSection = ({ search }) => {
         </div>
       </div>
       <div class="bg-white w-full rounded-xl p-1 h-full">
-        <div class="grid grid-cols-7">
+        <div class="grid grid-cols-8">
           <div class={"col-span-2 " + tableHeadings}>Title</div>
           <div class={tableHeadings}>Date/Time</div>
           <div class={tableHeadings}>Candidates</div>
           <div class={tableHeadings}>Topic Tags</div>
           <div class={tableHeadings}>Sources</div>
           <div class={tableHeadings + " p-1"}>Labels (<button class="bg-blue-500 py-1 px-2 text-white rounded text-xs hover:bg-blue-700" onClick={() => getData()}>Refresh</button>)</div>
+          <div class={tableHeadings}>Read</div>
         </div>
         <div class="oveflow-scroll ">
           {filteredReports
@@ -112,7 +113,7 @@ const ReportsSection = ({ search }) => {
             const posted = report["createdDate"].toDate().toLocaleString('en-US', dateOptions).replace(/,/g,"").replace('at', '')
             return (
               <Link href={`/dashboard/reports/${Object.keys(reportObj)[0]}`}>
-                <a target="_blank" class="grid grid-cols-7 hover:bg-blue-200">
+                <a target="_blank" class="grid grid-cols-8 hover:bg-blue-200">
                   <div class={"col-span-2 " + columnData}>{report.title}</div>
                   <div class={columnData}>{posted}</div>
                   <div class={columnData}>-</div>
@@ -120,6 +121,9 @@ const ReportsSection = ({ search }) => {
                   <div class={columnData}>{report.hearFrom}</div>
                   <div class={columnData}>
                     <div class={!report.label ? label.default : label.special}>{report.label || "None"}</div>
+                  </div>
+                  <div class={columnData}>
+                    <input type="checkbox"></input>
                   </div>
                 </a>
               </Link>
