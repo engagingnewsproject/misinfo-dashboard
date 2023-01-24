@@ -80,63 +80,92 @@ const ReportsSection = ({ search }) => {
 
 
   return (
-    <div class="flex flex-col h-full">
-      <div class="flex flex-row justify-between py-5">
-        <div class="text-lg font-bold text-blue-600 tracking-wider">List of Reports</div>
-        <div>
-          <select id="labels" onChange={(e) => handleDateChanged(e)} defaultValue="4" class="text-sm font-semibold bg-white inline-block px-8 border-none text-black py-1 rounded-md">
-            <option value="4">Last four weeks</option>
-            <option value="3">Last three weeks</option>
-            <option value="2">Last two weeks</option>
-            <option value="1">Last week</option>
-          </select>
-        </div>
-      </div>
-      <div class="bg-white w-full rounded-xl p-1 h-full">
-        <div class="grid grid-cols-8">
-          <div class={"col-span-2 " + tableHeadings}>Title</div>
-          <div class={tableHeadings}>Date/Time</div>
-          <div class={tableHeadings}>Candidates</div>
-          <div class={tableHeadings}>Topic Tags</div>
-          <div class={tableHeadings}>Sources</div>
-          <div class={tableHeadings + " p-1"}>Labels (<button class="bg-blue-500 py-1 px-2 text-white rounded text-xs hover:bg-blue-700" onClick={() => getData()}>Refresh</button>)</div>
-          <div class={tableHeadings}>Read/Unread</div>
-        </div>
-        <div class="oveflow-scroll ">
-          {filteredReports
-            .filter((reportObj) => {
-              const report = Object.values(reportObj)[0]
-              return report["createdDate"].toDate() >= new Date(new Date().setDate(new Date().getDate() - reportWeek * 7))
-            })
-            .sort((objA, objB) => Object.values(objA)[0]["createdDate"] > Object.values(objB)[0]["createdDate"] ? -1 : 1)
-            .map((reportObj) => {
-            const report = Object.values(reportObj)[0]
-            const posted = report["createdDate"].toDate().toLocaleString('en-US', dateOptions).replace(/,/g,"").replace('at', '')
-            const read = report["read"];
-            console.log(read)
-            return (
-							<Link href={`/dashboard/reports/${Object.keys(reportObj)[0]}`}>
-								<a target="_blank" class="grid grid-cols-8 hover:bg-blue-200">
-									<div class={"col-span-2 " + columnData}>{report.title}</div>
-									<div class={columnData}>{posted}</div>
-									<div class={columnData}>-</div>
-									<div class={columnData}>{report.topic}</div>
-									<div class={columnData}>{report.hearFrom}</div>
-									<div class={columnData}>
-										<div class={!report.label ? label.default : label.special}>
-											{report.label || "None"}
+		<div class="flex flex-col h-full">
+			<div class="flex flex-row justify-between py-5">
+				<div class="text-lg font-bold text-blue-600 tracking-wider">
+					List of Reports
+				</div>
+				<div>
+					<select
+						id="labels"
+						onChange={(e) => handleDateChanged(e)}
+						defaultValue="4"
+						class="text-sm font-semibold bg-white inline-block px-8 border-none text-black py-1 rounded-md">
+						<option value="4">Last four weeks</option>
+						<option value="3">Last three weeks</option>
+						<option value="2">Last two weeks</option>
+						<option value="1">Last week</option>
+						<option value="100">All reports</option>
+					</select>
+				</div>
+			</div>
+			<div class="bg-white w-full rounded-xl p-1 h-full">
+				<div class="grid grid-cols-8">
+					<div class={"col-span-2 " + tableHeadings}>Title</div>
+					<div class={tableHeadings}>Date/Time</div>
+					<div class={tableHeadings}>Candidates</div>
+					<div class={tableHeadings}>Topic Tags</div>
+					<div class={tableHeadings}>Sources</div>
+					<div class={tableHeadings + " p-1"}>
+						Labels (
+						<button
+							class="bg-blue-500 py-1 px-2 text-white rounded text-xs hover:bg-blue-700"
+							onClick={() => getData()}>
+							Refresh
+						</button>
+						)
+					</div>
+					<div class={tableHeadings}>Read/Unread</div>
+				</div>
+				<div class="oveflow-scroll ">
+					{filteredReports
+						.filter((reportObj) => {
+							const report = Object.values(reportObj)[0];
+							return (
+								report["createdDate"].toDate() >=
+								new Date(
+									new Date().setDate(new Date().getDate() - reportWeek * 7)
+								)
+							);
+						})
+						.sort((objA, objB) =>
+							Object.values(objA)[0]["createdDate"] >
+							Object.values(objB)[0]["createdDate"]
+								? -1
+								: 1
+						)
+						.map((reportObj) => {
+							const report = Object.values(reportObj)[0];
+							const posted = report["createdDate"]
+								.toDate()
+								.toLocaleString("en-US", dateOptions)
+								.replace(/,/g, "")
+								.replace("at", "");
+							const read = report["read"];
+							console.log(read);
+							return (
+								<Link href={`/dashboard/reports/${Object.keys(reportObj)[0]}`}>
+									<a class="grid grid-cols-8 hover:bg-blue-200">
+										<div class={"col-span-2 " + columnData}>{report.title}</div>
+										<div class={columnData}>{posted}</div>
+										<div class={columnData}>-</div>
+										<div class={columnData}>{report.topic}</div>
+										<div class={columnData}>{report.hearFrom}</div>
+										<div class={columnData}>
+											<div
+												class={!report.label ? label.default : label.special}>
+												{report.label || "None"}
+											</div>
 										</div>
-									</div>
-									<div class={columnData}>{report.read}</div>
-								</a>
-							</Link>
-						);
-          })}
-        </div>
-        
-      </div>
-    </div>
-  )
+										<div class={columnData}>{report.read}</div>
+									</a>
+								</Link>
+							);
+						})}
+				</div>
+			</div>
+		</div>
+	);
 }
 
 export default ReportsSection
