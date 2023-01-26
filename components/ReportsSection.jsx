@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { collection, listCollections, getDoc, getDocs, doc } from "firebase/firestore"; 
+import { collection, listCollections, getDoc, getDocs, doc } from "firebase/firestore";
 import { db } from '../config/firebase'
 import Link from 'next/link'
 import { Switch } from "@headlessui/react";
@@ -23,7 +23,7 @@ const ReportsSection = ({ search }) => {
   const getData = async() => {
     const reportsCollection = collection(db, "reports")
     const snapshot = await getDocs(reportsCollection)
-    
+
     try {
       var arr = []
       snapshot.forEach(doc => {
@@ -48,6 +48,7 @@ const ReportsSection = ({ search }) => {
   useEffect(() => {
     setFilteredReports(reports.filter((reportObj) => {
       const report = Object.values(reportObj)[0]
+
       var arr = []
       // Collect the searchable fields of the reports data
       for (const key in report) {
@@ -141,8 +142,18 @@ const ReportsSection = ({ search }) => {
 								.toLocaleString("en-US", dateOptions)
 								.replace(/,/g, "")
 								.replace("at", "");
-							const read = report["read"];
-							console.log(read);
+							let read = report["read"]
+								read
+								? read === "Read"
+								: read === "Not read"
+							// if (report["read"]) {
+							// 	console.log("read!")
+							// 	let read = "yes"
+							// } else {
+							// console.log("NOT read!")
+							// 	let read = "no"
+							// }
+
 							return (
 								<Link href={`/dashboard/reports/${Object.keys(reportObj)[0]}`}>
 									<a class="grid grid-cols-8 hover:bg-blue-200">
@@ -157,7 +168,7 @@ const ReportsSection = ({ search }) => {
 												{report.label || "None"}
 											</div>
 										</div>
-										<div class={columnData}>{report.read}</div>
+										<div class={columnData}>{read}</div>
 									</a>
 								</Link>
 							);
