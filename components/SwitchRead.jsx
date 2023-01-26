@@ -13,31 +13,42 @@ export default function SwitchRead(props) {
 	const [reportRead, setReportRead] = useState("")
 	const { reportId } = router.query
 
+	// Get firebase data
 	const getData = async () => {
+		// Reference to the firebase data
 		const infoRef = await getDoc(doc(db, "reports", reportId))
 		setInfo(infoRef.data())
-
+		// Reference to the user on firebase
 		getDoc(doc(db, "mobileUsers", infoRef.data()["userID"])).then((mobileRef) =>
 			setReporterInfo(mobileRef.data())
 		)
 	}
 
+	// Use the firebase data
 	useEffect(() => {
 		getData()
 	}, [])
 
+	// Set the "read" field on firebase
 	useEffect(() => {
+		// If firebase info: read field changes set to the value
 		if (info["read"]) {
 			setReportRead(info["read"])
 		}
 	}, [info])
 
+	// Handle onClick event
 	async function handleReadChange(e) {
+		// Toggle the switch value (true/false)
 		e === !e
-		// Get firebase doc.
+		// Reference to the firebase doc.
 		const docRef = doc(db, "reports", reportId)
-		// Update firebase doc.
+		// Update firebase doc "read" field
 		await updateDoc(docRef, { read: !reportRead })
+		// Return the value
+		// **(I think I need to re-work this a bit
+		// b/c I'm toggling the value too many times.
+		// But it works for now!)
 		return !e
 	}
 
@@ -57,8 +68,11 @@ export default function SwitchRead(props) {
 			</div>
 			<div className="text-md font-light flex gap-2">
 				<Switch
+					// Set checked to the initial reportRead value (false)
 					checked={reportRead}
+					// When switch toggled setReportRead
 					onChange={setReportRead}
+					// On click handler
 					onClick={() => setReportRead(handleReadChange)}
 					className={`${
 						reportRead ? "bg-blue-600" : "bg-gray-200"
