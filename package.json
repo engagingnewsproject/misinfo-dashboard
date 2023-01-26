@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@firebase/firestore": "^3.4.10",
+    "@headlessui/react": "^1.7.7",
+    "@heroicons/react": "^2.0.13",
     "dotenv": "^16.0.1",
     "firebase": "^9.8.3",
     "firebase-admin": "^11.0.0",
