@@ -41,15 +41,10 @@ export default function SwitchRead(props) {
 	async function handleReadChange(e) {
 		// Toggle the switch value (true/false)
 		e === !e
-		// Reference to the firebase doc.
+		// Set a reference to the firebase doc.
 		const docRef = doc(db, "reports", reportId)
 		// Update firebase doc "read" field
-		await updateDoc(docRef, { read: !reportRead })
-		// Return the value
-		// **(I think I need to re-work this a bit
-		// b/c I'm toggling the value too many times.
-		// But it works for now!)
-		return !e
+		await updateDoc(docRef, { read: !e })
 	}
 
 	return (
