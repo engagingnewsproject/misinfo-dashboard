@@ -112,7 +112,7 @@ const ReportsSection = ({ search }) => {
             const posted = report["createdDate"].toDate().toLocaleString('en-US', dateOptions).replace(/,/g,"").replace('at', '')
             return (
               <Link href={`/dashboard/reports/${Object.keys(reportObj)[0]}`}>
-                <a target="_blank" class="grid grid-cols-7 hover:bg-blue-200">
+                <a class="grid grid-cols-7 hover:bg-blue-200">
                   <div class={"col-span-2 " + columnData}>{report.title}</div>
                   <div class={columnData}>{posted}</div>
                   <div class={columnData}>-</div>
