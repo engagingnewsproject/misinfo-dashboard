@@ -26,8 +26,6 @@ import _ from "lodash";
 const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSelectedTopics, topicList, tab, setTab}) => {
 
   // Indicates which topics and dates have been selected in the dropdowns. 
-  //const [dateRange, setDateRange] = useState([selectedDates])
-  //const [selectedTopics, setSelectedTopics] = useState(topicsSelected)
   const [listTopicChoices, setTopicChoices] = useState(topicList)
 
   // Data that is displayed via the graph.   
@@ -171,6 +169,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     }
   }, [loaded]);
 
+  // Configuration for React-ChartJS-2
   ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -188,23 +187,70 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
       y: {
         suggestedMin: 0,
         ticks: {
-          precision: 0
+          precision: 0,
+          font: function (context) {
+            var avgSize = Math.round((context.chart.height + context.chart.width) / 2);
+            var size = Math.round(avgSize / 32);
+            size = size > 18 ? 18 : size; // setting max limit to 18
+            return {
+                size: size,
+            };
+          },
         },
+        beginAtZero: true,
         title: {
           text: "Number of Reports",
-          display: true
+          display: true,
+          font: function (context) {
+            var avgSize = Math.round((context.chart.height + context.chart.width) / 2);
+            var size = Math.round(avgSize / 32);
+            size = size > 18 ? 18 : size; // setting max font size limit to 18
+            return {
+                size: size,
+            };
+          },
         }
       },
       x: {
         title: {
           text: "Date",
-          display: true
+          display: true,
+          font: function (context) {
+            var avgSize = Math.round((context.chart.height + context.chart.width) / 2);
+            var size = Math.round(avgSize / 32);
+            size = size > 18 ? 18 : size; // setting max font size limit to 18
+            return {
+                size: size,
+            };
+          },
+        },
+        ticks: {
+          font: function (context) {
+            var avgSize = Math.round((context.chart.height + context.chart.width) / 2);
+            var size = Math.round(avgSize / 32);
+            size = size > 18 ? 18 : size; // setting max font size limit to 18
+            return {
+                size: size,
+            };
+          }
         }
       }
     },
     plugins: {
       legend: {
-        position: 'bottom'
+        position: 'bottom',
+        labels: {
+        // This more specific font property overrides the global property
+          font: function (context) {
+            var avgSize = Math.round((context.chart.height + context.chart.width) / 2);
+            var size = Math.round(avgSize / 32);
+            size = size > 18 ? 18 : size; // setting max limit to 12
+            return {
+                size: size,
+            };
+        },
+        }
+                
       }
     }
   
@@ -213,7 +259,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   return (
     <div>
           {/* Once user selects the topics and date range, graph of topic reports will be plotted. */}
-          <div class="bg-white rounded-xl mt-6 py-5">
+          <div className="bg-white rounded-xl mt-6 py-5">
           <ComparisonGraphMenu dateRange={dateRange} setDateRange={setDateRange} 
               selectedTopics={selectedTopics} setSelectedTopics={setSelectedTopics}
               listTopicChoices={listTopicChoices} tab={tab} setTab={setTab}
@@ -224,8 +270,8 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
             {/* Displays graph once data is collected for the topics. */}
             {loaded && 
               <div>
-                <div class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Topic Reports - {formatDates()}</div>
-                <Line class="pl-20 pr-20" options={options} data={graphData} />
+                <div className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Topic Reports - {formatDates()}</div>
+                <Line className="pl-20 pr-20" options={options} data={graphData} />
               </div>
             } 
             {!loaded && <h1 class="text-center">Collecting data...</h1>}
@@ -234,7 +280,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   )
 }
 export default ComparisonGraphPlotted
-
+ 
 
 
 
