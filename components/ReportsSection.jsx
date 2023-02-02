@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { collection, listCollections, getDoc, getDocs, doc } from "firebase/firestore"; 
-import { db } from '../config/firebase'
+import { db } from '../config/firebase';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import Link from 'next/link'
 
 const ReportsSection = ({ search }) => {
 
   const [reports, setReports] = useState([])
   const [filteredReports, setFilteredReports] = useState([])
+  const [loadedReports, setLoadedReports] = useState([])
+  const [endIndex, setEndIndex] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
   const [reportWeek, setReportWeek] = useState("4")
   const { user } = useAuth()
   const dateOptions = { day: '2-digit', year: 'numeric', month: 'short', hour: 'numeric', minute: 'numeric' }
@@ -33,6 +37,12 @@ const ReportsSection = ({ search }) => {
 
       setReports(arr)
       setFilteredReports(arr)
+      setLoadedReports(arr
+        .filter((reportObj) => {
+          const report = Object.values(reportObj)[0]
+          return report["createdDate"].toDate() >= new Date(new Date().setDate(new Date().getDate() - reportWeek * 7))
+        })
+        .sort((objA, objB) => Object.values(objA)[0]["createdDate"] > Object.values(objB)[0]["createdDate"] ? -1 : 1))
     } catch (error) {
       console.log(error)
     }
@@ -41,6 +51,18 @@ const ReportsSection = ({ search }) => {
   const handleDateChanged = (e) => {
     e.preventDefault()
     setReportWeek(e.target.value)
+    setEndIndex(0)
+    
+    // Updates loaded reports so that they only feature reports within the selected date range
+    const arr = filteredReports
+      
+      .filter((reportObj) => {
+      const report = Object.values(reportObj)[0]
+      return report["createdDate"].toDate() >= new Date(new Date().setDate(new Date().getDate() - e.target.value * 7))
+    })
+    arr = arr.sort((objA, objB) => Object.values(objA)[0]["createdDate"] > Object.values(objB)[0]["createdDate"] ? -1 : 1)
+    console.log(arr)
+    setLoadedReports(arr)
   }
 
   // Filter the reports based on the search text
@@ -77,7 +99,48 @@ const ReportsSection = ({ search }) => {
     getData()
   }, [])
 
+  useEffect(() => {
+    console.log("loaded reports being changed")
+    const arr = filteredReports
+      .filter((reportObj) => {
+        const report = Object.values(reportObj)[0]
+        return report["createdDate"].toDate() >= new Date(new Date().setDate(new Date().getDate() - reportWeek * 7))
+      })
+    arr = arr.sort((objA, objB) => Object.values(objA)[0]["createdDate"] > Object.values(objB)[0]["createdDate"] ? -1 : 1)
+    setEndIndex(0)
+    setHasMore(true)
+    setLoadedReports(arr)
+    }, [filteredReports])
+    
+    
+    useEffect(() => {
+      if (loadedReports.length != 0) {
+        handleReportScroll()
+      }
+    }, [loadedReports])
+  
 
+  const handleReportScroll = () => {
+    console.log("end index" + endIndex)
+    console.log("loaded reports length" + loadedReports.length)
+    
+    // If all of the reports have been loaded
+    if (endIndex >= loadedReports.length) {
+      setHasMore(false)
+    
+    // If there is less than 14 reports to load, load remaining reports
+    } else if ((endIndex + 14) >=  loadedReports.length) {
+      setEndIndex(loadedReports.length)   
+      setHasMore(true) 
+    
+    // Load only 14 additional reports
+    } else {
+      setEndIndex(endIndex + 14)
+      setHasMore(true)
+    }
+}
+
+  
   return (
     <div class="flex flex-col h-full">
       <div class="flex flex-row justify-between py-5">
@@ -91,7 +154,7 @@ const ReportsSection = ({ search }) => {
           </select>
         </div>
       </div>
-      <div class="bg-white w-full rounded-xl p-1 h-full">
+      <div class="bg-white w-full h-auto rounded-xl p-1">
         <div class="grid grid-cols-7">
           <div class={"col-span-2 " + tableHeadings}>Title</div>
           <div class={tableHeadings}>Date/Time</div>
@@ -100,31 +163,40 @@ const ReportsSection = ({ search }) => {
           <div class={tableHeadings}>Sources</div>
           <div class={tableHeadings + " p-1"}>Labels (<button class="bg-blue-500 py-1 px-2 text-white rounded text-xs hover:bg-blue-700" onClick={() => getData()}>Refresh</button>)</div>
         </div>
-        <div class="oveflow-scroll ">
-          {filteredReports
-            .filter((reportObj) => {
-              const report = Object.values(reportObj)[0]
-              return report["createdDate"].toDate() >= new Date(new Date().setDate(new Date().getDate() - reportWeek * 7))
-            })
-            .sort((objA, objB) => Object.values(objA)[0]["createdDate"] > Object.values(objB)[0]["createdDate"] ? -1 : 1)
+
+  
+        <div>
+
+            {/*Infinite scroll for the reports to load more reports when user scrolls to bottom*/}
+            <InfiniteScroll
+              dataLength={endIndex}
+              next={handleReportScroll}
+              inverse={false} //
+              hasMore={hasMore}
+              loader={<h4>Loading...</h4>}
+              scrollableTarget="scrollableDiv"
+            >
+          {loadedReports.slice(0, endIndex)
             .map((reportObj) => {
-            const report = Object.values(reportObj)[0]
-            const posted = report["createdDate"].toDate().toLocaleString('en-US', dateOptions).replace(/,/g,"").replace('at', '')
-            return (
-              <Link href={`/dashboard/reports/${Object.keys(reportObj)[0]}`}>
-                <a target="_blank" class="grid grid-cols-7 hover:bg-blue-200">
-                  <div class={"col-span-2 " + columnData}>{report.title}</div>
-                  <div class={columnData}>{posted}</div>
-                  <div class={columnData}>-</div>
-                  <div class={columnData}>{report.topic}</div>
-                  <div class={columnData}>{report.hearFrom}</div>
-                  <div class={columnData}>
-                    <div class={!report.label ? label.default : label.special}>{report.label || "None"}</div>
-                  </div>
-                </a>
-              </Link>
-            )
-          })}
+              const report = Object.values(reportObj)[0]
+              const posted = report["createdDate"].toDate().toLocaleString('en-US', dateOptions).replace(/,/g,"").replace('at', '')
+              return (
+                <Link href={`/dashboard/reports/${Object.keys(reportObj)[0]}`}>
+                  <a target="_blank" class="grid grid-cols-7 hover:bg-blue-200">
+                    <div class={"col-span-2 " + columnData}>{report.title}</div>
+                    <div class={columnData}>{posted}</div>
+                    <div class={columnData}>-</div>
+                    <div class={columnData}>{report.topic}</div>
+                    <div class={columnData}>{report.hearFrom}</div>
+                    <div class={columnData}>
+                      <div class={!report.label ? label.default : label.special}>{report.label || "None"}</div>
+                    </div>
+                  </a>
+                </Link>
+              )
+            })
+          }
+          </InfiniteScroll>
         </div>
         
       </div>
