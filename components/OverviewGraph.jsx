@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
+/* Displays pie chart for the trending topics from the past day, three days, and seven days. */
+import React from 'react'
 import { Chart } from "react-google-charts";
 
-const OverviewGraph = ({yesterdayReports, threeDayReports, sevenDayReports, numTopics}) => {
+const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayReports, numTopics}) => {
   
   console.log(numTopics)
   console.log(yesterdayReports)
@@ -34,22 +35,25 @@ const OverviewGraph = ({yesterdayReports, threeDayReports, sevenDayReports, numT
       <div class="col-span-1 bg-white rounded-xl mt-3 pr-2">
         <h1 class="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Yesterday's Reports</h1>
         {/* Pie chart for topics reported yesterday. */}
-        {numTopics[0] == 0 ? <h1 class="py-24 text-center">No topics reported.</h1> :
-        
-        <Chart
-        chartType="PieChart"
-        data={yesterdayReports}
-        options={options}
-        width={"100%"}
-        height={"300px"}
-        />
-      }
+        {!loaded && <h1 class="py-24 text-center">Retrieving data...</h1>}
+        {loaded && numTopics[0] == 0 && <h1 class="py-24 text-center">No topics reported.</h1>}
+        {loaded && numTopics[0] != 0 &&
+          <Chart
+          chartType="PieChart"
+          data={yesterdayReports}
+          options={options}
+          width={"100%"}
+          height={"300px"}
+          />
+        }
       </div>
       <div class="col-span-1 bg-white rounded-xl mt-3 pr-2">
         <h1 class="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Three Days Ago</h1>
         
         {/* Pie chart for topics reported within the past three days. */}
-        {numTopics[1] == 0 ? <h1 class="py-24 text-center">No topics reported.</h1> :
+        {!loaded && <h1 class="py-24 text-center">Retrieving data...</h1>}
+        {loaded && numTopics[1] == 0 && <h1 class="py-24 text-center">No topics reported.</h1>}
+        {loaded && numTopics[1] != 0 && 
         <Chart
           chartType="PieChart"
           data={threeDayReports}
@@ -62,7 +66,9 @@ const OverviewGraph = ({yesterdayReports, threeDayReports, sevenDayReports, numT
         <h1 class="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Seven Days Ago</h1>
         
         {/* Pie chart for topics reported within the past seven days. */}
-        {numTopics[2] == 0 ? <h1 class="py-24 text-center">No topics reported.</h1> :
+        {!loaded && <h1 class="py-24 text-center">Retrieving data...</h1>}
+        {loaded && numTopics[2] == 0 && <h1 class="py-24 text-center">No topics reported.</h1>}
+        {loaded && numTopics[2] != 0 &&
         <Chart
             chartType="PieChart"
             data={sevenDayReports}
