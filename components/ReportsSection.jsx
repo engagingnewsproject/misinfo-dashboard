@@ -99,31 +99,30 @@ const ReportsSection = ({ search }) => {
     getData()
   }, [])
 
+  // Updates the loaded reports whenever a user filters reports based on search.
   useEffect(() => {
-    console.log("loaded reports being changed")
     const arr = filteredReports
       .filter((reportObj) => {
         const report = Object.values(reportObj)[0]
         return report["createdDate"].toDate() >= new Date(new Date().setDate(new Date().getDate() - reportWeek * 7))
       })
     arr = arr.sort((objA, objB) => Object.values(objA)[0]["createdDate"] > Object.values(objB)[0]["createdDate"] ? -1 : 1)
+    
+    // Default values for infinite scrolling, will load reports as they are populated.
     setEndIndex(0)
     setHasMore(true)
     setLoadedReports(arr)
     }, [filteredReports])
     
-    
+    // Populates the loaded reports as the user scrolls to bottom of page
     useEffect(() => {
       if (loadedReports.length != 0) {
         handleReportScroll()
       }
     }, [loadedReports])
   
-
+  // Determines if there are more reports to be shown.
   const handleReportScroll = () => {
-    console.log("end index" + endIndex)
-    console.log("loaded reports length" + loadedReports.length)
-    
     // If all of the reports have been loaded
     if (endIndex >= loadedReports.length) {
       setHasMore(false)
