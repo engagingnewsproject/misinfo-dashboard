@@ -177,25 +177,6 @@ const ReportsSection = ({ search }) => {
             >
           {loadedReports.slice(0, endIndex)
             .map((reportObj) => {
-<<<<<<< HEAD
-            const report = Object.values(reportObj)[0]
-            const posted = report["createdDate"].toDate().toLocaleString('en-US', dateOptions).replace(/,/g,"").replace('at', '')
-            return (
-              <Link href={`/dashboard/reports/${Object.keys(reportObj)[0]}`}>
-                <a class="grid grid-cols-7 hover:bg-blue-200">
-                  <div class={"col-span-2 " + columnData}>{report.title}</div>
-                  <div class={columnData}>{posted}</div>
-                  <div class={columnData}>-</div>
-                  <div class={columnData}>{report.topic}</div>
-                  <div class={columnData}>{report.hearFrom}</div>
-                  <div class={columnData}>
-                    <div class={!report.label ? label.default : label.special}>{report.label || "None"}</div>
-                  </div>
-                </a>
-              </Link>
-            )
-          })}
-=======
               const report = Object.values(reportObj)[0]
               const posted = report["createdDate"].toDate().toLocaleString('en-US', dateOptions).replace(/,/g,"").replace('at', '')
               return (
@@ -215,7 +196,6 @@ const ReportsSection = ({ search }) => {
             })
           }
           </InfiniteScroll>
->>>>>>> feature-infinite-scrolling
         </div>
         
       </div>
