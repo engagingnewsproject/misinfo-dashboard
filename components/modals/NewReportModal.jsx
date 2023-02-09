@@ -1,30 +1,27 @@
 import React, { useState } from 'react'
+import { useRouter } from 'next/router'
 import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../context/AuthContext'
-import moment from "moment"
+import luxon from "Luxon"
+import { db } from '../../config/firebase'
 import { Country, State, City }  from 'country-state-city';
+import { getDoc, getDocs, doc, setDoc, collection, updateDoc } from "firebase/firestore";
 import csc from "country-state-city";
-import { useFormik } from 'formik';
 import auth from "@firebase/auth";
 import Select from "react-select";
 
 
 const NewReport = ({ setNewReport, addNewReport }) => {
-    const [data, setData] = useState({
-        userID: auth().currentUser.uid,
-        country: "United States",
-        state: null,
-        city: null,
-        topic: "",
-        hearFrom: "",
-        title: "",
-        link: "",
-        secondLink: "", 
-        images: "",
-        detail: "",
-        createdDate: moment().toDate(),
-        isApproved: true
-    })
+    const userId = localStorage.getItem("userId")
+    const [update, setUpdate] = useState("")
+    const router = useRouter()
+    const [info, setInfo] = useState({})
+    const { reportId } = router.query
+
+    const getData = async () => {
+        const infoRef = await getDoc(doc(db, "reports",  reportId))
+        setInfo(infoRef.data())
+    }
 
     const handleChange = (e) => {
         setData({ ...data, [e.target.id]: e.target.value})
