@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react'
-import { useRouter } from "next/router"
 import { useAuth } from '../context/AuthContext'
 import { collection, listCollections, getDoc, getDocs, doc, updateDoc } from "firebase/firestore";
 import { db } from '../config/firebase'
 import Link from 'next/link'
 import { Switch } from "@headlessui/react";
-import ReportLink from './ReportLink'
+
 const ReportsSection = ({ search }) => {
 
   const [reports, setReports] = useState([])
   const [filteredReports, setFilteredReports] = useState([])
   const [reportWeek, setReportWeek] = useState("4")
+  const [readFilter, setReadFilter] = useState("All")
   const { user } = useAuth()
   const dateOptions = { day: '2-digit', year: 'numeric', month: 'short', hour: 'numeric', minute: 'numeric' }
 
@@ -20,11 +20,6 @@ const ReportsSection = ({ search }) => {
     default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
     special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl"
   }
-  
-  const [reportRead, setReportRead] = useState(false)
-  const [info, setInfo] = useState({})
-  // const router = useRouter()
-  // const { reportId } = router.query
 
   const getData = async() => {
     const reportsCollection = collection(db, "reports")
@@ -39,24 +34,20 @@ const ReportsSection = ({ search }) => {
       })
 
       setReports(arr)
-	  // console.log(arr + "testing")
       setFilteredReports(arr)
     } catch (error) {
       console.log(error)
     }
   }
 
-  const getReadData = async() => {
-	const infoRef = await getDoc(doc(db, "reports", reportId))
-		setInfo(infoRef.data())
-		// Reference to the user on firebase
-		getDoc(doc(db, "mobileUsers", infoRef.data()["userID"])).then((mobileRef) =>
-			setReporterInfo(mobileRef.data())
-		)
-  }
   const handleDateChanged = (e) => {
     e.preventDefault()
     setReportWeek(e.target.value)
+  }
+
+  const handleReadFilter = (e) => {
+    e.preventDefault()
+    setFilterRead(e.target.value)
   }
 
   // Filter the reports based on the search text
@@ -92,36 +83,93 @@ const ReportsSection = ({ search }) => {
   // On page load (mount), get the reports from firebase
   useEffect(() => {
     getData()
-	// Initialize read or not
-	reports.forEach(doc => {
-		const initRead = info["read"]
-		setReportRead(initRead)
-	})
   }, [])
 
-
-
-  useEffect(() => {
-	// If firebase info: read field changes set to the value
-	if (reports["read"]) {
-		setReportRead(reports["read"])
+  const handleReadToggled = async (reportId) => {
+	const report = reports.filter(report => Object.keys(report) == reportId)[0]
+	const updatedReport = {
+		...report,
+		[reportId]: {
+			...report[reportId],
+			read: !report[reportId].read
+		}
 	}
-	}, [reports])
+	const reportIndex = reports.findIndex(report => Object.keys(report) == reportId)
+	reports[reportIndex] = updatedReport
+	
+	// JUST ADDED: IDK IF IT'LL ACTUALLY WORK
+	// reports.filter((reportObj) => {
+	// 	const report = Object.values(reportObj)[0];
+	// 	return (
+	// 		report["createdDate"].toDate() >=
+	// 		new Date(
+	// 			new Date().setDate(new Date().getDate() - reportWeek * 7)
+	// 		)
+	// 	);
+	// })
+	// .sort((objA, objB) =>
+	// 	Object.values(objA)[0]["createdDate"] >
+	// 	Object.values(objB)[0]["createdDate"]
+	// 		? -1
+	// 		: 1
+	// )
 
-	async function handleReadChange(e, reportId) {
-		// Toggle the switch value (true/false)
-		e === !e
-		// Set a reference to the firebase doc.
-		// const docRef = doc(db, "reports", "C0o4XlHgSLWUE9vbJUZP")
-		console.log(reportId+ "success")
-		// Update firebase doc "read" field
-		// await updateDoc(docRef, { read: !e })
-		//console.log("success")
+	const updatedReports = [...reports]
+	setReports([...reports])
+	setFilteredReports([...reports])
+	// setFilteredReports(updatedReports.filter((reportObj) => {
+	// 	const report = Object.values(reportObj)[0];
+	// 	return (
+	// 		(report["createdDate"].toDate() >=
+	// 		new Date(
+	// 			new Date().setDate(new Date().getDate() - reportWeek * 7)
+	// 		)) && (report.read.toString() == readFilter)
+	// 	);
+	// })
+	// .sort((objA, objB) =>
+	// 	Object.values(objA)[0]["createdDate"] >
+	// 	Object.values(objB)[0]["createdDate"]
+	// 		? -1
+	// 		: 1
+	// ))
+	if (readFilter !== "All") {
+		setFilteredReports(updatedReports.filter((reportObj) => {
+			return Object.values(reportObj)[0].read.toString() == readFilter
+		}))
 	}
+	
 
-	function handleChangeSwitch() {
-		setReportRead(!reportRead)
+	// const reportsCollection = collection(db, "reports")
+	const reportDoc = doc(db, "reports", reportId)
+	// const reportDoc = doc(db.collection("reports").doc(reportId))
+	await updateDoc(reportDoc, { read: !report[reportId].read }).then(function() {
+		console.log("Success")
+	}).catch(function(error) {
+		console.log("error")
+	})
+	// reportDoc.update({ read: !report[reportId].read }).then(function () {
+  	// console.log("Document successfully updated!")
+	// }).catch(function (error) {
+  	// console.error("Error updating document: ", error)
+	// });
+  }
+
+  const handleReadFilterChanged = (e) => {
+	console.log(e.target.value + "went into function")
+	if (e.target.value != "All") {
+		setFilteredReports(reports.filter(report => {
+			const reportData = Object.values(report)[0]
+			return reportData.read.toString() == e.target.value
+		}))
+	} else {
+		setFilteredReports(reports)
 	}
+	// setFilteredReports(reports.filter(report => {
+	// 	const reportData = Object.values(report)[0]
+	// 	return reportData.read.toString() == e.target.value
+	// }))
+	setReadFilter(e.target.value)
+  }
 
   return (
 		<div class="flex flex-col h-full">
@@ -129,18 +177,15 @@ const ReportsSection = ({ search }) => {
 				<div class="text-lg font-bold text-blue-600 tracking-wider">
 					List of Reports
 				</div>
-				
-				
 				<div>
 					<select
-						id="read"
-						onChange={(e) => handleDateChanged(e)}
-						defaultValue="3"
+						id="labels"
+						onChange={(e) => handleReadFilterChanged(e)}
+						defaultValue="All"
 						class="text-sm font-semibold bg-white inline-block px-8 border-none text-black py-1 rounded-md">
-						<option value="3">Unread</option>
-						<option value="2">Read</option>
-						<option value="1">All</option>
-						
+						<option value="false">Unread</option>
+						<option value="true">Read</option>
+						<option value="All">All reports</option>
 					</select>
 					<select
 						id="labels"
@@ -192,62 +237,49 @@ const ReportsSection = ({ search }) => {
 						)
 						.map((reportObj) => {
 							const report = Object.values(reportObj)[0];
-							const reportId = Object.keys(reportObj)[0]
-							// console.log(reportId + "testing")
 							const posted = report["createdDate"]
 								.toDate()
 								.toLocaleString("en-US", dateOptions)
 								.replace(/,/g, "")
 								.replace("at", "");
-							let read = report["read"]
-							const readOrNot = read ? true : false
-							// if (report["read"]) {
-							// 	console.log("read!")
-							// 	let read = "yes"
-							// } else {
-							// console.log("NOT read!")
-							// 	let read = "no"
-							// }
 							
 							return (
-								// <Link href={`/dashboard/reports/${Object.keys(reportObj)[0]}`}>
-								// 	<a class="grid grid-cols-8 hover:bg-blue-200">
-								// 		<div class={"col-span-2 " + columnData}>{report.title}</div>
-								// 		<div class={columnData}>{posted}</div>
-								// 		<div class={columnData}>-</div>
-								// 		<div class={columnData}>{report.topic}</div>
-								// 		<div class={columnData}>{report.hearFrom}</div>
-								// 		<div class={columnData}>
-								// 			<div
-								// 				class={!report.label ? label.default : label.special}>
-								// 				{report.label || "None"}
-								// 			</div>
-								// 		</div>
-								// 		<div class={columnData}>
-								// 			<Switch
-								// 			// Set checked to the initial reportRead value (false)
-								// 			checked={readOrNot}
-								// 			// When switch toggled setReportRead
-								// 			onChange={setReportRead}
-								// 			// On click handler
-								// 			// Find a way to pass in the id into the handleReadChange function
-								// 			// onClick={() => setReportRead(handleReadChange.bind(Object.keys(reportObj)[0]))}
-								// 			onClick={() => console.log("test")}
-								// 			className={`${
-								// 				readOrNot ? "bg-blue-600" : "bg-gray-200"
-								// 			} relative inline-flex h-6 w-11 items-center rounded-full`}>
-								// 			<span className="sr-only">Mark me</span>
-								// 			<span
-								// 				aria-hidden="true"
-								// 				className={`${
-								// 					readOrNot ? "translate-x-6" : "translate-x-1"
-								// 				} inline-block h-4 w-4 transform rounded-full bg-white transition`}
-								// 			/>
-								// 			</Switch>
-								// 		</div>
-								// 	</a>
-								// </Link>
-								<ReportLink reportObj={reportObj} report={report} posted={posted}/>
+								<Link href={`/dashboard/reports/${Object.keys(reportObj)[0]}`}>
+									<a class="grid grid-cols-8 hover:bg-blue-200">
+										<div class={"col-span-2 " + columnData}>{report.title}</div>
+										<div class={columnData}>{posted}</div>
+										<div class={columnData}>-</div>
+										<div class={columnData}>{report.topic}</div>
+										<div class={columnData}>{report.hearFrom}</div>
+										<div class={columnData}>
+											<div
+												class={!report.label ? label.default : label.special}>
+												{report.label || "None"}
+											</div>
+										</div>
+										<div class={columnData}>
+											
+											<Switch
+												// Set checked to the initial reportRead value (false)
+												checked={report.read}
+												// When switch toggled setReportRead
+												onChange={() => handleReadToggled(Object.keys(reportObj)[0])}
+												// On click handler
+												// onClick={() => setReportRead(handleReadChange)}
+												className={`${
+													report.read ? "bg-blue-600" : "bg-gray-200"
+												} relative inline-flex h-6 w-11 items-center rounded-full`}>
+												<span className="sr-only">Mark me</span>
+												<span
+													aria-hidden="true"
+													className={`${
+														report.read ? "translate-x-6" : "translate-x-1"
+													} inline-block h-4 w-4 transform rounded-full bg-white transition`}
+												/>
+											</Switch>
+										</div>
+									</a>
+								</Link>
 							);
 						})}
 				</div>
