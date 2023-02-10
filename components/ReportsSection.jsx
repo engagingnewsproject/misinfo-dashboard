@@ -20,7 +20,7 @@ const ReportsSection = ({ search }) => {
     default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
     special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl"
   }
-
+  
   const getData = async() => {
     const reportsCollection = collection(db, "reports")
     const snapshot = await getDocs(reportsCollection)
@@ -52,32 +52,42 @@ const ReportsSection = ({ search }) => {
 
   // Filter the reports based on the search text
   useEffect(() => {
-    setFilteredReports(reports.filter((reportObj) => {
-      const report = Object.values(reportObj)[0]
+	if (search == "") {
+		if (readFilter != "All") {
+			setFilteredReports(reports.filter((reportObj) => {
+				return Object.values(reportObj)[0].read.toString() == readFilter
+			}))
+		} else {
+			setFilteredReports(reports)
+		}
+	} else {
+		setFilteredReports(reports.filter((reportObj) => {
+		const report = Object.values(reportObj)[0]
 
-      var arr = []
-      // Collect the searchable fields of the reports data
-      for (const key in report) {
-        if (report[key]) {
-          if (key != "images" && key != "userID") {
-            if (key == "createdDate") {
-              const posted = report[key].toDate().toLocaleString('en-US', dateOptions).replace(/,/g,"").replace('at', '')
-              arr.push(posted.toLowerCase())
-            } else {
-              arr.push(report[key].toString().toLowerCase())
-            }
-          }
-        }
-      }
+		var arr = []
+		// Collect the searchable fields of the reports data
+		for (const key in report) {
+			if (report[key]) {
+			if (key != "images" && key != "userID") {
+				if (key == "createdDate") {
+				const posted = report[key].toDate().toLocaleString('en-US', dateOptions).replace(/,/g,"").replace('at', '')
+				arr.push(posted.toLowerCase())
+				} else {
+				arr.push(report[key].toString().toLowerCase())
+				}
+			}
+			}
+		}
 
-      // check if the search text is in the collected fields
-      for (const str of arr) {
-        if (str.includes(search.toLowerCase())) {
-          return true
-        }
-      }
+		// check if the search text is in the collected fields
+		for (const str of arr) {
+			if (str.includes(search.toLowerCase())) {
+			return true
+			}
+		}
 
-    }))
+		}))
+	}
   }, [search])
 
   // On page load (mount), get the reports from firebase
