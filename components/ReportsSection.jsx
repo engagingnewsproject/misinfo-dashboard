@@ -106,62 +106,20 @@ const ReportsSection = ({ search }) => {
 	}
 	const reportIndex = reports.findIndex(report => Object.keys(report) == reportId)
 	reports[reportIndex] = updatedReport
-	
-	// JUST ADDED: IDK IF IT'LL ACTUALLY WORK
-	// reports.filter((reportObj) => {
-	// 	const report = Object.values(reportObj)[0];
-	// 	return (
-	// 		report["createdDate"].toDate() >=
-	// 		new Date(
-	// 			new Date().setDate(new Date().getDate() - reportWeek * 7)
-	// 		)
-	// 	);
-	// })
-	// .sort((objA, objB) =>
-	// 	Object.values(objA)[0]["createdDate"] >
-	// 	Object.values(objB)[0]["createdDate"]
-	// 		? -1
-	// 		: 1
-	// )
-
 	const updatedReports = [...reports]
 	setReports([...reports])
 	setFilteredReports([...reports])
-	// setFilteredReports(updatedReports.filter((reportObj) => {
-	// 	const report = Object.values(reportObj)[0];
-	// 	return (
-	// 		(report["createdDate"].toDate() >=
-	// 		new Date(
-	// 			new Date().setDate(new Date().getDate() - reportWeek * 7)
-	// 		)) && (report.read.toString() == readFilter)
-	// 	);
-	// })
-	// .sort((objA, objB) =>
-	// 	Object.values(objA)[0]["createdDate"] >
-	// 	Object.values(objB)[0]["createdDate"]
-	// 		? -1
-	// 		: 1
-	// ))
 	if (readFilter !== "All") {
 		setFilteredReports(updatedReports.filter((reportObj) => {
 			return Object.values(reportObj)[0].read.toString() == readFilter
 		}))
 	}
-	
-
-	// const reportsCollection = collection(db, "reports")
 	const reportDoc = doc(db, "reports", reportId)
-	// const reportDoc = doc(db.collection("reports").doc(reportId))
 	await updateDoc(reportDoc, { read: !report[reportId].read }).then(function() {
 		console.log("Success")
 	}).catch(function(error) {
 		console.log("error")
 	})
-	// reportDoc.update({ read: !report[reportId].read }).then(function () {
-  	// console.log("Document successfully updated!")
-	// }).catch(function (error) {
-  	// console.error("Error updating document: ", error)
-	// });
   }
 
   const handleReadFilterChanged = (e) => {
@@ -192,7 +150,7 @@ const ReportsSection = ({ search }) => {
 						id="labels"
 						onChange={(e) => handleReadFilterChanged(e)}
 						defaultValue="All"
-						class="text-sm font-semibold bg-white inline-block px-8 border-none text-black py-1 rounded-md">
+						class="text-sm font-semibold bg-white inline-block px-8 border-none text-black py-1 rounded-md mx-2">
 						<option value="false">Unread</option>
 						<option value="true">Read</option>
 						<option value="All">All reports</option>
