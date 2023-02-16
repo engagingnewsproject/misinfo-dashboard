@@ -16,15 +16,37 @@ const NewReport = ({ setNewReport, addNewReport }) => {
     const [update, setUpdate] = useState("")
     const router = useRouter()
     const [info, setInfo] = useState({})
+    const [reporterInfo, setReporterInfo] = useState({})
     const { reportId } = router.query
+
+    const setData = async(tagSystem, list, active, user) => {
+        const docRef = await getDoc(doc(db, "reports", reportId))
+        const updatedDocRef = await setDoc(doc(db, "reports", reportId), {
+            ...docRef.data(),
+            // [tagSystems[tagSystem]]: {
+            //     list: list,
+            //     active: active
+            // }
+        });
+        return updatedDocRef
+    }
 
     const getData = async () => {
         const infoRef = await getDoc(doc(db, "reports",  reportId))
         setInfo(infoRef.data())
+
+        getDoc(doc(db, "mobileUsers", infoRef.data()["userID"])).then((mobileRef) =>
+			setReporterInfo(mobileRef.data())
+		)
     }
+
+    useEffect(() => {
+		getData()
+	}, [])
 
     const handleChange = (e) => {
         setData({ ...data, [e.target.id]: e.target.value})
+        
     }
 
     const handleNewReport = async (e) => {
