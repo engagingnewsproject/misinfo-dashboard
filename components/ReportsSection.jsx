@@ -214,6 +214,15 @@ const ReportsSection = ({ search }) => {
 				<div class="text-lg font-bold text-blue-600 tracking-wider">
 					List of Reports
 				</div>
+        <div>
+          <button	
+            onClick={() => setNewReport(true)}	
+            class="flex flex-row text-sm bg-white inline-block px-4 border-none text-black py-1 rounded-md">	
+            <AiOutlinePlus class = "my-1" size = {15}/> 	
+            Create New Report	
+          </button>	
+        </div>
+        {newReport && <NewReportModal setNewReport={setNewReport} />}
 				<div>
 					<select
 						id="labels"
