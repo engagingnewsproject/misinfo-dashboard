@@ -7,7 +7,6 @@ import { Switch } from "@headlessui/react";
 import {IoMdRefresh} from "react-icons/io";
 import ReactTooltip from "react-tooltip";
 import InfiniteScroll from 'react-infinite-scroll-component';
-import Link from 'next/link'
 import NewReportModal from './modals/NewReportModal'
 import { AiOutlinePlus } from 'react-icons/ai'
 
