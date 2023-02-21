@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { collection, listCollections, getDoc, getDocs, doc } from "firebase/firestore"; 
-import { db } from '../config/firebase';
+import { collection, listCollections, getDoc, getDocs, doc, updateDoc } from "firebase/firestore";
+import { db } from '../config/firebase'
+import Link from 'next/link'
+import { Switch } from "@headlessui/react";
+import {IoMdRefresh} from "react-icons/io";
+import ReactTooltip from "react-tooltip";
 import InfiniteScroll from 'react-infinite-scroll-component';
 import Link from 'next/link'
 import NewReportModal from './modals/NewReportModal'
@@ -16,6 +20,7 @@ const ReportsSection = ({ search }) => {
   const [endIndex, setEndIndex] = useState(0)
   const [hasMore, setHasMore] = useState(true)
   const [reportWeek, setReportWeek] = useState("4")
+  const [readFilter, setReadFilter] = useState("All")
   const { user } = useAuth()
   const dateOptions = { day: '2-digit', year: 'numeric', month: 'short', hour: 'numeric', minute: 'numeric' }
 
@@ -25,7 +30,7 @@ const ReportsSection = ({ search }) => {
     default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
     special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl"
   }
-
+  
   const getData = async() => {
     const reportsCollection = collection(db, "reports")
     const snapshot = await getDocs(reportsCollection)
@@ -68,33 +73,49 @@ const ReportsSection = ({ search }) => {
     setLoadedReports(arr)
   }
 
+  const handleReadFilter = (e) => {
+    e.preventDefault()
+    setFilterRead(e.target.value)
+  }
+
   // Filter the reports based on the search text
   useEffect(() => {
-    setFilteredReports(reports.filter((reportObj) => {
+    if (search == "") {
+      if (readFilter != "All") {
+        setFilteredReports(reports.filter((reportObj) => {
+          return Object.values(reportObj)[0].read.toString() == readFilter
+        }))
+      } else {
+        setFilteredReports(reports)
+      }
+    } else {
+      setFilteredReports(reports.filter((reportObj) => {
       const report = Object.values(reportObj)[0]
+
       var arr = []
       // Collect the searchable fields of the reports data
       for (const key in report) {
         if (report[key]) {
-          if (key != "images" && key != "userID") {
-            if (key == "createdDate") {
-              const posted = report[key].toDate().toLocaleString('en-US', dateOptions).replace(/,/g,"").replace('at', '')
-              arr.push(posted.toLowerCase())
-            } else {
-              arr.push(report[key].toString().toLowerCase())
-            }
+        if (key != "images" && key != "userID") {
+          if (key == "createdDate") {
+          const posted = report[key].toDate().toLocaleString('en-US', dateOptions).replace(/,/g,"").replace('at', '')
+          arr.push(posted.toLowerCase())
+          } else {
+          arr.push(report[key].toString().toLowerCase())
           }
+        }
         }
       }
 
       // check if the search text is in the collected fields
       for (const str of arr) {
         if (str.includes(search.toLowerCase())) {
-          return true
+        return true
         }
       }
 
-    }))
+      }))
+    }
   }, [search])
 
   // On page load (mount), get the reports from firebase
@@ -102,45 +123,50 @@ const ReportsSection = ({ search }) => {
     getData()
   }, [])
 
-  // Updates the loaded reports whenever a user filters reports based on search.
-  useEffect(() => {
-    const arr = filteredReports
-      .filter((reportObj) => {
-        const report = Object.values(reportObj)[0]
-        return report["createdDate"].toDate() >= new Date(new Date().setDate(new Date().getDate() - reportWeek * 7))
-      })
-    arr = arr.sort((objA, objB) => Object.values(objA)[0]["createdDate"] > Object.values(objB)[0]["createdDate"] ? -1 : 1)
-    
-    // Default values for infinite scrolling, will load reports as they are populated.
-    setEndIndex(0)
-    setHasMore(true)
-    setLoadedReports(arr)
-    }, [filteredReports])
-    
-    // Populates the loaded reports as the user scrolls to bottom of page
-    useEffect(() => {
-      if (loadedReports.length != 0) {
-        handleReportScroll()
-      }
-    }, [loadedReports])
-  
-  // Determines if there are more reports to be shown.
-  const handleReportScroll = () => {
-    // If all of the reports have been loaded
-    if (endIndex >= loadedReports.length) {
-      setHasMore(false)
-    
-    // If there is less than 14 reports to load, load remaining reports
-    } else if ((endIndex + 14) >=  loadedReports.length) {
-      setEndIndex(loadedReports.length)   
-      setHasMore(true) 
-    
-    // Load only 14 additional reports
-    } else {
-      setEndIndex(endIndex + 14)
-      setHasMore(true)
-    }
-}
+  const handleReadToggled = async (reportId) => {
+	const report = reports.filter(report => Object.keys(report) == reportId)[0]
+	const updatedReport = {
+		...report,
+		[reportId]: {
+			...report[reportId],
+			read: !report[reportId].read
+		}
+	}
+	const reportIndex = reports.findIndex(report => Object.keys(report) == reportId)
+	reports[reportIndex] = updatedReport
+	const updatedReports = [...reports]
+	setReports([...reports])
+	setFilteredReports([...reports])
+	if (readFilter !== "All") {
+		setFilteredReports(updatedReports.filter((reportObj) => {
+			return Object.values(reportObj)[0].read.toString() == readFilter
+		}))
+	}
+	const reportDoc = doc(db, "reports", reportId)
+	await updateDoc(reportDoc, { read: !report[reportId].read }).then(function() {
+		console.log("Success")
+	}).catch(function(error) {
+		console.log("error")
+	})
+  }
+
+  const handleReadFilterChanged = (e) => {
+	console.log(e.target.value + "went into function")
+	if (e.target.value != "All") {
+		setFilteredReports(reports.filter(report => {
+			const reportData = Object.values(report)[0]
+			return reportData.read.toString() == e.target.value
+		}))
+	} else {
+		setFilteredReports(reports)
+	}
+	// setFilteredReports(reports.filter(report => {
+	// 	const reportData = Object.values(report)[0]
+	// 	return reportData.read.toString() == e.target.value
+	// }))
+	setReadFilter(e.target.value)
+  }
+
 
   
   return (
