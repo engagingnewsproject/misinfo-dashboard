@@ -1,8 +1,10 @@
+/* Displays pie charts or line graph for the trending topics based on which view is selected. */
 import React, { useState, useEffect } from 'react'
 import { collection, query, where, getDocs, Timestamp, getDoc, doc } from "firebase/firestore";
 import { db } from '../config/firebase'
 import Toggle from './Toggle'
 import OverviewGraph from './OverviewGraph'
+import ComparisonGraphSetup from './ComparisonGraphSetup'
 
 const TagGraph = () => {
   const [viewVal, setViewVal] = useState("overview")
@@ -10,10 +12,12 @@ const TagGraph = () => {
   const [threeDayReports, setThreeDayReports] = useState([])
   const [sevenDayReports, setSevenDayReports] = useState([])
   const [numTrendingTopics, setNumTrendingTopics] = useState([])
+  const [loaded, setLoaded] = useState(false)
 
   // Returns the Firebase timestamp for the beginning of yesterday
   const getStartOfDay = (daysAgo) => {
     var starting_date = new Date()
+
     // Gets the start of yesterday, it will begin topic search
     // at this time
     starting_date.setHours(-24 * daysAgo,0,0,0) // Sets time to midnight of yesterday
@@ -23,7 +27,6 @@ const TagGraph = () => {
 
   // Returns the Firebase timestamp for the beginning of today
   const getEndOfDay = () => {
-
     const now = new Date()
     now.setHours(0, 0, 0, 0) // Sets time to midnight of today
 
@@ -32,14 +35,6 @@ const TagGraph = () => {
     const timestamp = Timestamp.fromDate(now)
     return timestamp
   }
-
-  // Sorts array that stores topics and their number of reports in trending topics order
-  const sortTopics = () => {
-    const sortedArray = [...yesterdayReports].sort((a,b) => b.numReports - a.numReports);
-    // Sets topic reports to the top three trending topics
-    setTopicReports(sortedArray)
-  };
-
 
   async function getTopicReports() {
     const reportsList = collection(db, "reports");
@@ -120,7 +115,7 @@ const TagGraph = () => {
     setYesterdayReports(trendingTopics.concat(sortedYesterday))
     setThreeDayReports(trendingTopics.concat(sortedThreeDays))
     setSevenDayReports(trendingTopics.concat(sortedSevenDays))
-
+    setLoaded(true)
   };
   
   // On page load (mount), retrieve the reports collection to determine top three trending topics
@@ -130,12 +125,16 @@ const TagGraph = () => {
 
   
   return (
-    <div>
+    <div class="w-full">
     <Toggle viewVal={viewVal} setViewVal={setViewVal}/>
-    { viewVal == "overview" ? <OverviewGraph id="overview" yesterdayReports={yesterdayReports} threeDayReports={threeDayReports} 
+    <div class={viewVal=="overview" ? "block" : "hidden"}><OverviewGraph id="overview" loaded={loaded} yesterdayReports={yesterdayReports} threeDayReports={threeDayReports} 
        sevenDayReports={sevenDayReports}
-       numTopics={numTrendingTopics}/> : <h1>Comparison view</h1>}
+       numTopics={numTrendingTopics}/>
+    </div>
+       
+    <div class={viewVal=="comparison" ? "block": "hidden"}><ComparisonGraphSetup /></div>
     </div>
   )
 }
 export default TagGraph
+

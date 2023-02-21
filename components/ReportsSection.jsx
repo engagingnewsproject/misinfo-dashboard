@@ -6,11 +6,15 @@ import Link from 'next/link'
 import { Switch } from "@headlessui/react";
 import {IoMdRefresh} from "react-icons/io";
 import ReactTooltip from "react-tooltip";
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 const ReportsSection = ({ search }) => {
 
   const [reports, setReports] = useState([])
   const [filteredReports, setFilteredReports] = useState([])
+  const [loadedReports, setLoadedReports] = useState([])
+  const [endIndex, setEndIndex] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
   const [reportWeek, setReportWeek] = useState("4")
   const [readFilter, setReadFilter] = useState("All")
   const { user } = useAuth()
@@ -26,7 +30,7 @@ const ReportsSection = ({ search }) => {
   const getData = async() => {
     const reportsCollection = collection(db, "reports")
     const snapshot = await getDocs(reportsCollection)
-
+    
     try {
       var arr = []
       snapshot.forEach(doc => {
@@ -37,6 +41,12 @@ const ReportsSection = ({ search }) => {
 
       setReports(arr)
       setFilteredReports(arr)
+      setLoadedReports(arr
+        .filter((reportObj) => {
+          const report = Object.values(reportObj)[0]
+          return report["createdDate"].toDate() >= new Date(new Date().setDate(new Date().getDate() - reportWeek * 7))
+        })
+        .sort((objA, objB) => Object.values(objA)[0]["createdDate"] > Object.values(objB)[0]["createdDate"] ? -1 : 1))
     } catch (error) {
       console.log(error)
     }
@@ -45,6 +55,18 @@ const ReportsSection = ({ search }) => {
   const handleDateChanged = (e) => {
     e.preventDefault()
     setReportWeek(e.target.value)
+    setEndIndex(0)
+    
+    // Updates loaded reports so that they only feature reports within the selected date range
+    const arr = filteredReports
+      
+      .filter((reportObj) => {
+      const report = Object.values(reportObj)[0]
+      return report["createdDate"].toDate() >= new Date(new Date().setDate(new Date().getDate() - e.target.value * 7))
+    })
+    arr = arr.sort((objA, objB) => Object.values(objA)[0]["createdDate"] > Object.values(objB)[0]["createdDate"] ? -1 : 1)
+    console.log(arr)
+    setLoadedReports(arr)
   }
 
   const handleReadFilter = (e) => {
@@ -54,42 +76,42 @@ const ReportsSection = ({ search }) => {
 
   // Filter the reports based on the search text
   useEffect(() => {
-	if (search == "") {
-		if (readFilter != "All") {
-			setFilteredReports(reports.filter((reportObj) => {
-				return Object.values(reportObj)[0].read.toString() == readFilter
-			}))
-		} else {
-			setFilteredReports(reports)
-		}
-	} else {
-		setFilteredReports(reports.filter((reportObj) => {
-		const report = Object.values(reportObj)[0]
+    if (search == "") {
+      if (readFilter != "All") {
+        setFilteredReports(reports.filter((reportObj) => {
+          return Object.values(reportObj)[0].read.toString() == readFilter
+        }))
+      } else {
+        setFilteredReports(reports)
+      }
+    } else {
+      setFilteredReports(reports.filter((reportObj) => {
+      const report = Object.values(reportObj)[0]
 
-		var arr = []
-		// Collect the searchable fields of the reports data
-		for (const key in report) {
-			if (report[key]) {
-			if (key != "images" && key != "userID") {
-				if (key == "createdDate") {
-				const posted = report[key].toDate().toLocaleString('en-US', dateOptions).replace(/,/g,"").replace('at', '')
-				arr.push(posted.toLowerCase())
-				} else {
-				arr.push(report[key].toString().toLowerCase())
-				}
-			}
-			}
-		}
+      var arr = []
+      // Collect the searchable fields of the reports data
+      for (const key in report) {
+        if (report[key]) {
+        if (key != "images" && key != "userID") {
+          if (key == "createdDate") {
+          const posted = report[key].toDate().toLocaleString('en-US', dateOptions).replace(/,/g,"").replace('at', '')
+          arr.push(posted.toLowerCase())
+          } else {
+          arr.push(report[key].toString().toLowerCase())
+          }
+        }
+        }
+      }
 
-		// check if the search text is in the collected fields
-		for (const str of arr) {
-			if (str.includes(search.toLowerCase())) {
-			return true
-			}
-		}
+      // check if the search text is in the collected fields
+      for (const str of arr) {
+        if (str.includes(search.toLowerCase())) {
+        return true
+        }
+      }
 
-		}))
-	}
+      }))
+    }
   }, [search])
 
   // On page load (mount), get the reports from firebase
@@ -141,6 +163,8 @@ const ReportsSection = ({ search }) => {
 	setReadFilter(e.target.value)
   }
 
+
+  
   return (
 		<div class="flex flex-col h-full">
 			<div class="flex flex-row justify-between py-5">
