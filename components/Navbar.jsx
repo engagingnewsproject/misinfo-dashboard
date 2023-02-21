@@ -1,22 +1,32 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/router'
-import { MdHomeFilled } from 'react-icons/md';
-import { CgProfile } from 'react-icons/cg'
-import { IoSettingsSharp } from 'react-icons/io5'
-import { BiLogOut } from 'react-icons/bi'
+import {
+	IoHomeOutline,
+	IoSettingsOutline,
+	IoAddCircleOutline,
+	IoPricetagsOutline,
+	IoLogOutOutline
+} from "react-icons/io5";
+import ReactTooltip from "react-tooltip";
 import { useAuth } from '../context/AuthContext';
 import ConfirmModal from './modals/ConfirmModal';
+import ReportModal from "./modals/ReportModal";
 
 const Navbar = ({tab, setTab}) => {
 
     const { logout } = useAuth()
     const router = useRouter()
+    const [reportModal, setReportModal] = useState(false);
     const [logoutModal, setLogoutModal] = useState(false)
 
     const handleLogout = () => {
         logout()
         router.push('/login')
     }
+
+    const handleReport = () => {
+        alert('REPORT');
+    };
 
     const basicStyle = "flex p-2 my-6 mx-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
 
@@ -26,25 +36,40 @@ const Navbar = ({tab, setTab}) => {
                 <div>
                     <button 
                         onClick={() => setTab(0)}
+                        data-tip="Home"
                         class={tab == 0 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
-                        <MdHomeFilled size={30}/>
-                    </button>
-                    <button
-                        onClick={() => setTab(1)}
-                        class={tab == 1 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
-                        <CgProfile size={30}/>
+                        <IoHomeOutline size={30}/>
+                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     <button
                         onClick={() => setTab(2)}
+                        data-tip="Tagging Systems"
                         class={tab == 2 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
-                        <IoSettingsSharp size={30}/>
+                        <IoPricetagsOutline size={30}/>
+                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                    </button>
+                    <button
+                        onClick={() => setReportModal(true)}
+                        data-tip="New Report"
+                        class={basicStyle}>
+                        <IoAddCircleOutline size={30}/>
+                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                 </div>
                 <div>
                     <button
+                        onClick={() => setTab(1)}
+                        data-tip="Settings"
+                        class={tab == 1 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
+                        <IoSettingsOutline size={30}/>
+                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                    </button>
+                    <button
                         onClick={() => setLogoutModal(true)}
+                        data-tip="Logout"
                         class={basicStyle}>
-                        <BiLogOut size={30}/>
+                        <IoLogOutOutline size={30}/>
+                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                 </div>
             </div>
@@ -54,6 +79,13 @@ const Navbar = ({tab, setTab}) => {
                 subtitle=""
                 CTA="Log out"
                 closeModal={setLogoutModal}
+                />}
+            { reportModal && <ReportModal
+                func={handleReport}
+                title="New Report"
+                subtitle=""
+                CTA="Log report"
+                closeModal={setReportModal}
                 />}
         </div>
     )
