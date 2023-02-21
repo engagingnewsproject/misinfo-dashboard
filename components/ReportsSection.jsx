@@ -246,16 +246,14 @@ const ReportsSection = ({ search }) => {
 					<div class={tableHeadings}>Sources</div>
 					<div class={tableHeadings + " p-1"}>
 						Labels (
-							<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+							<ReactTooltip id="refreshTooltip" place="top" type="light" effect="solid" delayShow={500} />
 							<button
-
 								className="relative top-1"
 								onClick={() => getData()}
-
-								data-tip="Refresh" 
+								data-tip="Refresh"
+								data-for="refreshTooltip" 
 								>
 								<IoMdRefresh size={20} />
-
 							</button>
 						)
 					</div>
