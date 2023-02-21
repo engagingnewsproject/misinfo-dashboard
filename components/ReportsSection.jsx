@@ -4,6 +4,8 @@ import { collection, listCollections, getDoc, getDocs, doc, updateDoc } from "fi
 import { db } from '../config/firebase'
 import Link from 'next/link'
 import { Switch } from "@headlessui/react";
+import {IoMdRefresh} from "react-icons/io";
+import ReactTooltip from "react-tooltip";
 
 const ReportsSection = ({ search }) => {
 
@@ -177,11 +179,17 @@ const ReportsSection = ({ search }) => {
 					<div class={tableHeadings}>Sources</div>
 					<div class={tableHeadings + " p-1"}>
 						Labels (
-						<button
-							class="bg-blue-500 py-1 px-2 text-white rounded text-xs hover:bg-blue-700"
-							onClick={() => getData()}>
-							Refresh
-						</button>
+							<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+							<button
+							
+								className="relative top-1"
+								onClick={() => getData()}
+								
+								data-tip="Refresh" 
+								>
+								<IoMdRefresh size={20} />
+								
+							</button>
 						)
 					</div>
 					<div class={tableHeadings}>Read/Unread</div>
