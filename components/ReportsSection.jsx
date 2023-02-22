@@ -78,44 +78,44 @@ const ReportsSection = ({ search }) => {
   }
 
   // Filter the reports based on the search text
-  useEffect(() => {
-    if (search == "") {
-      if (readFilter != "All") {
-        setFilteredReports(reports.filter((reportObj) => {
-          return Object.values(reportObj)[0].read.toString() == readFilter
-        }))
-      } else {
-        setFilteredReports(reports)
-      }
-    } else {
-      setFilteredReports(reports.filter((reportObj) => {
-      const report = Object.values(reportObj)[0]
+	useEffect(() => {
+		if (search == "") {
+			if (readFilter != "All") {
+				setFilteredReports(reports.filter((reportObj) => {
+					return Object.values(reportObj)[0].read.toString() == readFilter
+				}))
+			} else {
+				setFilteredReports(reports)
+			}
+		} else {
+			setFilteredReports(reports.filter((reportObj) => {
+				const report = Object.values(reportObj)[0]
 
-      var arr = []
-      // Collect the searchable fields of the reports data
-      for (const key in report) {
-        if (report[key]) {
-          if (key != "images" && key != "userID") {
-            if (key == "createdDate") {
-            const posted = report[key].toDate().toLocaleString('en-US', dateOptions).replace(/,/g,"").replace('at', '')
-            arr.push(posted.toLowerCase())
-            } else {
-            arr.push(report[key].toString().toLowerCase())
-            }
-          }
-        }
-      }
+				var arr = []
+				// Collect the searchable fields of the reports data
+				for (const key in report) {
+					if (report[key]) {
+						if (key != "images" && key != "userID") {
+							if (key == "createdDate") {
+								const posted = report[key].toDate().toLocaleString('en-US', dateOptions).replace(/,/g, "").replace('at', '')
+								arr.push(posted.toLowerCase())
+							} else {
+								arr.push(report[key].toString().toLowerCase())
+							}
+						}
+					}
+				}
 
-      // check if the search text is in the collected fields
-      for (const str of arr) {
-        if (str.includes(search.toLowerCase())) {
-        return true
-        }
-      }
+				// check if the search text is in the collected fields
+				for (const str of arr) {
+					if (str.includes(search.toLowerCase())) {
+						return true
+					}
+				}
 
-      }))
-    }
-  }, [search])
+			}))
+		}
+	}, [search])
 
   // On page load (mount), get the reports from firebase
   useEffect(() => {
@@ -130,97 +130,96 @@ const ReportsSection = ({ search }) => {
         return report["createdDate"].toDate() >= new Date(new Date().setDate(new Date().getDate() - reportWeek * 7))
       })
     arr = arr.sort((objA, objB) => Object.values(objA)[0]["createdDate"] > Object.values(objB)[0]["createdDate"] ? -1 : 1)
-
+    
     // Default values for infinite scrolling, will load reports as they are populated.
     setEndIndex(0)
     setHasMore(true)
     setLoadedReports(arr)
-    }, [filteredReports])
-
-    // Populates the loaded reports as the user scrolls to bottom of page
-    useEffect(() => {
-      if (loadedReports.length != 0) {
-        handleReportScroll()
-      }
-    }, [loadedReports])
-
+  }, [filteredReports])
+    
+  // Populates the loaded reports as the user scrolls to bottom of page
+  useEffect(() => {
+    if (loadedReports.length != 0) {
+      handleReportScroll()
+    }
+  }, [loadedReports])
+  
   // Determines if there are more reports to be shown.
   const handleReportScroll = () => {
     // If all of the reports have been loaded
     if (endIndex >= loadedReports.length) {
       setHasMore(false)
 
-    // If there is less than 14 reports to load, load remaining reports
-    } else if ((endIndex + 14) >=  loadedReports.length) {
-      setEndIndex(loadedReports.length)   
-      setHasMore(true) 
+      // If there is less than 14 reports to load, load remaining reports
+    } else if ((endIndex + 14) >= loadedReports.length) {
+      setEndIndex(loadedReports.length)
+      setHasMore(true)
 
-    // Load only 14 additional reports
+      // Load only 14 additional reports
     } else {
       setEndIndex(endIndex + 14)
       setHasMore(true)
     }
   }
 
-  const handleReadToggled = async (reportId) => {
-    const report = reports.filter(report => Object.keys(report) == reportId)[0]
-    const updatedReport = {
-      ...report,
-      [reportId]: {
-        ...report[reportId],
-        read: !report[reportId].read
-      }
-    }
-    const reportIndex = reports.findIndex(report => Object.keys(report) == reportId)
-    reports[reportIndex] = updatedReport
-    const updatedReports = [...reports]
-    setReports([...reports])
-    setFilteredReports([...reports])
-    if (readFilter !== "All") {
-      setFilteredReports(updatedReports.filter((reportObj) => {
-        return Object.values(reportObj)[0].read.toString() == readFilter
-      }))
-    }
-    const reportDoc = doc(db, "reports", reportId)
-    await updateDoc(reportDoc, { read: !report[reportId].read }).then(function() {
-      console.log("Success")
-    }).catch(function(error) {
-      console.log("error")
-    })
-  }
+	const handleReadToggled = async (reportId) => {
+		const report = reports.filter(report => Object.keys(report) == reportId)[0]
+		const updatedReport = {
+			...report,
+			[reportId]: {
+				...report[reportId],
+				read: !report[reportId].read
+			}
+		}
+		const reportIndex = reports.findIndex(report => Object.keys(report) == reportId)
+		reports[reportIndex] = updatedReport
+		const updatedReports = [...reports]
+		setReports([...reports])
+		setFilteredReports([...reports])
+		if (readFilter !== "All") {
+			setFilteredReports(updatedReports.filter((reportObj) => {
+				return Object.values(reportObj)[0].read.toString() == readFilter
+			}))
+		}
+		const reportDoc = doc(db, "reports", reportId)
+		await updateDoc(reportDoc, { read: !report[reportId].read }).then(function () {
+			console.log("Success")
+		}).catch(function (error) {
+			console.log("error")
+		})
+	}
 
-  const handleReadFilterChanged = (e) => {
-    console.log(e.target.value + "went into function")
-    if (e.target.value != "All") {
-      setFilteredReports(reports.filter(report => {
-        const reportData = Object.values(report)[0]
-        return reportData.read.toString() == e.target.value
-      }))
-    } else {
-      setFilteredReports(reports)
-    }
-    // setFilteredReports(reports.filter(report => {
-    // 	const reportData = Object.values(report)[0]
-    // 	return reportData.read.toString() == e.target.value
-    // }))
-    setReadFilter(e.target.value)
-  }
+	const handleReadFilterChanged = (e) => {
+		console.log(e.target.value + "went into function")
+		if (e.target.value != "All") {
+			setFilteredReports(reports.filter(report =>
+			{
+				const reportData = Object.values(report)[0]
+				return reportData.read.toString() == e.target.value
+			}))
+		} else {
+			setFilteredReports(reports)
+		}
+		// setFilteredReports(reports.filter(report => {
+		// 	const reportData = Object.values(report)[0]
+		// 	return reportData.read.toString() == e.target.value
+		// }))
+		setReadFilter(e.target.value)
+	}
 
-
-  
   return (
-    <div class="flex flex-col h-full">
+		<div class="flex flex-col h-full">
 			<div class="flex flex-row justify-between py-5">
 				<div class="text-lg font-bold text-blue-600 tracking-wider">
 					List of Reports
 				</div>
         <div>
-          <button	
-            onClick={() => setNewReport(true)}	
-            class="flex flex-row text-sm bg-white inline-block px-4 border-none text-black py-1 rounded-md">	
-            <AiOutlinePlus class = "my-1" size = {15}/> 	
-            Create New Report	
-          </button>	
+          <button
+            onClick={() => setNewReport(true)}
+            class="flex flex-row text-sm bg-white inline-block px-4 border-none text-black py-1 rounded-md">
+            <AiOutlinePlus class = "my-1" size = {15}/> 
+            Create New Report
+          </button>
         </div>
         {newReport && <NewReportModal setNewReport={setNewReport} />}
 				<div>
@@ -255,84 +254,72 @@ const ReportsSection = ({ search }) => {
 					<div class={tableHeadings}>Sources</div>
 					<div class={tableHeadings + " p-1"}>
 						Labels (
-							<ReactTooltip id="refreshTooltip" place="top" type="light" effect="solid" delayShow={500} />
-							<button
-								className="relative top-1"
-								onClick={() => getData()}
-								data-tip="Refresh"
-								data-for="refreshTooltip" 
-								>
-								<IoMdRefresh size={20} />
-							</button>
+						<ReactTooltip id="refreshTooltip" place="top" type="light" effect="solid" delayShow={500} />
+						<button
+							className="relative top-1"
+							onClick={() => getData()}
+							data-tip="Refresh"
+							data-for="refreshTooltip"
+						>
+							<IoMdRefresh size={20} />
+
+						</button>
 						)
 					</div>
 					<div class={tableHeadings}>Read/Unread</div>
 				</div>
-				<div class="oveflow-scroll ">
-					{filteredReports
-						.filter((reportObj) => {
-							const report = Object.values(reportObj)[0];
-							return (
-								report["createdDate"].toDate() >=
-								new Date(
-									new Date().setDate(new Date().getDate() - reportWeek * 7)
-								)
-							);
-						})
-						.sort((objA, objB) =>
-							Object.values(objA)[0]["createdDate"] >
-							Object.values(objB)[0]["createdDate"]
-								? -1
-								: 1
-						)
-						.map((reportObj) => {
-							const report = Object.values(reportObj)[0];
-							const posted = report["createdDate"]
-								.toDate()
-								.toLocaleString("en-US", dateOptions)
-								.replace(/,/g, "")
-								.replace("at", "");
+        <div>
 
-							return (
-								<Link href={`/dashboard/reports/${Object.keys(reportObj)[0]}`}>
-									<a class="grid grid-cols-8 hover:bg-blue-200">
-										<div class={"col-span-2 " + columnData}>{report.title}</div>
-										<div class={columnData}>{posted}</div>
-										<div class={columnData}>-</div>
-										<div class={columnData}>{report.topic}</div>
-										<div class={columnData}>{report.hearFrom}</div>
-										<div class={columnData}>
-											<div
-												class={!report.label ? label.default : label.special}>
-												{report.label || "None"}
-											</div>
-										</div>
-										<div class={columnData}>
-
-											<Switch
-												// Set checked to the initial reportRead value (false)
-												checked={report.read}
-												// When switch toggled setReportRead
-												onChange={() => handleReadToggled(Object.keys(reportObj)[0])}
-												// On click handler
-												// onClick={() => setReportRead(handleReadChange)}
-												className={`${
-													report.read ? "bg-blue-600" : "bg-gray-200"
-												} relative inline-flex h-6 w-11 items-center rounded-full`}>
-												<span className="sr-only">Mark me</span>
-												<span
-													aria-hidden="true"
-													className={`${
-														report.read ? "translate-x-6" : "translate-x-1"
-													} inline-block h-4 w-4 transform rounded-full bg-white transition`}
-												/>
-											</Switch>
-										</div>
-									</a>
-								</Link>
-							);
-						})}
-				</div>
+          {/*Infinite scroll for the reports to load more reports when user scrolls to bottom*/}
+          <InfiniteScroll
+            dataLength={endIndex}
+            next={handleReportScroll}
+            inverse={false} //
+            hasMore={hasMore}
+            loader={<h4>Loading...</h4>}
+            scrollableTarget="scrollableDiv"
+          >
+            {loadedReports.slice(0, endIndex)
+              .map((reportObj) =>
+              {
+                const report = Object.values(reportObj)[0]
+                const posted = report["createdDate"].toDate().toLocaleString('en-US', dateOptions).replace(/,/g, "").replace('at', '')
+                return (
+                  <Link href={`/dashboard/reports/${ Object.keys(reportObj)[0] }`}>
+                    <a target="_blank" class="grid grid-cols-8 hover:bg-blue-200">
+                      <div class={"col-span-2 " + columnData}>{report.title}</div>
+                      <div class={columnData}>{posted}</div>
+                      <div class={columnData}>-</div>
+                      <div class={columnData}>{report.topic}</div>
+                      <div class={columnData}>{report.hearFrom}</div>
+                      <div class={columnData}>
+                        <div class={!report.label ? label.default : label.special}>{report.label || "None"}</div>
+                      </div>
+                      <div class={columnData}>
+                        <Switch
+                          // Set checked to the initial reportRead value (false)
+                          checked={report.read}
+                          // When switch toggled setReportRead
+                          onChange={() => handleReadToggled(Object.keys(reportObj)[0])}
+                          // On click handler
+                          // onClick={() => setReportRead(handleReadChange)}
+                          className={`${ report.read ? "bg-blue-600" : "bg-gray-200"
+                            } relative inline-flex h-6 w-11 items-center rounded-full`}>
+                          <span className="sr-only">Mark me</span>
+                          <span
+                            aria-hidden="true"
+                            className={`${ report.read ? "translate-x-6" : "translate-x-1"
+                              } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                          />
+                        </Switch>
+                      </div>
+                    </a>
+                  </Link>
+                )
+              })
+            }
+          </InfiniteScroll>
+        </div>
 			</div>
 		</div>
 	);
