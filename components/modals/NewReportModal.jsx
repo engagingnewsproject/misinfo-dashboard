@@ -21,12 +21,7 @@ const NewReport = ({ setNewReport, addNewReport }) => {
     const [link, setLink] = useState('')
     const [secondLink, setSecondLink] = useState('')
     const [detail, setDetial] = useState('')
-    // Country State City
-    /*
-        const [selectedCountry, setSelectedCountry] = useState(Country.getCountryByCode('US'));
-        const [selectedState, setSelectedState] = useState(null);
-        const [selectedCity, setSelectedCity] = useState(null);
-    */
+
     // Image upload
     const [images, setImages] = useState([])
     const [imageURLs, setImageURLs] = useState([])
@@ -51,8 +46,7 @@ const NewReport = ({ setNewReport, addNewReport }) => {
     }
 
     const handleChange = (e) => {
-        // console.log(e.target.value);
-        // setData({ ...data, [e.target.id]: e.target.value})
+        // console.log({ ...e, [e.target.id]: e.target.value})
     }
     
     const handleNewReport = async (e) => {
@@ -60,70 +54,17 @@ const NewReport = ({ setNewReport, addNewReport }) => {
         saveReport()
     }
     
+    // Image upload
     useEffect(() => {
         if (images.length < 1) return
         const newImageURLs = []
         images.forEach(image => newImageURLs.push(URL.createObjectURL(image)))
         setImageURLs(newImageURLs)
     }, [images])
-    
+    // Image upload
     function onImageChange(e) {
         setImages([...e.target.files])
     }
-    /*
-    useEffect(() => {
-        console.log(selectedCountry);
-        console.log(selectedCountry?.isoCode);
-        console.log(State?.getStatesOfCountry(selectedCountry?.isoCode));
-    }, [selectedCountry]);
-
-    const setData = async(tagSystem, list, active, user) => {
-        const docRef = await getDoc(doc(db, "reports", reportId))
-        const updatedDocRef = await setDoc(doc(db, "reports", reportId), {
-            ...docRef.data(),
-            // [tagSystems[tagSystem]]: {
-            //     list: list,
-            //     active: active
-            // }
-        });
-        return updatedDocRef
-    }
-
-    const getData = async () => {
-        const infoRef = await getDoc(doc(db, "reports",  reportId))
-        setInfo(infoRef.data())
-
-        getDoc(doc(db, "mobileUsers", infoRef.data()["userID"])).then((mobileRef) =>
-			setReporterInfo(mobileRef.data())
-		)
-    }
-    
-    useEffect(() => {
-		getData()
-	}, [])
-
-    const handleChange = (e) => {
-        setData({ ...data, [e.target.id]: e.target.value})
-        
-    }
-
-    const handleNewReport = async (e) => {
-        e.preventDefault()
-        addNewReport(data)
-        setNewReport(false)
-    }
-
-    const countries = Country.getAllCountries();
-
-    const updatedStates = () => {
-        csc.getStatesOfCountry("United States").map((state) => ({ label: state.name, value: state.id, ...state }));   
-    }
-
-    const updatedCities = (stateId) =>
-    csc
-      .getCitiesOfState(stateId)
-      .map((city) => ({ label: city.name, value: city.id, ...city }));
-    */
 
     return (
         <div>
@@ -141,98 +82,6 @@ const NewReport = ({ setNewReport, addNewReport }) => {
                         onChange={handleChange} 
                         onSubmit={handleNewReport}
                         >
-                        {/*  
-                        <div class="mb-4">
-                            <input
-                                class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="state"
-                                type="text"
-                                placeholder="State"
-                                required
-                                value={state}
-                                />
-                        </div>
-                        <div class="mb-0.5">
-                            <input
-                                class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="city"
-                                type="text"
-                                placeholder="City"
-                                required
-                                value={city}
-                                />
-                        </div>
-                        <div class="mt-4 mb-0.5">
-                            <input
-                                class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="topic"
-                                type="text"
-                                placeholder="Report Topic"
-                                required
-                                value={topic}
-                                />
-                        </div>
-                        <div class="mt-4 mb-0.5">
-                            <input
-                                class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="hearFrom"
-                                type="text"
-                                placeholder="Source"
-                                required
-                                value={hearFrom}
-                                />
-                        </div>
-                        <div class="mb-4 invisible absolute">
-                            <Select
-                                options={Country.getAllCountries()}
-                                getOptionLabel={(options) => {
-                                return options["name"];
-                                }}
-                                getOptionValue={(options) => {
-                                return options["name"];
-                                }}
-                                value={selectedCountry}
-                                onChange={(item) => {
-                                setSelectedCountry(item);
-                                }}
-                            />
-                        </div>
-                        <div class="mb-4">
-                            <Select
-                                options={State?.getStatesOfCountry(selectedCountry?.isoCode)}
-                                getOptionLabel={(options) => {
-                                return options["name"];
-                                }}
-                                getOptionValue={(options) => {
-                                return options["name"];
-                                }}
-                                value={selectedState}
-                                onChange={(item) => {
-                                setSelectedState(item);
-                                }}
-                                placeholder="Select state"
-                            />
-                        </div>
-                        <div class="mb-4">
-                            <Select
-                                options={City.getCitiesOfState(
-                                selectedState?.countryCode,
-                                selectedState?.isoCode
-                                )}
-                                getOptionLabel={(options) => {
-                                return options["name"];
-                                }}
-                                getOptionValue={(options) => {
-                                return options["name"];
-                                }}
-                                value={selectedCity}
-                                onChange={(item) => {
-                                setSelectedCity(item);
-                                }}
-                                placeholder="Select city"
-                            />
-                        </div>
-                        */}
                         <div class="mt-4 mb-0.5">
                             <input
                                 class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
