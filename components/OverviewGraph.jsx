@@ -4,8 +4,8 @@ import { Chart } from "react-google-charts";
 
 const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayReports, numTopics}) => {
   
-  console.log(numTopics)
-  console.log(yesterdayReports)
+  // console.log(numTopics)
+  // console.log(yesterdayReports)
   
   // Formats and returns today's date
   const getTodayDate = () => {
@@ -14,7 +14,7 @@ const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayRepor
   }
 
   const date = getTodayDate()
-  console.log(date)
+  // console.log(date)
   const options = {
     slices: {
       0: { color: '#F6413A' },
