@@ -125,14 +125,14 @@ const TagGraph = () => {
 
   
   return (
-    <div class="w-full">
+    <div className="w-full">
     <Toggle viewVal={viewVal} setViewVal={setViewVal}/>
-    <div class={viewVal=="overview" ? "block" : "hidden"}><OverviewGraph id="overview" loaded={loaded} yesterdayReports={yesterdayReports} threeDayReports={threeDayReports} 
+    <div className={viewVal=="overview" ? "block" : "hidden"}><OverviewGraph id="overview" loaded={loaded} yesterdayReports={yesterdayReports} threeDayReports={threeDayReports} 
        sevenDayReports={sevenDayReports}
        numTopics={numTrendingTopics}/>
     </div>
        
-    <div class={viewVal=="comparison" ? "block": "hidden"}><ComparisonGraphSetup /></div>
+    <div className={viewVal=="comparison" ? "block": "hidden"}><ComparisonGraphSetup /></div>
     </div>
   )
 }

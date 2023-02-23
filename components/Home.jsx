@@ -7,10 +7,10 @@ const Home = () => {
   const [search, setSearch] = useState("")
   
   return (
-    <div class="w-full h-full flex flex-col py-5">
+    <div className="w-full h-full flex flex-col py-5">
         <Headbar search={search} setSearch={setSearch} />
         {/* Nest the following toggle inside a component for the graph portion of the page*/}
-        <div class="w-full h-full flex flex-col px-12 py-5 mb-5 overflow-y-auto" id="scrollableDiv">
+        <div className="w-full h-full flex flex-col px-12 py-5 mb-5 overflow-y-auto" id="scrollableDiv">
           <TagGraph/>
           <ReportsSection search={search}/>
         </div>

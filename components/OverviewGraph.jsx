@@ -30,13 +30,13 @@ const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayRepor
   };
   return (
   <div>
-  <div class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">{getTodayDate()} Trending Topics</div>
-    <div class="grid grid-cols-1 grid-rows-3 mt-3 gap-y-4 md:grid md:grid-cols-3 md:grid-rows-1 md:mt-3 md:gap-x-4">
-      <div class="col-span-1 bg-white rounded-xl mt-3 pr-2">
-        <h1 class="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Yesterday's Reports</h1>
+  <div className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">{getTodayDate()} Trending Topics</div>
+    <div className="grid grid-cols-1 grid-rows-3 mt-3 gap-y-4 md:grid md:grid-cols-3 md:grid-rows-1 md:mt-3 md:gap-x-4">
+      <div className="col-span-1 bg-white rounded-xl mt-3 pr-2">
+        <h1 className="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Yesterday's Reports</h1>
         {/* Pie chart for topics reported yesterday. */}
-        {!loaded && <h1 class="py-24 text-center">Retrieving data...</h1>}
-        {loaded && numTopics[0] == 0 && <h1 class="py-24 text-center">No topics reported.</h1>}
+        {!loaded && <h1 className="py-24 text-center">Retrieving data...</h1>}
+        {loaded && numTopics[0] == 0 && <h1 className="py-24 text-center">No topics reported.</h1>}
         {loaded && numTopics[0] != 0 &&
           <Chart
           chartType="PieChart"
@@ -47,12 +47,12 @@ const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayRepor
           />
         }
       </div>
-      <div class="col-span-1 bg-white rounded-xl mt-3 pr-2">
-        <h1 class="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Three Days Ago</h1>
+      <div className="col-span-1 bg-white rounded-xl mt-3 pr-2">
+        <h1 className="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Three Days Ago</h1>
         
         {/* Pie chart for topics reported within the past three days. */}
-        {!loaded && <h1 class="py-24 text-center">Retrieving data...</h1>}
-        {loaded && numTopics[1] == 0 && <h1 class="py-24 text-center">No topics reported.</h1>}
+        {!loaded && <h1 className="py-24 text-center">Retrieving data...</h1>}
+        {loaded && numTopics[1] == 0 && <h1 className="py-24 text-center">No topics reported.</h1>}
         {loaded && numTopics[1] != 0 && 
         <Chart
           chartType="PieChart"
@@ -62,12 +62,12 @@ const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayRepor
           height={"300px"}
         />}
       </div>
-      <div class="col-span-1 bg-white rounded-xl mt-3 pr-2">
-        <h1 class="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Seven Days Ago</h1>
+      <div className="col-span-1 bg-white rounded-xl mt-3 pr-2">
+        <h1 className="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Seven Days Ago</h1>
         
         {/* Pie chart for topics reported within the past seven days. */}
-        {!loaded && <h1 class="py-24 text-center">Retrieving data...</h1>}
-        {loaded && numTopics[2] == 0 && <h1 class="py-24 text-center">No topics reported.</h1>}
+        {!loaded && <h1 className="py-24 text-center">Retrieving data...</h1>}
+        {loaded && numTopics[2] == 0 && <h1 className="py-24 text-center">No topics reported.</h1>}
         {loaded && numTopics[2] != 0 &&
         <Chart
             chartType="PieChart"
