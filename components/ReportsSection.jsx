@@ -245,7 +245,7 @@ const ReportsSection = ({ search }) => {
 					</select>
 				</div>
 			</div>
-			<div class="bg-white w-full rounded-xl p-1 h-full">
+			<div class="bg-white w-full rounded-xl p-1">
 				<div class="grid grid-cols-8">
 					<div class={"col-span-2 " + tableHeadings}>Title</div>
 					<div class={tableHeadings}>Date/Time</div>
