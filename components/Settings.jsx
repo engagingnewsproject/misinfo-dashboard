@@ -12,9 +12,8 @@ const Settings = () => {
     <div class="w-full h-auto">
       {tagSystem == 0 ?
       <div class="z-0 flex-col p-16">
-        <div class="text-xl font-extrabold text-blue-600 tracking-wider">Settings</div>
-        <div class="mx-6 my-6 text-lg font-semibold tracking-normal">Tagging Systems</div>
-        <div class="flex justify-between mx-12 my-6 tracking-normal items-center">
+        <div class="text-xl font-extrabold text-blue-600 tracking-wider">Tagging Systems</div>
+        <div class="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div class="font-light">Topic Tags</div>
             <button
                 onClick={() => setTagSystem(1)}
@@ -22,7 +21,7 @@ const Settings = () => {
                 Edit Topics
             </button>
         </div>
-        <div class="flex justify-between mx-12 my-6 tracking-normal items-center">
+        <div class="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div class="font-light">Source Tags</div>
             <button
                 onClick={() => setTagSystem(2)}
@@ -30,7 +29,7 @@ const Settings = () => {
                 Edit Sources
             </button>
         </div>
-        <div class="flex justify-between mx-12 my-6 tracking-normal items-center">
+        <div class="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div class="font-light">Customized Labels</div>
             <button
                 onClick={() => setTagSystem(3)}
