@@ -22,7 +22,7 @@ const NewReport = ({ setNewReport, addNewReport }) => {
     const [title, setTitle] = useState('')
     const [link, setLink] = useState('')
     const [secondLink, setSecondLink] = useState('')
-    const [detail, setDetial] = useState('')
+    const [detail, setDetail] = useState('')
     // Image upload
     const [images, setImages] = useState([])
     const [imageURLs, setImageURLs] = useState([])
@@ -74,7 +74,7 @@ const NewReport = ({ setNewReport, addNewReport }) => {
             <div class="flex justify-center items-center z-10 absolute top-0 left-0 w-full h-full bg-black opacity-60">
             </div>
             <div class="flex justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
-                <div class="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10">
+                <div class="flex-col justify-center items-center bg-white w-1/3 h-auto rounded-2xl py-10 px-10">
                     <div class="flex justify-between w-full mb-5">
                         <div class="text-md font-bold text-blue-600 tracking-wide">Add New Report</div>
                         <button onClick={() => setNewReport(false)} class="text-gray-800">
@@ -171,7 +171,7 @@ const NewReport = ({ setNewReport, addNewReport }) => {
                                 type="text"
                                 placeholder="Detail"
                                 required
-                                onChange={(e) => setDetial(e.target.value)}
+                                onChange={(e) => setDetail(e.target.value)}
                                 value={detail}
                                 />
                         </div>

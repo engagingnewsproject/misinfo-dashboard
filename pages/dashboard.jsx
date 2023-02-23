@@ -15,7 +15,7 @@ const Dashboard = () => {
     const router = useRouter()
     
     return (
-        <div class="flex h-full w-full">
+        <div className="flex h-full w-full">
             <Navbar tab={tab} setTab={setTab}/>
             { tab == 0 && <Home />}
             { tab == 1 && <Profile />}
