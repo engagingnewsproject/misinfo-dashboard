@@ -6,7 +6,6 @@ import { Switch } from "@headlessui/react"
 import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"
 
 export default function SwitchRead(props) {
-	const userId = localStorage.getItem("userId")
 	const router = useRouter()
 	const [info, setInfo] = useState({})
 	const [reporterInfo, setReporterInfo] = useState({})
@@ -17,12 +16,14 @@ export default function SwitchRead(props) {
 	const getData = async () => {
 		// Reference to the firebase data
 		const infoRef = await getDoc(doc(db, "reports", reportId))
+		console.log(infoRef.data())
 		setInfo(infoRef.data())
 		// Reference to the user on firebase
 		getDoc(doc(db, "mobileUsers", infoRef.data()["userID"])).then((mobileRef) =>
 			setReporterInfo(mobileRef.data())
 		)
 	}
+	
 
 	// Use the firebase data
 	useEffect(() => {

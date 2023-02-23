@@ -31,27 +31,27 @@ const Navbar = ({tab, setTab}) => {
     const basicStyle = "flex p-2 my-6 mx-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
 
     return (
-        <div class="flex-col w-16 bg-white h-full">
-            <div class="grid content-between py-8 w-full h-full">
+        <div className="flex-col w-16 bg-white h-full">
+            <div className="grid content-between py-8 w-full h-full">
                 <div>
                     <button 
                         onClick={() => setTab(0)}
                         data-tip="Home"
-                        class={tab == 0 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
+                        className={tab == 0 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
                         <IoHomeOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     <button
                         onClick={() => setTab(2)}
                         data-tip="Tagging Systems"
-                        class={tab == 2 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
+                        className={tab == 2 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
                         <IoPricetagsOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     <button
                         onClick={() => setReportModal(true)}
                         data-tip="New Report"
-                        class={basicStyle}>
+                        className={basicStyle}>
                         <IoAddCircleOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
@@ -60,14 +60,14 @@ const Navbar = ({tab, setTab}) => {
                     <button
                         onClick={() => setTab(1)}
                         data-tip="Settings"
-                        class={tab == 1 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
+                        className={tab == 1 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
                         <IoSettingsOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     <button
                         onClick={() => setLogoutModal(true)}
                         data-tip="Logout"
-                        class={basicStyle}>
+                        className={basicStyle}>
                         <IoLogOutOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
