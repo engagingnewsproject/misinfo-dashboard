@@ -99,14 +99,14 @@ const ComparisonGraphSetup = () => {
 
   return (
     <div>
-      <h1 class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Compare Topic Reports</h1>
+      <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Compare Topic Reports</h1>
               {/* Initial screen that appears when user selects the comparison view. Allows user to select three topics. */}
             {tab == 0 && 
-              <div class="flex items-center justify-center">
-              <div class="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-1/2">
-                <h1 class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select three topics.</h1>
-                <h1 class="pl-3 pb-4 text-center">Choose which topics you would like to compare.</h1>
-                {topicError && <h1 class="pl-3 pb-4 text-center text-red-500">You must choose three topics to compare.</h1>}
+              <div className="flex items-center justify-center">
+              <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-1/2">
+                <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select three topics.</h1>
+                <h1 className="pl-3 pb-4 text-center">Choose which topics you would like to compare.</h1>
+                {topicError && <h1 className="pl-3 pb-4 text-center text-red-500">You must choose three topics to compare.</h1>}
                 <Select options={listTopicChoices} components={animatedComponents}
                 isMulti 
                 onChange={item => setSelectedTopics(item)}
@@ -117,7 +117,7 @@ const ComparisonGraphSetup = () => {
               <button
                 onClick={() => handleTopicSelection()}
                 data-tip="Next"
-                class={basicStyle}>
+                className={basicStyle}>
                 <IoIosArrowForward size={25} />
                 <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
               </button>
@@ -126,18 +126,18 @@ const ComparisonGraphSetup = () => {
             {/* Second screen that appears when user selects the comparison view. Allows user to select date range. */}
 
             {tab == 1 &&
-              <div class="flex items-center justify-center">
+              <div className="flex items-center justify-center">
                 <button
                   onClick={() => setTab(0)}
                   data-tip="Previous"
-                  class={basicStyle}>
+                  className={basicStyle}>
                   <IoIosArrowBack size={25} />
                   <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
                 </button>
-                <div class="bg-white rounded-xl mt-6 py-5 pl-3 pr-3">
-                  <h1 class="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select dates</h1>
-                  <h1 class="pl-3 text-center">Select a date range to collect the number of reports for the selected topics. </h1>
-                  {dateError && <h1 class="pl-3 pb-4 text-center text-red-500">You must select a date range of at least three days and no more than three weeks.</h1>}
+                <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3">
+                  <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select dates</h1>
+                  <h1 className="pl-3 text-center">Select a date range to collect the number of reports for the selected topics. </h1>
+                  {dateError && <h1 className="pl-3 pb-4 text-center text-red-500">You must select a date range of at least three days and no more than three weeks.</h1>}
                   <DateRangePicker
                   onChange={item => handleDateSelection(item)}
                   showSelectionPreview={true}
@@ -150,7 +150,7 @@ const ComparisonGraphSetup = () => {
                 <button
                   onClick={() => handleGraphChange()}
                   data-tip="Display graph"
-                  class={basicStyle}>
+                  className={basicStyle}>
                   <IoIosArrowForward size={25} />
                   <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
                 </button>
@@ -159,7 +159,7 @@ const ComparisonGraphSetup = () => {
           
         {/* Once user selects the topics and date range, graph of topic reports will be plotted. */}
         {tab == 4 && dateRange && selectedTopics && 
-          <div class="bg-white rounded-xl mt-6 py-5">
+          <div className="bg-white rounded-xl mt-6 py-5">
             <ComparisonGraphPlotted 
               dateRange={dateRange} setDateRange={setDateRange} 
               selectedTopics={selectedTopics} setSelectedTopics={setSelectedTopics}
