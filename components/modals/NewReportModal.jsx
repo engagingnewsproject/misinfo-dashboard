@@ -17,11 +17,12 @@ const NewReport = ({ setNewReport, addNewReport }) => {
     const router = useRouter()
     const { user } = useAuth()
     // useStates
+    const [data, setData] = useState({country: "US", state: null, city: null})
+
     const [title, setTitle] = useState('')
     const [link, setLink] = useState('')
     const [secondLink, setSecondLink] = useState('')
     const [detail, setDetial] = useState('')
-
     // Image upload
     const [images, setImages] = useState([])
     const [imageURLs, setImageURLs] = useState([])
@@ -30,8 +31,9 @@ const NewReport = ({ setNewReport, addNewReport }) => {
     const saveReport = () => {
         addDoc(dbInstance, {
             userID: user.email,
-            // state: route.params.selectedState,
-            // city: route.params.selectedCity,
+            
+            state: data.state.name,
+            city: data.city.name,
             // topic: route.params.selectedTopic,
             // hearFrom: route.params.hearFrom,
             title: title,
@@ -53,6 +55,7 @@ const NewReport = ({ setNewReport, addNewReport }) => {
         e.preventDefault()
         saveReport()
     }
+    
     
     // Image upload
     useEffect(() => {
@@ -82,6 +85,53 @@ const NewReport = ({ setNewReport, addNewReport }) => {
                         onChange={handleChange} 
                         onSubmit={handleNewReport}
                         >
+
+                        <div class="mb-4">
+                            <Select
+                                class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="state"
+                                type="text"
+                                placeholder="State"
+                                value={data.state}
+                                options={State.getStatesOfCountry(data.country)}
+                                getOptionLabel={(options) => {
+                                  return options["name"];
+                                }}
+                                getOptionValue={(options) => {
+                                  return options["name"];
+                                }}                                
+                                label="state"
+                                onChange={(value => {
+                                  setData(data=>({...data, state: value, city: null })) 
+                                  })}
+
+                                />        
+
+                        </div>
+                        <div class="mb-0.5">
+                            <Select
+                                class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="city"
+                                type="text"
+                                placeholder="City"
+                                value={data.city}
+                                options={City.getCitiesOfState(
+                                  data.state?.countryCode,
+                                  data.state?.isoCode
+                                )}
+                                getOptionLabel={(options) => {
+                                  return options["name"];
+                                }}
+                                getOptionValue={(options) => {
+                                  return options["name"];
+                                }}                                 
+                                onChange={(value => {
+                                setData(data=>({...data, city: value})) 
+                                })}
+                               
+                                />
+                        </div>
+
                         <div class="mt-4 mb-0.5">
                             <input
                                 class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
