@@ -5,18 +5,19 @@ import {
 	IoSettingsOutline,
 	IoAddCircleOutline,
 	IoPricetagsOutline,
-	IoLogOutOutline
+	IoLogOutOutline,
+    IoPersonOutline
 } from "react-icons/io5";
 import ReactTooltip from "react-tooltip";
 import { useAuth } from '../context/AuthContext';
 import ConfirmModal from './modals/ConfirmModal';
-import ReportModal from "./modals/ReportModal";
+import NewReportModal from './modals/NewReportModal'
 
 const Navbar = ({tab, setTab}) => {
 
     const { logout } = useAuth()
     const router = useRouter()
-    const [reportModal, setReportModal] = useState(false);
+    const [newReport, setNewReport] = useState(false);
     const [logoutModal, setLogoutModal] = useState(false)
 
     const handleLogout = () => {
@@ -49,7 +50,7 @@ const Navbar = ({tab, setTab}) => {
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     <button
-                        onClick={() => setReportModal(true)}
+                        onClick={() => setNewReport(true)}
                         data-tip="New Report"
                         className={basicStyle}>
                         <IoAddCircleOutline size={30}/>
@@ -61,7 +62,7 @@ const Navbar = ({tab, setTab}) => {
                         onClick={() => setTab(1)}
                         data-tip="Settings"
                         className={tab == 1 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
-                        <IoSettingsOutline size={30}/>
+                        <IoPersonOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     <button
@@ -80,12 +81,9 @@ const Navbar = ({tab, setTab}) => {
                 CTA="Log out"
                 closeModal={setLogoutModal}
                 />}
-            { reportModal && <ReportModal
-                func={handleReport}
-                title="New Report"
-                subtitle=""
-                CTA="Log report"
-                closeModal={setReportModal}
+            {newReport && <NewReportModal 
+                setNewReport={setNewReport}
+                closeModal={setNewReport}
                 />}
         </div>
     )

@@ -208,15 +208,15 @@ const ReportsSection = ({ search }) => {
 	}
 
   return (
-		<div class="flex flex-col h-full">
-			<div class="flex flex-row justify-between py-5">
-				<div class="text-lg font-bold text-blue-600 tracking-wider">
+		<div className="flex flex-col h-full">
+			<div className="flex flex-row justify-between py-5">
+				<div className="text-lg font-bold text-blue-600 tracking-wider">
 					List of Reports
 				</div>
         <div>
           <button
             onClick={() => setNewReport(true)}
-            class="flex flex-row text-sm bg-white inline-block px-4 border-none text-black py-1 rounded-md">
+            className="flex flex-row text-sm bg-white inline-block px-4 border-none text-black py-1 rounded-md">
             <AiOutlinePlus class = "my-1" size = {15}/> 
             Create New Report
           </button>
@@ -227,7 +227,7 @@ const ReportsSection = ({ search }) => {
 						id="labels"
 						onChange={(e) => handleReadFilterChanged(e)}
 						defaultValue="All"
-						class="text-sm font-semibold bg-white inline-block px-8 border-none text-black py-1 rounded-md mx-2">
+						className="text-sm font-semibold bg-white inline-block px-8 border-none text-black py-1 rounded-md mx-2">
 						<option value="false">Unread</option>
 						<option value="true">Read</option>
 						<option value="All">All reports</option>
@@ -236,7 +236,7 @@ const ReportsSection = ({ search }) => {
 						id="labels"
 						onChange={(e) => handleDateChanged(e)}
 						defaultValue="4"
-						class="text-sm font-semibold bg-white inline-block px-8 border-none text-black py-1 rounded-md">
+						className="text-sm font-semibold bg-white inline-block px-8 border-none text-black py-1 rounded-md">
 						<option value="4">Last four weeks</option>
 						<option value="3">Last three weeks</option>
 						<option value="2">Last two weeks</option>
@@ -245,14 +245,14 @@ const ReportsSection = ({ search }) => {
 					</select>
 				</div>
 			</div>
-			<div class="bg-white w-full rounded-xl p-1">
-				<div class="grid grid-cols-8">
-					<div class={"col-span-2 " + tableHeadings}>Title</div>
-					<div class={tableHeadings}>Date/Time</div>
-					<div class={tableHeadings}>Candidates</div>
-					<div class={tableHeadings}>Topic Tags</div>
-					<div class={tableHeadings}>Sources</div>
-					<div class={tableHeadings + " p-1"}>
+			<div className="bg-white w-full rounded-xl p-1">
+				<div className="grid grid-cols-8">
+					<div className={"col-span-2 " + tableHeadings}>Title</div>
+					<div className={tableHeadings}>Date/Time</div>
+					<div className={tableHeadings}>Candidates</div>
+					<div className={tableHeadings}>Topic Tags</div>
+					<div className={tableHeadings}>Sources</div>
+					<div className={tableHeadings + " p-1"}>
 						Labels (
 							<ReactTooltip id="refreshTooltip" place="top" type="light" effect="solid" delayShow={500} />
 							<button
@@ -268,7 +268,7 @@ const ReportsSection = ({ search }) => {
 							</button>
 						)
 					</div>
-					<div class={tableHeadings}>Read/Unread</div>
+					<div className={tableHeadings}>Read/Unread</div>
 				</div>
         <div>
 
@@ -288,16 +288,16 @@ const ReportsSection = ({ search }) => {
                 const posted = report["createdDate"].toDate().toLocaleString('en-US', dateOptions).replace(/,/g, "").replace('at', '')
                 return (
                   <Link href={`/dashboard/reports/${ Object.keys(reportObj)[0] }`}>
-                    <a target="_blank" class="grid grid-cols-8 hover:bg-blue-200">
-                      <div class={"col-span-2 " + columnData}>{report.title}</div>
-                      <div class={columnData}>{posted}</div>
-                      <div class={columnData}>-</div>
-                      <div class={columnData}>{report.topic}</div>
-                      <div class={columnData}>{report.hearFrom}</div>
-                      <div class={columnData}>
-                        <div class={!report.label ? label.default : label.special}>{report.label || "None"}</div>
+                    <a target="_blank" className="grid grid-cols-8 hover:bg-blue-200">
+                      <div className={"col-span-2 " + columnData}>{report.title}</div>
+                      <div className={columnData}>{posted}</div>
+                      <div className={columnData}>-</div>
+                      <div className={columnData}>{report.topic}</div>
+                      <div className={columnData}>{report.hearFrom}</div>
+                      <div className={columnData}>
+                        <div className={!report.label ? label.default : label.special}>{report.label || "None"}</div>
                       </div>
-                      <div class={columnData}>
+                      <div className={columnData}>
                         <Switch
                           // Set checked to the initial reportRead value (false)
                           checked={report.read}
