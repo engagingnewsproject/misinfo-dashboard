@@ -93,23 +93,23 @@ const TagGraph = () => {
     
     
     setNumTrendingTopics (numTopics)
-    console.log(numTrendingTopics)
+    // console.log(numTrendingTopics)
     
     // Sorts trending topics for the past day, past three days, and past seven days 
     // so that array is ordered from most reported to least reported topics
     const sortedYesterday = [...topicsYesterday].sort((a,b) => b[1] - a[1]).slice(0, numTopics[0]);
     for (let index = 0; index < sortedYesterday.length; index++) {
-      console.log (sortedYesterday[index])
+      // console.log (sortedYesterday[index])
     }
 
     const sortedThreeDays = [...topicsThreeDays].sort((a,b) => b[1] - a[1]).slice(0, numTopics[1]);
     for (let index = 0; index < sortedThreeDays.length; index++) {
-      console.log (sortedThreeDays[index])
+      // console.log (sortedThreeDays[index])
     }
 
     const sortedSevenDays = [...topicsSevenDays].sort((a,b) => b[1] - a[1]).slice(0, numTopics[2]);
     for (let index = 0; index < sortedSevenDays.length; index++) {
-      console.log (sortedSevenDays[index])
+      // console.log (sortedSevenDays[index])
     }
     const trendingTopics = [["Topics", "Number Reports"]];
     setYesterdayReports(trendingTopics.concat(sortedYesterday))
