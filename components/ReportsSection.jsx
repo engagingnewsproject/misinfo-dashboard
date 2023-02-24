@@ -5,10 +5,10 @@ import { db } from '../config/firebase'
 import Link from 'next/link'
 import { Switch } from "@headlessui/react";
 import {IoMdRefresh} from "react-icons/io";
+import { IoAdd } from 'react-icons/io5'
 import ReactTooltip from "react-tooltip";
 import InfiniteScroll from 'react-infinite-scroll-component';
 import NewReportModal from './modals/NewReportModal'
-import { AiOutlinePlus } from 'react-icons/ai'
 
 const ReportsSection = ({ search }) => {
 
@@ -216,9 +216,9 @@ const ReportsSection = ({ search }) => {
         <div>
           <button
             onClick={() => setNewReport(true)}
-            className="flex flex-row text-sm bg-white inline-block px-4 border-none text-black py-1 rounded-md">
-            <AiOutlinePlus class = "my-1" size = {15}/> 
-            Create New Report
+            className="flex flex-row items-center text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600">
+            <IoAdd className="mr-1" size = {15}/> 
+            New Report
           </button>
         </div>
         {newReport && <NewReportModal setNewReport={setNewReport} />}
@@ -227,7 +227,7 @@ const ReportsSection = ({ search }) => {
 						id="labels"
 						onChange={(e) => handleReadFilterChanged(e)}
 						defaultValue="All"
-						className="text-sm font-semibold bg-white inline-block px-8 border-none text-black py-1 rounded-md mx-2">
+						className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md mx-2 hover:shadow-none">
 						<option value="false">Unread</option>
 						<option value="true">Read</option>
 						<option value="All">All reports</option>
@@ -236,7 +236,7 @@ const ReportsSection = ({ search }) => {
 						id="labels"
 						onChange={(e) => handleDateChanged(e)}
 						defaultValue="4"
-						className="text-sm font-semibold bg-white inline-block px-8 border-none text-black py-1 rounded-md">
+						className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none">
 						<option value="4">Last four weeks</option>
 						<option value="3">Last three weeks</option>
 						<option value="2">Last two weeks</option>
