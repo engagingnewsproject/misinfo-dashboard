@@ -13,7 +13,7 @@ import NewReportModal from './modals/NewReportModal'
 const ReportsSection = ({ search }) => {
 
   const [reports, setReports] = useState([])
-  const [newReport, setNewReport] = useState(false)
+  const [openModalNewReport, setOpenModalNewReport] = useState(false)
   const [filteredReports, setFilteredReports] = useState([])
   const [loadedReports, setLoadedReports] = useState([])
   const [endIndex, setEndIndex] = useState(0)
@@ -215,13 +215,13 @@ const ReportsSection = ({ search }) => {
 				</div>
         <div>
           <button
-            onClick={() => setNewReport(true)}
+            onClick={() => setOpenModalNewReport(true)}
             className="flex flex-row items-center text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600">
             <IoAdd className="mr-1" size = {15}/> 
             New Report
           </button>
         </div>
-        {newReport && <NewReportModal setNewReport={setNewReport} />}
+        <NewReportModal open={openModalNewReport} onClose={() => setOpenModalNewReport(false)} />
 				<div>
 					<select
 						id="labels"
