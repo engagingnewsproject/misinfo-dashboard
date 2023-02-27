@@ -17,7 +17,7 @@ const Navbar = ({tab, setTab}) => {
 
     const { logout } = useAuth()
     const router = useRouter()
-    const [newReport, setNewReport] = useState(false);
+    const [openModalNewReport, setOpenModalNewReport] = useState(false)
     const [logoutModal, setLogoutModal] = useState(false)
 
     const handleLogout = () => {
@@ -50,7 +50,7 @@ const Navbar = ({tab, setTab}) => {
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     <button
-                        onClick={() => setNewReport(true)}
+                        onClick={() => setOpenModalNewReport(true)}
                         data-tip="New Report"
                         className={basicStyle}>
                         <IoAddCircleOutline size={30}/>
@@ -81,10 +81,7 @@ const Navbar = ({tab, setTab}) => {
                 CTA="Log out"
                 closeModal={setLogoutModal}
                 />}
-            {newReport && <NewReportModal 
-                setNewReport={setNewReport}
-                closeModal={setNewReport}
-                />}
+            <NewReportModal open={openModalNewReport} onClose={() => setOpenModalNewReport(false)} />
         </div>
     )
 }
