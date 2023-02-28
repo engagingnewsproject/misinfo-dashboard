@@ -27,7 +27,10 @@ const NewReport = ({ open, onClose }) => {
     // Image upload
     const [images, setImages] = useState([])
     const [imageURLs, setImageURLs] = useState([])
-    
+    const [allTopicsArr, setTopics] = useState([])
+    const [selectedTopic, setSelectedTopic] = useState('')
+    const [allSourcesArr, setSources] = useState([])
+    const [selectedSource, setSelectedSource] = useState('')
     // console.log(Country.getCountryByCode('US'))
     const saveReport = () => {
         addDoc(dbInstance, {
@@ -44,7 +47,9 @@ const NewReport = ({ open, onClose }) => {
             detail: detail,
             createdDate: moment().toDate(),
             isApproved: true,
-            read: false
+            read: false,
+            topic: selectedTopic,
+            hearFrom: selectedSource
         })
     }
 
@@ -56,7 +61,27 @@ const NewReport = ({ open, onClose }) => {
         e.preventDefault()
         saveReport()
     }
+
+    // On mount, grab all the possible topic choices
+    // to add to drop down list
+    useEffect(() => {
+        getAllTopics()
+        getAllSources()
+    }, []);
     
+    async function getAllTopics() {
+        const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
+        const topicRef = await getDoc(topicDoc);
+        const topics = topicRef.get("Topic")['active']
+        setTopics(topics);
+    }
+    
+    async function getAllSources() {
+        const sourceDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
+        const sourceRef = await getDoc(sourceDoc);
+        const sources = sourceRef.get("Source")['active']
+        setSources(sources)
+    }
     
     // Image upload
     useEffect(() => {
@@ -137,6 +162,36 @@ const NewReport = ({ open, onClose }) => {
                                     required
                                     onChange={(e) => setTitle(e.target.value)}
                                     value={title}
+                                    />
+                            </div>
+                            <div class="mt-4 mb-0.5">
+                                <Select
+                                    class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="topic-selection"
+                                    type="text"
+                                    placeholder="Topic"
+                                    
+                                    options={allTopicsArr.map(topic => ({ label: topic, value: topic }))}
+                                                                
+                                    onChange={(selectedOption) => {
+                                        setSelectedTopic(selectedOption.value)
+                                    }}
+                                    value={selectedTopic.value}
+                                    />
+                            </div>
+                            <div class="mt-4 mb-0.5">
+                                <Select
+                                    class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="source-selection"
+                                    type="text"
+                                    placeholder="Source"
+                                    
+                                    options={allSourcesArr.map(source => ({ label: source, value: source }))}
+                                                                
+                                    onChange={(selectedOption) => {
+                                        setSelectedSource(selectedOption.value)
+                                    }}
+                                    value={selectedSource.value}
                                     />
                             </div>
                             <div className="mt-4 mb-0.5">
