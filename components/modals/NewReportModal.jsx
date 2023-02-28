@@ -35,11 +35,8 @@ const NewReport = ({ open, onClose }) => {
     const saveReport = () => {
         addDoc(dbInstance, {
             userID: user.email,
-            
             state: data.state.name,
             city: data.city.name,
-            // topic: route.params.selectedTopic,
-            // hearFrom: route.params.hearFrom,
             title: title,
             link: link,
             secondLink: secondLink,
@@ -107,9 +104,9 @@ const NewReport = ({ open, onClose }) => {
                             </button>
                         </div>
                         <form onChange={handleChange} onSubmit={handleNewReport}>
-                            <div className="mb-4">
+                            <div className="mt-4 mb-0.5">
                                 <Select
-                                    className="border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="state"
                                     type="text"
                                     placeholder="State"
@@ -129,9 +126,9 @@ const NewReport = ({ open, onClose }) => {
                                     />        
 
                             </div>
-                            <div className="mb-0.5">
+                            <div className="mt-4 mb-0.5">
                                 <Select
-                                    className="border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="city"
                                     type="text"
                                     placeholder="City"
@@ -155,7 +152,7 @@ const NewReport = ({ open, onClose }) => {
 
                             <div className="mt-4 mb-0.5">
                                 <input
-                                    className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    className="border-gray-300 rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="title"
                                     type="text"
                                     placeholder="Report Title"
@@ -196,7 +193,7 @@ const NewReport = ({ open, onClose }) => {
                             </div>
                             <div className="mt-4 mb-0.5">
                                 <input
-                                    className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="link"
                                     type="text"
                                     placeholder="Link"
@@ -207,7 +204,7 @@ const NewReport = ({ open, onClose }) => {
                             </div>
                             <div className="mt-4 mb-0.5">
                                 <input
-                                    className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="secondLink"
                                     type="text"
                                     placeholder="Second Link"
@@ -216,20 +213,25 @@ const NewReport = ({ open, onClose }) => {
                                     />
                             </div>
                             <div className="mt-4 mb-0.5">
-                                <input
-                                    className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                <textarea
+                                    className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="detail"
                                     type="text"
                                     placeholder="Detail"
                                     required
                                     onChange={(e) => setDetail(e.target.value)}
                                     value={detail}
-                                    />
+                                    rows="5"
+                                    ></textarea>
                             </div>
-                            <div className='mt-4 mb-0.5'>
-                                <label className="absolute invisible" for="multiple_files">Upload multiple files</label>
-                                <input className="block shadow w-full text-sm rounded-md cursor-pointer text-gray-700 dark:text-gray-400 focus:outline-none dark:placeholder-gray-400" id="multiple_files" type="file" multiple accept="image/*" onChange={onImageChange} multiple />
-                                { imageURLs.map(imageSrc => <img src={imageSrc} className="py-3 h-auto shadow" />) }
+                            <div className="mt-4 mb-0.5">
+                                <label class="block">
+                                    <span class="sr-only">Choose files</span>
+                                    <input className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer" id="multiple_files" type="file" multiple accept="image/*" onChange={onImageChange} multiple />
+                                </label>
+                                <div class="flex shrink-0 mt-2 space-x-2">
+                                    { imageURLs.map(imageSrc => <img src={imageSrc} className="shadow ph-16 mb-1 w-16 object-cover rounded-md" />) }
+                                </div>
                             </div>
                             <div className="mt-6">
                                 <button
