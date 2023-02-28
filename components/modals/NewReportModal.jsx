@@ -84,7 +84,7 @@ const NewReport = ({ open, onClose }) => {
                         <form onChange={handleChange} onSubmit={handleNewReport}>
                             <div className="mb-4">
                                 <Select
-                                    className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    className="border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="state"
                                     type="text"
                                     placeholder="State"
@@ -106,7 +106,7 @@ const NewReport = ({ open, onClose }) => {
                             </div>
                             <div className="mb-0.5">
                                 <Select
-                                    className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    className="border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="city"
                                     type="text"
                                     placeholder="City"
