@@ -191,7 +191,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
           font: function (context) {
             var avgSize = Math.round((context.chart.height + context.chart.width) / 2);
             var size = Math.round(avgSize / 32);
-            size = size > 18 ? 18 : size; // setting max limit to 18
+            size = size > 16 ? 16 : size; // setting max limit to 18
             return {
                 size: size,
             };
@@ -204,7 +204,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
           font: function (context) {
             var avgSize = Math.round((context.chart.height + context.chart.width) / 2);
             var size = Math.round(avgSize / 32);
-            size = size > 18 ? 18 : size; // setting max font size limit to 18
+            size = size > 16 ? 16 : size; // setting max font size limit to 18
             return {
                 size: size,
             };
@@ -218,7 +218,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
           font: function (context) {
             var avgSize = Math.round((context.chart.height + context.chart.width) / 2);
             var size = Math.round(avgSize / 32);
-            size = size > 18 ? 18 : size; // setting max font size limit to 18
+            size = size > 16 ? 16 : size; // setting max font size limit to 18
             return {
                 size: size,
             };
@@ -228,7 +228,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
           font: function (context) {
             var avgSize = Math.round((context.chart.height + context.chart.width) / 2);
             var size = Math.round(avgSize / 32);
-            size = size > 18 ? 18 : size; // setting max font size limit to 18
+            size = size > 16 ? 16 : size; // setting max font size limit to 18
             return {
                 size: size,
             };
@@ -244,7 +244,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
           font: function (context) {
             var avgSize = Math.round((context.chart.height + context.chart.width) / 2);
             var size = Math.round(avgSize / 32);
-            size = size > 18 ? 18 : size; // setting max limit to 12
+            size = size > 16 ? 16 : size; // setting max limit to 12
             return {
                 size: size,
             };
@@ -269,7 +269,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
 
             {/* Displays graph once data is collected for the topics. */}
             {loaded && 
-              <div>
+              <div className="w-3/4 m-auto">
                 <div className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Topic Reports - {formatDates()}</div>
                 <Line className="pl-20 pr-20" options={options} data={graphData} />
               </div>
