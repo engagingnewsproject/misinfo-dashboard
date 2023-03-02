@@ -96,7 +96,7 @@ if (!open) return null
 	}
 
   return (
-    <>
+      <>
         {showModal ? (
           <div className="z-10 fixed top-0 left-0 w-full h-full bg-black-500/[.06]">
             <div onClick={onClose} className="flex overflow-y-auto justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
