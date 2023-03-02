@@ -34,6 +34,7 @@ const Headbar = ({ search, setSearch}) => {
                         id="search"
                         type="text"
                         placeholder="Search"
+                        onChange={handleChange}
                         value={search} />
                 </form>
             </div>

@@ -11,10 +11,10 @@
   },
   "dependencies": {
     "@firebase/firestore": "^3.4.10",
-    "country-state-city": "^3.1.2",
     "@headlessui/react": "^1.7.7",
     "@heroicons/react": "^2.0.13",
     "chart.js": "^4.0.1",
+    "country-state-city": "^3.1.2",
     "date-fns": "^2.29.3",
     "dotenv": "^16.0.1",
     "firebase": "^9.8.3",
@@ -31,6 +31,7 @@
     "react-google-charts": "^4.0.0",
     "react-icons": "^4.4.0",
     "react-infinite-scroll-component": "^6.1.0",
+    "react-modal": "^3.16.1",
     "react-responsive-carousel": "3.2.23",
     "react-select": "^5.7.0",
     "react-tooltip": "^4.5.1"

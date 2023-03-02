@@ -43,6 +43,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                                 placeholder="Current Password"
                                 required
                                 value={data.currentPassword}
+                                onChange={handleChange}
                                 />
                         </div>
                         <div class="mb-0.5">
@@ -53,6 +54,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                                 placeholder="New Password"
                                 required
                                 value={data.newPassword}
+                                onChange={handleChange}
                                 />
                         </div>
                         {data.newPassword.length > 0 && data.newPassword.length < 8 && <span class="text-red-500 text-sm font-light">New password must be atleast 8 characters</span>}
@@ -64,6 +66,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                                 placeholder="Confirm New Password"
                                 required
                                 value={data.confirmNewPW}
+                                onChange={handleChange}
                                 />
                         </div>
                         {data.newPassword !== data.confirmNewPW && <span class="text-red-500 text-sm font-light">Passwords don't match</span>}
