@@ -49,6 +49,7 @@ const RenameTagModal = ({ replaceTag, selected, list, setRenameTagModal, addNewT
                                 placeholder={selected}
                                 value={tag}
                                 required
+                                onChange={handleChange}
                                 />
                         </div>
                         {lower.includes(tag.toLowerCase()) && <p class="text-red-500 text-sm font-light">This tag already exists, do you want to replace?</p>}

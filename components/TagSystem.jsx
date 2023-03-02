@@ -49,6 +49,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
 
     const getData = async() => {
         const docRef = await getDoc(doc(db, "tags", user.uid))
+        console.log(docRef)
         try {
             const { [tagSystems[tagSystem]]: tagsData } = docRef.data()
             setList(tagsData.list)
@@ -201,6 +202,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                         id="search"
                         type="text"
                         placeholder="Search"
+                        onChange={handleChange}
                         value={search}/>
                 </form>
                 {search.length > 0 &&

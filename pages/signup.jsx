@@ -55,6 +55,7 @@ const SignUp = () => {
                             placeholder="Name of your team"
                             required
                             value={data.teamName}
+                            onChange={handleChange}
                             />
                     </div>
                     <div class="mb-4">
@@ -65,6 +66,7 @@ const SignUp = () => {
                             placeholder="Email"
                             required
                             value={data.email}
+                            onChange={handleChange}
                             />
                     </div>
                     <div class="mb-1">
@@ -75,6 +77,7 @@ const SignUp = () => {
                             placeholder="Password"
                             required 
                             value={data.password}
+                            onChange={handleChange}
                             />
                     </div>
                     {data.password.length > 0 && data.password.length < 8 && <span class="text-red-500 text-sm font-light">Password must be atleast 8 characters</span>}
@@ -86,6 +89,7 @@ const SignUp = () => {
                             placeholder="Confirm Password"
                             required 
                             value={data.confirmPW}
+                            onChange={handleChange}
                             />
                     </div>
                     {data.password !== data.confirmPW && <span class="text-red-500 text-sm font-light">Passwords don't match</span>}

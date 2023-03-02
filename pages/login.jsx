@@ -50,6 +50,7 @@ const Login = () => {
                         placeholder="Email"
                         required
                         value={data.email}
+                        onChange={handleChange}
                         />
                 </div>
                 <div class="mb-1">
@@ -60,6 +61,7 @@ const Login = () => {
                         placeholder="Password"
                         required 
                         value={data.password}
+                        onChange={handleChange}
                         />
                 </div>
                 {error && <span class="text-red-500 text-sm font-light">Incorrect password or username</span>}
@@ -69,7 +71,7 @@ const Login = () => {
                     </button>
                     <div class="flex items-center justify-between">
                         <div class="content-center">
-                            <input type="checkbox" class="form-checkbox rounded-sm border-transparent focus:border-transparent focus:ring-0" />
+                            <input type="checkbox" class="form-checkbox rounded-sm border-transparent focus:border-transparent focus:ring-0" onChange={handleChange} />
                             <span class="text-sm p-2">Remember me</span>
                         </div>
                         <Link href="/resetPassword">

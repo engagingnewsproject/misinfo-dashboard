@@ -63,6 +63,7 @@ const ResetPassword = () => {
                             placeholder="Email"
                             required
                             value={email}
+                            onChange={handleChange}
                             />
                     </div>}
                     <div class="flex-col items-center content-center">
