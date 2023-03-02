@@ -42,6 +42,7 @@ const NewTagModal = ({ tagSystems, tagSystem, list, setNewTagModal, addNewTag })
                                 placeholder="New Tag"
                                 value={tag}
                                 required
+                                onChange={handleChange}
                                 />
                         </div>
                         {lower.includes(tag.toLowerCase()) && <p class="text-red-500 text-sm font-light">This tag already exists, please try another name</p>}

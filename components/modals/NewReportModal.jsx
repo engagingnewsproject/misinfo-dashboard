@@ -227,7 +227,7 @@ const NewReport = ({ open, onClose }) => {
                             <div className="mt-4 mb-0.5">
                                 <label class="block">
                                     <span class="sr-only">Choose files</span>
-                                    <input className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer" id="multiple_files" type="file" multiple accept="image/*" onChange={onImageChange} multiple />
+                                    <input className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer" id="multiple_files" type="file" multiple accept="image/*" onChange={onImageChange} />
                                 </label>
                                 <div class="flex shrink-0 mt-2 space-x-2">
                                     { imageURLs.map(imageSrc => <img src={imageSrc} className="shadow ph-16 mb-1 w-16 object-cover rounded-md" />) }
