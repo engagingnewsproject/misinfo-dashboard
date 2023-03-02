@@ -16,7 +16,7 @@ import { AiOutlineFieldTime } from 'react-icons/ai'
 import ReactTooltip from "react-tooltip";
 import InfiniteScroll from 'react-infinite-scroll-component';
 import NewReportModal from './modals/NewReportModal'
-import TestModals from './modals/TestModals';
+import ReportModal from './modals/ReportModal';
 
 const ReportsSection = ({ search, open, onClose}) => {
   const [showModal, setShowModal] = useState(false);
@@ -359,7 +359,6 @@ const ReportsSection = ({ search, open, onClose}) => {
                         </Switch>
                       </div>
                     </a>
-                    <TestModals />
                      {showModal ? (
                       <div className="z-10 fixed top-0 left-0 w-full h-full bg-black-500/[.06]">
                         <div onClick={onClose} className="drop-shadow-sm flex justify-center items-center z-20 absolute top-0 left-0 w-full h-full">

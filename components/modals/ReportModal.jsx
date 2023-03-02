@@ -13,7 +13,7 @@ import { AiOutlineFieldTime } from 'react-icons/ai'
 
 const dbInstance = collection(db, 'notes');
 
-const TestModals = ({open, onClose}) => {
+const ReportModal = ({open, onClose}) => {
 if (!open) return null
   const [showModal, setShowModal] = useState(false);
   const router = useRouter()
@@ -220,5 +220,5 @@ if (!open) return null
   );
 };
 
-export default TestModals;
+export default ReportModal;
 
