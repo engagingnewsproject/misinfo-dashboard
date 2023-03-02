@@ -31,12 +31,13 @@ const NewReport = ({ open, onClose }) => {
     const [selectedTopic, setSelectedTopic] = useState('')
     const [allSourcesArr, setSources] = useState([])
     const [selectedSource, setSelectedSource] = useState('')
+    const [errors, setErrors] = useState({})
     // console.log(Country.getCountryByCode('US'))
     const saveReport = () => {
         addDoc(dbInstance, {
             userID: user.email,
             state: data.state.name,
-            city: data.city.name,
+            city: data.city == null ? "N/A" : data.city.name,
             title: title,
             link: link,
             secondLink: secondLink,
@@ -56,7 +57,37 @@ const NewReport = ({ open, onClose }) => {
     
     const handleNewReport = async (e) => {
         e.preventDefault()
-        saveReport()
+        // TODO: Check for any errors
+        const allErrors = {}
+        if (data.state == null) {
+            console.log("state error")
+            allErrors.state = "Please enter a state."
+        }
+        if (data.city == null) {
+            // Don't display the report, show an error message
+            console.log("city error")
+            allErrors.city = "Please enter a city."
+            if (data.state != null && City.getCitiesOfState(
+                data.state?.countryCode,
+                data.state?.isoCode
+                ).length == 0) {
+                    console.log("No cities here")
+                    delete allErrors.city
+            }
+        }
+        if (selectedSource == '') {
+            console.log("No source error")
+            allErrors.source = "Please enter a source."
+        }
+        if (selectedTopic == '') {
+            console.log("No topic selected")
+            allErrors.topic = "Please enter a topic."
+        }
+        setErrors(allErrors)
+        console.log(allErrors.length + "Error array length")
+        if (Object.keys(allErrors).length == 0) {
+            saveReport()
+        }
     }
 
     // On mount, grab all the possible topic choices
@@ -106,7 +137,7 @@ const NewReport = ({ open, onClose }) => {
                         <form onChange={handleChange} onSubmit={handleNewReport}>
                             <div className="mt-4 mb-0.5">
                                 <Select
-                                    className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="state"
                                     type="text"
                                     placeholder="State"
@@ -122,13 +153,13 @@ const NewReport = ({ open, onClose }) => {
                                     onChange={(value => {
                                     setData(data=>({...data, state: value, city: null })) 
                                     })}
-
-                                    />        
+                                    />
+                                {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)}    
 
                             </div>
                             <div className="mt-4 mb-0.5">
                                 <Select
-                                    className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="city"
                                     type="text"
                                     placeholder="City"
@@ -143,11 +174,17 @@ const NewReport = ({ open, onClose }) => {
                                     getOptionValue={(options) => {
                                     return options["name"];
                                     }}                                 
-                                    onChange={(value => {
-                                    setData(data=>({...data, city: value})) 
-                                    })}
+                                    onChange={
+                                        (value => {
+                                            setData(data=>({
+                                                ...data,
+                                                city: value !== null ? value : null
+                                            })) 
+                                        })
+                                    }
                                 
                                     />
+                                    {errors.city && data.city === null &&  (<span className="text-red-500">{errors.city}</span>)}
                             </div>
 
                             <div className="mt-4 mb-0.5">
@@ -175,6 +212,7 @@ const NewReport = ({ open, onClose }) => {
                                     }}
                                     value={selectedTopic.value}
                                     />
+                                    {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
                             </div>
                             <div class="mt-4 mb-0.5">
                                 <Select
@@ -190,6 +228,7 @@ const NewReport = ({ open, onClose }) => {
                                     }}
                                     value={selectedSource.value}
                                     />
+                                    {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
                             </div>
                             <div className="mt-4 mb-0.5">
                                 <input

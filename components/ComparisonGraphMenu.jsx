@@ -52,13 +52,13 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
 
   // Determines if graph should be refreshed. 
   const handleGraphUpdate = () => {
+    setShowCalendar(0)
 
     const daysSelected = (dateRange[0].endDate - dateRange[0].startDate)/(1000*60*60*24)
     if (updateGraph == true && selectedTopics.length == 3 && daysSelected > 2 && daysSelected < 31)
       {
         // Prevents the graph from displaying until data has been collected.
         setLoaded(false)
-        setShowCalendar(0)
       }
 
     // Update error state if there are not three selected topics
@@ -79,7 +79,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
         console.log(item)
         const daysSelected = (item.selection.endDate - item.selection.startDate)/(1000*60*60*24)
         setDateRange([item.selection])
-        setDateError(!(daysSelected > 2 && daysSelected < 31))
+        setDateError(!(daysSelected > 2 && daysSelected < 21))
         setUpdateGraph(true)
     } 
   }
@@ -98,7 +98,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
 
   // Sets update graph to be true whenever the selected topics are changed.
   useEffect (()=> {
-    setTopicError(selectedTopics.length != 3)
+    setTopicError(selectedTopics.length !== 3)
     setUpdateGraph(true)
   }, [selectedTopics]);
 
@@ -149,7 +149,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
           </button>
 
           {/*Displays notification when user needs to refresh graph once the topic or date selection has been modified. */}
-          {updateGraph && loaded && !(topicError || dateError) && 
+          {updateGraph  && !(topicError || dateError) && 
             <div class="flex flex-wrap text-black bg-green-200 rounded p-3 ml-2 border-2 border-green-600">
               <IoIosAlert size={25} />
               <h1 class="pl-3">Refresh the graph to see the report data for the most recent changes.</h1>
