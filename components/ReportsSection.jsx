@@ -328,7 +328,10 @@ const ReportsSection = ({ search, open, onClose}) => {
                 const report = Object.values(reportObj)[0]
                 const posted = report["createdDate"].toDate().toLocaleString('en-US', dateOptions).replace(/,/g, "").replace('at', '')
            
+                // A handy little console log for objects:
                 console.log(JSON.stringify(report,null,2))
+                
+           
                 return (
                   <>
                     <a onClick={() => setShowModal(true)} className="grid grid-cols-8 hover:bg-blue-200">
@@ -447,7 +450,7 @@ const ReportsSection = ({ search, open, onClose}) => {
                                       </div>
                                   <div className="mb-8">
                                     <button
-                                          className="flex flex-row text-sm bg-white inline-block px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none" onClick={SendLinkByMail}> 
+                                          className="flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none" onClick={SendLinkByMail}> 
                                           <BsShareFill className="my-1" size = {15}/> 
                                           <div className="px-3 py-1">Share The Report</div>
                                     </button>

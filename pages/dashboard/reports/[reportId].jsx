@@ -180,7 +180,7 @@ const ReportDetails = () => {
 							</div>
           <div className="mb-8">
 						<button
-                  className="flex flex-row text-sm bg-white inline-block px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none" onClick={SendLinkByMail}> 
+                  className="flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none" onClick={SendLinkByMail}> 
                   <BsShareFill className="my-1" size = {15}/> 
                   <div className="px-3 py-1">Share The Report</div>
 						</button>
