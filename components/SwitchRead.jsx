@@ -1,22 +1,26 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
-import { getDoc, doc, updateDoc } from "@firebase/firestore"
+import { getDoc, doc, updateDoc, collection, app } from "@firebase/firestore"
 import { db } from "../config/firebase"
 import { Switch } from "@headlessui/react"
 import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"
 
+const dbInstance = collection(db, 'FKSpyOwuX6JoYF1fyv6b');
+
 export default function SwitchRead(props) {
-	const router = useRouter()
+
 	const [info, setInfo] = useState({})
 	const [reporterInfo, setReporterInfo] = useState({})
 	const [reportRead, setReportRead] = useState("")
+	const router = useRouter()
 	const { reportId } = router.query
+	
+	console.log('OUTPUT ' + JSON.stringify(app,null,2))
 
 	// Get firebase data
 	const getData = async () => {
 		// Reference to the firebase data
 		const infoRef = await getDoc(doc(db, "reports", reportId))
-		console.log(infoRef.data())
 		setInfo(infoRef.data())
 		// Reference to the user on firebase
 		getDoc(doc(db, "mobileUsers", infoRef.data()["userID"])).then((mobileRef) =>
@@ -24,8 +28,7 @@ export default function SwitchRead(props) {
 		)
 	}
 	
-
-	// Use the firebase data
+		// Use the firebase data
 	useEffect(() => {
 		getData()
 	}, [])
