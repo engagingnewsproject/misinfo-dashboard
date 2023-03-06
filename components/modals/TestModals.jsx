@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { getDoc, getDocs, doc, setDoc, collection, updateDoc } from "firebase/firestore";
 import { db } from '../../config/firebase';
-import SwitchRead from '../SwitchRead';
+import { Switch } from "@headlessui/react";
+
 import Link from "next/link"
 // Icons
 import { AiFillFire } from "react-icons/ai";
@@ -13,13 +14,11 @@ import { AiOutlineFieldTime } from 'react-icons/ai'
 
 const dbInstance = collection(db, 'notes');
 
-const TestModals = ({open, onClose}) => {
+const TestModals = ({open, onClose, info, report_id}) => {
 if (!open) return null
-  const [showModal, setShowModal] = useState(false);
   const router = useRouter()
-  const { reportId } = router.query
+  //const { reportId } = router.query
 	const userId = localStorage.getItem("userId")
-	const [info, setInfo] = useState({})
 	const [reporterInfo, setReporterInfo] = useState({})
 	const [postedDate, setPostedDate] = useState("")
 	const [selectedLabel, setSelectedLabel] = useState("")
@@ -27,12 +26,12 @@ if (!open) return null
 	const [update, setUpdate] = useState("")
 	const [activeLabels, setActiveLabels] = useState([])
 
-
+  console.log(info)
 	const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
 	const linkStyle = "font-light mb-1 text-sm underline underline-offset-1"
 
 	useEffect(() => {
-		getData()
+    getDoc(doc(db, "mobileUsers", info['userID'])).then((mobileRef) => setReporterInfo(mobileRef.data()))
 	}, [])
   
   const getData = () => {
@@ -60,7 +59,7 @@ if (!open) return null
 	}
 
 	const saveChanges = async () => {
-    const docRef = doc(db, 'reports', reportId)
+    const docRef = doc(db, 'reports', report_id)
     const res = await updateDoc(docRef, { note: document.getElementById('notes').value})
     info['note'] = document.getElementById('notes').value
 		setUpdate("")
@@ -69,7 +68,7 @@ if (!open) return null
 	const handleLabelChanged = async (e) => {
 		setChangeStatus("Saving changes...")
 		e.preventDefault()
-    const docRef = doc(db, 'reports', reportId)
+    const docRef = doc(db, 'reports', report_id)
 		await updateDoc(docRef, { label: e.target.value })
 		setChangeStatus("Label changes saved successfully")
 	}
@@ -97,7 +96,6 @@ if (!open) return null
 
   return (
       <>
-        {showModal ? (
           <div className="z-10 fixed top-0 left-0 w-full h-full bg-black-500/[.06]">
             <div onClick={onClose} className="flex overflow-y-auto justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
               <div onClick={(e) => {e.stopPropagation()}} className="flex-col justify-center relative items-center bg-white w-10/12 h-auto rounded-2xl py-10 px-10">
@@ -110,12 +108,12 @@ if (!open) return null
                     <div className="left-side">
                       <div className="mb-2">
                         <div className={headerStyle}>Title</div>
-                        <div className="text-sm bg-white rounded-xl p-4">{report['title'] || <span className="italic text-gray-400">No Title</span>}</div>
+                        <div className="text-sm bg-white rounded-xl p-4">{info['title'] || <span className="italic text-gray-400">No Title</span>}</div>
                         </div>
                       { reporterInfo &&
                         <div className="text-md mb-4 font-light text-right">
                           <div>
-                          <span className="font-semibold">Reported by:</span> {reporterInfo['name']} (<a target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline" href={"mailto:" + reporterInfo['email']}>{reporterInfo['email']}</a>)
+                          <span className="font-semibold">Reported by:</span> {info['user_id']} (<a target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline" href={"mailto:" + reporterInfo['email']}>{reporterInfo['email']}</a>)
                           </div>
                       </div>}
                       <div className="mb-8">
@@ -133,7 +131,7 @@ if (!open) return null
                         <div className="flex flex-row mb-3 items-center">
                           <RiMessage2Fill size={20} />
                           <div className="font-semibold px-2 self-center pr-4">Tag</div>
-                          <div className="text-md font-light">{report['topic']}</div>
+                          <div className="text-md font-light">{info['topic']}</div>
                         </div>
                         <div className="flex flex-row mb-3 items-center">
                           <BiEditAlt size={20} />
@@ -146,8 +144,24 @@ if (!open) return null
                           <div className="text-md font-light">{postedDate}</div>
                         </div>
                         <div className="flex flex-row mb-3 items-center">
-                          <SwitchRead />
-                        </div>
+                        <Switch
+                          // Set checked to the initial reportRead value (false)
+                          checked={info['read']}
+                          // When switch toggled setReportRead
+                          onChange={() => handleReadToggled(Object.keys(reportObj)[0])}
+                          // On click handler
+                          // onClick={() => setReportRead(handleReadChange)}
+                          className={`${ info['read'] ? "bg-blue-600" : "bg-gray-200"
+                            } relative inline-flex h-6 w-11 items-center rounded-full`}>
+                          <span className="sr-only">Mark me</span>
+                          <span
+                            aria-hidden="true"
+                            className={`${ info['read'] ? "translate-x-6" : "translate-x-1"
+                              } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                          />
+                        </Switch>
+                      </div>
+                        
                       </div>
                       <div className="mb-8">
                         <div className={headerStyle}>Link Of The Information</div>
@@ -210,12 +224,11 @@ if (!open) return null
                 </div>
                 <button
                   className="text-gray-800 absolute top-4 right-4"
-                  onClick={() => setShowModal(false)}
+                  onClick={onClose}
                 >X</button>
               </div>
             </div>
         </div>
-      ) : null}
     </>
   );
 };

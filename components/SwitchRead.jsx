@@ -13,7 +13,7 @@ export default function SwitchRead(props) {
 	const [reporterInfo, setReporterInfo] = useState({})
 	const [reportRead, setReportRead] = useState("")
 	const router = useRouter()
-	const { reportId } = router.query
+	//const { reportId } = router.query
 	
 	console.log('OUTPUT ' + JSON.stringify(app,null,2))
 
