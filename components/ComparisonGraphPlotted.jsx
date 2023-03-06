@@ -23,19 +23,16 @@ import ComparisonGraphMenu from './ComparisonGraphMenu'
 
 import _ from "lodash";
 
-const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSelectedTopics, topicList, tab, setTab}) => {
-
-  // Indicates which topics and dates have been selected in the dropdowns. 
-  const [listTopicChoices, setTopicChoices] = useState(topicList)
+const ComparisonGraphPlotted = ({ dateRange, setDateRange, selectedTopics, setSelectedTopics, topicList, tab, setTab }) => {
 
   // Data that is displayed via the graph.   
   const [reportData, setData] = useState([])
   const [graphData, setGraphData] = useState([])
   const [dateLabels, setDateLabels] = useState([])
   const [dates, setDates] = useState([])
-  
+
   // Indicates when data is ready to be displayed via the graph. 
-  const [updateGraph, setUpdateGraph] = useState(false)
+  const [updateGraph, setUpdateGraph] = useState(true)
   const [loaded, setLoaded] = useState(false)
 
   // Indicates if the number of topics and date range are valid. 
@@ -47,7 +44,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     const startRange = new Date(dates[0] * 1000)
     console.log(dates.length)
     console.log(new Date(dates[dates.length - 2] * 1000))
-    const endRange = new Date(dates[dates.length - 2]  * 1000)
+    const endRange = new Date(dates[dates.length - 2] * 1000)
     console.log(dates)
     var newDateOptions = {
       month: "2-digit",
@@ -56,7 +53,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
 
     return startRange.toLocaleString('en-us', newDateOptions) + '-' + endRange.toLocaleString('en-us', newDateOptions)
   }
-  
+
   // Returns array that holds array of Firebase timestamp for dates within the rage beginning yesterday up until daysAgo.
   // and an array of formatted dates for each of the timestamps, which will be used as the labels for the graph. 
   const getDates = (daysAgo) => {
@@ -68,16 +65,16 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     const formattedDates = []
 
     // Adds last date in range to the array
-    starting_date.setHours(0, 0, 0, 0) 
+    starting_date.setHours(0, 0, 0, 0)
 
     // Gets the start of each day within timeline and adds it to the dates array. 
     for (let index = 0; index <= daysAgo; index++) {
 
       // Only adds labels for the days that are within the requested date range
-      formattedDates.push(starting_date.toLocaleString('en-us', { month: "short"}) + ' ' + starting_date.getDate())
+      formattedDates.push(starting_date.toLocaleString('en-us', { month: "short" }) + ' ' + starting_date.getDate())
       const timestamp = Timestamp.fromDate(starting_date)
       dates.push(timestamp)
-      starting_date.setHours(24,0,0,0) // Sets time to midnight of the corresponding day 
+      starting_date.setHours(24, 0, 0, 0) // Sets time to midnight of the corresponding day 
     }
     // Adds date after date range to the array
     const timestamp = Timestamp.fromDate(starting_date)
@@ -85,28 +82,27 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
 
     // arr stores two arrays: one for the timestamps used to filter reports for the specified dates, 
     // and one with the formatted dates for the graph labels
-    arr.push (dates)
-    arr.push (formattedDates)
+    arr.push(dates)
+    arr.push(formattedDates)
     return arr
   }
 
   // Retrieves the number of reports for the selected topics and date range.
-  const getDailyTopicReports = async() => {
-    console.log("before date: " + dateRange[0].endDate.getTime())
-    const days = Math.ceil((dateRange[0].endDate.getTime()- dateRange[0].startDate.getTime()) / 86400000)
+  const getDailyTopicReports = async () => {
+    const days = Math.ceil((dateRange[0].endDate.getTime() - dateRange[0].startDate.getTime()) / 86400000)
     const array = getDates(days)
-    
+
     // Stores dates in format used to query the reports. 
     setDates(array[0])
 
     // Stores date labels used for the x-axis on the comparison chart
-    setDateLabels (array[1])
+    setDateLabels(array[1])
 
     const reportsList = collection(db, "reports");
-  
+
     // Stores the number of times that the topic was reported for each day within timeline
     const topicArray = []
-    
+
     // Maintain daily count of reports for top three topics within given timeline
     for (let topic = 0; topic < selectedTopics.length; topic++) {
       const numReports = []
@@ -114,13 +110,11 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
 
         // Filters report collection so it only shows reports for the current topic on the day at current index in array
         const queryDaily = query(reportsList, where("topic", "==", selectedTopics[topic].value), where("createdDate", ">=", array[0][index]),
-        where("createdDate", "<", array[0][index + 1]))
+          where("createdDate", "<", array[0][index + 1]))
         const dailyReports = await getDocs(queryDaily);
         try {
           numReports.push(dailyReports.size)
           console.log(selectedTopics[topic].value)
-          console.log("day:" + array[0][index])
-          console.log(dailyReports.size)
         }
         catch (error) {
           console.log(error)
@@ -132,11 +126,11 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     }
     setData(topicArray)
   }
-  
+
   // Formats data using date range and selected topics to display graph.
   const getGraphData = () => {
     const arr = []
-    console.log("in graph data")
+
     // Populates data used for the comparison graph
     for (let topic = 0; topic < selectedTopics.length; topic++) {
       const topicData = {
@@ -147,27 +141,33 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
       }
       arr.push(topicData)
     }
-    setGraphData({labels:dateLabels, datasets:arr})
+    setGraphData({ labels: dateLabels, datasets: arr })
   }
 
   // Populates graph with new data for the selected date range and topics once the
   // topic reports have been collected. 
-  useEffect(()=> {
-    console.log("in use effect")
-    console.log(reportData)
-    if (updateGraph && !topicError && !dateError) {
+  useEffect(() => {
+    if (reportData.length !== 0 && updateGraph && !topicError && !dateError) {
       getGraphData()
-      setLoaded(true)
       setUpdateGraph(false)
     }
   }, [reportData]);
 
-  // On page load, populates graph with the given topics and date range.
-  useEffect (()=> {
-    if (loaded == false) {
+  // On page load, collects the reports for the given topics and date range.
+  useEffect(() => {
+    if (loaded === false) {
       getDailyTopicReports()
     }
   }, [loaded]);
+
+
+  // Displays graph once data points can be plotted.
+  useEffect(() => {
+    if (graphData.length !== 0) {
+      setLoaded(true)
+      setUpdateGraph(false)
+    }
+  }, [graphData])
 
   // Configuration for React-ChartJS-2
   ChartJS.register(
@@ -193,7 +193,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
             var size = Math.round(avgSize / 32);
             size = size > 16 ? 16 : size; // setting max limit to 18
             return {
-                size: size,
+              size: size,
             };
           },
         },
@@ -206,7 +206,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
             var size = Math.round(avgSize / 32);
             size = size > 16 ? 16 : size; // setting max font size limit to 18
             return {
-                size: size,
+              size: size,
             };
           },
         }
@@ -220,7 +220,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
             var size = Math.round(avgSize / 32);
             size = size > 16 ? 16 : size; // setting max font size limit to 18
             return {
-                size: size,
+              size: size,
             };
           },
         },
@@ -230,7 +230,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
             var size = Math.round(avgSize / 32);
             size = size > 16 ? 16 : size; // setting max font size limit to 18
             return {
-                size: size,
+              size: size,
             };
           }
         }
@@ -240,47 +240,49 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
       legend: {
         position: 'bottom',
         labels: {
-        // This more specific font property overrides the global property
+          // This more specific font property overrides the global property
           font: function (context) {
             var avgSize = Math.round((context.chart.height + context.chart.width) / 2);
             var size = Math.round(avgSize / 32);
             size = size > 16 ? 16 : size; // setting max limit to 12
             return {
-                size: size,
+              size: size,
             };
-        },
+          },
         }
-                
+
       }
     }
-  
+
   }
 
   return (
     <div>
-          {/* Once user selects the topics and date range, graph of topic reports will be plotted. */}
-          <div className="bg-white rounded-xl mt-6 py-5">
-          <ComparisonGraphMenu dateRange={dateRange} setDateRange={setDateRange} 
+      {/* Once user selects the topics and date range, graph of topic reports will be plotted. */}
+      <div className="bg-white rounded-xl mt-6 py-5">
+        
+            <ComparisonGraphMenu dateRange={dateRange} setDateRange={setDateRange}
               selectedTopics={selectedTopics} setSelectedTopics={setSelectedTopics}
-              listTopicChoices={listTopicChoices} tab={tab} setTab={setTab}
-              setTopicError={setTopicError}  topicError={topicError}
-              dateError={dateError} setDateError = {setDateError} updateGraph={updateGraph} 
-              setUpdateGraph={setUpdateGraph} loaded={loaded} setLoaded={setLoaded}/>
+              listTopicChoices={topicList} tab={tab} setTab={setTab}
+              setTopicError={setTopicError} topicError={topicError}
+              dateError={dateError} setDateError={setDateError} updateGraph={updateGraph}
+              setUpdateGraph={setUpdateGraph} loaded={loaded} setLoaded={setLoaded} />
+
+        {loaded &&
+          <div className="m-auto">
 
             {/* Displays graph once data is collected for the topics. */}
-            {loaded && 
-              <div className="w-3/4 m-auto">
-                <div className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Topic Reports - {formatDates()}</div>
-                <Line className="pl-20 pr-20" options={options} data={graphData} />
-              </div>
-            } 
-            {!loaded && <h1 class="text-center">Collecting data...</h1>}
+            <div className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Topic Reports - {formatDates()}</div>
+            <Line className="pl-20 pr-20" options={options} data={graphData} />
           </div>
+        }
+
+      </div>
     </div>
   )
 }
 export default ComparisonGraphPlotted
- 
+
 
 
 

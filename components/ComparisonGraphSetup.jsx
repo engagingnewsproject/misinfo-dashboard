@@ -48,8 +48,12 @@ const ComparisonGraphSetup = () => {
   // Handles the selection of a new date range.
   const handleDateSelection = (item) =>  {
     if (item.selection.endDate !== item.selection.startDate) {
-        console.log(item)
-        setDateRange([item.selection])
+      console.log(item)
+      setDateRange([item.selection])
+      const daysSelected = ((item.selection.endDate  - item.selection.startDate)/(1000*60*60*24)) + 1
+      if (daysSelected > 2 && daysSelected < 21) {
+        setDateError(false)
+      }
     } 
   }
 
@@ -60,15 +64,16 @@ const ComparisonGraphSetup = () => {
 
   // Upon the initial screen for the compraison chart, plots graph if the date range is correct.
   const handleGraphChange = () => {
-    console.log("date range efore plotting" + dateRange)
-    const daysSelected = (dateRange[0].endDate - dateRange[0].startDate)/(1000*60*60*24)
-    if (daysSelected > 2 && daysSelected < 31) {
+    console.log("date range before plotting " + dateRange)
+    const daysSelected = ((dateRange[0].endDate - dateRange[0].startDate)/(1000*60*60*24)) + 1
+    if (daysSelected > 2 && daysSelected < 21) {
       console.log(dateRange[0])
       setTab(4)
       setDateError(false)
     } else {
       setDateError(true)
     }
+    
   }
 
   // Ensures that only three topics are selected and displays error otherwise.
