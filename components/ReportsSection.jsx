@@ -331,7 +331,10 @@ const ReportsSection = ({ search, open, onClose}) => {
                 console.log(JSON.stringify(report,null,2))
                 return (
                   <>
-                    <a onClick={() => setShowModal(true)} className="grid grid-cols-8 hover:bg-blue-200">
+                    <a
+                      onClick={() => setShowModal(true)}
+                      className="grid grid-cols-8 hover:bg-blue-200"
+                    >
                       <div className={"col-span-2 " + columnData}>{report.title}</div>
                       <div className={columnData}>{posted}</div>
                       <div className={columnData}>-</div>
@@ -347,7 +350,7 @@ const ReportsSection = ({ search, open, onClose}) => {
                           // When switch toggled setReportRead
                           onChange={() => handleReadToggled(Object.keys(reportObj)[0])}
                           // On click handler
-                          // onClick={() => setReportRead(handleReadChange)}
+                          onClick={(e) => e.stopPropagation()}
                           className={`${ report.read ? "bg-blue-600" : "bg-gray-200"
                             } relative inline-flex h-6 w-11 items-center rounded-full`}>
                           <span className="sr-only">Mark me</span>
@@ -355,6 +358,10 @@ const ReportsSection = ({ search, open, onClose}) => {
                             aria-hidden="true"
                             className={`${ report.read ? "translate-x-6" : "translate-x-1"
                               } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                          />
+                          <span
+                            className="switch-label"
+                            onClick={(e) => e.stopPropagation()}
                           />
                         </Switch>
                       </div>
