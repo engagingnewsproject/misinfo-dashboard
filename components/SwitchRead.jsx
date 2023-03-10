@@ -7,16 +7,12 @@ import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"
 
 const dbInstance = collection(db, 'FKSpyOwuX6JoYF1fyv6b');
 
-export default function SwitchRead(props) {
-
+export default function SwitchRead({ setReportModalId }) {
 	const [info, setInfo] = useState({})
 	const [reporterInfo, setReporterInfo] = useState({})
 	const [reportRead, setReportRead] = useState("")
 	const router = useRouter()
-	const { reportId } = router.query
-	
-	console.log('OUTPUT ' + JSON.stringify(app,null,2))
-
+	const reportId = setReportModalId
 	// Get firebase data
 	const getData = async () => {
 		// Reference to the firebase data
@@ -27,8 +23,8 @@ export default function SwitchRead(props) {
 			setReporterInfo(mobileRef.data())
 		)
 	}
-	
-		// Use the firebase data
+
+	// Use the firebase data
 	useEffect(() => {
 		getData()
 	}, [])
