@@ -508,9 +508,7 @@ const ReportsSection = ({ search }) => {
 								.toLocaleString("en-US", dateOptions)
 								.replace(/,/g, "")
 								.replace("at", "")
-							const reportReporter = report["userID"]
 							const reportIdKey = Object.keys(reportObj)[0].toString()
-
 							return (
 								<>
 									<a
