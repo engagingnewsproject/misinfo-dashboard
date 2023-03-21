@@ -18,16 +18,11 @@ import { Switch } from "@headlessui/react"
 // Icons
 import { IoMdRefresh } from "react-icons/io"
 import { IoAdd } from "react-icons/io5"
-import { RiMessage2Fill } from "react-icons/ri"
-import { BiEditAlt } from "react-icons/bi"
-import { BsShareFill } from "react-icons/bs"
-import { AiOutlineFieldTime } from "react-icons/ai"
-import { IoClose } from "react-icons/io5"
+
 // Icons END
 import ReactTooltip from "react-tooltip"
 import InfiniteScroll from "react-infinite-scroll-component"
 import NewReportModal from "./modals/NewReportModal"
-// import ReportSectionModal from "./modals/ReportSectionModal" // Report list modal
 import ReportModal from "./modals/ReportModal"
 
 const ReportsSection = ({ search }) => {
@@ -62,7 +57,6 @@ const ReportsSection = ({ search }) => {
 	// Report modal states
 	const [reportModal, setReportModal] = useState(false)
 	const [reportModalId, setReportModalId] = useState(false)
-	const [reportModalData, setReportModalData] = useState()
 	const [note, setNote] = useState("")
 	const [title, setTitle] = useState("")
 	const [detail, setDetail] = useState()
