@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { collection, listCollections, getDoc, getDocs, doc, updateDoc } from "firebase/firestore";
+import { collection, listCollections, getDoc, getDocs, doc, updateDoc, onSnap, onSnapshot } from "firebase/firestore";
 import { db } from '../config/firebase'
 import Link from 'next/link'
 import { Switch } from "@headlessui/react";
@@ -30,9 +30,9 @@ const ReportsSection = ({ search }) => {
     special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl"
   }
   
-  const getData = async() => {
+  const getData = onSnapshot(collection(db, "reports"), () => {
     const reportsCollection = collection(db, "reports")
-    const snapshot = await getDocs(reportsCollection)
+    const snapshot = reportsCollection
     
     try {
       var arr = []
@@ -53,7 +53,7 @@ const ReportsSection = ({ search }) => {
     } catch (error) {
       console.log(error)
     }
-  }
+  })
 
   const handleDateChanged = (e) => {
     e.preventDefault()

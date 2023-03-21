@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import moment from "moment";
 import { db } from '../../config/firebase'
 import { Country, State, City }  from 'country-state-city';
-import { getDoc, getDocs, doc, setDoc, collection, updateDoc, addDoc } from "firebase/firestore";
+import { getDoc, getDocs, doc, setDoc, collection, updateDoc, addDoc, onSnapshot } from "firebase/firestore";
 import csc from "country-state-city";
 import auth from "@firebase/auth";
 import Select from "react-select";
@@ -235,6 +235,7 @@ const NewReport = ({ open, onClose }) => {
                             </div>
                             <div className="mt-6">
                                 <button
+                                    onClick={onClose}
                                     className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">
                                     Create
                                 </button>
