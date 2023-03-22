@@ -428,7 +428,7 @@ const ReportsSection = ({ search }) => {
 		<div className="flex flex-col h-full">
 			<div className="flex flex-row justify-between py-5">
 				<div className="text-lg font-bold text-blue-600 tracking-wider">
-					<a href="/dashboard">List of Reports</a>
+					List of Reports
 				</div>
 				<div>
 					<button

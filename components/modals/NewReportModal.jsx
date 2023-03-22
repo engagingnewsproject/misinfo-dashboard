@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../context/AuthContext'
 import moment from "moment";
+import Image from 'next/image';
 import { db } from '../../config/firebase'
 import { Country, State, City }  from 'country-state-city';
 import { getDoc, getDocs, doc, setDoc, collection, updateDoc, addDoc } from "firebase/firestore";
@@ -12,26 +13,27 @@ import Select from "react-select";
 
 // Ref to firebase reports collection
 const dbInstance = collection(db, 'reports');
+const router = useRouter()
+const { user } = useAuth()
+// useStates
+const [data, setData] = useState({ country: "US", state: null, city: null })
+
+const [title, setTitle] = useState("")
+const [link, setLink] = useState("")
+const [secondLink, setSecondLink] = useState("")
+const [detail, setDetail] = useState("")
+// Image upload
+const [images, setImages] = useState([])
+const [imageURLs, setImageURLs] = useState([])
+const [allTopicsArr, setTopics] = useState([])
+const [selectedTopic, setSelectedTopic] = useState("")
+const [allSourcesArr, setSources] = useState([])
+const [selectedSource, setSelectedSource] = useState("")
+const [errors, setErrors] = useState({})
 
 const NewReport = ({ open, onClose }) => {
     if (!open) return null
-    const router = useRouter()
-    const { user } = useAuth()
-    // useStates
-    const [data, setData] = useState({country: "US", state: null, city: null})
 
-    const [title, setTitle] = useState('')
-    const [link, setLink] = useState('')
-    const [secondLink, setSecondLink] = useState('')
-    const [detail, setDetail] = useState('')
-    // Image upload
-    const [images, setImages] = useState([])
-    const [imageURLs, setImageURLs] = useState([])
-    const [allTopicsArr, setTopics] = useState([])
-    const [selectedTopic, setSelectedTopic] = useState('')
-    const [allSourcesArr, setSources] = useState([])
-    const [selectedSource, setSelectedSource] = useState('')
-    const [errors, setErrors] = useState({})
     // console.log(Country.getCountryByCode('US'))
     const saveReport = () => {
         addDoc(dbInstance, {
@@ -269,7 +271,7 @@ const NewReport = ({ open, onClose }) => {
                                     <input className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer" id="multiple_files" type="file" multiple accept="image/*" onChange={onImageChange} />
                                 </label>
                                 <div className="flex shrink-0 mt-2 space-x-2">
-                                    { imageURLs.map(imageSrc => <img src={imageSrc} className="shadow ph-16 mb-1 w-16 object-cover rounded-md" />) }
+                                    { imageURLs.map(imageSrc => <Image src={imageSrc} className="shadow ph-16 mb-1 w-16 object-cover rounded-md" />) }
                                 </div>
                             </div>
                             <div className="mt-6">
