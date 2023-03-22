@@ -20,10 +20,6 @@ const Dashboard = () => {
             { tab == 0 && <Home />}
             { tab == 1 && <Profile />}
             { tab == 2 && <Settings />}
-            {/* <a onClick={() => {
-                logout()
-                router.push('/login')
-            }}>Logout</a> */}
         </div>
     )
 }

@@ -8,6 +8,7 @@ import { BsShareFill } from 'react-icons/bs'
 import { AiOutlineFieldTime } from 'react-icons/ai'
 import SwitchRead from "../../../components/SwitchRead"
 import Link from "next/link"
+import Image from 'next/image';
 
 const ReportDetails = () => {
 	const userId = localStorage.getItem("userId")
@@ -192,7 +193,7 @@ const ReportDetails = () => {
                 {info['images'].map((image) => {
 									return (
 										<div className="flex px-1">
-                      <img src={image} width={150} height={150} alt="image"/>
+                      <Image src={image} width={150} height={150} alt="image"/>
 										</div>
 									)
 								})}
