@@ -110,7 +110,7 @@ const ReportsSection = ({ search }) => {
 		setEndIndex(0)
 
 		// Updates loaded reports so that they only feature reports within the selected date range
-		const arr = filteredReports.filter((reportObj) => {
+		let arr = filteredReports.filter((reportObj) => {
 			const report = Object.values(reportObj)[0]
 			return (
 				report["createdDate"].toDate() >=
@@ -186,7 +186,7 @@ const ReportsSection = ({ search }) => {
 
 	// Updates the loaded reports whenever a user filters reports based on search.
 	useEffect(() => {
-		const arr = filteredReports.filter((reportObj) => {
+		let arr = filteredReports.filter((reportObj) => {
 			const report = Object.values(reportObj)[0]
 			return (
 				report["createdDate"].toDate() >=
