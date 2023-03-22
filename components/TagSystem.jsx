@@ -13,6 +13,7 @@ import { IoIosRadioButtonOn } from 'react-icons/io'
 import { setDoc, getDoc, doc } from "firebase/firestore"; 
 import { useAuth } from '../context/AuthContext'
 import { db } from '../config/firebase'
+import Image from 'next/image'
 
 const maxTags = [0, 7, 10, 7] // default, Topic, Source, Labels (respectively)
 
@@ -219,7 +220,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                 <div class="z-10 mt-12 pr-6">
                     {list.length == 0 ? 
                     <div class="grid bg-white w-full py-6 px-4 rounded-xl text-center items-center">
-                        <img src="svgs/warning.svg" width={156} height={120}/>
+                        <Image src="svgs/warning.svg" width={156} height={120} alt="warning"/>
                         <div class="py-3 text-sm">You have no tags right now</div>
                     </div>
                     : 
