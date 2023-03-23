@@ -2,19 +2,13 @@ import React, { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
 import {
 	collection,
-	listCollections,
 	getDoc,
 	getDocs,
 	doc,
 	updateDoc,
-	onSnapshot,
-	query,
-	where,
 } from "firebase/firestore"
 import { db } from "../config/firebase"
-import Link from "next/link"
 import { Switch } from "@headlessui/react"
-// import SwitchRead from './SwitchRead';
 // Icons
 import { IoMdRefresh } from "react-icons/io"
 import { IoAdd } from "react-icons/io5"
