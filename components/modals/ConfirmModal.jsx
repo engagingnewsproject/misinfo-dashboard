@@ -7,8 +7,14 @@ const ConfirmModal = ({ func, title, subtitle, CTA, closeModal }) => {
         <div>
             <div class="flex justify-center items-center z-10 absolute top-0 left-0 w-full h-full bg-black opacity-60">
             </div>
-            <div class="flex justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
-                <div class="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10">
+            <div 
+            class="flex justify-center items-center z-20 absolute top-0 left-0 w-full h-full"
+            onClick={() => closeModal(false)}>
+                <div 
+                class="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10"
+                onClick={(e) => {
+                    e.stopPropagation()
+                }}>
                     <div class="grid justify-items-center mb-4">
                         {CTA == "Delete" && <RiDeleteBin2Fill class="text-blue-500" size={30}/>}
                         {CTA == "Log out" && <BiLogOut class="text-blue-500" size={30}/>}
