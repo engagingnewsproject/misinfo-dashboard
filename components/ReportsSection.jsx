@@ -201,7 +201,8 @@ const ReportsSection = ({ search }) => {
 		)
 
 		// Default values for infinite scrolling, will load reports as they are populated.
-		setEndIndex(0)
+		// FIXED SCROLLING BUG MAYBE???? *****
+		// setEndIndex(0)
 		setHasMore(true)
 		setLoadedReports(arr)
 	}, [filteredReports])
@@ -539,7 +540,7 @@ const ReportsSection = ({ search }) => {
 													handleReadToggled(Object.keys(reportObj)[0])
 												}
 												// On click handler
-												// onClick={() => setReportRead(handleReadChange)}
+												onClick={(e) => e.stopPropagation()}
 												className={`${
 													report.read ? "bg-blue-600" : "bg-gray-200"
 												} relative inline-flex h-6 w-11 items-center rounded-full`}>
