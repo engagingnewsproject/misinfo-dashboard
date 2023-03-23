@@ -11,29 +11,27 @@ import csc from "country-state-city";
 import auth from "@firebase/auth";
 import Select from "react-select";
 
-// Ref to firebase reports collection
-const dbInstance = collection(db, 'reports');
-const router = useRouter()
-const { user } = useAuth()
-// useStates
-const [data, setData] = useState({ country: "US", state: null, city: null })
+const NewReport = ({ setNewReportModal }) => {
+    // if (!open) return null
+    // Ref to firebase reports collection
+    const dbInstance = collection(db, 'reports');
+    const router = useRouter()
+    const { user } = useAuth()
+    // useStates
+    const [data, setData] = useState({ country: "US", state: null, city: null })
 
-const [title, setTitle] = useState("")
-const [link, setLink] = useState("")
-const [secondLink, setSecondLink] = useState("")
-const [detail, setDetail] = useState("")
-// Image upload
-const [images, setImages] = useState([])
-const [imageURLs, setImageURLs] = useState([])
-const [allTopicsArr, setTopics] = useState([])
-const [selectedTopic, setSelectedTopic] = useState("")
-const [allSourcesArr, setSources] = useState([])
-const [selectedSource, setSelectedSource] = useState("")
-const [errors, setErrors] = useState({})
-
-const NewReport = ({ open, onClose }) => {
-    if (!open) return null
-
+    const [title, setTitle] = useState("")
+    const [link, setLink] = useState("")
+    const [secondLink, setSecondLink] = useState("")
+    const [detail, setDetail] = useState("")
+    // Image upload
+    const [images, setImages] = useState([])
+    const [imageURLs, setImageURLs] = useState([])
+    const [allTopicsArr, setTopics] = useState([])
+    const [selectedTopic, setSelectedTopic] = useState("")
+    const [allSourcesArr, setSources] = useState([])
+    const [selectedSource, setSelectedSource] = useState("")
+    const [errors, setErrors] = useState({})
     // console.log(Country.getCountryByCode('US'))
     const saveReport = () => {
         addDoc(dbInstance, {
@@ -90,6 +88,7 @@ const NewReport = ({ open, onClose }) => {
         if (Object.keys(allErrors).length == 0) {
             saveReport()
         }
+        setNewReportModal(false)
     }
 
     // On mount, grab all the possible topic choices
@@ -125,14 +124,19 @@ const NewReport = ({ open, onClose }) => {
         setImages([...e.target.files])
     }
 
+    const handleNewReportModalClose = async (e) => {
+        e.preventDefault()
+        setNewReportModal(false)
+    }
+
     return (
         <div>
             <div className="z-10 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50">
-                <div onClick={onClose} className="flex overflow-y-auto justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
+                <div onClick={handleNewReportModalClose} className="flex overflow-y-auto justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
                     <div onClick={(e) => {e.stopPropagation()}} className="flex-col justify-center items-center bg-white w-6/12 h-auto rounded-2xl py-10 px-10">
                         <div className="flex justify-between w-full mb-5">
                             <div className="text-md font-bold text-blue-600 tracking-wide">Add New Report</div>
-                            <button onClick={onClose} className="text-gray-800">
+                            <button onClick={handleNewReportModalClose} className="text-gray-800">
                                 <IoClose size={25}/>
                             </button>
                         </div>
