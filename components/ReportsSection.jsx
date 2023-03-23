@@ -22,14 +22,14 @@ import { IoAdd } from "react-icons/io5"
 // Icons END
 import ReactTooltip from "react-tooltip"
 import InfiniteScroll from "react-infinite-scroll-component"
-import NewReportModal from "./modals/NewReportModal"
+import NewReport from "./modals/NewReportModal"
 import ReportModal from "./modals/ReportModal"
 
 const ReportsSection = ({ search }) => {
 	const userId = localStorage.getItem("userId")
 	const [reports, setReports] = useState([])
 	const [reporterInfo, setReporterInfo] = useState({})
-	const [openModalNewReport, setOpenModalNewReport] = useState(false)
+	const [newReportModal, setNewReportModal] = useState(false)
 	const [filteredReports, setFilteredReports] = useState([])
 	const [loadedReports, setLoadedReports] = useState([])
 	const [endIndex, setEndIndex] = useState(0)
@@ -298,11 +298,11 @@ const ReportsSection = ({ search }) => {
 		window.open(uri)
 	}
 
-	// REPORT MODAL REPORT MODAL REPORT MODAL REPORT MODAL
-	// REPORT MODAL REPORT MODAL REPORT MODAL REPORT MODAL
-	// REPORT MODAL REPORT MODAL REPORT MODAL REPORT MODAL
-	// REPORT MODAL REPORT MODAL REPORT MODAL REPORT MODAL
-
+	const handleNewReportModal = (e) => {
+		e.preventDefault()
+		setNewReportModal(true)
+	}
+	
 	const handleModalShow = async (reportId) => {
 		// get doc
 		const docRef = await getDoc(doc(db, "reports", reportId))
@@ -432,16 +432,12 @@ const ReportsSection = ({ search }) => {
 				</div>
 				<div>
 					<button
-						onClick={() => setOpenModalNewReport(true)}
+						onClick={handleNewReportModal}
 						className="flex flex-row items-center text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600">
 						<IoAdd className="mr-1" size={15} />
 						New Report
 					</button>
 				</div>
-				<NewReportModal
-					open={openModalNewReport}
-					onClose={() => setOpenModalNewReport(false)}
-				/>
 				<div>
 					<select
 						id="labels"
@@ -580,6 +576,11 @@ const ReportsSection = ({ search }) => {
 					)}
 				</div>
 			</div>
+			{newReportModal && (
+				<NewReport
+					setNewReportModal={setNewReportModal}
+				/>
+			)}
 		</div>
 	)
 }
