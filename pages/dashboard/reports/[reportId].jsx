@@ -4,6 +4,7 @@ import { getDoc, getDocs, doc, setDoc, collection, updateDoc } from "firebase/fi
 import { db } from '../../../config/firebase'
 import { RiMessage2Fill } from 'react-icons/ri'
 import { BiEditAlt } from 'react-icons/bi'
+import { IoReturnUpBackSharp } from 'react-icons/io5'
 import { BsShareFill } from 'react-icons/bs'
 import { AiOutlineFieldTime } from 'react-icons/ai'
 import SwitchRead from "../../../components/SwitchRead"
@@ -25,7 +26,7 @@ const ReportDetails = () => {
 	const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
 	const linkStyle = "font-light mb-1 text-sm underline underline-offset-1"
 
-  console.log('current URL 👉️', window.location.href);
+  // console.log('current URL 👉️', window.location.href);
 
 	const getData = async () => {
     const infoRef = await getDoc(doc(db, "reports",  reportId))
@@ -96,11 +97,22 @@ const ReportDetails = () => {
     uri += encodeURIComponent(body);
     window.open(uri);
 	}
+	
 	return (
 		<div className="p-16">
-			<div className="text-2xl font-bold text-blue-600 tracking-wider mb-8">
-			{/* Temp link back to Dashboard for testing */}
-				<Link href="/">More Information</Link>
+			<div className="flex justify-between w-full mb-5">
+				<div className="text-2xl font-bold text-blue-600 tracking-wider mb-8">
+				{/* Temp link back to Dashboard for testing */}
+					More Information
+				</div>
+				<div>
+					<Link href={'/dashboard'} className="flex flex-row mb-3 items-center">
+						<IoReturnUpBackSharp size={20} />
+						<div className="font-semibold px-2 self-center pr-4">
+							Return to Dashboard
+						</div>
+					</Link>
+				</div>
 			</div>
 			<div className="grid grid-cols-2 gap-24">
 				<div className="left-side">
@@ -142,7 +154,7 @@ const ReportDetails = () => {
 							<div className="text-md font-light">{postedDate}</div>
 						</div>
 						<div className="flex flex-row mb-3 items-center">
-							<SwitchRead />
+							<SwitchRead setReportModalId={reportId}/>
 						</div>
 					</div>
 					<div className="mb-8">
@@ -181,19 +193,20 @@ const ReportDetails = () => {
 							</div>
           <div className="mb-8">
 						<button
-                  className="flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none" onClick={SendLinkByMail}> 
-                  <BsShareFill className="my-1" size = {15}/> 
-                  <div className="px-3 py-1">Share The Report</div>
+							className="flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none" onClick={SendLinkByMail}> 
+							<BsShareFill className="my-1" size = {15}/> 
+							<div className="px-3 py-1">Share The Report</div>
 						</button>
 					</div>
 					<div className="w-full">
 						<div className={headerStyle}>Images</div>
             {info['images'] && info['images'][0] ?
-							<div className="flex w-full overflow-y-auto">
+							<div className="w-full">
                 {info['images'].map((image) => {
+									console.log(image)
 									return (
-										<div className="flex px-1">
-                      <Image src={image} width={150} height={150} alt="image"/>
+										<div className="relative w-9">
+                      <Image src={image} alt="image" fill />
 										</div>
 									)
 								})}
