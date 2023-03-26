@@ -74,6 +74,11 @@ const ReportsSection = ({ search }) => {
 			})
 
 			setReports(arr)
+			if (readFilter !== "All") {
+				arr = arr.filter((reportObj) => {
+				  return Object.values(reportObj)[0].read.toString() === readFilter
+				})
+			}
 			setFilteredReports(arr)
 			setLoadedReports(
 				arr
@@ -195,8 +200,14 @@ const ReportsSection = ({ search }) => {
 		)
 
 		// Default values for infinite scrolling, will load reports as they are populated.
-		setEndIndex(0)
-		setHasMore(true)
+		// FIXED SCROLLING BUG MAYBE???? *****
+		// setEndIndex(0)
+		// setHasMore(true)
+		if (arr.length === 0) {
+			setHasMore(false)
+		} else {
+			setHasMore(true)
+		}
 		setLoadedReports(arr)
 	}, [filteredReports])
 
@@ -299,6 +310,7 @@ const ReportsSection = ({ search }) => {
 	
 	const handleModalShow = async (reportId) => {
 		// get doc
+
 		const docRef = await getDoc(doc(db, "reports", reportId))
 		// get note
 		setNote(docRef.data()["note"])
@@ -377,7 +389,7 @@ const ReportsSection = ({ search }) => {
 	}
 
 	useEffect(() => {
-		getData()
+		// getData()
 		if (info["createdDate"]) {
 			const options = {
 				day: "2-digit",
@@ -529,7 +541,7 @@ const ReportsSection = ({ search }) => {
 													handleReadToggled(Object.keys(reportObj)[0])
 												}
 												// On click handler
-												// onClick={() => setReportRead(handleReadChange)}
+												onClick={(e) => e.stopPropagation()}
 												className={`${
 													report.read ? "bg-blue-600" : "bg-gray-200"
 												} relative inline-flex h-6 w-11 items-center rounded-full`}>
