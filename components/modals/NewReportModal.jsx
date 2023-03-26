@@ -127,7 +127,7 @@ const NewReport = ({ open, onClose }) => {
         <div>
             <div className="z-10 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50">
                 <div onClick={onClose} className="flex overflow-y-auto justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
-                    <div onClick={(e) => {e.stopPropagation()}} className="flex-col justify-center items-center bg-white w-6/12 h-auto rounded-2xl py-10 px-10">
+                    <div onClick={(e) => {e.stopPropagation()}} className="flex-col justify-center items-center bg-white md:w-6/12 h-auto rounded-2xl py-1 sm:py-10 px-10">
                         <div className="flex justify-between w-full mb-5">
                             <div className="text-md font-bold text-blue-600 tracking-wide">Add New Report</div>
                             <button onClick={onClose} className="text-gray-800">
@@ -272,7 +272,7 @@ const NewReport = ({ open, onClose }) => {
                                     { imageURLs.map(imageSrc => <img src={imageSrc} className="shadow ph-16 mb-1 w-16 object-cover rounded-md" />) }
                                 </div>
                             </div>
-                            <div className="mt-6">
+                            <div className="mt-3 sm:mt-6">
                                 <button
                                     className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">
                                     Create
