@@ -47,3 +47,22 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 ## Modals
 
 - [React URL Modal](https://github.com/remoteoss/react-url-modal)
+
+## Sync with the caet-saga repo
+- [Syncing a fork branch from the command line](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line)
+
+1. Fetch the branches and their respective commits from the upstream repository
+
+	`git fetch upstream`
+	
+2. Check out your fork's local default branch
+
+	`git checkout main`
+	
+3. Merge the changes from the upstream default branch
+
+	`git merge upstream/main`
+	
+4. Push your changes
+
+	`git push origin main`
