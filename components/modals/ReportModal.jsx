@@ -11,7 +11,7 @@ import { AiOutlineFieldTime } from "react-icons/ai"
 import { IoClose } from "react-icons/io5"
 
 const ReportModal = ({
-	title,
+	reportTitle,
 	note,
 	detail,
 	info,
@@ -88,7 +88,7 @@ const ReportModal = ({
 									className="text-sm bg-white rounded-xl p-4 w-full mb-4"
 									onChange={onTitleChange}
 									placeholder="Report title"
-									defaultValue={title}
+									defaultValue={reportTitle}
 								/>
 
 								{reporterInfo && (
@@ -238,7 +238,6 @@ const ReportModal = ({
 									{info['images'] && info['images'][0] ?
 										<div className="flex w-full overflow-y-auto">
 											{info['images'].map((image) => {
-												console.log(image)
 												return (
 													<div className="flex px-1">
 														<Image src={image} width={150} height={150} alt="image"/>

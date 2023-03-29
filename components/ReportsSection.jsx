@@ -30,6 +30,7 @@ const ReportsSection = ({ search }) => {
 	const [hasMore, setHasMore] = useState(true)
 	const [reportWeek, setReportWeek] = useState("4")
 	const [readFilter, setReadFilter] = useState("All")
+	const [reportTitle, setReportTitle] = useState('')
 	const { user } = useAuth()
 	const dateOptions = {
 		day: "2-digit",
@@ -52,7 +53,7 @@ const ReportsSection = ({ search }) => {
 	const [reportModal, setReportModal] = useState(false)
 	const [reportModalId, setReportModalId] = useState(false)
 	const [note, setNote] = useState("")
-	const [title, setTitle] = useState("")
+	const [title, setTitle] = useState('')
 	const [detail, setDetail] = useState()
 	const [info, setInfo] = useState({})
 	const [selectedLabel, setSelectedLabel] = useState("")
@@ -60,7 +61,7 @@ const ReportsSection = ({ search }) => {
 	const [changeStatus, setChangeStatus] = useState("")
 	const [postedDate, setPostedDate] = useState("")
 	const [update, setUpdate] = useState("")
-
+	
 	const getData = async () => {
 		const reportsCollection = collection(db, "reports")
 		const snapshot = await getDocs(reportsCollection)
@@ -240,7 +241,6 @@ const ReportsSection = ({ search }) => {
 		const report = reports.filter(
 			(report) => Object.keys(report) == reportId
 		)[0]
-
 		const updatedReport = {
 			...report,
 			[reportId]: {
@@ -314,7 +314,7 @@ const ReportsSection = ({ search }) => {
 		const docRef = await getDoc(doc(db, "reports", reportId))
 		// get note
 		setNote(docRef.data()["note"])
-		setTitle(docRef.data()["title"])
+		setReportTitle(docRef.data()["title"])
 		setDetail(docRef.data()["detail"])
 		setSelectedLabel(docRef.data()["selectedLabel"])
 
@@ -329,6 +329,8 @@ const ReportsSection = ({ search }) => {
 
 		const tagsRef = await getDoc(doc(db, "tags", userId))
 		setActiveLabels(tagsRef.data()["Labels"]["active"])
+
+		console.log(reportTitle);
 
 		// set report id var
 		let reportIdRef = reportId
@@ -348,9 +350,15 @@ const ReportsSection = ({ search }) => {
 		}
 	}
 
-	const handleTitleChange = (e) => {
+	const handleTitleChange = async (e) => {
+		// setTitle(e.target.value)
+		// let reportId = reportModalId
+		// const docRef = doc(db, "reports", reportId)
+		// await updateDoc(docRef, { title: e.target.value })
+		
 		if (e.target.value != title) {
-			setUpdate(e.target.value)
+			// setTitle(e.target.value)
+			setUpdate(!update)
 		} else {
 			setUpdate("")
 		}
@@ -377,14 +385,18 @@ const ReportsSection = ({ search }) => {
 
 	const handleFormUpdate = async (e) => {
 		e.preventDefault()
+		setUpdate(true)
+		
 		let reportId = reportModalId
 		const docRef = doc(db, "reports", reportId)
-		const res = await updateDoc(docRef, {
+		updateDoc(docRef, {
 			note: document.getElementById("note").value,
 			title: document.getElementById("title").value,
 			detail: document.getElementById("detail").value,
 		})
+		
 		setNote(note)
+		setReportTitle(title)
 		handleFormSubmit(e)
 	}
 
@@ -408,6 +420,7 @@ const ReportsSection = ({ search }) => {
 		}
 	}, [reportModal])
 
+
 	useEffect(() => {
 		if (info["createdDate"]) {
 			const options = {
@@ -428,7 +441,14 @@ const ReportsSection = ({ search }) => {
 		if (info["label"]) {
 			setSelectedLabel(info["label"])
 		}
+		if (!info['title']) {
+			setReportTitle(title)
+		} else {
+			setReportTitle(info['title'])
+		}
+		// console.log(reportTitle);
 	}, [info, reportModal])
+
 
 	return (
 		<div className="flex flex-col h-full">
@@ -502,24 +522,36 @@ const ReportsSection = ({ search }) => {
 						inverse={false} //
 						hasMore={hasMore}
 						loader={<h4>Loading...</h4>}
-						scrollableTarget="scrollableDiv">
+						scrollableTarget="scrollableDiv"
+						reportTitle={reportTitle}>
 						{loadedReports.slice(0, endIndex).map((reportObj) => {
 							const report = Object.values(reportObj)[0]
+							let reportOGTitle = Object.values(reportObj)[0].title
+							
 							const posted = report["createdDate"]
 								.toDate()
 								.toLocaleString("en-US", dateOptions)
 								.replace(/,/g, "")
 								.replace("at", "")
 							const reportIdKey = Object.keys(reportObj)[0].toString()
+							
 							return (
 								<>
 									<a
 										onClick={() => handleModalShow(Object.keys(reportObj)[0])}
 										className="grid grid-cols-8 hover:bg-blue-200"
 										key={reportIdKey}>
+										
+										
+										
 										<div className={"col-span-2 " + columnData}>
 											{report.title}
 										</div>
+										
+										
+										
+										
+										
 										<div className={columnData}>{posted}</div>
 										<div className={columnData}>-</div>
 										<div className={columnData}>{report.topic}</div>
@@ -561,7 +593,7 @@ const ReportsSection = ({ search }) => {
 					</InfiniteScroll>
 					{reportModal && (
 						<ReportModal
-							title={title}
+							reportTitle={reportTitle}
 							note={note}
 							detail={detail}
 							info={info}
