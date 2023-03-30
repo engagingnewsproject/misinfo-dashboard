@@ -444,6 +444,22 @@ const ReportsSection = ({ search }) => {
 					<a href="/dashboard">List of Reports</a>
 				</div>
 				<div className="flex flex-row justify-between md:justify-evenly">
+          <div className="px-4">
+            <ReactTooltip
+                id="refreshTooltip"
+                place="top"
+                type="light"
+                effect="solid"
+                delayShow={500}
+              />
+              <button
+                className="relative top-1"
+                onClick={() => getData()}
+                data-tip="Refresh"
+                data-for="refreshTooltip">
+                <IoMdRefresh size={20} />
+              </button>
+          </div>
 					<div>
             <button
               onClick={() => setOpenModalNewReport(true)}
@@ -495,22 +511,7 @@ const ReportsSection = ({ search }) => {
 					<div className={tableHeadings}>Topic Tags</div>
 					<div className={tableHeadings}>Sources</div>
 					<div className={tableHeadings + " p-1"}>
-						Labels (
-						<ReactTooltip
-							id="refreshTooltip"
-							place="top"
-							type="light"
-							effect="solid"
-							delayShow={500}
-						/>
-						<button
-							className="relative top-1"
-							onClick={() => getData()}
-							data-tip="Refresh"
-							data-for="refreshTooltip">
-							<IoMdRefresh size={20} />
-						</button>
-						)
+						Labels 
 					</div>
 					<div className={tableHeadings}>Read/Unread</div>
 				</div>
