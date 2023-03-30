@@ -248,7 +248,7 @@ const ReportsSection = ({ search }) => {
 				read: !report[reportId].read,
 			},
 		}
-		// console.log(updatedReport)
+		console.log(updatedReport)
 		const reportIndex = reports.findIndex(
 			(report) => Object.keys(report) == reportId
 		)
@@ -330,8 +330,6 @@ const ReportsSection = ({ search }) => {
 		const tagsRef = await getDoc(doc(db, "tags", userId))
 		setActiveLabels(tagsRef.data()["Labels"]["active"])
 
-		console.log(reportTitle);
-
 		// set report id var
 		let reportIdRef = reportId
 		setReportModal(true)
@@ -354,14 +352,15 @@ const ReportsSection = ({ search }) => {
 		// setTitle(e.target.value)
 		// let reportId = reportModalId
 		// const docRef = doc(db, "reports", reportId)
-		// await updateDoc(docRef, { title: e.target.value })
-		
-		if (e.target.value != title) {
-			// setTitle(e.target.value)
-			setUpdate(!update)
+		// await updateDoc(docRef, { title: e.target.value })\
+		console.log(update);
+		if (e.target.value !== info['title']) {
+			setTitle(info['title'])
+			setUpdate(e.target.value)
 		} else {
 			setUpdate("")
 		}
+					console.log(update);
 	}
 
 	const handleDetailChange = (e) => {
@@ -441,15 +440,20 @@ const ReportsSection = ({ search }) => {
 		if (info["label"]) {
 			setSelectedLabel(info["label"])
 		}
-		if (!info['title']) {
-			setReportTitle(title)
-		} else {
-			setReportTitle(info['title'])
-		}
-		// console.log(reportTitle);
 	}, [info, reportModal])
 
-
+	useEffect(() => {
+		// console.log(`og report title: ${reportTitle}`);
+		// if (reportTitle !== info['title']) {
+		// 	console.log('CHANGED');
+		// 	setReportTitle(info['title'])
+		// } else {
+		// 	console.log('SAME');
+		// 	setReportTitle(info['title'])
+		// }
+		// console.log(reportTitle);
+	}, [update])
+	
 	return (
 		<div className="flex flex-col h-full">
 			<div className="flex flex-row justify-between py-5">
