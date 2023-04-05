@@ -14,10 +14,11 @@ const Dashboard = () => {
     const [tab, setTab] = useState(0)
     const router = useRouter()
     // JUST ADDED
-    const [newReportSubmitted, setNewReportSubmitted] = useState(false);
+    const [newReportSubmitted, setNewReportSubmitted] = useState(0);
 
     const handleNewReportSubmit = () => {
-        setNewReportSubmitted(true);
+        // increment the newReportSubmitted
+        setNewReportSubmitted(prevState => prevState + 1);
     };
 
 
