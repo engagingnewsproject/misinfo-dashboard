@@ -367,13 +367,15 @@ const ReportsSection = ({ search }) => {
 	}
 
 	const handleLabelChange = async (e) => {
-		let reportId = reportModalId
-		setChangeStatus("Saving changes...")
 		e.preventDefault()
-		console.log(changeStatus)
-		const docRef = doc(db, "reports", reportId)
-		await updateDoc(docRef, { label: e.target.value })
-		setChangeStatus("Label changes saved successfully")
+		let reportId = reportModalId
+		if (e.target.value !== info['label']) {
+				const docRef = doc(db, "reports", reportId)
+				await updateDoc(docRef, { label: e.target.value })
+				setUpdate(e.target.value)
+		} else {
+			setUpdate("")
+		}
 	}
 
 	const handleFormUpdate = async (e) => {
