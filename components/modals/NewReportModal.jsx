@@ -11,7 +11,7 @@ import csc from "country-state-city";
 import auth from "@firebase/auth";
 import Select from "react-select";
 
-const NewReport = ({ setNewReportModal }) => {
+const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     // if (!open) return null
     // Ref to firebase reports collection
     const dbInstance = collection(db, 'reports');
@@ -48,7 +48,11 @@ const NewReport = ({ setNewReportModal }) => {
             read: false,
             topic: selectedTopic,
             hearFrom: selectedSource
+        }).then(() => {
+            handleNewReportSubmit();
         })
+        // Send a signal to ReportsSection so that it updates the list accordingly
+
     }
 
     const handleChange = (e) => {
@@ -275,7 +279,7 @@ const NewReport = ({ setNewReportModal }) => {
                                     <input className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer" id="multiple_files" type="file" multiple accept="image/*" onChange={onImageChange} />
                                 </label>
                                 <div className="flex shrink-0 mt-2 space-x-2">
-                                    { imageURLs.map(imageSrc => <Image src={imageSrc} className="shadow ph-16 mb-1 w-16 object-cover rounded-md" />) }
+                                    { imageURLs.map(imageSrc => <Image src={imageSrc} className="shadow ph-16 mb-1 w-16 object-cover rounded-md" alt='image'/>) }
                                 </div>
                             </div>
                             <div className="mt-6">
