@@ -307,7 +307,7 @@ const ReportsSection = ({ search }) => {
 		e.preventDefault()
 		setNewReportModal(true)
 	}
-	
+
 	const handleModalShow = async (reportId) => {
 		// get doc
 
@@ -349,18 +349,12 @@ const ReportsSection = ({ search }) => {
 	}
 
 	const handleTitleChange = async (e) => {
-		// setTitle(e.target.value)
-		// let reportId = reportModalId
-		// const docRef = doc(db, "reports", reportId)
-		// await updateDoc(docRef, { title: e.target.value })\
-		console.log(update);
 		if (e.target.value !== info['title']) {
 			setTitle(info['title'])
 			setUpdate(e.target.value)
 		} else {
 			setUpdate("")
 		}
-					console.log(update);
 	}
 
 	const handleDetailChange = (e) => {
@@ -443,15 +437,7 @@ const ReportsSection = ({ search }) => {
 	}, [info, reportModal])
 
 	useEffect(() => {
-		// console.log(`og report title: ${reportTitle}`);
-		// if (reportTitle !== info['title']) {
-		// 	console.log('CHANGED');
-		// 	setReportTitle(info['title'])
-		// } else {
-		// 	console.log('SAME');
-		// 	setReportTitle(info['title'])
-		// }
-		// console.log(reportTitle);
+		getData()
 	}, [update])
 	
 	return (
