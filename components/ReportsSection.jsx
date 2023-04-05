@@ -19,7 +19,7 @@ import InfiniteScroll from "react-infinite-scroll-component"
 import NewReport from "./modals/NewReportModal"
 import ReportModal from "./modals/ReportModal"
 
-const ReportsSection = ({ search, newReportSubmitted }) => {
+const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) => {
 	const userId = localStorage.getItem("userId")
 	const [reports, setReports] = useState([])
 	const [reporterInfo, setReporterInfo] = useState({})
@@ -585,6 +585,7 @@ const ReportsSection = ({ search, newReportSubmitted }) => {
 			{newReportModal && (
 				<NewReport
 					setNewReportModal={setNewReportModal}
+					handleNewReportSubmit={handleNewReportSubmit}
 				/>
 			)}
 		</div>

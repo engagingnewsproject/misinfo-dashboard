@@ -49,10 +49,9 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             topic: selectedTopic,
             hearFrom: selectedSource
         }).then(() => {
-            handleNewReportSubmit();
+            handleNewReportSubmit(); // Send a signal to ReportsSection so that it updates the list 
         })
-        // Send a signal to ReportsSection so that it updates the list accordingly
-
+        
     }
 
     const handleChange = (e) => {
