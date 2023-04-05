@@ -357,9 +357,9 @@ const ReportsSection = ({ search }) => {
 		}
 	}
 
-	const handleDetailChange = (e) => {
-		console.log(detail)
-		if (e.target.value != detail) {
+	const handleDetailChange = async (e) => {
+		if (e.target.value !== info['detail']) {
+			setDetail(info['detail'])
 			setUpdate(e.target.value)
 		} else {
 			setUpdate("")
