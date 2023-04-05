@@ -25,7 +25,7 @@ const Dashboard = () => {
     return (
         <div className="flex h-full w-full">
             <Navbar tab={tab} setTab={setTab} handleNewReportSubmit={handleNewReportSubmit} />
-            { tab == 0 && <Home newReportSubmitted={newReportSubmitted}/>}
+            { tab == 0 && <Home newReportSubmitted={newReportSubmitted} handleNewReportSubmit={handleNewReportSubmit} />}
             { tab == 1 && <Profile />}
             { tab == 2 && <Settings />}
         </div>
