@@ -13,11 +13,18 @@ const Dashboard = () => {
     const { user, logout } = useAuth()
     const [tab, setTab] = useState(0)
     const router = useRouter()
-    
+    // JUST ADDED
+    const [newReportSubmitted, setNewReportSubmitted] = useState(false);
+
+    const handleNewReportSubmit = () => {
+        setNewReportSubmitted(true);
+    };
+
+
     return (
         <div className="flex h-full w-full">
-            <Navbar tab={tab} setTab={setTab}/>
-            { tab == 0 && <Home />}
+            <Navbar tab={tab} setTab={setTab} handleNewReportSubmit={handleNewReportSubmit} />
+            { tab == 0 && <Home newReportSubmitted={newReportSubmitted}/>}
             { tab == 1 && <Profile />}
             { tab == 2 && <Settings />}
         </div>

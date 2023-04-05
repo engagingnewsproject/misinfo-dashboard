@@ -19,7 +19,7 @@ import InfiniteScroll from "react-infinite-scroll-component"
 import NewReport from "./modals/NewReportModal"
 import ReportModal from "./modals/ReportModal"
 
-const ReportsSection = ({ search }) => {
+const ReportsSection = ({ search, newReportSubmitted }) => {
 	const userId = localStorage.getItem("userId")
 	const [reports, setReports] = useState([])
 	const [reporterInfo, setReporterInfo] = useState({})
@@ -181,7 +181,7 @@ const ReportsSection = ({ search }) => {
 	// On page load (mount), get the reports from firebase
 	useEffect(() => {
 		getData()
-	}, [])
+	}, [newReportSubmitted])
 
 	// Updates the loaded reports whenever a user filters reports based on search.
 	useEffect(() => {
