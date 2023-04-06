@@ -21,7 +21,7 @@ import InfiniteScroll from "react-infinite-scroll-component"
 import NewReport from "./modals/NewReportModal"
 import ReportModal from "./modals/ReportModal"
 
-const ReportsSection = ({ search }) => {
+const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) => {
 	const userId = localStorage.getItem("userId")
 	const [reports, setReports] = useState([])
 	const [reporterInfo, setReporterInfo] = useState({})
@@ -184,7 +184,7 @@ const ReportsSection = ({ search }) => {
 	// On page load (mount), get the reports from firebase
 	useEffect(() => {
 		getData()
-	}, [])
+	}, [newReportSubmitted])
 
 	// Updates the loaded reports whenever a user filters reports based on search.
 	useEffect(() => {
@@ -203,7 +203,6 @@ const ReportsSection = ({ search }) => {
 		)
 
 		// Default values for infinite scrolling, will load reports as they are populated.
-
 		// FIXED SCROLLING BUG MAYBE???? *****
 		// setEndIndex(0)
 		// setHasMore(true)
@@ -639,6 +638,7 @@ const ReportsSection = ({ search }) => {
 			{newReportModal && (
 				<NewReport
 					setNewReportModal={setNewReportModal}
+					handleNewReportSubmit={handleNewReportSubmit}
 				/>
 			)}
 		</div>
