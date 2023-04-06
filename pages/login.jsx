@@ -74,20 +74,16 @@ const Login = () => {
                             <input type="checkbox" class="form-checkbox rounded-sm border-transparent focus:border-transparent focus:ring-0" onChange={handleChange} />
                             <span class="text-sm p-2">Remember me</span>
                         </div>
-                        <Link href="/resetPassword">
-                            <a class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="#">
-                                Forgot Password?
-                            </a>
+                        <Link href="/resetPassword" className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+                            Forgot Password?
                         </Link>
                     </div>
                 </div>
             </form>
             <p class="text-center text-gray-500 text-sm">
                 Don't have an account?
-                <Link href="/signup">
-                    <a class="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="#">
-                        Sign Up
-                    </a>
+                <Link href="/signup" class="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+                    Sign Up
                 </Link>
             </p>
         </div>
