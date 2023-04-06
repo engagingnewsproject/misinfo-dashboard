@@ -3,16 +3,16 @@ import Headbar from '../components/Headbar'
 import ReportsSection from './ReportsSection'
 import TagGraph from "./TagGraph"
 
-const Home = () => {
+const Home = ({newReportSubmitted, handleNewReportSubmit}) => {
   const [search, setSearch] = useState("")
   
   return (
     <div className="w-full h-full flex flex-col py-5">
         <Headbar search={search} setSearch={setSearch} />
         {/* Nest the following toggle inside a component for the graph portion of the page*/}
-        <div className="w-full h-full flex flex-col px-12 py-5 mb-5 overflow-y-auto" id="scrollableDiv">
+        <div className="w-full h-full flex flex-col px-6 md:px-12 py-5 mb-5 overflow-y-auto" id="scrollableDiv">
           <TagGraph/>
-          <ReportsSection search={search}/>
+          <ReportsSection search={search} newReportSubmitted={newReportSubmitted} handleNewReportSubmit={handleNewReportSubmit} />
         </div>
     </div>
   )
