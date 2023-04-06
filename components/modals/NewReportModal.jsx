@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../context/AuthContext'
 import moment from "moment";
+import Image from 'next/image';
 import { db } from '../../config/firebase'
 import { Country, State, City }  from 'country-state-city';
 import { getDoc, getDocs, doc, setDoc, collection, updateDoc, addDoc } from "firebase/firestore";
@@ -10,27 +11,26 @@ import csc from "country-state-city";
 import auth from "@firebase/auth";
 import Select from "react-select";
 
-// Ref to firebase reports collection
-const dbInstance = collection(db, 'reports');
-
-const NewReport = ({ open, onClose }) => {
-    if (!open) return null
+const NewReport = ({ setNewReportModal }) => {
+    // if (!open) return null
+    // Ref to firebase reports collection
+    const dbInstance = collection(db, 'reports');
     const router = useRouter()
     const { user } = useAuth()
     // useStates
-    const [data, setData] = useState({country: "US", state: null, city: null})
+    const [data, setData] = useState({ country: "US", state: null, city: null })
 
-    const [title, setTitle] = useState('')
-    const [link, setLink] = useState('')
-    const [secondLink, setSecondLink] = useState('')
-    const [detail, setDetail] = useState('')
+    const [title, setTitle] = useState("")
+    const [link, setLink] = useState("")
+    const [secondLink, setSecondLink] = useState("")
+    const [detail, setDetail] = useState("")
     // Image upload
     const [images, setImages] = useState([])
     const [imageURLs, setImageURLs] = useState([])
     const [allTopicsArr, setTopics] = useState([])
-    const [selectedTopic, setSelectedTopic] = useState('')
+    const [selectedTopic, setSelectedTopic] = useState("")
     const [allSourcesArr, setSources] = useState([])
-    const [selectedSource, setSelectedSource] = useState('')
+    const [selectedSource, setSelectedSource] = useState("")
     const [errors, setErrors] = useState({})
     // console.log(Country.getCountryByCode('US'))
     const saveReport = () => {
@@ -88,6 +88,7 @@ const NewReport = ({ open, onClose }) => {
         if (Object.keys(allErrors).length == 0) {
             saveReport()
         }
+        setNewReportModal(false)
     }
 
     // On mount, grab all the possible topic choices
@@ -123,14 +124,19 @@ const NewReport = ({ open, onClose }) => {
         setImages([...e.target.files])
     }
 
+    const handleNewReportModalClose = async (e) => {
+        e.preventDefault()
+        setNewReportModal(false)
+    }
+
     return (
         <div>
             <div className="z-10 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50">
-                <div onClick={onClose} className="flex overflow-y-auto justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
-                    <div onClick={(e) => {e.stopPropagation()}} className="flex-col justify-center items-center bg-white md:w-6/12 h-auto rounded-2xl py-1 sm:py-10 px-10">
+                <div onClick={handleNewReportModalClose} className="flex overflow-y-auto justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
+                    <div onClick={(e) => {e.stopPropagation()}} className="flex-col justify-center items-center bg-white w-6/12 h-auto rounded-2xl py-10 px-10">
                         <div className="flex justify-between w-full mb-5">
                             <div className="text-md font-bold text-blue-600 tracking-wide">Add New Report</div>
-                            <button onClick={onClose} className="text-gray-800">
+                            <button onClick={handleNewReportModalClose} className="text-gray-800">
                                 <IoClose size={25}/>
                             </button>
                         </div>
@@ -269,7 +275,7 @@ const NewReport = ({ open, onClose }) => {
                                     <input className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer" id="multiple_files" type="file" multiple accept="image/*" onChange={onImageChange} />
                                 </label>
                                 <div className="flex shrink-0 mt-2 space-x-2">
-                                    { imageURLs.map(imageSrc => <img src={imageSrc} className="shadow ph-16 mb-1 w-16 object-cover rounded-md" />) }
+                                    { imageURLs.map(imageSrc => <Image src={imageSrc} className="shadow ph-16 mb-1 w-16 object-cover rounded-md" alt='image'/>) }
                                 </div>
                             </div>
                             <div className="mt-3 sm:mt-6">

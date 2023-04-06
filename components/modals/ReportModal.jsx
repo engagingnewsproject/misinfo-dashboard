@@ -1,14 +1,17 @@
 import React, { useState } from "react"
 import SwitchRead from "../SwitchRead"
+import Link from "next/link"
+import Image from "next/image"
 // icons
 import { RiMessage2Fill } from "react-icons/ri"
 import { BiEditAlt } from "react-icons/bi"
 import { BsShareFill } from "react-icons/bs"
+import { BiLinkExternal } from "react-icons/bi";
 import { AiOutlineFieldTime } from "react-icons/ai"
 import { IoClose } from "react-icons/io5"
 
 const ReportModal = ({
-	title,
+	reportTitle,
 	note,
 	detail,
 	info,
@@ -40,7 +43,19 @@ const ReportModal = ({
 		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
 		special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl",
 	}
-	// console.log(changeStatus)
+	const reportURI = "/reports/" + setReportModalId
+	
+	function SendLinkByMail(href) {
+		var subject = "Misinformation Report"
+		var body = "Link to report:\r\n"
+		body += window.location.href
+		var uri = "mailto:?subject="
+		uri += encodeURIComponent(subject)
+		uri += "&body="
+		uri += encodeURIComponent(body)
+		uri += reportURI
+		window.open(uri)
+	}
 	return (
 		<div className={style.overlay} onClick={() => setReportModal(false)}>
 			<div className={style.modal}>
@@ -50,8 +65,13 @@ const ReportModal = ({
 						e.stopPropagation()
 					}}>
 					<div className="flex justify-between w-full mb-5">
-						<div className="text-2xl font-bold text-blue-600 tracking-wider mb-8">
-							More Information
+						<div className="flex w-full items-baseline">
+							<div className="text-2xl font-bold text-blue-600 tracking-wider mb-8">
+								More Information
+							</div>
+							<Link href={`dashboard${reportURI}`} target="_blank">
+								<BiLinkExternal size={20} className="ml-2" />
+							</Link>
 						</div>
 						<button
 							onClick={() => setReportModal(false)}
@@ -68,7 +88,7 @@ const ReportModal = ({
 									className="text-sm bg-white rounded-xl p-4 w-full mb-4"
 									onChange={onTitleChange}
 									placeholder="Report title"
-									defaultValue={title}
+									defaultValue={reportTitle}
 								/>
 
 								{reporterInfo && (
@@ -192,19 +212,47 @@ const ReportModal = ({
 
 						<div className="right-side">
 							<div>
-								<div className={style.header}>Newsroom's Notes</div>
-								<textarea
-									id="note"
-									onChange={onNoteChange}
-									placeholder="No notes yet..."
-									className={style.textarea}
-									rows="4"
-									defaultValue={note}></textarea>
+								{/* Notes */}
+								<div className="notes">
+									<div className={style.header}>Newsroom's Notes</div>
+									<textarea
+										id="note"
+										onChange={onNoteChange}
+										placeholder="No notes yet..."
+										className={style.textarea}
+										rows="4"
+										defaultValue={note}></textarea>
+								</div>
+								{/* Save button */}
+								<div className="save-button">
+									<button
+										onClick={onFormUpdate}
+										className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
+										type="submit">
+										Save
+									</button>
+								</div>
+								{/* Images */}
+								<div className="images">
+									<div className={style.header}>Images</div>
+									{info['images'] && info['images'][0] ?
+										<div className="flex w-full overflow-y-auto">
+											{info['images'].map((image) => {
+												return (
+													<div className="flex px-1">
+														<Image src={image} width={150} height={150} alt="image"/>
+													</div>
+												)
+											})}
+										</div> :
+										<div className="italic font-light">No images for this report</div>
+									}
+								</div>
 								<button
-									onClick={onFormUpdate}
-									className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
-									type="submit">
-									Save
+									className="flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none"
+									onClick={SendLinkByMail}>
+									<BsShareFill className="my-1" size={15} />
+									<div className="px-3 py-1">Share The Report</div>
 								</button>
 							</div>
 						</div>
