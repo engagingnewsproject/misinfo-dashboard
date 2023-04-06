@@ -11,23 +11,23 @@ import {
 import ReactTooltip from "react-tooltip";
 import { useAuth } from '../context/AuthContext';
 import ConfirmModal from './modals/ConfirmModal';
-import NewReportModal from './modals/NewReportModal'
+import NewReport from "./modals/NewReportModal"
 
 const Navbar = ({tab, setTab}) => {
 
     const { logout } = useAuth()
     const router = useRouter()
-    const [openModalNewReport, setOpenModalNewReport] = useState(false)
     const [logoutModal, setLogoutModal] = useState(false)
-
+    const [newReportModal, setNewReportModal] = useState(false)
     const handleLogout = () => {
         logout()
         router.push('/login')
     }
 
-    const handleReport = () => {
-        alert('REPORT');
-    };
+	const handleNewReportModal = (e) => {
+		e.preventDefault()
+		setNewReportModal(true)
+	}
 
     const basicStyle = "flex p-2 my-6 mx-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
 
@@ -50,7 +50,7 @@ const Navbar = ({tab, setTab}) => {
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     <button
-                        onClick={() => setOpenModalNewReport(true)}
+                        onClick={handleNewReportModal}
                         data-tip="New Report"
                         className={basicStyle}>
                         <IoAddCircleOutline size={30}/>
@@ -81,7 +81,11 @@ const Navbar = ({tab, setTab}) => {
                 CTA="Log out"
                 closeModal={setLogoutModal}
                 />}
-            <NewReportModal open={openModalNewReport} onClose={() => setOpenModalNewReport(false)} />
+            {newReportModal && (
+				<NewReport
+					setNewReportModal={setNewReportModal}
+				/>
+			)}
         </div>
     )
 }

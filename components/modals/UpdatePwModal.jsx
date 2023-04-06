@@ -26,8 +26,13 @@ const UpdatePwModal = ({ setOpenModal }) => {
         <div>
             <div class="flex justify-center items-center z-10 absolute top-0 left-0 w-full h-full bg-black opacity-60">
             </div>
-            <div class="flex justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
-                <div class="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10">
+            <div 
+            class="flex justify-center items-center z-20 absolute top-0 left-0 w-full h-full"
+            onClick={() => setOpenModal(false)}>
+                <div class="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10"
+                onClick={(e) => {
+                    e.stopPropagation()
+                }}>
                     <div class="flex justify-between w-full mb-5">
                         <div class="text-md font-bold text-blue-600 tracking-wide">{updateSuccess ? "PW updated" : "Reset Password"}</div>
                         <button onClick={() => setOpenModal(false)} class="text-gray-800">
