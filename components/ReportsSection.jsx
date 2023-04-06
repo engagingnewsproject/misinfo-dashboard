@@ -543,7 +543,7 @@ const ReportsSection = ({ search }) => {
 								<>
 									<a
 										onClick={() => handleModalShow(Object.keys(reportObj)[0])}
-										className="grid grid-cols-8 hover:bg-blue-200"
+										className="grid grid-cols-8 hover:bg-blue-200 cursor-pointer"
 										key={reportIdKey}>
 										
 										
