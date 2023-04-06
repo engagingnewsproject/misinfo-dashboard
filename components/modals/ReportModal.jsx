@@ -41,7 +41,7 @@ const ReportModal = ({
 		wrap: "flex-col justify-center items-center lg:w-8/12 h-auto rounded-2xl py-10 px-10 bg-sky-100",
 		textarea:
 			"border transition ease-in-out w-full text-md font-light bg-white rounded-xl p-4 border-none focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none mb-12",
-		icon: "flex p-2 my-6 mx-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
+		icon: "flex p-2 mx-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
 	}
 	const label = {
 		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
@@ -215,52 +215,54 @@ const ReportModal = ({
 							</div>
 						</div>
 
-						<div className="right-side flex flex-col h-full">
-							{/* Notes */}
-							<div className="notes">
-								<div className={style.header}>Newsroom's Notes</div>
-								<textarea
-									id="note"
-									onChange={onNoteChange}
-									placeholder="No notes yet..."
-									className={style.textarea}
-									rows="4"
-									defaultValue={note}></textarea>
-							</div>
-							{/* Save button */}
-							<div className="save-button">
+						<div className="right-side flex flex-col justify-between">
+							<div>
+								{/* Notes */}
+								<div className="notes">
+									<div className={style.header}>Newsroom's Notes</div>
+									<textarea
+										id="note"
+										onChange={onNoteChange}
+										placeholder="No notes yet..."
+										className={style.textarea}
+										rows="4"
+										defaultValue={note}></textarea>
+								</div>
+								{/* Save button */}
+								<div className="save-button">
+									<button
+										onClick={onFormUpdate}
+										className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
+										type="submit">
+										Save
+									</button>
+								</div>
+								{/* Images */}
+								<div className="images">
+									<div className={style.header}>Images</div>
+									{info['images'] && info['images'][0] ?
+										<div className="flex w-full overflow-y-auto">
+											{info['images'].map((image) => {
+												return (
+													<div className="flex px-1">
+														<Image src={image} width={150} height={150} alt="image"/>
+													</div>
+												)
+											})}
+										</div> :
+										<div className="italic font-light">No images for this report</div>
+									}
+								</div>
+								{/* Share */}
 								<button
-									onClick={onFormUpdate}
-									className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
-									type="submit">
-									Save
+									className="flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none"
+									onClick={SendLinkByMail}>
+									<BsShareFill className="my-1" size={15} />
+									<div className="px-3 py-1">Share The Report</div>
 								</button>
 							</div>
-							{/* Images */}
-							<div className="images">
-								<div className={style.header}>Images</div>
-								{info['images'] && info['images'][0] ?
-									<div className="flex w-full overflow-y-auto">
-										{info['images'].map((image) => {
-											return (
-												<div className="flex px-1">
-													<Image src={image} width={150} height={150} alt="image"/>
-												</div>
-											)
-										})}
-									</div> :
-									<div className="italic font-light">No images for this report</div>
-								}
-							</div>
-							{/* Share */}
-							<button
-								className="flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none"
-								onClick={SendLinkByMail}>
-								<BsShareFill className="my-1" size={15} />
-								<div className="px-3 py-1">Share The Report</div>
-							</button>
 							{/* Delete button */}
-							<div className="delete-button self-end absolute bottom-7">
+							<div className="delete-button self-end">
 								<button
 									// onClick={onReportDelete}
 									onClick={() => setDeleteModal(true)}
@@ -271,14 +273,14 @@ const ReportModal = ({
 								</button>
 							</div>
 						</div>
-						{ deleteModal && <ConfirmModal
-							func={onReportDelete}
-							title="Are you sure you want to delete this report?"
-							subtitle=""
-							CTA="Delete"
-							closeModal={setDeleteModal}
-						/>}
 					</form>
+					{ deleteModal && <ConfirmModal
+						func={onReportDelete}
+						title="Are you sure you want to delete this report?"
+						subtitle=""
+						CTA="Delete"
+						closeModal={setDeleteModal}
+					/>}
 				</div>
 			</div>
 		</div>
