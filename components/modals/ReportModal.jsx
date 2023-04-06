@@ -9,7 +9,7 @@ import { BiEditAlt } from "react-icons/bi"
 import { BsShareFill } from "react-icons/bs"
 import { BiLinkExternal } from "react-icons/bi";
 import { AiOutlineFieldTime } from "react-icons/ai"
-import { IoClose, IoTrash } from "react-icons/io5"
+import { IoClose, IoTrash, IoLocation } from "react-icons/io5"
 
 const ReportModal = ({
 	reportTitle,
@@ -17,6 +17,7 @@ const ReportModal = ({
 	detail,
 	info,
 	setPostedDate,
+	setReportLocation,
 	reporterInfo,
 	onTitleChange,
 	onNoteChange,
@@ -158,6 +159,25 @@ const ReportModal = ({
 										</div>
 										<div className="text-md font-light">{setPostedDate}</div>
 									</div>
+									
+									
+									
+									
+									
+									{/* City state */}
+									<div className="flex flex-row mb-3 items-center">
+										<IoLocation size={20} />
+										<div className="font-semibold px-2 self-center pr-4">
+											City, State
+										</div>
+										<div className="text-md font-light">{setReportLocation}</div>
+									</div>
+									
+									
+									
+									
+									
+									
 									<div className="flex flex-row mb-3 items-center">
 										<SwitchRead setReportModalId={setReportModalId} />
 									</div>
