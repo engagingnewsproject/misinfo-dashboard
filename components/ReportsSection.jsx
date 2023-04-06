@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
+
 import {
 	collection,
 	getDoc,
@@ -16,7 +17,7 @@ import { IoAdd } from "react-icons/io5"
 // Icons END
 import ReactTooltip from "react-tooltip"
 import InfiniteScroll from "react-infinite-scroll-component"
-import NewReportModal from "./modals/NewReportModal"
+import NewReport from "./modals/NewReportModal"
 import ReportModal from "./modals/ReportModal"
 
 const ReportsSection = ({ search }) => {
