@@ -66,3 +66,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 4. Push your changes
 
 	`git push origin main`
+	
+- [Netlify dashboard for CME Misinfo Dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview)
+
+- [Live CME Misinfo Dashboard](https://misinfo-dashboard.netlify.app/dashboard)
