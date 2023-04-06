@@ -69,7 +69,7 @@ const ReportModal = ({
 							<div className="text-2xl font-bold text-blue-600 tracking-wider mb-8">
 								More Information
 							</div>
-							<Link href={`dashboard/${reportURI}`} target="_blank">
+							<Link href={`dashboard${reportURI}`} target="_blank">
 								<BiLinkExternal size={20} className="ml-2" />
 							</Link>
 						</div>
