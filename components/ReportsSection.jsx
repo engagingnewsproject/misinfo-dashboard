@@ -6,6 +6,7 @@ import {
 	getDocs,
 	doc,
 	updateDoc,
+	deleteDoc,
 } from "firebase/firestore"
 import { db } from "../config/firebase"
 import { Switch } from "@headlessui/react"
@@ -394,6 +395,21 @@ const ReportsSection = ({ search }) => {
 		setReportTitle(title)
 		handleFormSubmit(e)
 	}
+	
+	const handleReportDelete = async (e) => {
+		e.preventDefault()
+		let reportId = reportModalId
+		const docRef = doc(db, "reports", reportId)
+		deleteDoc(docRef)
+			.then(() => {
+				setUpdate(e.target.value)
+				setReportModal(false)
+				console.log(reportId + ' deleted');
+			})
+			.catch((error) => {
+				console.log('The write failed');
+			});
+	}
 
 	useEffect(() => {
 		// getData()
@@ -601,6 +617,7 @@ const ReportsSection = ({ search }) => {
 							changeStatus={changeStatus}
 							onFormSubmit={handleFormSubmit}
 							onFormUpdate={handleFormUpdate}
+							onReportDelete={handleReportDelete}
 							setPostedDate={postedDate}
 						/>
 					)}
