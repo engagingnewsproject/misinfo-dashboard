@@ -11,7 +11,7 @@ import csc from "country-state-city";
 import auth from "@firebase/auth";
 import Select from "react-select";
 
-const NewReport = ({ setNewReportModal }) => {
+const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     // if (!open) return null
     // Ref to firebase reports collection
     const dbInstance = collection(db, 'reports');
@@ -48,7 +48,10 @@ const NewReport = ({ setNewReportModal }) => {
             read: false,
             topic: selectedTopic,
             hearFrom: selectedSource
+        }).then(() => {
+            handleNewReportSubmit(); // Send a signal to ReportsSection so that it updates the list 
         })
+        
     }
 
     const handleChange = (e) => {
@@ -278,7 +281,7 @@ const NewReport = ({ setNewReportModal }) => {
                                     { imageURLs.map(imageSrc => <Image src={imageSrc} className="shadow ph-16 mb-1 w-16 object-cover rounded-md" alt='image'/>) }
                                 </div>
                             </div>
-                            <div className="mt-6">
+                            <div className="mt-3 sm:mt-6">
                                 <button
                                     className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">
                                     Create

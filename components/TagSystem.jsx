@@ -147,7 +147,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
     }, [selected])
 
     return (
-        <div class="z-0 flex-col p-16 h-full" onClick={(e) => {
+        <div class="z-0 flex-col p-4 sm:p-16 h-full" onClick={(e) => {
             if (e.target == e.currentTarget) {
                 setSearchResult([])
                 setSelected("")

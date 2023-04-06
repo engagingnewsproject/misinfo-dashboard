@@ -13,7 +13,7 @@ import { useAuth } from '../context/AuthContext';
 import ConfirmModal from './modals/ConfirmModal';
 import NewReport from "./modals/NewReportModal"
 
-const Navbar = ({tab, setTab}) => {
+const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
 
     const { logout } = useAuth()
     const router = useRouter()
@@ -84,6 +84,7 @@ const Navbar = ({tab, setTab}) => {
             {newReportModal && (
 				<NewReport
 					setNewReportModal={setNewReportModal}
+                    handleNewReportSubmit={handleNewReportSubmit}
 				/>
 			)}
         </div>
