@@ -16,7 +16,7 @@ import { IoAdd } from "react-icons/io5"
 // Icons END
 import ReactTooltip from "react-tooltip"
 import InfiniteScroll from "react-infinite-scroll-component"
-import NewReport from "./modals/NewReportModal"
+import NewReportModal from "./modals/NewReportModal"
 import ReportModal from "./modals/ReportModal"
 
 const ReportsSection = ({ search }) => {
@@ -468,7 +468,7 @@ const ReportsSection = ({ search }) => {
           </div>
 					<div>
             <button
-              onClick={() => setOpenModalNewReport(true)}
+              onClick={() => setNewReportModal(true)}
               className="text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600">
               <div className="flex items-center">
               <IoAdd className="mr-1" size={15} />
@@ -476,10 +476,7 @@ const ReportsSection = ({ search }) => {
               </div>
             </button>
             				
-            <NewReportModal
-              open={openModalNewReport}
-              onClose={() => setOpenModalNewReport(false)}
-            />
+
           </div>
 
 
