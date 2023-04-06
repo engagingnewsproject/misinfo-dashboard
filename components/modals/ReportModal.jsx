@@ -3,6 +3,7 @@ import SwitchRead from "../SwitchRead"
 import Link from "next/link"
 import Image from "next/image"
 import ReactTooltip from "react-tooltip";
+import ConfirmModal from "./ConfirmModal";
 // icons
 import { RiMessage2Fill } from "react-icons/ri"
 import { BiEditAlt } from "react-icons/bi"
@@ -47,6 +48,7 @@ const ReportModal = ({
 		special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl",
 	}
 	const reportURI = "/reports/" + setReportModalId
+	const [deleteModal, setDeleteModal] = useState(false)
 	
 	function SendLinkByMail(href) {
 		var subject = "Misinformation Report"
@@ -260,7 +262,8 @@ const ReportModal = ({
 							{/* Delete button */}
 							<div className="delete-button self-end absolute bottom-7">
 								<button
-									onClick={onReportDelete}
+									// onClick={onReportDelete}
+									onClick={() => setDeleteModal(true)}
 									data-tip="Delete report"
 									className={style.icon}>
 									<IoTrash size={30} color="red"/>
@@ -268,6 +271,13 @@ const ReportModal = ({
 								</button>
 							</div>
 						</div>
+						{ deleteModal && <ConfirmModal
+							func={onReportDelete}
+							title="Are you sure you want to delete this report?"
+							subtitle=""
+							CTA="Delete"
+							closeModal={setDeleteModal}
+						/>}
 					</form>
 				</div>
 			</div>
