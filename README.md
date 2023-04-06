@@ -51,6 +51,10 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 ## Sync with the caet-saga repo
 - [Syncing a fork branch from the command line](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line)
 
+- [Netlify dashboard for CME Misinfo Dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview)
+
+- [Live CME Misinfo Dashboard](https://misinfo-dashboard.netlify.app/dashboard)
+
 1. Fetch the branches and their respective commits from the upstream repository
 
 	`git fetch upstream`
@@ -66,7 +70,3 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 4. Push your changes
 
 	`git push origin main`
-	
-- [Netlify dashboard for CME Misinfo Dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview)
-
-- [Live CME Misinfo Dashboard](https://misinfo-dashboard.netlify.app/dashboard)
