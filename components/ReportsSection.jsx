@@ -407,7 +407,7 @@ const ReportsSection = ({ search }) => {
 				console.log(reportId + ' deleted');
 			})
 			.catch((error) => {
-				console.log('The write failed');
+				console.log('The write failed' + error);
 			});
 	}
 
