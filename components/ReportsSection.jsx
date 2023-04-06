@@ -20,6 +20,7 @@ import ReactTooltip from "react-tooltip"
 import InfiniteScroll from "react-infinite-scroll-component"
 import NewReport from "./modals/NewReportModal"
 import ReportModal from "./modals/ReportModal"
+import ConfirmModal from "./modals/ConfirmModal"
 
 const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) => {
 	const userId = localStorage.getItem("userId")
@@ -63,6 +64,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	const [changeStatus, setChangeStatus] = useState("")
 	const [postedDate, setPostedDate] = useState("")
 	const [update, setUpdate] = useState("")
+	const [deleteModal, setDeleteModal] = useState(false)
 	
 	const getData = async () => {
 		const reportsCollection = collection(db, "reports")
@@ -399,13 +401,18 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	
 	const handleReportDelete = async (e) => {
 		e.preventDefault()
+		setDeleteModal(true)
+	}
+	
+	const handleDelete = (e) => {
+		e.preventDefault()
 		let reportId = reportModalId
 		const docRef = doc(db, "reports", reportId)
 		deleteDoc(docRef)
 			.then(() => {
-				setUpdate(e.target.value)
+				getData()
 				setReportModal(false)
-				console.log(reportId + ' deleted');
+				setDeleteModal(false)
 			})
 			.catch((error) => {
 				console.log('The write failed' + error);
@@ -641,6 +648,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 					handleNewReportSubmit={handleNewReportSubmit}
 				/>
 			)}
+			{deleteModal && <ConfirmModal
+				func={handleDelete}
+				title="Are you sure you want to delete this report?"
+				subtitle=""
+				CTA="Delete"
+				closeModal={setDeleteModal}
+			/>}
 		</div>
 	)
 }
