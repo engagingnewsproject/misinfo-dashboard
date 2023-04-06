@@ -63,6 +63,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	const [activeLabels, setActiveLabels] = useState([])
 	const [changeStatus, setChangeStatus] = useState("")
 	const [postedDate, setPostedDate] = useState("")
+	const [reportLocation, setReportLocation] = useState("")
 	const [update, setUpdate] = useState("")
 	const [deleteModal, setDeleteModal] = useState(false)
 	
@@ -437,6 +438,9 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 					.replace("at", "")
 			)
 		}
+		if (info['city'] || info['state']) {
+			setReportLocation(info['city'] + ', ' + info['state'])
+		}
 	}, [reportModal])
 
 
@@ -638,6 +642,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 							onFormUpdate={handleFormUpdate}
 							onReportDelete={handleReportDelete}
 							setPostedDate={postedDate}
+							setReportLocation={reportLocation}
 						/>
 					)}
 				</div>
