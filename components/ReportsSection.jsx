@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
+
 import {
 	collection,
 	getDoc,
 	getDocs,
 	doc,
 	updateDoc,
+	deleteDoc,
 } from "firebase/firestore"
 import { db } from "../config/firebase"
 import { Switch } from "@headlessui/react"
@@ -19,7 +21,7 @@ import InfiniteScroll from "react-infinite-scroll-component"
 import NewReport from "./modals/NewReportModal"
 import ReportModal from "./modals/ReportModal"
 
-const ReportsSection = ({ search }) => {
+const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) => {
 	const userId = localStorage.getItem("userId")
 	const [reports, setReports] = useState([])
 	const [reporterInfo, setReporterInfo] = useState({})
@@ -30,6 +32,7 @@ const ReportsSection = ({ search }) => {
 	const [hasMore, setHasMore] = useState(true)
 	const [reportWeek, setReportWeek] = useState("4")
 	const [readFilter, setReadFilter] = useState("All")
+	const [reportTitle, setReportTitle] = useState('')
 	const { user } = useAuth()
 	const dateOptions = {
 		day: "2-digit",
@@ -52,7 +55,7 @@ const ReportsSection = ({ search }) => {
 	const [reportModal, setReportModal] = useState(false)
 	const [reportModalId, setReportModalId] = useState(false)
 	const [note, setNote] = useState("")
-	const [title, setTitle] = useState("")
+	const [title, setTitle] = useState('')
 	const [detail, setDetail] = useState()
 	const [info, setInfo] = useState({})
 	const [selectedLabel, setSelectedLabel] = useState("")
@@ -60,7 +63,7 @@ const ReportsSection = ({ search }) => {
 	const [changeStatus, setChangeStatus] = useState("")
 	const [postedDate, setPostedDate] = useState("")
 	const [update, setUpdate] = useState("")
-
+	
 	const getData = async () => {
 		const reportsCollection = collection(db, "reports")
 		const snapshot = await getDocs(reportsCollection)
@@ -181,7 +184,7 @@ const ReportsSection = ({ search }) => {
 	// On page load (mount), get the reports from firebase
 	useEffect(() => {
 		getData()
-	}, [])
+	}, [newReportSubmitted])
 
 	// Updates the loaded reports whenever a user filters reports based on search.
 	useEffect(() => {
@@ -240,7 +243,6 @@ const ReportsSection = ({ search }) => {
 		const report = reports.filter(
 			(report) => Object.keys(report) == reportId
 		)[0]
-
 		const updatedReport = {
 			...report,
 			[reportId]: {
@@ -248,7 +250,7 @@ const ReportsSection = ({ search }) => {
 				read: !report[reportId].read,
 			},
 		}
-		// console.log(updatedReport)
+		console.log(updatedReport)
 		const reportIndex = reports.findIndex(
 			(report) => Object.keys(report) == reportId
 		)
@@ -307,14 +309,14 @@ const ReportsSection = ({ search }) => {
 		e.preventDefault()
 		setNewReportModal(true)
 	}
-	
+
 	const handleModalShow = async (reportId) => {
 		// get doc
 
 		const docRef = await getDoc(doc(db, "reports", reportId))
 		// get note
 		setNote(docRef.data()["note"])
-		setTitle(docRef.data()["title"])
+		setReportTitle(docRef.data()["title"])
 		setDetail(docRef.data()["detail"])
 		setSelectedLabel(docRef.data()["selectedLabel"])
 
@@ -348,17 +350,18 @@ const ReportsSection = ({ search }) => {
 		}
 	}
 
-	const handleTitleChange = (e) => {
-		if (e.target.value != title) {
+	const handleTitleChange = async (e) => {
+		if (e.target.value !== info['title']) {
+			setTitle(info['title'])
 			setUpdate(e.target.value)
 		} else {
 			setUpdate("")
 		}
 	}
 
-	const handleDetailChange = (e) => {
-		console.log(detail)
-		if (e.target.value != detail) {
+	const handleDetailChange = async (e) => {
+		if (e.target.value !== info['detail']) {
+			setDetail(info['detail'])
 			setUpdate(e.target.value)
 		} else {
 			setUpdate("")
@@ -366,26 +369,47 @@ const ReportsSection = ({ search }) => {
 	}
 
 	const handleLabelChange = async (e) => {
-		let reportId = reportModalId
-		setChangeStatus("Saving changes...")
 		e.preventDefault()
-		console.log(changeStatus)
-		const docRef = doc(db, "reports", reportId)
-		await updateDoc(docRef, { label: e.target.value })
-		setChangeStatus("Label changes saved successfully")
+		let reportId = reportModalId
+		if (e.target.value !== info['label']) {
+				const docRef = doc(db, "reports", reportId)
+				await updateDoc(docRef, { label: e.target.value })
+				setUpdate(e.target.value)
+		} else {
+			setUpdate("")
+		}
 	}
 
 	const handleFormUpdate = async (e) => {
 		e.preventDefault()
+		setUpdate(true)
+		
 		let reportId = reportModalId
 		const docRef = doc(db, "reports", reportId)
-		const res = await updateDoc(docRef, {
+		updateDoc(docRef, {
 			note: document.getElementById("note").value,
 			title: document.getElementById("title").value,
 			detail: document.getElementById("detail").value,
 		})
+		
 		setNote(note)
+		setReportTitle(title)
 		handleFormSubmit(e)
+	}
+	
+	const handleReportDelete = async (e) => {
+		e.preventDefault()
+		let reportId = reportModalId
+		const docRef = doc(db, "reports", reportId)
+		deleteDoc(docRef)
+			.then(() => {
+				setUpdate(e.target.value)
+				setReportModal(false)
+				console.log(reportId + ' deleted');
+			})
+			.catch((error) => {
+				console.log('The write failed' + error);
+			});
 	}
 
 	useEffect(() => {
@@ -407,6 +431,7 @@ const ReportsSection = ({ search }) => {
 			)
 		}
 	}, [reportModal])
+
 
 	useEffect(() => {
 		if (info["createdDate"]) {
@@ -430,42 +455,72 @@ const ReportsSection = ({ search }) => {
 		}
 	}, [info, reportModal])
 
+	useEffect(() => {
+		getData()
+	}, [update])
+	
 	return (
 		<div className="flex flex-col h-full">
-			<div className="flex flex-row justify-between py-5">
+			<div className="flex flex-col md:flex-row py-5 md:justify-between">
 				<div className="text-lg font-bold text-blue-600 tracking-wider">
 					List of Reports
 				</div>
-				<div>
-					<button
-						onClick={handleNewReportModal}
-						className="flex flex-row items-center text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600">
-						<IoAdd className="mr-1" size={15} />
-						New Report
-					</button>
-				</div>
-				<div>
-					<select
-						id="labels"
-						onChange={(e) => handleReadFilterChanged(e)}
-						defaultValue="All"
-						className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md mx-2 hover:shadow-none">
-						<option value="false">Unread</option>
-						<option value="true">Read</option>
-						<option value="All">All reports</option>
-					</select>
-					<select
-						id="labels"
-						onChange={(e) => handleDateChanged(e)}
-						defaultValue="4"
-						className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none">
-						<option value="4">Last four weeks</option>
-						<option value="3">Last three weeks</option>
-						<option value="2">Last two weeks</option>
-						<option value="1">Last week</option>
-						<option value="100">All reports</option>
-					</select>
-				</div>
+				<div className="flex flex-row justify-between md:justify-evenly">
+          <div className="px-4">
+            <ReactTooltip
+                id="refreshTooltip"
+                place="top"
+                type="light"
+                effect="solid"
+                delayShow={500}
+              />
+              <button
+                className="relative top-1"
+                onClick={() => getData()}
+                data-tip="Refresh"
+                data-for="refreshTooltip">
+                <IoMdRefresh size={20} />
+              </button>
+          </div>
+					<div>
+            <button
+              onClick={() => setNewReportModal(true)}
+              className="text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600">
+              <div className="flex items-center">
+              <IoAdd className="mr-1" size={15} />
+              New Report
+              </div>
+            </button>
+            				
+
+          </div>
+
+
+				  <div>
+            <select
+              id="labels"
+              onChange={(e) => handleReadFilterChanged(e)}
+              defaultValue="All"
+              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md md:mx-2 hover:shadow-none">
+              <option value="false">Unread</option>
+              <option value="true">Read</option>
+              <option value="All">All reports</option>
+            </select>
+          </div>
+          <div>
+            <select
+              id="labels"
+              onChange={(e) => handleDateChanged(e)}
+              defaultValue="4"
+              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none">
+              <option value="4">Last four weeks</option>
+              <option value="3">Last three weeks</option>
+              <option value="2">Last two weeks</option>
+              <option value="1">Last week</option>
+              <option value="100">All reports</option>
+            </select>
+          </div>
+          </div>
 			</div>
 			<div className="bg-white w-full rounded-xl p-1">
 				<div className="grid grid-cols-8">
@@ -475,22 +530,7 @@ const ReportsSection = ({ search }) => {
 					<div className={tableHeadings}>Topic Tags</div>
 					<div className={tableHeadings}>Sources</div>
 					<div className={tableHeadings + " p-1"}>
-						Labels (
-						<ReactTooltip
-							id="refreshTooltip"
-							place="top"
-							type="light"
-							effect="solid"
-							delayShow={500}
-						/>
-						<button
-							className="relative top-1"
-							onClick={() => getData()}
-							data-tip="Refresh"
-							data-for="refreshTooltip">
-							<IoMdRefresh size={20} />
-						</button>
-						)
+						Labels 
 					</div>
 					<div className={tableHeadings}>Read/Unread</div>
 				</div>
@@ -502,24 +542,36 @@ const ReportsSection = ({ search }) => {
 						inverse={false} //
 						hasMore={hasMore}
 						loader={<h4>Loading...</h4>}
-						scrollableTarget="scrollableDiv">
+						scrollableTarget="scrollableDiv"
+						reportTitle={reportTitle}>
 						{loadedReports.slice(0, endIndex).map((reportObj) => {
 							const report = Object.values(reportObj)[0]
+							let reportOGTitle = Object.values(reportObj)[0].title
+							
 							const posted = report["createdDate"]
 								.toDate()
 								.toLocaleString("en-US", dateOptions)
 								.replace(/,/g, "")
 								.replace("at", "")
 							const reportIdKey = Object.keys(reportObj)[0].toString()
+							
 							return (
 								<>
 									<a
 										onClick={() => handleModalShow(Object.keys(reportObj)[0])}
-										className="grid grid-cols-8 hover:bg-blue-200"
+										className="grid grid-cols-8 hover:bg-blue-200 cursor-pointer"
 										key={reportIdKey}>
+										
+										
+										
 										<div className={"col-span-2 " + columnData}>
 											{report.title}
 										</div>
+										
+										
+										
+										
+										
 										<div className={columnData}>{posted}</div>
 										<div className={columnData}>-</div>
 										<div className={columnData}>{report.topic}</div>
@@ -561,7 +613,7 @@ const ReportsSection = ({ search }) => {
 					</InfiniteScroll>
 					{reportModal && (
 						<ReportModal
-							title={title}
+							reportTitle={reportTitle}
 							note={note}
 							detail={detail}
 							info={info}
@@ -577,6 +629,7 @@ const ReportsSection = ({ search }) => {
 							changeStatus={changeStatus}
 							onFormSubmit={handleFormSubmit}
 							onFormUpdate={handleFormUpdate}
+							onReportDelete={handleReportDelete}
 							setPostedDate={postedDate}
 						/>
 					)}
@@ -585,6 +638,7 @@ const ReportsSection = ({ search }) => {
 			{newReportModal && (
 				<NewReport
 					setNewReportModal={setNewReportModal}
+					handleNewReportSubmit={handleNewReportSubmit}
 				/>
 			)}
 		</div>

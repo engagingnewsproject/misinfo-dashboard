@@ -102,10 +102,8 @@ const SignUp = () => {
                 </form>
                 <p class="text-center text-gray-500 text-sm">
                     Already have an account?
-                    <Link href="/login">
-                        <a class="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="#">
-                            Log In
-                        </a>
+                    <Link href="/login" class="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+                        Log In
                     </Link>
                 </p>
             </div>
