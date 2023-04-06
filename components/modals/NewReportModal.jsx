@@ -11,7 +11,7 @@ import csc from "country-state-city";
 import auth from "@firebase/auth";
 import Select from "react-select";
 
-const NewReport = ({ setNewReportModal }) => {
+const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     // if (!open) return null
     // Ref to firebase reports collection
     const dbInstance = collection(db, 'reports');
@@ -48,7 +48,10 @@ const NewReport = ({ setNewReportModal }) => {
             read: false,
             topic: selectedTopic,
             hearFrom: selectedSource
+        }).then(() => {
+            handleNewReportSubmit(); // Send a signal to ReportsSection so that it updates the list 
         })
+        
     }
 
     const handleChange = (e) => {
