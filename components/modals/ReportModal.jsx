@@ -22,6 +22,7 @@ const ReportModal = ({
 	onDetailChange,
 	onFormSubmit,
 	onFormUpdate,
+	onReportDelete,
 	selectedLabel,
 	activeLabels,
 	onLabelChange,
@@ -248,12 +249,22 @@ const ReportModal = ({
 										<div className="italic font-light">No images for this report</div>
 									}
 								</div>
+								{/* Share */}
 								<button
 									className="flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none"
 									onClick={SendLinkByMail}>
 									<BsShareFill className="my-1" size={15} />
 									<div className="px-3 py-1">Share The Report</div>
 								</button>
+								{/* Delete button */}
+								<div className="delete-button">
+									<button
+										onClick={onReportDelete}
+										className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
+										type="submit">
+										Delete
+									</button>
+								</div>
 							</div>
 						</div>
 					</form>
