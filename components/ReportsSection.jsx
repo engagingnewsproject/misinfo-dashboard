@@ -201,6 +201,7 @@ const ReportsSection = ({ search }) => {
 		)
 
 		// Default values for infinite scrolling, will load reports as they are populated.
+
 		// FIXED SCROLLING BUG MAYBE???? *****
 		// setEndIndex(0)
 		// setHasMore(true)
@@ -444,40 +445,69 @@ const ReportsSection = ({ search }) => {
 	
 	return (
 		<div className="flex flex-col h-full">
-			<div className="flex flex-row justify-between py-5">
+			<div className="flex flex-col md:flex-row py-5 md:justify-between">
 				<div className="text-lg font-bold text-blue-600 tracking-wider">
 					List of Reports
 				</div>
-				<div>
-					<button
-						onClick={handleNewReportModal}
-						className="flex flex-row items-center text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600">
-						<IoAdd className="mr-1" size={15} />
-						New Report
-					</button>
-				</div>
-				<div>
-					<select
-						id="labels"
-						onChange={(e) => handleReadFilterChanged(e)}
-						defaultValue="All"
-						className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md mx-2 hover:shadow-none">
-						<option value="false">Unread</option>
-						<option value="true">Read</option>
-						<option value="All">All reports</option>
-					</select>
-					<select
-						id="labels"
-						onChange={(e) => handleDateChanged(e)}
-						defaultValue="4"
-						className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none">
-						<option value="4">Last four weeks</option>
-						<option value="3">Last three weeks</option>
-						<option value="2">Last two weeks</option>
-						<option value="1">Last week</option>
-						<option value="100">All reports</option>
-					</select>
-				</div>
+				<div className="flex flex-row justify-between md:justify-evenly">
+          <div className="px-4">
+            <ReactTooltip
+                id="refreshTooltip"
+                place="top"
+                type="light"
+                effect="solid"
+                delayShow={500}
+              />
+              <button
+                className="relative top-1"
+                onClick={() => getData()}
+                data-tip="Refresh"
+                data-for="refreshTooltip">
+                <IoMdRefresh size={20} />
+              </button>
+          </div>
+					<div>
+            <button
+              onClick={() => setOpenModalNewReport(true)}
+              className="text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600">
+              <div className="flex items-center">
+              <IoAdd className="mr-1" size={15} />
+              New Report
+              </div>
+            </button>
+            				
+            <NewReportModal
+              open={openModalNewReport}
+              onClose={() => setOpenModalNewReport(false)}
+            />
+          </div>
+
+
+				  <div>
+            <select
+              id="labels"
+              onChange={(e) => handleReadFilterChanged(e)}
+              defaultValue="All"
+              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md md:mx-2 hover:shadow-none">
+              <option value="false">Unread</option>
+              <option value="true">Read</option>
+              <option value="All">All reports</option>
+            </select>
+          </div>
+          <div>
+            <select
+              id="labels"
+              onChange={(e) => handleDateChanged(e)}
+              defaultValue="4"
+              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none">
+              <option value="4">Last four weeks</option>
+              <option value="3">Last three weeks</option>
+              <option value="2">Last two weeks</option>
+              <option value="1">Last week</option>
+              <option value="100">All reports</option>
+            </select>
+          </div>
+          </div>
 			</div>
 			<div className="bg-white w-full rounded-xl p-1">
 				<div className="grid grid-cols-8">
@@ -487,22 +517,7 @@ const ReportsSection = ({ search }) => {
 					<div className={tableHeadings}>Topic Tags</div>
 					<div className={tableHeadings}>Sources</div>
 					<div className={tableHeadings + " p-1"}>
-						Labels (
-						<ReactTooltip
-							id="refreshTooltip"
-							place="top"
-							type="light"
-							effect="solid"
-							delayShow={500}
-						/>
-						<button
-							className="relative top-1"
-							onClick={() => getData()}
-							data-tip="Refresh"
-							data-for="refreshTooltip">
-							<IoMdRefresh size={20} />
-						</button>
-						)
+						Labels 
 					</div>
 					<div className={tableHeadings}>Read/Unread</div>
 				</div>

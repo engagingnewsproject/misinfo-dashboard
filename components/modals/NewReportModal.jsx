@@ -278,7 +278,7 @@ const NewReport = ({ setNewReportModal }) => {
                                     { imageURLs.map(imageSrc => <Image src={imageSrc} className="shadow ph-16 mb-1 w-16 object-cover rounded-md" alt='image'/>) }
                                 </div>
                             </div>
-                            <div className="mt-6">
+                            <div className="mt-3 sm:mt-6">
                                 <button
                                     className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">
                                     Create
