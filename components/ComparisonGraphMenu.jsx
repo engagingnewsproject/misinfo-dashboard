@@ -55,14 +55,14 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
     setShowCalendar(0)
 
     const daysSelected = (dateRange[0].endDate - dateRange[0].startDate)/(1000*60*60*24)
-    if (updateGraph == true && selectedTopics.length == 3 && daysSelected > 2 && daysSelected < 31)
+    if (updateGraph == true && selectedTopics.length >= 1 && daysSelected > 2 && daysSelected < 31)
       {
         // Prevents the graph from displaying until data has been collected.
         setLoaded(false)
       }
 
     // Update error state if there are not three selected topics
-    if (selectedTopics.length != 3) {
+    if (selectedTopics.length < 1) {
       setTopicError(true)
     }
 
@@ -98,7 +98,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
 
   // Sets update graph to be true whenever the selected topics are changed.
   useEffect (()=> {
-    setTopicError(selectedTopics.length !== 3)
+    setTopicError(selectedTopics.length < 1)
     setUpdateGraph(true)
   }, [selectedTopics]);
 
@@ -162,7 +162,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
             <div class="flex flex-cols flex-wrap text-black bg-red-200 rounded p-3 ml-2 border-2 border-rose-600">
               <IoIosAlert size={25} />
               <div class="inline-block">
-                  {topicError && <h1 class="pl-3">You must select three topics to compare.</h1>}
+                  {topicError && <h1 class="pl-3">You must select at least one topic to compare.</h1>}
                   {dateError && <h1 class="pl-3">You must select a date range of at least three days and no more than three weeks.</h1>}
               </div>
             </div>
