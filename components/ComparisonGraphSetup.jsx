@@ -74,7 +74,7 @@ const ComparisonGraphSetup = () => {
   // Ensures that only three topics are selected and displays error otherwise.
   const handleTopicSelection = () => {
     console.log(selectedTopics)
-    if (selectedTopics.length != 3) {
+    if (selectedTopics.length < 1) {
       setTopicError(true)
     } else  {
       setTopicError(false)
