@@ -13,7 +13,7 @@ import { db } from "../config/firebase"
 import { Switch } from "@headlessui/react"
 // Icons
 import { IoMdRefresh } from "react-icons/io"
-import { IoAdd } from "react-icons/io5"
+import { IoAdd, IoTrash } from "react-icons/io5"
 
 // Icons END
 import ReactTooltip from "react-tooltip"
@@ -43,14 +43,22 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		minute: "numeric",
 	}
 	// Styles
-	const tableHeadings = "p-2 text-center text-sm font-semibold tracking-wide"
-	const columnData =
-		"text-center text-sm px-2 py-1 flex items-center justify-center"
+	const tableHeading = {
+		default: "p-2 text-center text-sm font-semibold tracking-wide",
+		small: ""
+	}
+	const column = {
+		data: "text-center text-sm px-2 py-1 flex items-center justify-center",
+		alt: "text-center flex items-center justify-evenly"
+	}
 	const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
 	const linkStyle = "font-light mb-1 text-sm underline underline-offset-1"
 	const label = {
 		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
 		special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl",
+	}
+	const style = {
+		icon: "hover:fill-cyan-700"
 	}
 	// Report modal states
 	const [reportModal, setReportModal] = useState(false)
@@ -400,15 +408,15 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		handleFormSubmit(e)
 	}
 	
+	// Delete report
 	const handleReportDelete = async (e) => {
-		e.preventDefault()
+		reportModal ? e.preventDefault() : setReportModalId(e)
 		setDeleteModal(true)
 	}
 	
-	const handleDelete = (e) => {
+	const handleDelete = async (e) => {
 		e.preventDefault()
-		let reportId = reportModalId
-		const docRef = doc(db, "reports", reportId)
+		const docRef = doc(db, "reports", reportModalId)
 		deleteDoc(docRef)
 			.then(() => {
 				getData()
@@ -419,7 +427,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				console.log('The write failed' + error);
 			});
 	}
-
+	
 	useEffect(() => {
 		// getData()
 		if (info["createdDate"]) {
@@ -502,11 +510,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
               New Report
               </div>
             </button>
-            				
-
           </div>
-
-
 				  <div>
             <select
               id="labels"
@@ -535,15 +539,16 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 			</div>
 			<div className="bg-white w-full rounded-xl p-1">
 				<div className="grid grid-cols-8">
-					<div className={"col-span-2 " + tableHeadings}>Title</div>
-					<div className={tableHeadings}>Date/Time</div>
-					<div className={tableHeadings}>Candidates</div>
-					<div className={tableHeadings}>Topic Tags</div>
-					<div className={tableHeadings}>Sources</div>
-					<div className={tableHeadings + " p-1"}>
+					<div className={"col-span-2 " + tableHeading.default}>Title</div>
+					<div className={tableHeading.default}>Date/Time</div>
+					<div className={tableHeading.default}>Candidates</div>
+					<div className={tableHeading.default}>Topic Tags</div>
+					<div className={tableHeading.default}>Sources</div>
+					<div className={tableHeading.default + " p-1"}>
 						Labels 
 					</div>
-					<div className={tableHeadings}>Read/Unread</div>
+					<div className={tableHeading.default}>Read/Unread</div>
+					<div className={tableHeading.small}></div>
 				</div>
 				<div className="report-list">
 					{/*Infinite scroll for the reports to load more reports when user scrolls to bottom*/}
@@ -566,28 +571,22 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 								.replace("at", "")
 							const reportIdKey = Object.keys(reportObj)[0].toString()
 							
+
+							
 							return (
 								<>
 									<a
 										onClick={() => handleModalShow(Object.keys(reportObj)[0])}
 										className="grid grid-cols-8 hover:bg-blue-200 cursor-pointer"
 										key={reportIdKey}>
-										
-										
-										
-										<div className={"col-span-2 " + columnData}>
+										<div className={"col-span-2 " + column.data}>
 											{report.title}
 										</div>
-										
-										
-										
-										
-										
-										<div className={columnData}>{posted}</div>
-										<div className={columnData}>-</div>
-										<div className={columnData}>{report.topic}</div>
-										<div className={columnData}>{report.hearFrom}</div>
-										<div className={columnData}>
+										<div className={column.data}>{posted}</div>
+										<div className={column.data}>-</div>
+										<div className={column.data}>{report.topic}</div>
+										<div className={column.data}>{report.hearFrom}</div>
+										<div className={column.data}>
 											<div
 												className={
 													!report.label ? label.default : label.special
@@ -595,7 +594,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 												{report.label || "None"}
 											</div>
 										</div>
-										<div className={columnData}>
+										<div className={column.alt} onClick={(e) => e.stopPropagation()}>
 											<Switch
 												// Set checked to the initial reportRead value (false)
 												checked={report.read}
@@ -604,7 +603,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 													handleReadToggled(Object.keys(reportObj)[0])
 												}
 												// On click handler
-												onClick={(e) => e.stopPropagation()}
 												className={`${
 													report.read ? "bg-blue-600" : "bg-gray-200"
 												} relative inline-flex h-6 w-11 items-center rounded-full`}>
@@ -616,6 +614,15 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 													} inline-block h-4 w-4 transform rounded-full bg-white transition`}
 												/>
 											</Switch>
+											<button
+												onClick={() =>
+													handleReportDelete(Object.keys(reportObj)[0])
+												}
+												data-tip="Delete report"
+												className={style.icon}>
+												<IoTrash size={20} className="fill-gray-400 hover:fill-red-600" />
+												<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+											</button>
 										</div>
 									</a>
 								</>
