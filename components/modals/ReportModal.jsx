@@ -159,11 +159,6 @@ const ReportModal = ({
 										</div>
 										<div className="text-md font-light">{setPostedDate}</div>
 									</div>
-									
-									
-									
-									
-									
 									{/* City state */}
 									<div className="flex flex-row mb-3 items-center">
 										<IoLocation size={20} />
@@ -172,12 +167,6 @@ const ReportModal = ({
 										</div>
 										<div className="text-md font-light">{setReportLocation}</div>
 									</div>
-									
-									
-									
-									
-									
-									
 									<div className="flex flex-row mb-3 items-center">
 										<SwitchRead setReportModalId={setReportModalId} />
 									</div>
