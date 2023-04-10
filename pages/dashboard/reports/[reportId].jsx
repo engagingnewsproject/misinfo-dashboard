@@ -190,29 +190,28 @@ const ReportDetails = () => {
               <button onClick={saveChanges}
                 className="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold ml-4 py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">Save Changes</button>
             </div>}
-							</div>
-          <div className="mb-8">
-						<button
-							className="flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none" onClick={SendLinkByMail}> 
-							<BsShareFill className="my-1" size = {15}/> 
-							<div className="px-3 py-1">Share The Report</div>
-						</button>
 					</div>
-					<div className="w-full">
+					<div className="w-full mb-12">
 						<div className={headerStyle}>Images</div>
             {info['images'] && info['images'][0] ?
-							<div className="w-full">
+							<div className="flex">
                 {info['images'].map((image) => {
-									console.log(image)
 									return (
-										<div className="relative w-9">
-                      <Image src={image} alt="image" fill />
+										<div className="mr-2">
+                      <Image src={image} alt="image" width={200} height={200} />
 										</div>
 									)
 								})}
               </div> :
 							<div className="italic font-light">No images for this report</div>
             }
+					</div>
+					<div className="mb-8">
+						<button
+							className="flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none" onClick={SendLinkByMail}> 
+							<BsShareFill className="my-1" size = {15}/> 
+							<div className="px-3 py-1">Share The Report</div>
+						</button>
 					</div>
 				</div>
 			</div>
