@@ -609,58 +609,56 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 
 							
 							return (
-								<>
-									<a
-										onClick={() => handleModalShow(Object.keys(reportObj)[0])}
-										className="grid grid-cols-8 hover:bg-blue-200 cursor-pointer"
-										key={reportIdKey}>
-										<div className={"col-span-2 " + column.data}>
-											{report.title}
+								<a
+									onClick={() => handleModalShow(Object.keys(reportObj)[0])}
+									className="grid grid-cols-8 hover:bg-blue-200 cursor-pointer"
+									key={reportIdKey}>
+									<div className={"col-span-2 " + column.data}>
+										{report.title}
+									</div>
+									<div className={column.data}>{posted}</div>
+									<div className={column.data}>-</div>
+									<div className={column.data}>{report.topic}</div>
+									<div className={column.data}>{report.hearFrom}</div>
+									<div className={column.data}>
+										<div
+											className={
+												!report.label ? label.default : label.special
+											}>
+											{report.label || "None"}
 										</div>
-										<div className={column.data}>{posted}</div>
-										<div className={column.data}>-</div>
-										<div className={column.data}>{report.topic}</div>
-										<div className={column.data}>{report.hearFrom}</div>
-										<div className={column.data}>
-											<div
-												className={
-													!report.label ? label.default : label.special
-												}>
-												{report.label || "None"}
-											</div>
-										</div>
-										<div className={column.alt} onClick={(e) => e.stopPropagation()}>
-											<Switch
-												// Set checked to the initial reportRead value (false)
-												checked={report.read}
-												// When switch toggled setReportRead
-												onChange={() =>
-													handleReadToggled(Object.keys(reportObj)[0])
-												}
-												// On click handler
+									</div>
+									<div className={column.alt} onClick={(e) => e.stopPropagation()}>
+										<Switch
+											// Set checked to the initial reportRead value (false)
+											checked={report.read}
+											// When switch toggled setReportRead
+											onChange={() =>
+												handleReadToggled(Object.keys(reportObj)[0])
+											}
+											// On click handler
+											className={`${
+												report.read ? "bg-blue-600" : "bg-gray-200"
+											} relative inline-flex h-6 w-11 items-center rounded-full`}>
+											<span className="sr-only">Mark me</span>
+											<span
+												aria-hidden="true"
 												className={`${
-													report.read ? "bg-blue-600" : "bg-gray-200"
-												} relative inline-flex h-6 w-11 items-center rounded-full`}>
-												<span className="sr-only">Mark me</span>
-												<span
-													aria-hidden="true"
-													className={`${
-														report.read ? "translate-x-6" : "translate-x-1"
-													} inline-block h-4 w-4 transform rounded-full bg-white transition`}
-												/>
-											</Switch>
-											<button
-												onClick={() =>
-													handleReportDelete(Object.keys(reportObj)[0])
-												}
-												data-tip="Delete report"
-												className={style.icon}>
-												<IoTrash size={20} className="fill-gray-400 hover:fill-red-600" />
-												<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
-											</button>
-										</div>
-									</a>
-								</>
+													report.read ? "translate-x-6" : "translate-x-1"
+												} inline-block h-4 w-4 transform rounded-full bg-white transition`}
+											/>
+										</Switch>
+										<button
+											onClick={() =>
+												handleReportDelete(Object.keys(reportObj)[0])
+											}
+											data-tip="Delete report"
+											className={style.icon}>
+											<IoTrash size={20} className="fill-gray-400 hover:fill-red-600" />
+											<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+										</button>
+									</div>
+								</a>
 							)
 						})}
 					</InfiniteScroll>
