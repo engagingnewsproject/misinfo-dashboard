@@ -45,23 +45,23 @@ const ResetPassword = () => {
 
 
     return (
-			<div class="w-screen h-screen flex justify-center items-center">
-				<div class="w-full max-w-sm font-light">
-					<div class="grid justify-items-center mb-4">
+			<div className="w-screen h-screen flex justify-center items-center">
+				<div className="w-full max-w-sm font-light">
+					<div className="grid justify-items-center mb-4">
 						<Image src={template.icon} alt="template-icon" />
-						<div class="flex-col mt-2 text-center tracking-wide">
-							<div class="text-lg font-bold my-2">{template.heading}</div>
-							<div class="text-sm font-light">{template.subtitle}</div>
+						<div className="flex-col mt-2 text-center tracking-wide">
+							<div className="text-lg font-bold my-2">{template.heading}</div>
+							<div className="text-sm font-light">{template.subtitle}</div>
 						</div>
 					</div>
 					<form
-						class="px-8 pt-4 pb-4"
+						className="px-8 pt-4 pb-4"
 						onChange={handleChange}
 						onSubmit={handleReset}>
 						{!emailSent && (
-							<div class="mb-4">
+							<div className="mb-4">
 								<input
-									class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 									id="email"
 									type="text"
 									placeholder="Email"
@@ -71,9 +71,9 @@ const ResetPassword = () => {
 								/>
 							</div>
 						)}
-						<div class="flex-col items-center content-center">
+						<div className="flex-col items-center content-center">
 							<button
-								class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline"
+								className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline"
 								type="submit"
 								disabled={btn}>
 								{template.btnText}
@@ -81,15 +81,15 @@ const ResetPassword = () => {
 						</div>
 					</form>
 					{btn && (
-						<div class="text-green-500 text-sm font-light mx-24">
+						<div className="text-green-500 text-sm font-light mx-24">
 							The reset email has been sent
 						</div>
 					)}
-					<p class="text-center text-gray-500 text-sm mt-2">
+					<p className="text-center text-gray-500 text-sm mt-2">
 						Already have an account?
 						<Link href="/login">
 							<a
-								class="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800"
+								className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800"
 								href="#">
 								Log In
 							</a>

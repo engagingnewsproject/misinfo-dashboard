@@ -8,15 +8,15 @@ const HelpModal = ({ setHelpModal}) => {
     const section = "rounded-lg py-2 my-1"
     return (
         <div>
-            <div class="z-10 fixed top-0 left-0 w-full h-full bg-black opacity-60">
+            <div className="z-10 fixed top-0 left-0 w-full h-full bg-black opacity-60">
             </div>
-            <div onClick={() => setHelpModal(false)} class="flex overflow-y-auto justify-center items-center z-20 absolute top-0 left-0 w-full h-auto">
-                <div class="flex-col justify-center items-center bg-white w-6/12 h-auto rounded-2xl py-10 px-10"
+            <div onClick={() => setHelpModal(false)} className="flex overflow-y-auto justify-center items-center z-20 absolute top-0 left-0 w-full h-auto">
+                <div className="flex-col justify-center items-center bg-white w-6/12 h-auto rounded-2xl py-10 px-10"
                     onClick={(e) => {
                         e.stopPropagation()
                     }}>
-                    <div class="flex justify-between w-full mb-5">
-                        <button onClick={() => setHelpModal(false)} class="text-gray-800">
+                    <div className="flex justify-between w-full mb-5">
+                        <button onClick={() => setHelpModal(false)} className="text-gray-800">
                             <IoClose size={25}/>
                         </button>
                         <h3 className={header}>Help and Documentation</h3>
