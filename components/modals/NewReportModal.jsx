@@ -66,7 +66,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         
     }
     
-    // Image upload
+    // Image upload (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js, https://www.youtube.com/watch?v=S4zaZvM8IeI)
     const handleImageChange = (e) => {
     console.log('handle image change run');
         for (let i = 0; i < e.target.files.length; i++) {
@@ -105,6 +105,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     };
     
     // TODO: delete file option after upload
+    // TODO: also. . . on report delete, delete the attached images as well
     // const handleImageDelete = (image) => {
     // console.log(image);
     //     // Create a reference to the file to delete
