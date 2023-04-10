@@ -41,7 +41,7 @@ const ReportModal = ({
 		wrap: "flex-col justify-center items-center lg:w-8/12 h-auto rounded-2xl py-10 px-10 bg-sky-100",
 		textarea:
 			"border transition ease-in-out w-full text-md font-light bg-white rounded-xl p-4 border-none focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none mb-12",
-		icon: "flex p-2 mx-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
+		icon: "flex p-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
 	}
 	const label = {
 		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
@@ -235,24 +235,15 @@ const ReportModal = ({
 										rows="4"
 										defaultValue={note}></textarea>
 								</div>
-								{/* Save button */}
-								<div className="save-button">
-									<button
-										onClick={onFormUpdate}
-										className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
-										type="submit">
-										Save
-									</button>
-								</div>
 								{/* Images */}
-								<div className="images">
+								<div className="images mb-12">
 									<div className={style.header}>Images</div>
 									{info['images'] && info['images'][0] ?
 										<div className="flex w-full overflow-y-auto">
 											{info['images'].map((image) => {
 												return (
-													<div className="flex px-1">
-														<Image src={image} width={150} height={150} alt="image"/>
+													<div className="flex mr-2">
+														<Image src={image} width={100} height={100} alt="image"/>
 													</div>
 												)
 											})}
@@ -268,15 +259,26 @@ const ReportModal = ({
 									<div className="px-3 py-1">Share The Report</div>
 								</button>
 							</div>
-							{/* Delete button */}
-							<div className="delete-button self-end">
-								<button
-									onClick={onReportDelete}
-									data-tip="Delete report"
-									className={style.icon}>
-									<IoTrash size={30} color="red"/>
-									<ReactTooltip place="left" type="light" effect="solid" delayShow={500} />
-								</button>
+							<div className="flex items-center justify-between justify-items-stretch">
+								{/* Save button */}
+									<div className="save-button w-full">
+										<button
+											onClick={onFormUpdate}
+											className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
+											type="submit">
+											Save
+										</button>
+									</div>
+								{/* Delete button */}
+								<div className="delete-button self-end">
+									<button
+										onClick={onReportDelete}
+										data-tip="Delete report"
+										className={style.icon}>
+										<IoTrash size={30} color="red"/>
+										<ReactTooltip place="left" type="light" effect="solid" delayShow={500} />
+									</button>
+								</div>
 							</div>
 						</div>
 					</form>
