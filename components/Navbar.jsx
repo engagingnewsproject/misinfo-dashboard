@@ -6,16 +6,22 @@ import {
 	IoAddCircleOutline,
 	IoPricetagsOutline,
 	IoLogOutOutline,
-    IoPersonOutline
+  IoPersonOutline,
+  IoHelpCircleOutline
 } from "react-icons/io5";
 import ReactTooltip from "react-tooltip";
 import { useAuth } from '../context/AuthContext';
 import ConfirmModal from './modals/ConfirmModal';
 import NewReport from "./modals/NewReportModal"
+import HelpModal from './modals/HelpModal'
 
 const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
 
     const { logout } = useAuth()
+
+    // Determines when to open the help modal popup 
+    const [helpModal, setHelpModal] = useState(false)
+
     const router = useRouter()
     const [logoutModal, setLogoutModal] = useState(false)
     const [newReportModal, setNewReportModal] = useState(false)
@@ -66,12 +72,22 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     <button
+                        onClick={()=>setHelpModal(true)}
+                        data-tip="Help"
+                        className={helpModal ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
+
+                        <IoHelpCircleOutline size={30}/>
+                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+
+                    </button>
+                    <button
                         onClick={() => setLogoutModal(true)}
                         data-tip="Logout"
                         className={basicStyle}>
                         <IoLogOutOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
+
                 </div>
             </div>
             { logoutModal && <ConfirmModal
@@ -87,6 +103,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                     handleNewReportSubmit={handleNewReportSubmit}
 				/>
 			)}
+      {helpModal && <HelpModal setHelpModal={setHelpModal}/>}
         </div>
     )
 }
