@@ -25,9 +25,6 @@ import _ from "lodash";
 
 const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSelectedTopics, topicList, tab, setTab}) => {
 
-  // Indicates which topics and dates have been selected in the dropdowns. 
-  const [listTopicChoices, setTopicChoices] = useState(topicList)
-
   // Data that is displayed via the graph.   
   const [reportData, setData] = useState([])
   const [graphData, setGraphData] = useState([])
@@ -35,7 +32,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   const [dates, setDates] = useState([])
   
   // Indicates when data is ready to be displayed via the graph. 
-  const [updateGraph, setUpdateGraph] = useState(false)
+  const [updateGraph, setUpdateGraph] = useState(true)
   const [loaded, setLoaded] = useState(false)
 
   // Indicates if the number of topics and date range are valid. 
@@ -153,14 +150,19 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   // Populates graph with new data for the selected date range and topics once the
   // topic reports have been collected. 
   useEffect(()=> {
-    console.log("in use effect")
-    console.log(reportData)
-    if (updateGraph && !topicError && !dateError) {
-      getGraphData()
-      setLoaded(true)
-      setUpdateGraph(false)
-    }
+    if (reportData.length !== 0 && updateGraph && !topicError && !dateError) {	
+      getGraphData()	
+      setUpdateGraph(false)	
+    }	
   }, [reportData]);
+
+  // Displays graph once data points can be plotted.	
+  useEffect(() => {	
+    if (graphData.length !== 0) {	
+      setLoaded(true)	
+      setUpdateGraph(false)	
+    }	
+  }, [graphData])
 
   // On page load, populates graph with the given topics and date range.
   useEffect (()=> {
@@ -262,20 +264,21 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
           <div className="bg-white rounded-xl mt-6 py-5">
           <ComparisonGraphMenu dateRange={dateRange} setDateRange={setDateRange} 
               selectedTopics={selectedTopics} setSelectedTopics={setSelectedTopics}
-              listTopicChoices={listTopicChoices} tab={tab} setTab={setTab}
+              listTopicChoices={topicList} tab={tab} setTab={setTab}
               setTopicError={setTopicError}  topicError={topicError}
               dateError={dateError} setDateError = {setDateError} updateGraph={updateGraph} 
               setUpdateGraph={setUpdateGraph} loaded={loaded} setLoaded={setLoaded}/>
 
             {/* Displays graph once data is collected for the topics. */}
-            {loaded && 
-              <div className="w-3/4 m-auto">
-                <div className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Topic Reports - {formatDates()}</div>
-                <Line className="pl-20 pr-20" options={options} data={graphData} />
-              </div>
-            } 
-            {!loaded && <h1 class="text-center">Collecting data...</h1>}
-          </div>
+		
+            {loaded &&	
+            <div className="m-auto">	
+              {/* Displays graph once data is collected for the topics. */}	
+              <div className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Topic Reports - {formatDates()}</div>	
+              <Line className="pl-20 pr-20" options={options} data={graphData} />	
+            </div>	
+            }	
+        </div>
     </div>
   )
 }

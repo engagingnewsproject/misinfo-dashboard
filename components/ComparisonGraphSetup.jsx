@@ -48,8 +48,12 @@ const ComparisonGraphSetup = () => {
   // Handles the selection of a new date range.
   const handleDateSelection = (item) =>  {
     if (item.selection.endDate !== item.selection.startDate) {
-        console.log(item)
-        setDateRange([item.selection])
+      console.log(item)
+      setDateRange([item.selection])
+      const daysSelected = ((item.selection.endDate  - item.selection.startDate)/(1000*60*60*24)) + 1
+      if (daysSelected > 2 && daysSelected < 31) {
+        setDateError(false)
+      }
     } 
   }
 
@@ -60,8 +64,8 @@ const ComparisonGraphSetup = () => {
 
   // Upon the initial screen for the compraison chart, plots graph if the date range is correct.
   const handleGraphChange = () => {
-    console.log("date range efore plotting" + dateRange)
-    const daysSelected = (dateRange[0].endDate - dateRange[0].startDate)/(1000*60*60*24)
+    console.log("date range before plotting " + dateRange)
+    const daysSelected = ((dateRange[0].endDate - dateRange[0].startDate)/(1000*60*60*24)) + 1
     if (daysSelected > 2 && daysSelected < 31) {
       console.log(dateRange[0])
       setTab(4)
@@ -74,7 +78,7 @@ const ComparisonGraphSetup = () => {
   // Ensures that only three topics are selected and displays error otherwise.
   const handleTopicSelection = () => {
     console.log(selectedTopics)
-    if (selectedTopics.length != 3) {
+    if (selectedTopics.length < 1) {
       setTopicError(true)
     } else  {
       setTopicError(false)
@@ -104,9 +108,9 @@ const ComparisonGraphSetup = () => {
             {tab == 0 && 
               <div className="flex items-center justify-center">
               <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-1/2">
-                <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select three topics.</h1>
-                <h1 className="pl-3 pb-4 text-center">Choose which topics you would like to compare.</h1>
-                {topicError && <h1 className="pl-3 pb-4 text-center text-red-500">You must choose three topics to compare.</h1>}
+                <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select topics to compare. </h1>
+                <h1 className="pl-3 pb-4 text-center">Choose at least one topic to view the number of reports.</h1>
+                {topicError && <h1 className="pl-3 pb-4 text-center text-red-500">You must choose at least one topic to compare.</h1>}
                 <Select options={listTopicChoices} components={animatedComponents}
                 isMulti 
                 onChange={item => setSelectedTopics(item)}

@@ -13,15 +13,16 @@ import { db } from "../config/firebase"
 import { Switch } from "@headlessui/react"
 // Icons
 import { IoMdRefresh } from "react-icons/io"
-import { IoAdd } from "react-icons/io5"
+import { IoAdd, IoTrash } from "react-icons/io5"
 
 // Icons END
 import ReactTooltip from "react-tooltip"
 import InfiniteScroll from "react-infinite-scroll-component"
 import NewReport from "./modals/NewReportModal"
 import ReportModal from "./modals/ReportModal"
+import ConfirmModal from "./modals/ConfirmModal"
 
-const ReportsSection = ({ search }) => {
+const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) => {
 	const userId = localStorage.getItem("userId")
 	const [reports, setReports] = useState([])
 	const [reporterInfo, setReporterInfo] = useState({})
@@ -42,15 +43,27 @@ const ReportsSection = ({ search }) => {
 		minute: "numeric",
 	}
 	// Styles
-	const tableHeadings = "p-2 text-center text-sm font-semibold tracking-wide"
-	const columnData =
-		"text-center text-sm px-2 py-1 flex items-center justify-center"
+	const tableHeading = {
+		default: "p-2 text-center text-sm font-semibold tracking-wide",
+		small: ""
+	}
+	const column = {
+		data: "text-center text-sm px-2 py-1 flex items-center justify-center",
+		alt: "text-center flex items-center justify-evenly"
+	}
 	const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
 	const linkStyle = "font-light mb-1 text-sm underline underline-offset-1"
 	const label = {
 		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
 		special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl",
 	}
+	const style = {
+		icon: "hover:fill-cyan-700"
+	}
+
+  // Styling for dismiss button after refreshing reports section
+  const active = "rounded-lg bg-blue-600 text-white py-1 px-2 drop-shadow-lg text-sm font-light tracking-wide"
+
 	// Report modal states
 	const [reportModal, setReportModal] = useState(false)
 	const [reportModalId, setReportModalId] = useState(false)
@@ -62,8 +75,22 @@ const ReportsSection = ({ search }) => {
 	const [activeLabels, setActiveLabels] = useState([])
 	const [changeStatus, setChangeStatus] = useState("")
 	const [postedDate, setPostedDate] = useState("")
+	const [reportLocation, setReportLocation] = useState("")
 	const [update, setUpdate] = useState("")
+	const [deleteModal, setDeleteModal] = useState(false)
 	
+  // Indicates when reports have been updated once user presses the refresh button. 
+  const [reportsUpdated, setReportsUpdated] = useState(false)
+  const [refresh, setRefresh] = useState(false)
+
+  // Handler that is run once user wants to refresh the reports section
+  const handleRefresh = async () => {
+    setRefresh(true)
+    await getData()
+    setReportsUpdated(true)
+    setRefresh(false)
+  }
+
 	const getData = async () => {
 		const reportsCollection = collection(db, "reports")
 		const snapshot = await getDocs(reportsCollection)
@@ -184,7 +211,7 @@ const ReportsSection = ({ search }) => {
 	// On page load (mount), get the reports from firebase
 	useEffect(() => {
 		getData()
-	}, [])
+	}, [newReportSubmitted])
 
 	// Updates the loaded reports whenever a user filters reports based on search.
 	useEffect(() => {
@@ -203,7 +230,6 @@ const ReportsSection = ({ search }) => {
 		)
 
 		// Default values for infinite scrolling, will load reports as they are populated.
-
 		// FIXED SCROLLING BUG MAYBE???? *****
 		// setEndIndex(0)
 		// setHasMore(true)
@@ -398,21 +424,26 @@ const ReportsSection = ({ search }) => {
 		handleFormSubmit(e)
 	}
 	
+	// Delete report
 	const handleReportDelete = async (e) => {
+		reportModal ? e.preventDefault() : setReportModalId(e)
+		setDeleteModal(true)
+	}
+	
+	const handleDelete = async (e) => {
 		e.preventDefault()
-		let reportId = reportModalId
-		const docRef = doc(db, "reports", reportId)
+		const docRef = doc(db, "reports", reportModalId)
 		deleteDoc(docRef)
 			.then(() => {
-				setUpdate(e.target.value)
+				getData()
 				setReportModal(false)
-				console.log(reportId + ' deleted');
+				setDeleteModal(false)
 			})
 			.catch((error) => {
 				console.log('The write failed' + error);
 			});
 	}
-
+	
 	useEffect(() => {
 		// getData()
 		if (info["createdDate"]) {
@@ -430,6 +461,9 @@ const ReportsSection = ({ search }) => {
 					.replace(/,/g, "")
 					.replace("at", "")
 			)
+		}
+		if (info['city'] || info['state']) {
+			setReportLocation(info['city'] + ', ' + info['state'])
 		}
 	}, [reportModal])
 
@@ -475,13 +509,32 @@ const ReportsSection = ({ search }) => {
                 effect="solid"
                 delayShow={500}
               />
-              <button
+
+              {/* Displays refresh icon */}
+              {!refresh && !reportsUpdated && <button
                 className="relative top-1"
-                onClick={() => getData()}
+                onClick={handleRefresh}
                 data-tip="Refresh"
                 data-for="refreshTooltip">
                 <IoMdRefresh size={20} />
-              </button>
+              </button>}
+
+              {/* Displays loading icon when reports are being updated*/}
+              {refresh && !reportsUpdated && 
+              <div>
+                <svg aria-hidden="true" class="ml-2 w-4 h-4 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">	
+                <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />	
+                <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />	
+                </svg>
+              </div>}      
+
+              {/* Displays notification once reports have been refreshed. */}
+              {!refresh && reportsUpdated && <div>
+              <span className="px-1">Reports up to date.</span>
+              <button className={active} onClick={()=>setReportsUpdated(false)}>Dismiss</button>
+            </div>}
+              
+    
           </div>
 					<div>
             <button
@@ -492,11 +545,7 @@ const ReportsSection = ({ search }) => {
               New Report
               </div>
             </button>
-            				
-
           </div>
-
-
 				  <div>
             <select
               id="labels"
@@ -525,15 +574,16 @@ const ReportsSection = ({ search }) => {
 			</div>
 			<div className="bg-white w-full rounded-xl p-1">
 				<div className="grid grid-cols-8">
-					<div className={"col-span-2 " + tableHeadings}>Title</div>
-					<div className={tableHeadings}>Date/Time</div>
-					<div className={tableHeadings}>Candidates</div>
-					<div className={tableHeadings}>Topic Tags</div>
-					<div className={tableHeadings}>Sources</div>
-					<div className={tableHeadings + " p-1"}>
+					<div className={"col-span-2 " + tableHeading.default}>Title</div>
+					<div className={tableHeading.default}>Date/Time</div>
+					<div className={tableHeading.default}>Candidates</div>
+					<div className={tableHeading.default}>Topic Tags</div>
+					<div className={tableHeading.default}>Sources</div>
+					<div className={tableHeading.default + " p-1"}>
 						Labels 
 					</div>
-					<div className={tableHeadings}>Read/Unread</div>
+					<div className={tableHeading.default}>Read/Unread</div>
+					<div className={tableHeading.small}></div>
 				</div>
 				<div className="report-list">
 					{/*Infinite scroll for the reports to load more reports when user scrolls to bottom*/}
@@ -556,28 +606,22 @@ const ReportsSection = ({ search }) => {
 								.replace("at", "")
 							const reportIdKey = Object.keys(reportObj)[0].toString()
 							
+
+							
 							return (
 								<>
 									<a
 										onClick={() => handleModalShow(Object.keys(reportObj)[0])}
 										className="grid grid-cols-8 hover:bg-blue-200 cursor-pointer"
 										key={reportIdKey}>
-										
-										
-										
-										<div className={"col-span-2 " + columnData}>
+										<div className={"col-span-2 " + column.data}>
 											{report.title}
 										</div>
-										
-										
-										
-										
-										
-										<div className={columnData}>{posted}</div>
-										<div className={columnData}>-</div>
-										<div className={columnData}>{report.topic}</div>
-										<div className={columnData}>{report.hearFrom}</div>
-										<div className={columnData}>
+										<div className={column.data}>{posted}</div>
+										<div className={column.data}>-</div>
+										<div className={column.data}>{report.topic}</div>
+										<div className={column.data}>{report.hearFrom}</div>
+										<div className={column.data}>
 											<div
 												className={
 													!report.label ? label.default : label.special
@@ -585,7 +629,7 @@ const ReportsSection = ({ search }) => {
 												{report.label || "None"}
 											</div>
 										</div>
-										<div className={columnData}>
+										<div className={column.alt} onClick={(e) => e.stopPropagation()}>
 											<Switch
 												// Set checked to the initial reportRead value (false)
 												checked={report.read}
@@ -594,7 +638,6 @@ const ReportsSection = ({ search }) => {
 													handleReadToggled(Object.keys(reportObj)[0])
 												}
 												// On click handler
-												onClick={(e) => e.stopPropagation()}
 												className={`${
 													report.read ? "bg-blue-600" : "bg-gray-200"
 												} relative inline-flex h-6 w-11 items-center rounded-full`}>
@@ -606,6 +649,15 @@ const ReportsSection = ({ search }) => {
 													} inline-block h-4 w-4 transform rounded-full bg-white transition`}
 												/>
 											</Switch>
+											<button
+												onClick={() =>
+													handleReportDelete(Object.keys(reportObj)[0])
+												}
+												data-tip="Delete report"
+												className={style.icon}>
+												<IoTrash size={20} className="fill-gray-400 hover:fill-red-600" />
+												<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+											</button>
 										</div>
 									</a>
 								</>
@@ -632,6 +684,7 @@ const ReportsSection = ({ search }) => {
 							onFormUpdate={handleFormUpdate}
 							onReportDelete={handleReportDelete}
 							setPostedDate={postedDate}
+							setReportLocation={reportLocation}
 						/>
 					)}
 				</div>
@@ -639,8 +692,16 @@ const ReportsSection = ({ search }) => {
 			{newReportModal && (
 				<NewReport
 					setNewReportModal={setNewReportModal}
+					handleNewReportSubmit={handleNewReportSubmit}
 				/>
 			)}
+			{deleteModal && <ConfirmModal
+				func={handleDelete}
+				title="Are you sure you want to delete this report?"
+				subtitle=""
+				CTA="Delete"
+				closeModal={setDeleteModal}
+			/>}
 		</div>
 	)
 }
