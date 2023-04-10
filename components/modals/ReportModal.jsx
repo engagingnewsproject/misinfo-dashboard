@@ -125,8 +125,8 @@ const ReportModal = ({
 										</option>
 										{activeLabels
 											.filter((label) => label != selectedLabel)
-											.map((label) => {
-												return <option value={label}>{label}</option>
+											.map((label, i) => {
+												return <option value={label} key={i}>{label}</option>
 											})}
 									</select>
 									{changeStatus && (
@@ -240,10 +240,10 @@ const ReportModal = ({
 									<div className={style.header}>Images</div>
 									{info['images'] && info['images'][0] ?
 										<div className="flex w-full overflow-y-auto">
-											{info['images'].map((image) => {
+											{info['images'].map((image, i) => {
 												return (
 													<div className="flex mr-2">
-														<Image src={image} width={100} height={100} alt="image"/>
+														<Image src={image} width={100} height={100} key={i} alt="image"/>
 													</div>
 												)
 											})}

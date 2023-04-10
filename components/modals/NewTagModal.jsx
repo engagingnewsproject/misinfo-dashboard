@@ -23,23 +23,23 @@ const NewTagModal = ({ tagSystems, tagSystem, list, setNewTagModal, addNewTag })
 
     return (
         <div>
-            <div class="flex justify-center items-center z-10 absolute top-0 left-0 w-full h-full bg-black opacity-60">
+            <div className="flex justify-center items-center z-10 absolute top-0 left-0 w-full h-full bg-black opacity-60">
             </div>
-            <div onClick={() => setNewTagModal(false)} class="flex justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
-                <div class="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10"
+            <div onClick={() => setNewTagModal(false)} className="flex justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
+                <div className="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10"
                     onClick={(e) => {
                         e.stopPropagation()
                     }}>
-                    <div class="flex justify-between w-full mb-5">
-                        <div class="text-md font-bold text-blue-600 tracking-wide">{"Add New " + tagSystems[tagSystem]}</div>
-                        <button onClick={() => setNewTagModal(false)} class="text-gray-800">
+                    <div className="flex justify-between w-full mb-5">
+                        <div className="text-md font-bold text-blue-600 tracking-wide">{"Add New " + tagSystems[tagSystem]}</div>
+                        <button onClick={() => setNewTagModal(false)} className="text-gray-800">
                             <IoClose size={25}/>
                         </button>
                     </div>
                     <form onChange={handleChange} onSubmit={handleAddNewTag}>
-                        <div class="mb-2">
+                        <div className="mb-2">
                             <input
-                                class="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 id="newTag"
                                 type="text"
                                 placeholder="New Tag"
@@ -48,16 +48,16 @@ const NewTagModal = ({ tagSystems, tagSystem, list, setNewTagModal, addNewTag })
                                 onChange={handleChange}
                                 />
                         </div>
-                        {lower.includes(tag.toLowerCase()) && <p class="text-red-500 text-sm font-light">This tag already exists, please try another name</p>}
-                        {tag.length > 20 && <p class="text-red-500 text-sm font-light">You cannot type a tag more than 20 characters long. Please try another name</p>}
-                        <div class="mt-6 flex justify-between">
+                        {lower.includes(tag.toLowerCase()) && <p className="text-red-500 text-sm font-light">This tag already exists, please try another name</p>}
+                        {tag.length > 20 && <p className="text-red-500 text-sm font-light">You cannot type a tag more than 20 characters long. Please try another name</p>}
+                        <div className="mt-6 flex justify-between">
                             <button
                                 onClick={() => setNewTagModal(false)}
-                                class="bg-white hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline">
+                                className="bg-white hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline">
                                 Cancel
                             </button>
                             <button
-                                class="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">
+                                className="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">
                                 Add
                             </button>
                         </div>
