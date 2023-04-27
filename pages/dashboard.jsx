@@ -23,11 +23,15 @@ const Dashboard = () => {
 
 
     return (
-        <div className="flex h-full w-full">
-            <Navbar tab={tab} setTab={setTab} handleNewReportSubmit={handleNewReportSubmit} />
+        <div className="h-full w-full">
+            <div className="fixed top-0 left-0 z-40 w-16 h-screen">
+              <Navbar tab={tab} setTab={setTab} handleNewReportSubmit={handleNewReportSubmit} />
+            </div>
+            <div className="pl-12">
             { tab == 0 && <Home newReportSubmitted={newReportSubmitted} handleNewReportSubmit={handleNewReportSubmit} />}
             { tab == 1 && <Profile />}
             { tab == 2 && <Settings />}
+            </div>
         </div>
     )
 }

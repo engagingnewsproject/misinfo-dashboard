@@ -38,7 +38,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
     const basicStyle = "flex p-2 my-6 mx-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
 
     return (
-        <div className="flex-col w-16 bg-white h-full">
+        <div className="flex-col bg-white h-full">
             <div className="grid content-between py-8 w-full h-full">
                 <div>
                     <button 
