@@ -44,7 +44,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	}
 	// Styles
 	const tableHeading = {
-		default: "p-2 text-center text-sm font-semibold tracking-wide",
+		default: "col-2 p-2 text-center text-sm font-semibold tracking-wide",
 		small: ""
 	}
 	const column = {
