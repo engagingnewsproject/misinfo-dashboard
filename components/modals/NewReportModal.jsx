@@ -309,10 +309,9 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     id="link"
                                     type="text"
                                     placeholder="Link"
-                                    required
                                     onChange={(e) => setLink(e.target.value)}
                                     value={link}
-                                    />
+                                    required/>
                             </div>
                             <div className="mt-4 mb-0.5">
                                 <input
@@ -330,13 +329,14 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     id="detail"
                                     type="text"
                                     placeholder="Detail"
-                                    required
                                     onChange={(e) => setDetail(e.target.value)}
                                     value={detail}
                                     rows="5"
-                                    ></textarea>
+                                    required></textarea>
                             </div>
+                            <span className="text-sm text-gray-700 mt-4 mb-.5">Add Image</span>
                             <div className="mt-4 mb-0.5">
+                            
                                 <label className="block">
                                     <span className="sr-only">Choose files</span>
                                     <input className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer" 
@@ -349,7 +349,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         handleImageChange(e)
                                     }}
                                     ref={imgPicker}
-                                    />
+                                    required/>
                                 </label>
                                 <div className="flex shrink-0 mt-2 space-x-2">
                                     {imageURLs.map((url, i) => (
