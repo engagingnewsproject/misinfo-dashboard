@@ -38,9 +38,9 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [progress, setProgress] = useState(0);
     const [update, setUpdate] = useState(false)
     const [allTopicsArr, setTopics] = useState([])
-    const [selectedTopic, setSelectedTopic] = useState("")
+    const [selectedTopic, setSelectedTopic] = useState('')
     const [allSourcesArr, setSources] = useState([])
-    const [selectedSource, setSelectedSource] = useState("")
+    const [selectedSource, setSelectedSource] = useState('')
     const [errors, setErrors] = useState({})
     
 
@@ -162,16 +162,19 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             console.log("No topic selected")
             allErrors.topic = "Please enter a topic."
         }
-        if (images == '') {
-            console.log('no images');
-        }
+        // if (images == '') {
+        //     console.log('no images');
+        // }
         setErrors(allErrors)
-        console.log(allErrors.length + "Error array length")
+        // console.log(allErrors.length + "Error array length")
 
         if (Object.keys(allErrors).length == 0) {
             saveReport(imageURLs)
+            setNewReportModal(false)
+        } else {
+            console.log("errors exist")
         }
-        setNewReportModal(false)
+        
     }
 
     // On mount, grab all the possible topic choices
