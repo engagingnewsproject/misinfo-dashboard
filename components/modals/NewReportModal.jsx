@@ -26,7 +26,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [secondLink, setSecondLink] = useState("")
     const [detail, setDetail] = useState("")
     // Image upload
-    
+    const [imageSelected, setImageSelected] = useState(false);
     
     
     const [imageList, setImageList] = useState([])
@@ -42,7 +42,9 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [allSourcesArr, setSources] = useState([])
     const [selectedSource, setSelectedSource] = useState("")
     const [errors, setErrors] = useState({})
-    // console.log(Country.getCountryByCode('US'))
+    
+
+    
   
     const saveReport = (imageURLs) => {
         addDoc(dbInstance, {
@@ -74,6 +76,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             setImages((prevState) => [...prevState, newImage]);
             setUpdate(!update)
         }
+        setImageSelected(e.target.files.length > 0)
+        
     };
     // Image upload to firebase
     const handleUpload = () => {
@@ -196,6 +200,11 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         setNewReportModal(false)
     }
 
+    const isFormValid = () => {
+        // at least one of the following fields is required: link, secondLink, detail, imageSelected
+        return !!link || !!secondLink || !!detail || !!imageSelected;
+    };
+
     return (
         <div>
             <div className="z-10 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50">
@@ -311,7 +320,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     placeholder="Link"
                                     onChange={(e) => setLink(e.target.value)}
                                     value={link}
-                                    required/>
+                                    required={!isFormValid()}/>
                             </div>
                             <div className="mt-4 mb-0.5">
                                 <input
@@ -332,7 +341,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     onChange={(e) => setDetail(e.target.value)}
                                     value={detail}
                                     rows="5"
-                                    required></textarea>
+                                    required={!isFormValid()}></textarea>
                             </div>
                             <span className="text-sm text-gray-700 mt-4 mb-.5">Add Image</span>
                             <div className="mt-4 mb-0.5">
@@ -349,7 +358,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         handleImageChange(e)
                                     }}
                                     ref={imgPicker}
-                                    required/>
+                                    required={!isFormValid()}/>
                                 </label>
                                 <div className="flex shrink-0 mt-2 space-x-2">
                                     {imageURLs.map((url, i) => (
