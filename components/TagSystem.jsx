@@ -194,7 +194,8 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                         </button>
                     </div>}
                 </div>
-                <form className="static w-full mt-7 pr-6" onChange={handleChange} onSubmit={handleSearch}>
+                <div className="relative">
+                <form className="w-full mt-7 pr-6 ml-2" onChange={handleChange} onSubmit={handleSearch}>
                     <button className="p-1 absolute right-[5.75rem] top-[8.2rem] bg-blue-500 text-white rounded-xl">
                         <AiOutlineSearch size={25}/>
                     </button>
@@ -206,6 +207,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                         onChange={handleChange}
                         value={search}/>
                 </form>
+               
                 {search.length > 0 &&
                 <div className="shadow-lg absolute rounded-lg z-20 mt-2 w-1/2">
                     <div className="bg-white w-full rounded-lg">
@@ -217,6 +219,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                         })}
                     </div>
                 </div>}
+                </div>
                 <div className="z-10 mt-12 pr-6">
                     {list.length == 0 ? 
                     <div className="grid bg-white w-full py-6 px-4 rounded-xl text-center items-center">
