@@ -10,8 +10,8 @@ const HelpModal = ({ setHelpModal}) => {
         <div>
             <div className="z-10 fixed top-0 left-0 w-full h-full bg-black opacity-60">
             </div>
-            <div onClick={() => setHelpModal(false)} className="flex overflow-y-auto justify-center items-center z-20 absolute top-0 left-0 w-full h-auto">
-                <div className="flex-col justify-center items-center bg-white w-6/12 h-auto rounded-2xl py-10 px-10"
+            <div onClick={() => setHelpModal(false)} className="flex overflow-y-auto justify-center items-center absolute top-0 left-0 w-full h-auto">
+                <div className="z-20 flex-col justify-center items-center bg-white w-10/12 lg:w-6/12 h-auto rounded-2xl mt-4 lg:mt-autopy-10 px-10"
                     onClick={(e) => {
                         e.stopPropagation()
                     }}>
