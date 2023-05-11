@@ -25,10 +25,8 @@ const Headbar = ({ search, setSearch}) => {
                         Local Pipeline Dashboard
                     </div>
                 </div>
-                <form className="w-1/4" onChange={handleChange} onSubmit={handleSearch}>
-                    <button className="p-1 absolute right-11 top-10 bg-blue-500 text-white rounded-xl">
-                        <AiOutlineSearch size={25}/>
-                    </button>
+                <form className="flex relative w-1/4" onChange={handleChange} onSubmit={handleSearch}>
+                   
                     <input
                         className="shadow border-none rounded-xl w-full p-3 pr-11 text-xs text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         id="search"
@@ -36,6 +34,9 @@ const Headbar = ({ search, setSearch}) => {
                         placeholder="Search"
                         onChange={handleChange}
                         value={search} />
+                    <button className="py-1 px-1 mt-1.5 mr-1 absolute right-0 top-0 py-1 bg-blue-500 text-white rounded-xl">
+                        <AiOutlineSearch size={25}/>
+                    </button>
                 </form>
             </div>
         </div>
