@@ -9,7 +9,7 @@ const Settings = () => {
   const [tagSystem, setTagSystem] = useState(0)
 
   return (
-    <div className="w-full h-auto">
+    <div>
       {tagSystem == 0 ?
       <div className="z-0 flex-col p-16">
         <div className="text-xl font-extrabold text-blue-600 tracking-wider">Tagging Systems</div>

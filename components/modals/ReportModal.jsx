@@ -37,7 +37,7 @@ const ReportModal = ({
 		link: "font-light mb-1 text-sm underline underline-offset-1",
 		overlay: "z-10 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50",
 		modal:
-			"flex overflow-y-auto justify-center items-center z-20 absolute top-0 left-0 w-full h-full",
+			"flex overflow-y- justify-center items-center z-20 absolute sm:top-0 md:top-4 left-0 w-full sm:w-full sm:h-full",
 		wrap: "flex-col justify-center items-center lg:w-8/12 h-auto rounded-2xl py-10 px-10 bg-sky-100",
 		textarea:
 			"border transition ease-in-out w-full text-md font-light bg-white rounded-xl p-4 border-none focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none mb-12",
@@ -61,16 +61,17 @@ const ReportModal = ({
 		window.open(uri)
 	}
 	return (
-		<div className={style.overlay} onClick={() => setReportModal(false)}>
-			<div className={style.modal}>
+		<div className="fixed z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto" // {style.overlay} 
+			onClick={() => setReportModal(false)}>
+			 <div className="absolute top-4 md:top-6 md:right-6 md:left-6 flex justify-center items-center z-20 sm:overflow-y-scroll"> {/* {style.modal} */}
 				<div
-					className={style.wrap}
+					className="flex-col justify-center items-center lg:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible" // {style.wrap}
 					onClick={(e) => {
 						e.stopPropagation()
 					}}>
-					<div className="flex justify-between w-full mb-5">
+					<div className="flex justify-between w-full mb-6">
 						<div className="flex w-full items-baseline">
-							<div className="text-2xl font-bold text-blue-600 tracking-wider mb-8">
+							<div className="text-2xl font-bold text-blue-600 tracking-wider">
 								More Information
 							</div>
 							<Link href={`dashboard${reportURI}`} target="_blank">
@@ -83,7 +84,7 @@ const ReportModal = ({
 							<IoClose size={25} />
 						</button>
 					</div>
-					<form onSubmit={onFormSubmit} className="grid grid-cols-2 gap-24">
+					<form onSubmit={onFormSubmit} className="grid md:grid-cols-2 md:gap-10 lg:gap-15">
 						<div className="left-side">
 							<div>
 								<div className={style.header}>Title</div>
