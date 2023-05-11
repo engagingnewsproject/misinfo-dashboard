@@ -38,7 +38,9 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
     const basicStyle = "flex p-2 my-6 mx-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
 
     return (
-        <div className="flex-col w-16 bg-white h-full">
+      <>
+      <div className="fixed top-0 left-0 w-16 h-screen z-10">
+        <div className="flex-col bg-white h-full">
             <div className="grid content-between py-8 w-full h-full">
                 <div>
                     <button 
@@ -103,8 +105,10 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                     handleNewReportSubmit={handleNewReportSubmit}
 				/>
 			)}
+      </div>
+      </div>
       {helpModal && <HelpModal setHelpModal={setHelpModal}/>}
-        </div>
+      </>
     )
 }
 
