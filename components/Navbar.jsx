@@ -39,7 +39,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
 
     return (
       <>
-      <div className="fixed top-0 left-0 w-16 h-screen">
+      <div className="fixed top-0 left-0 w-16 h-screen z-10">
         <div className="flex-col bg-white h-full">
             <div className="grid content-between py-8 w-full h-full">
                 <div>
