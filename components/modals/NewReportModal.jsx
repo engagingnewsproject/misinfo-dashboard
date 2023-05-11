@@ -26,7 +26,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [secondLink, setSecondLink] = useState("")
     const [detail, setDetail] = useState("")
     // Image upload
-    const [imageSelected, setImageSelected] = useState(false);
+    
     
     
     const [imageList, setImageList] = useState([])
@@ -38,13 +38,11 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [progress, setProgress] = useState(0);
     const [update, setUpdate] = useState(false)
     const [allTopicsArr, setTopics] = useState([])
-    const [selectedTopic, setSelectedTopic] = useState('')
+    const [selectedTopic, setSelectedTopic] = useState("")
     const [allSourcesArr, setSources] = useState([])
-    const [selectedSource, setSelectedSource] = useState('')
+    const [selectedSource, setSelectedSource] = useState("")
     const [errors, setErrors] = useState({})
-    
-
-    
+    // console.log(Country.getCountryByCode('US'))
   
     const saveReport = (imageURLs) => {
         addDoc(dbInstance, {
@@ -76,8 +74,6 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             setImages((prevState) => [...prevState, newImage]);
             setUpdate(!update)
         }
-        setImageSelected(e.target.files.length > 0)
-        
     };
     // Image upload to firebase
     const handleUpload = () => {
@@ -162,19 +158,16 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             console.log("No topic selected")
             allErrors.topic = "Please enter a topic."
         }
-        // if (images == '') {
-        //     console.log('no images');
-        // }
+        if (images == '') {
+            console.log('no images');
+        }
         setErrors(allErrors)
-        // console.log(allErrors.length + "Error array length")
+        console.log(allErrors.length + "Error array length")
 
         if (Object.keys(allErrors).length == 0) {
             saveReport(imageURLs)
-            setNewReportModal(false)
-        } else {
-            console.log("errors exist")
         }
-        
+        setNewReportModal(false)
     }
 
     // On mount, grab all the possible topic choices
@@ -203,14 +196,9 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         setNewReportModal(false)
     }
 
-    const isFormValid = () => {
-        // at least one of the following fields is required: link, secondLink, detail, imageSelected
-        return !!link || !!secondLink || !!detail || !!imageSelected;
-    };
-
     return (
         <div>
-            <div className="fixed top-0 left-0 w-full h-max bg-black bg-opacity-50 z-40">
+            <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-40">
                 <div onClick={handleNewReportModalClose} className="flex overflow-y-auto justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
                     <div onClick={(e) => {e.stopPropagation()}} className="flex-col justify-center items-center bg-white md:w-8/12 lg:w-6/12 h-auto rounded-2xl py-10 px-10 z-50">
                         <div className="flex justify-between w-full mb-5">
@@ -321,9 +309,10 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     id="link"
                                     type="text"
                                     placeholder="Link"
+                                    required
                                     onChange={(e) => setLink(e.target.value)}
                                     value={link}
-                                    required={!isFormValid()}/>
+                                    />
                             </div>
                             <div className="mt-4 mb-0.5">
                                 <input
@@ -341,14 +330,13 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     id="detail"
                                     type="text"
                                     placeholder="Detail"
+                                    required
                                     onChange={(e) => setDetail(e.target.value)}
                                     value={detail}
                                     rows="5"
-                                    required={!isFormValid()}></textarea>
+                                    ></textarea>
                             </div>
-                            <span className="text-sm text-gray-700 mt-4 mb-.5">Add Image</span>
                             <div className="mt-4 mb-0.5">
-                            
                                 <label className="block">
                                     <span className="sr-only">Choose files</span>
                                     <input className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer" 
@@ -361,7 +349,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         handleImageChange(e)
                                     }}
                                     ref={imgPicker}
-                                    required={!isFormValid()}/>
+                                    />
                                 </label>
                                 <div className="flex shrink-0 mt-2 space-x-2">
                                     {imageURLs.map((url, i) => (
