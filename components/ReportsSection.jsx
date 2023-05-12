@@ -606,6 +606,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				loader={<h4>Loading...</h4>}
 				scrollableTarget="scrollableDiv"
 				reportTitle={reportTitle}>
+				{/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
 				<table className="min-w-full bg-white rounded-xl p-1">
 					<thead className="border-b dark:border-indigo-100">
 						<tr>
