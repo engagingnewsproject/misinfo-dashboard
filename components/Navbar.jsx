@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { slide as Menu } from 'react-burger-menu'
 import { useRouter } from 'next/router'
 import {
 	IoHomeOutline,
@@ -7,7 +8,9 @@ import {
 	IoPricetagsOutline,
 	IoLogOutOutline,
   IoPersonOutline,
-  IoHelpCircleOutline
+  IoHelpCircleOutline,
+  IoClose,
+  IoMenu
 } from "react-icons/io5";
 import ReactTooltip from "react-tooltip";
 import { useAuth } from '../context/AuthContext';
@@ -17,7 +20,56 @@ import HelpModal from './modals/HelpModal'
 
 const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
 
+    // nav bar styles
+    var styles = {
+      bmBurgerButton: {
+        position: 'fixed',
+        width: '36px',
+        height: '30px',
+        left: '36px',
+        top: '36px'
+      },
+      bmBurgerBars: {
+        background: '#373a47'
+      },
+      bmBurgerBarsHover: {
+        background: '#a90000'
+      },
+      bmCrossButton: {
+        height: '24px',
+        width: '24px'
+      },
+      bmCross: {
+        background: '#bdc3c7'
+      },
+      bmMenuWrap: {
+        position: 'fixed',
+        height: '100%'
+      },
+      bmMenu: {
+        background: '#373a47',
+        padding: '2.5em 1.5em 0',
+        fontSize: '1.15em'
+      },
+      bmMorphShape: {
+        fill: '#373a47'
+      },
+      bmItemList: {
+        color: '#b8b7ad',
+        padding: '0.8em'
+      },
+      bmItem: {
+        display: 'inline-block'
+      },
+      bmOverlay: {
+        background: 'rgba(0, 0, 0, 0.3)',
+        top: '0 px',
+        right: '0 px'
+      }
+    }
+
     const { logout } = useAuth()
+    const [showNav, setShowNav] = useState(true)
 
     // Determines when to open the help modal popup 
     const [helpModal, setHelpModal] = useState(false)
@@ -39,10 +91,30 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
 
     return (
       <>
+      {!showNav ?
+        <button 
+        onClick={() => setShowNav(!showNav)}
+        data-tip="Menu"
+        className="absolute top-8 left-4"
+        >
+        
+        <IoMenu size={40}/>
+        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+    </button> :
+      
+      <Menu isOpen={showNav} onOpen={ ()=>setShowNav(true)} onClose={() => setShowNav(false)}>
       <div className="fixed top-0 left-0 w-16 h-screen z-10">
         <div className="flex-col bg-white h-full">
-            <div className="grid content-between py-8 w-full h-full">
+            <div className="grid content-between w-full h-full">
                 <div>
+                  <button 
+                      onClick={() => setShowNav(!showNav)}
+                      data-tip="Collapse menu"
+                      className={basicStyle}>
+                      <IoClose size={30}/>
+                      <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                  </button> 
+                
                     <button 
                         onClick={() => setTab(0)}
                         data-tip="Home"
@@ -108,6 +180,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
       </div>
       </div>
       {helpModal && <HelpModal setHelpModal={setHelpModal}/>}
+      </Menu>}
       </>
     )
 }
