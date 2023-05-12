@@ -44,12 +44,12 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	}
 	// Styles
 	const tableHeading = {
-		default: "col-2 p-2 text-center text-sm font-semibold tracking-wide",
+		default: "col-span-2 text-center p-2 text-sm font-semibold tracking-wide",
 		small: ""
 	}
 	const column = {
-		data: "text-center text-sm px-2 py-1 flex items-center justify-center",
-		alt: "text-center flex items-center justify-evenly"
+		data: "whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 cursor-pointer",
+		data_center: "whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 cursor-pointer text-center"
 	}
 	const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
 	const linkStyle = "font-light mb-1 text-sm underline underline-offset-1"
@@ -509,7 +509,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
                 effect="solid"
                 delayShow={500}
               />
-
               {/* Displays refresh icon */}
               {!refresh && !reportsUpdated && <button
                 className="relative top-1"
@@ -533,8 +532,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
               <span className="px-1">Reports up to date.</span>
               <button className={active} onClick={()=>setReportsUpdated(false)}>Dismiss</button>
             </div>}
-              
-    
           </div>
 					<div>
             <button
@@ -572,118 +569,116 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
           </div>
           </div>
 			</div>
-			<div className="bg-white w-full rounded-xl p-1">
-				<div className="grid grid-cols-8">
-					<div className={"col-span-2 " + tableHeading.default}>Title</div>
-					<div className={tableHeading.default}>Date/Time</div>
-					<div className={tableHeading.default}>Candidates</div>
-					<div className={tableHeading.default}>Topic Tags</div>
-					<div className={tableHeading.default}>Sources</div>
-					<div className={tableHeading.default + " p-1"}>
-						Labels 
-					</div>
-					<div className={tableHeading.default}>Read/Unread</div>
-					<div className={tableHeading.small}></div>
-				</div>
-				<div className="report-list">
-					{/*Infinite scroll for the reports to load more reports when user scrolls to bottom*/}
-					<InfiniteScroll
-						dataLength={endIndex}
-						next={handleReportScroll}
-						inverse={false} //
-						hasMore={hasMore}
-						loader={<h4>Loading...</h4>}
-						scrollableTarget="scrollableDiv"
-						reportTitle={reportTitle}>
-						{loadedReports.slice(0, endIndex).map((reportObj) => {
-							const report = Object.values(reportObj)[0]
-							let reportOGTitle = Object.values(reportObj)[0].title
-							
-							const posted = report["createdDate"]
-								.toDate()
-								.toLocaleString("en-US", dateOptions)
-								.replace(/,/g, "")
-								.replace("at", "")
-							const reportIdKey = Object.keys(reportObj)[0].toString()
-							return (
-								<a
-									onClick={() => handleModalShow(Object.keys(reportObj)[0])}
-									className="grid grid-cols-8 hover:bg-blue-200 cursor-pointer"
-									key={reportIdKey}>
-									<div className={"col-span-2 " + column.data}>
-										{report.title}
-									</div>
-									<div className={column.data}>{posted}</div>
-									<div className={column.data}>-</div>
-									<div className={column.data}>{report.topic}</div>
-									<div className={column.data}>{report.hearFrom}</div>
-									<div className={column.data}>
-										<div
-											className={
-												!report.label ? label.default : label.special
-											}>
-											{report.label || "None"}
-										</div>
-									</div>
-									<div className={column.alt} onClick={(e) => e.stopPropagation()}>
-										<Switch
-											// Set checked to the initial reportRead value (false)
-											checked={report.read}
-											// When switch toggled setReportRead
-											onChange={() =>
-												handleReadToggled(Object.keys(reportObj)[0])
-											}
-											// On click handler
-											className={`${
-												report.read ? "bg-blue-600" : "bg-gray-200"
-											} relative inline-flex h-6 w-11 items-center rounded-full`}>
-											<span className="sr-only">Mark me</span>
-											<span
-												aria-hidden="true"
+			<InfiniteScroll
+				className="overflow-x-auto"
+				dataLength={endIndex}
+				next={handleReportScroll}
+				inverse={false} //
+				hasMore={hasMore}
+				loader={<h4>Loading...</h4>}
+				scrollableTarget="scrollableDiv"
+				reportTitle={reportTitle}>
+				<table className="min-w-full bg-white rounded-xl p-1">
+					<thead className="border-b dark:border-indigo-100">
+						<tr>
+							<th scope="col" className={tableHeading.default}>Title</th>
+							<th scope="col" className={tableHeading.default}>Date/Time</th>
+							<th scope="col" className={tableHeading.default}>Candidates</th>
+							<th scope="col" className={tableHeading.default}>Topic Tags</th>
+							<th scope="col" className={tableHeading.default}>Sources</th>
+							<th scope="col" className={tableHeading.default}>Labels</th>
+							<th scope="col" colSpan={2} className={tableHeading.default}>Read/Unread</th>
+						</tr>
+					</thead>
+					<tbody>
+						{/*Infinite scroll for the reports to load more reports when user scrolls to bottom*/}
+							{loadedReports.slice(0, endIndex).map((reportObj, key) => {
+								const report = Object.values(reportObj)[0]
+								const posted = report["createdDate"]
+									.toDate()
+									.toLocaleString("en-US", dateOptions)
+									.replace(/,/g, "")
+									.replace("at", "")
+								const reportIdKey = Object.keys(reportObj)[0].toString()+'-'+key
+								console.log(reportIdKey);
+								return (
+									<tr
+										onClick={() => handleModalShow(Object.keys(reportObj)[0])}
+										className="border-b transition duration-300 ease-in-out hover:bg-indigo-100 dark:border-indigo-100 dark:hover:bg-indigo-100"
+										key={loadedReports.key}>
+										<td scope="row" className={column.data}>{report.title}</td>
+										<td className={column.data}>{posted}</td>
+										<td className={column.data}>-</td>
+										<td className={column.data}>{report.topic}</td>
+										<td className={column.data}>{report.hearFrom}</td>
+										<td className={column.data_center}>
+											<div
+												className={
+													!report.label ? label.default : label.special
+												}>
+												{report.label || "None"}
+											</div>
+										</td>
+										<td className={column.data} onClick={(e) => e.stopPropagation()}>
+											<Switch
+												// Set checked to the initial reportRead value (false)
+												checked={report.read}
+												// When switch toggled setReportRead
+												onChange={() =>
+													handleReadToggled(Object.keys(reportObj)[0])
+												}
+												// On click handler
 												className={`${
-													report.read ? "translate-x-6" : "translate-x-1"
-												} inline-block h-4 w-4 transform rounded-full bg-white transition`}
-											/>
-										</Switch>
-										<button
-											onClick={() =>
-												handleReportDelete(Object.keys(reportObj)[0])
-											}
-											data-tip="Delete report"
-											className={style.icon}>
-											<IoTrash size={20} className="fill-gray-400 hover:fill-red-600" />
-											<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
-										</button>
-									</div>
-								</a>
-							)
-						})}
-					</InfiniteScroll>
-					{reportModal && (
-						<ReportModal
-							reportTitle={reportTitle}
-							note={note}
-							detail={detail}
-							info={info}
-							reporterInfo={reporterInfo}
-							setReportModal={setReportModal}
-							setReportModalId={reportModalId}
-							onNoteChange={handleNoteChange}
-							onTitleChange={handleTitleChange}
-							onDetailChange={handleDetailChange}
-							onLabelChange={handleLabelChange}
-							selectedLabel={selectedLabel}
-							activeLabels={activeLabels}
-							changeStatus={changeStatus}
-							onFormSubmit={handleFormSubmit}
-							onFormUpdate={handleFormUpdate}
-							onReportDelete={handleReportDelete}
-							setPostedDate={postedDate}
-							setReportLocation={reportLocation}
-						/>
-					)}
-				</div>
-			</div>
+													report.read ? "bg-blue-600" : "bg-gray-200"
+												} relative inline-flex h-6 w-11 items-center rounded-full`}>
+												<span className="sr-only">Mark me</span>
+												<span
+													aria-hidden="true"
+													className={`${
+														report.read ? "translate-x-6" : "translate-x-1"
+													} inline-block h-4 w-4 transform rounded-full bg-white transition`}
+												/>
+											</Switch>
+											<button
+												onClick={() =>
+													handleReportDelete(Object.keys(reportObj)[0])
+												}
+												data-tip="Delete report"
+												className={style.icon}>
+												<IoTrash size={20} className="ml-4 fill-gray-400 hover:fill-red-600" />
+												<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+											</button>
+										</td>
+									</tr>
+								)
+							})}
+					</tbody>
+				</table>
+				{reportModal && (
+							<ReportModal
+								reportTitle={reportTitle}
+								key={reportModalId}
+								note={note}
+								detail={detail}
+								info={info}
+								reporterInfo={reporterInfo}
+								setReportModal={setReportModal}
+								setReportModalId={reportModalId}
+								onNoteChange={handleNoteChange}
+								onTitleChange={handleTitleChange}
+								onDetailChange={handleDetailChange}
+								onLabelChange={handleLabelChange}
+								selectedLabel={selectedLabel}
+								activeLabels={activeLabels}
+								changeStatus={changeStatus}
+								onFormSubmit={handleFormSubmit}
+								onFormUpdate={handleFormUpdate}
+								onReportDelete={handleReportDelete}
+								setPostedDate={postedDate}
+								setReportLocation={reportLocation}
+							/>
+						)}
+			</InfiniteScroll>
 			{newReportModal && (
 				<NewReport
 					setNewReportModal={setNewReportModal}
