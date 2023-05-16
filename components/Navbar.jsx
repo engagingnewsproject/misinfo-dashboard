@@ -124,7 +124,6 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
 		setNewReportModal(true)
 	}
 
-
   const basicStyle = "flex p-2 my-6 mx-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
 
 
@@ -205,7 +204,13 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
 
                 </div>
             </div>
-            { logoutModal && <ConfirmModal
+ 
+      </div>
+      </div>
+      </Menu>
+      {helpModal && <HelpModal setHelpModal={setHelpModal}/>}
+
+      { logoutModal && <ConfirmModal
                 func={handleLogout}
                 title="Are you sure you want to log out?"
                 subtitle=""
@@ -218,10 +223,6 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                     handleNewReportSubmit={handleNewReportSubmit}
 				/>
 			)}
-      </div>
-      </div>
-      {helpModal && <HelpModal setHelpModal={setHelpModal}/>}
-      </Menu>
       </>
     )
 }
