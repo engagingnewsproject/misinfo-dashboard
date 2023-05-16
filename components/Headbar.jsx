@@ -16,7 +16,7 @@ const Headbar = ({ search, setSearch}) => {
     
     return (
         <div className="w-full">
-            <div className="flex py-4 px-10 justify-between">
+            <div className="flex py-4 px-12 sm:px-10 justify-between">
                 <div className="flex">
                     <div className="flex justify-center">
                         <div className="w-10 h-10 font-extralight rounded-full tracking-widest flex justify-center text-sm items-center text-white bg-blue-500">M</div>
