@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { slide as Menu } from 'react-burger-menu'
 import { useRouter } from 'next/router'
 import {
@@ -20,89 +20,130 @@ import HelpModal from './modals/HelpModal'
 
 const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
 
-    // nav bar styles
-    var styles = {
-      bmBurgerButton: {
-        position: 'fixed',
-        width: '36px',
-        height: '30px',
-        left: '36px',
-        top: '36px'
-      },
-      bmBurgerBars: {
-        background: '#373a47'
-      },
-      bmBurgerBarsHover: {
-        background: '#a90000'
-      },
-      bmCrossButton: {
-        height: '24px',
-        width: '24px'
-      },
-      bmCross: {
-        background: '#bdc3c7'
-      },
-      bmMenuWrap: {
-        position: 'fixed',
-        height: '100%'
-      },
-      bmMenu: {
-        background: '#373a47',
-        padding: '2.5em 1.5em 0',
-        fontSize: '1.15em'
-      },
-      bmMorphShape: {
-        fill: '#373a47'
-      },
-      bmItemList: {
-        color: '#b8b7ad',
-        padding: '0.8em'
-      },
-      bmItem: {
-        display: 'inline-block'
-      },
-      bmOverlay: {
-        background: 'rgba(0, 0, 0, 0.3)',
-        top: '0 px',
-        right: '0 px'
-      }
+  const [windowSize, setWindowSize] = useState([
+    window.innerWidth,
+    window.innerHeight,
+  ]);
+
+  const [disableOverlay, setDisableOverlay] = useState(true)
+  useEffect(() => {
+    const handleWindowResize = () => {
+      setWindowSize([window.innerWidth, window.innerHeight]);
+    };
+
+    window.addEventListener('resize', handleWindowResize);
+
+    return () => {
+      window.removeEventListener('resize', handleWindowResize);
+    };
+  }, []);
+
+  // Ensures that overlay is only displayed on mobile view, since nav bar will always be shown on laptop view
+  useEffect(()=> {  
+    if (windowSize && windowSize[0] < 640) {
+      setDisableOverlay(false)
+    } else {
+      setDisableOverlay(true)
     }
+  }, [windowSize])
 
-    const { logout } = useAuth()
-    const [showNav, setShowNav] = useState(true)
+  // Will only reopen menu if on mobile view since nav bar is always displayed on laptop view
+  function handleOpenMenu() {
+    if (windowSize[0]< 640) {
+      setShowNav(true)
+    } 
+  }
 
-    // Determines when to open the help modal popup 
-    const [helpModal, setHelpModal] = useState(false)
-
-    const router = useRouter()
-    const [logoutModal, setLogoutModal] = useState(false)
-    const [newReportModal, setNewReportModal] = useState(false)
-    const handleLogout = () => {
-        logout()
-        router.push('/login')
+  // Only closes menu on mobile view
+  function shouldCloseMenu() {
+    console.log(window.innerWidth)
+    if (window.innerWidth < 640) {
+      setShowNav(false)
+    } else {
+      setShowNav(true)
     }
+  }
+
+  // nav bar styles
+  var styles = {
+    bmBurgerButton: {
+      
+    },
+    bmBurgerBars: {
+      background: '#373a47'
+    },
+    bmBurgerBarsHover: {
+      background: '#a90000'
+    },
+    bmCrossButton: {
+      display: 'none'
+    },
+    bmCross: {
+      background: '#bdc3c7'
+    },
+    bmMenuWrap: {
+      width: '64px',
+
+    },
+    bmMenu: {
+      width: '64px'
+    },
+    bmMorphShape: {
+      fill: '#373a47'
+    },
+    bmItemList: {
+      color: '#b8b7ad',
+      padding: '0.8em'
+    },
+    bmItem: {
+      display: 'inline-block'
+    },
+    bmOverlay: {
+      background: 'rgba(0, 0, 0, 0.3)',
+      top: '0 px',
+      right: '0 px'
+    }
+  }
+
+  const { logout } = useAuth()
+  const [showNav, setShowNav] = useState(true)
+
+  // Determines when to open the help modal popup 
+  const [helpModal, setHelpModal] = useState(false)
+
+  const router = useRouter()
+  const [logoutModal, setLogoutModal] = useState(false)
+  const [newReportModal, setNewReportModal] = useState(false)
+  const handleLogout = () => {
+      logout()
+      router.push('/login')
+  }
 
 	const handleNewReportModal = (e) => {
 		e.preventDefault()
 		setNewReportModal(true)
 	}
 
-    const basicStyle = "flex p-2 my-6 mx-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
+
+  const basicStyle = "flex p-2 my-6 mx-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
+
 
     return (
       <>
-      {!showNav ?
+      {!showNav && 
         <button 
         onClick={() => setShowNav(!showNav)}
         data-tip="Menu"
-        className="absolute top-8 left-4"
+        className="absolute top-8 left-4 sm:hidden"
         >
-        
         <IoMenu size={40}/>
         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
-    </button> :
+    </button>}
       
-      <Menu isOpen={showNav} onOpen={ ()=>setShowNav(true)} onClose={() => setShowNav(false)}>
+      <Menu noOverlay={disableOverlay}
+        styles={styles}
+        customBurgerIcon={ false }
+        isOpen={(windowSize[0] > 640 ? true : showNav)} onOpen={ ()=>handleOpenMenu()} onClose={() => shouldCloseMenu()}>
       <div className="fixed top-0 left-0 w-16 h-screen z-10">
         <div className="flex-col bg-white h-full">
             <div className="grid content-between w-full h-full">
@@ -110,7 +151,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                   <button 
                       onClick={() => setShowNav(!showNav)}
                       data-tip="Collapse menu"
-                      className={basicStyle}>
+                      className={basicStyle + " sm:hidden"}>
                       <IoClose size={30}/>
                       <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                   </button> 
@@ -180,7 +221,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
       </div>
       </div>
       {helpModal && <HelpModal setHelpModal={setHelpModal}/>}
-      </Menu>}
+      </Menu>
       </>
     )
 }
