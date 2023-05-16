@@ -501,7 +501,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 					List of Reports
 				</div>
 				<div className="flex flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-evenly">
-          <div className="p-4 md:py-0 md:px-4">
+          <div className="p-0 px-4 md:p-4 md:py-0 md:px-4">
             <ReactTooltip
                 id="refreshTooltip"
                 place="top"
@@ -551,7 +551,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
               New Report
             </button>
           </div>
-				  <div className="mb-4 md:mb-0">
+				  <div className="mb-0">
 						{/* Filter tooltip */}
 						<ReactTooltip
 							id="filterTooltip"
@@ -572,7 +572,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
               <option value="All">All reports</option>
             </select>
           </div>
-          <div>
+          <div className="mt-2 md:mt-0">
 						{/* Timeframe tooltip */}
 						<ReactTooltip
 							id="timeframeTooltip"
