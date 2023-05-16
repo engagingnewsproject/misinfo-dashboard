@@ -501,7 +501,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 					List of Reports
 				</div>
 				<div className="flex flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-evenly">
-          <div className="px-4">
+          <div className="p-4 md:py-0 md:px-4">
             <ReactTooltip
                 id="refreshTooltip"
                 place="top"
@@ -511,7 +511,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
               />
               {/* Displays refresh icon */}
               {!refresh && !reportsUpdated && <button
-                className="relative top-1 m-3 md:m-0"
+                className="relative top-1 m-0 md:m-0"
                 onClick={handleRefresh}
                 data-tip="Refresh"
                 data-for="refreshTooltip">
@@ -551,7 +551,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
               New Report
             </button>
           </div>
-				  <div>
+				  <div className="mb-4 md:mb-0">
 						{/* Filter tooltip */}
 						<ReactTooltip
 							id="filterTooltip"
