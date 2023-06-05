@@ -44,12 +44,12 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	}
 	// Styles
 	const tableHeading = {
-		default: "p-2 text-center text-sm font-semibold tracking-wide",
+		default: "col-span-2 text-center p-2 text-sm font-semibold tracking-wide",
 		small: ""
 	}
 	const column = {
-		data: "text-center text-sm px-2 py-1 flex items-center justify-center",
-		alt: "text-center flex items-center justify-evenly"
+		data: "whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 cursor-pointer",
+		data_center: "whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 cursor-pointer text-center"
 	}
 	const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
 	const linkStyle = "font-light mb-1 text-sm underline underline-offset-1"
@@ -497,11 +497,11 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	return (
 		<div className="flex flex-col h-full">
 			<div className="flex flex-col md:flex-row py-5 md:justify-between">
-				<div className="text-lg font-bold text-blue-600 tracking-wider">
+				<div className="text-center md:text-left text-lg font-bold text-blue-600 tracking-wider pb-2 md:pb-0">
 					List of Reports
 				</div>
-				<div className="flex flex-row justify-between md:justify-evenly">
-          <div className="px-4">
+				<div className="flex flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-evenly">
+          <div className="p-0 px-4 md:p-4 md:py-0 md:px-4">
             <ReactTooltip
                 id="refreshTooltip"
                 place="top"
@@ -509,10 +509,9 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
                 effect="solid"
                 delayShow={500}
               />
-
               {/* Displays refresh icon */}
               {!refresh && !reportsUpdated && <button
-                className="relative top-1"
+                className="relative top-1 m-0 md:m-0"
                 onClick={handleRefresh}
                 data-tip="Refresh"
                 data-for="refreshTooltip">
@@ -523,8 +522,8 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
               {refresh && !reportsUpdated && 
               <div>
                 <svg aria-hidden="true" className="ml-2 w-4 h-4 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">	
-                <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />	
-                <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />	
+									<path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />	
+									<path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />	
                 </svg>
               </div>}      
 
@@ -533,35 +532,61 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
               <span className="px-1">Reports up to date.</span>
               <button className={active} onClick={()=>setReportsUpdated(false)}>Dismiss</button>
             </div>}
-              
-    
           </div>
 					<div>
+							{/* New report tooltip */}
+							<ReactTooltip
+                id="newReportTooltip"
+                place="top"
+                type="light"
+                effect="solid"
+                delayShow={500}
+              />
             <button
               onClick={() => setNewReportModal(true)}
-              className="text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600">
-              <div className="flex items-center">
+              className="flex items-center text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+							data-tip="Create a new report"
+							data-for="newReportTooltip">
               <IoAdd className="mr-1" size={15} />
               New Report
-              </div>
             </button>
           </div>
-				  <div>
+				  <div className="mb-0">
+						{/* Filter tooltip */}
+						<ReactTooltip
+							id="filterTooltip"
+							place="top"
+							type="light"
+							effect="solid"
+							delayShow={500}
+						/>
             <select
               id="labels"
               onChange={(e) => handleReadFilterChanged(e)}
               defaultValue="All"
-              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md md:mx-2 hover:shadow-none">
+							data-tip="Filter reports"
+							data-for="filterTooltip"
+              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md mr-1 md:mx-2 hover:shadow-none">
               <option value="false">Unread</option>
               <option value="true">Read</option>
               <option value="All">All reports</option>
             </select>
           </div>
-          <div>
+          <div className="mt-2 md:mt-0">
+						{/* Timeframe tooltip */}
+						<ReactTooltip
+							id="timeframeTooltip"
+							place="top"
+							type="light"
+							effect="solid"
+							delayShow={500}
+						/>
             <select
               id="labels"
               onChange={(e) => handleDateChanged(e)}
               defaultValue="4"
+							data-tip="Select timeframe"
+							data-for="timeframeTooltip"
               className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none">
               <option value="4">Last four weeks</option>
               <option value="3">Last three weeks</option>
@@ -572,118 +597,127 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
           </div>
           </div>
 			</div>
-			<div className="bg-white w-full rounded-xl p-1">
-				<div className="grid grid-cols-8">
-					<div className={"col-span-2 " + tableHeading.default}>Title</div>
-					<div className={tableHeading.default}>Date/Time</div>
-					<div className={tableHeading.default}>Candidates</div>
-					<div className={tableHeading.default}>Topic Tags</div>
-					<div className={tableHeading.default}>Sources</div>
-					<div className={tableHeading.default + " p-1"}>
-						Labels 
-					</div>
-					<div className={tableHeading.default}>Read/Unread</div>
-					<div className={tableHeading.small}></div>
-				</div>
-				<div className="report-list">
-					{/*Infinite scroll for the reports to load more reports when user scrolls to bottom*/}
-					<InfiniteScroll
-						dataLength={endIndex}
-						next={handleReportScroll}
-						inverse={false} //
-						hasMore={hasMore}
-						loader={<h4>Loading...</h4>}
-						scrollableTarget="scrollableDiv"
-						reportTitle={reportTitle}>
-						{loadedReports.slice(0, endIndex).map((reportObj) => {
-							const report = Object.values(reportObj)[0]
-							let reportOGTitle = Object.values(reportObj)[0].title
-							
-							const posted = report["createdDate"]
-								.toDate()
-								.toLocaleString("en-US", dateOptions)
-								.replace(/,/g, "")
-								.replace("at", "")
-							const reportIdKey = Object.keys(reportObj)[0].toString()
-							return (
-								<a
-									onClick={() => handleModalShow(Object.keys(reportObj)[0])}
-									className="grid grid-cols-8 hover:bg-blue-200 cursor-pointer"
-									key={reportIdKey}>
-									<div className={"col-span-2 " + column.data}>
-										{report.title}
-									</div>
-									<div className={column.data}>{posted}</div>
-									<div className={column.data}>-</div>
-									<div className={column.data}>{report.topic}</div>
-									<div className={column.data}>{report.hearFrom}</div>
-									<div className={column.data}>
-										<div
-											className={
-												!report.label ? label.default : label.special
-											}>
-											{report.label || "None"}
-										</div>
-									</div>
-									<div className={column.alt} onClick={(e) => e.stopPropagation()}>
-										<Switch
-											// Set checked to the initial reportRead value (false)
-											checked={report.read}
-											// When switch toggled setReportRead
-											onChange={() =>
-												handleReadToggled(Object.keys(reportObj)[0])
-											}
-											// On click handler
-											className={`${
-												report.read ? "bg-blue-600" : "bg-gray-200"
-											} relative inline-flex h-6 w-11 items-center rounded-full`}>
-											<span className="sr-only">Mark me</span>
-											<span
-												aria-hidden="true"
-												className={`${
-													report.read ? "translate-x-6" : "translate-x-1"
-												} inline-block h-4 w-4 transform rounded-full bg-white transition`}
+			<InfiniteScroll
+				className="overflow-x-auto"
+				dataLength={endIndex}
+				next={handleReportScroll}
+				inverse={false} //
+				hasMore={hasMore}
+				loader={<h4>Loading...</h4>}
+				scrollableTarget="scrollableDiv"
+				reportTitle={reportTitle}>
+				{/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
+				<table className="min-w-full bg-white rounded-xl p-1">
+					<thead className="border-b dark:border-indigo-100">
+						<tr>
+							<th scope="col" className={tableHeading.default}>Title</th>
+							<th scope="col" className={tableHeading.default}>Date/Time</th>
+							<th scope="col" className={tableHeading.default}>Candidates</th>
+							<th scope="col" className={tableHeading.default}>Topic Tags</th>
+							<th scope="col" className={tableHeading.default}>Sources</th>
+							<th scope="col" className={tableHeading.default}>Labels</th>
+							<th scope="col" colSpan={2} className={tableHeading.default}>Read/Unread</th>
+						</tr>
+					</thead>
+					<tbody>
+						{/*Infinite scroll for the reports to load more reports when user scrolls to bottom*/}
+							{loadedReports.slice(0, endIndex).map((reportObj, key) => {
+								const report = Object.values(reportObj)[0]
+								const posted = report["createdDate"]
+									.toDate()
+									.toLocaleString("en-US", dateOptions)
+									.replace(/,/g, "")
+									.replace("at", "")
+								const reportIdKey = Object.keys(reportObj)[0].toString()+'-'+key
+								console.log(reportIdKey);
+								return (
+									<tr
+										onClick={() => handleModalShow(Object.keys(reportObj)[0])}
+										className="border-b transition duration-300 ease-in-out hover:bg-indigo-100 dark:border-indigo-100 dark:hover:bg-indigo-100"
+										key={loadedReports.key}>
+										<td scope="row" className={column.data}>{report.title}</td>
+										<td className={column.data}>{posted}</td>
+										<td className={column.data}>-</td>
+										<td className={column.data}>{report.topic}</td>
+										<td className={column.data}>{report.hearFrom}</td>
+										<td className={column.data_center}>
+											{/* Change label tooltip */}
+											<ReactTooltip
+												id="labelTooltip"
+												place="top"
+												type="light"
+												effect="solid"
+												delayShow={500}
 											/>
-										</Switch>
-										<button
-											onClick={() =>
-												handleReportDelete(Object.keys(reportObj)[0])
-											}
-											data-tip="Delete report"
-											className={style.icon}>
-											<IoTrash size={20} className="fill-gray-400 hover:fill-red-600" />
-											<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
-										</button>
-									</div>
-								</a>
-							)
-						})}
-					</InfiniteScroll>
-					{reportModal && (
-						<ReportModal
-							reportTitle={reportTitle}
-							note={note}
-							detail={detail}
-							info={info}
-							reporterInfo={reporterInfo}
-							setReportModal={setReportModal}
-							setReportModalId={reportModalId}
-							onNoteChange={handleNoteChange}
-							onTitleChange={handleTitleChange}
-							onDetailChange={handleDetailChange}
-							onLabelChange={handleLabelChange}
-							selectedLabel={selectedLabel}
-							activeLabels={activeLabels}
-							changeStatus={changeStatus}
-							onFormSubmit={handleFormSubmit}
-							onFormUpdate={handleFormUpdate}
-							onReportDelete={handleReportDelete}
-							setPostedDate={postedDate}
-							setReportLocation={reportLocation}
-						/>
-					)}
-				</div>
-			</div>
+											<div
+												className={
+													!report.label ? label.default : label.special
+												}
+												data-tip="Change label"
+												data-for="labelTooltip">
+												{report.label || "None"}
+											</div>
+										</td>
+										<td className={column.data} onClick={(e) => e.stopPropagation()}>
+											<Switch
+												// Set checked to the initial reportRead value (false)
+												checked={report.read}
+												// When switch toggled setReportRead
+												onChange={() =>
+													handleReadToggled(Object.keys(reportObj)[0])
+												}
+												// On click handler
+												className={`${
+													report.read ? "bg-blue-600" : "bg-gray-200"
+												} relative inline-flex h-6 w-11 items-center rounded-full`}>
+												<span className="sr-only">Mark me</span>
+												<span
+													aria-hidden="true"
+													className={`${
+														report.read ? "translate-x-6" : "translate-x-1"
+													} inline-block h-4 w-4 transform rounded-full bg-white transition`}
+												/>
+											</Switch>
+											<button
+												onClick={() =>
+													handleReportDelete(Object.keys(reportObj)[0])
+												}
+												data-tip="Delete report"
+												className={style.icon}>
+												<IoTrash size={20} className="ml-4 fill-gray-400 hover:fill-red-600" />
+												<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+											</button>
+										</td>
+									</tr>
+								)
+							})}
+					</tbody>
+				</table>
+				{reportModal && (
+							<ReportModal
+								reportTitle={reportTitle}
+								key={reportModalId}
+								note={note}
+								detail={detail}
+								info={info}
+								reporterInfo={reporterInfo}
+								setReportModal={setReportModal}
+								setReportModalId={reportModalId}
+								onNoteChange={handleNoteChange}
+								onTitleChange={handleTitleChange}
+								onDetailChange={handleDetailChange}
+								onLabelChange={handleLabelChange}
+								selectedLabel={selectedLabel}
+								activeLabels={activeLabels}
+								changeStatus={changeStatus}
+								onFormSubmit={handleFormSubmit}
+								onFormUpdate={handleFormUpdate}
+								onReportDelete={handleReportDelete}
+								setPostedDate={postedDate}
+								setReportLocation={reportLocation}
+							/>
+						)}
+			</InfiniteScroll>
 			{newReportModal && (
 				<NewReport
 					setNewReportModal={setNewReportModal}
