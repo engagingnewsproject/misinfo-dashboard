@@ -68,6 +68,4 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 
     `git push origin main`
 
-{% content-ref url="http://localhost:5000/o/tmOnCbkSzYuWj7EVbFqg/s/h5B8zKreIfyiUKOT1awO/" %}
-[Misinfo Dashboard](http://localhost:5000/o/tmOnCbkSzYuWj7EVbFqg/s/h5B8zKreIfyiUKOT1awO/)
-{% endcontent-ref %}
+## [Misinfo Dashboard Documentation](http://localhost:5000/o/tmOnCbkSzYuWj7EVbFqg/s/h5B8zKreIfyiUKOT1awO/)
