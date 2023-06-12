@@ -1,21 +1,22 @@
-# Installation
+# Technical Documentation
+## Installation
 
 Misinfo Dashboard is a Next.js project bootstrapped with create-next-app.
 
-## Getting Started
+### Getting Started
 
 Clone the [caet-saga/misinfo-dashboard](https://github.austin.utexas.edu/caet-saga/misinfo-dashboard) development GitHub repo to a directory on your local computer.
 ```
 git clone https://github.austin.utexas.edu/caet-saga/misinfo-dashboard.git
 ```
 
-### Install Dependencies
+#### Install Dependencies
 
 ```
 npm install
 ```
 
-### Run the Development Server
+#### Run the Development Server
 
 1. Start the development server.
 
@@ -33,7 +34,7 @@ yarn dev
 
 Visit http://localhost:3000 to view your application.
 
-## Useful Development Tools
+### Useful Development Tools
 
 [Chrome React Developer Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi)
 
@@ -47,7 +48,7 @@ Visit http://localhost:3000 to view your application.
 
 - Tailwind CSS IntelliSense enhances the Tailwind development experience by providing Visual Studio Code users with advanced features such as autocomplete, syntax highlighting, and linting.
 
-# Project Structure
+## Project Structure
 
 This section provides an overview of the file and folder structure of the Misin project. It covers top-level files and folders, configuration files, and routing conventions.
 
@@ -65,7 +66,7 @@ This section provides an overview of the file and folder structure of the Misin 
 | [`tailwind.config.js`](https://tailwindcss.com/docs/configuration) | Tailwindcss configuration |
 | [`yarn.lock`](https://classic.yarnpkg.com/lang/en/docs/yarn-lock/) | Project `yarn` dependencies and scripts |
 
-## Top-level folders
+### Top-level folders
 
 | Files                                                             |                               |
 | ----------------------------------------------------------------- |:-----------------------------:|
@@ -76,16 +77,16 @@ This section provides an overview of the file and folder structure of the Misin 
 | [`/public`](https://nextjs.org/docs/getting-started/installation#create-the-public-folder) | Static assets to be served |
 | `/styles` | Tailwindcss global styles folder |
 
-# Firebase
+## Firebase
 
-## Database
+### Database
 
 Data is stored on the Firebase Firestore Database. 
 
 - Database configuration is [initialized](https://firebase.google.com/docs/firestore/quickstart#initialize) in config/firebase.js.
 - Database authentication (signup, login, logout ext.) is setup in context/AuthContext.jsx.
 
-## Authorization
+### Authorization
 
 Firebase authentication on pages and components.
 
@@ -94,7 +95,7 @@ Firebase authentication on pages and components.
 | `config/firebase.js` | Auth entry point |
 | `context/AuthContext.jsx` | defines user authorization |
 
-# Dashboard
+## Dashboard
 
 pages/index.jsx - dashboard entry point, importing main dashboard (pages/dashboard.jsx)
 
@@ -111,7 +112,7 @@ pages/index.jsx - dashboard entry point, importing main dashboard (pages/dashboa
 [Graphs](https://github.austin.utexas.edu/o/tmOnCbkSzYuWj7EVbFqg/s/h5B8zKreIfyiUKOT1awO/~/changes/29/technical-documentation/overview/dashboard#graphs) - view report trending topics
 components/ReportsSection.jsx - [reports list](https://github.austin.utexas.edu/o/tmOnCbkSzYuWj7EVbFqg/s/h5B8zKreIfyiUKOT1awO/~/changes/29/technical-documentation/overview/dashboard#report-list).
 
-## User Profile
+### User Profile
 
 Signup, login, logout & reset password.
  
@@ -122,7 +123,7 @@ Signup, login, logout & reset password.
 | `context/AuthContext.jsx` | authorization validation |
 | `styles/globals.css` | global styles |
 
-## Navigation
+### Navigation
 
 Includes Home view, Tagging System, New Report, Profile, Help & Login/Logout.
 
