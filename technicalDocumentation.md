@@ -250,7 +250,12 @@ Displays list of most recent reports in firebase.
 
 ## Modals
 
-
 Files    |          |
 ---------|----------
- `ConfirmModal.jsx` | Used to display a dialog box with an optional message and two buttons, OK and Cancel. It prevents the user from accessing other parts of the page until the box is closed.
+`ConfirmModal.jsx` | Used to display a dialog box with an optional message and two buttons, OK and Cancel. It prevents the user from accessing other parts of the page until the box is closed.
+`HelpModal.jsx` | Used to display a dialog box with user documentation.
+`NewReportModal.jsx` | 
+`NewTagModal.jsx` | 
+`RenameTagModal.jsx` |
+`ReportModal.jsx` | 
+`UpdatePwModal.jsx` |
