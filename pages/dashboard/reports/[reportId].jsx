@@ -158,7 +158,7 @@ const ReportDetails = () => {
 						</div>
 					</div>
 					<div className="mb-8">
-						<div className={headerStyle}>Link Of The Information</div>
+						<div className={headerStyle}>Link to the Information</div>
 						<div className="flex flex-col">
               {info['link'] && <a className={linkStyle} target="_blank" rel="noreferrer" href={"//" + info['link']}>{info['link']}</a>}
               {info['secondLink'] && <a className={linkStyle} target="_blank" rel="noreferrer" href={"//" + info['secondLink']}>{info['secondLink']}</a>}

@@ -175,7 +175,7 @@ const ReportModal = ({
 
 								{/* Links */}
 								<div className="mb-8">
-									<div className={style.header}>Link Of The Information</div>
+									<div className={style.header}>Link to the Information</div>
 									<div className="flex flex-col">
 										{info["link"] && (
 											<a
