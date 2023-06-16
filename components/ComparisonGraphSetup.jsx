@@ -4,7 +4,6 @@ The customization features, including the topics list and calendar dropdown, all
 to select which topics will be displayed
 */
 import React, { useState, useEffect } from 'react'
-import { DateRangePicker } from 'react-date-range'
 import { DateRange } from 'react-date-range';
 
 import 'react-date-range/dist/styles.css'; // main style file
@@ -109,7 +108,7 @@ const ComparisonGraphSetup = () => {
               {/* Initial screen that appears when user selects the comparison view. Allows user to select three topics. */}
             {tab == 0 && 
               <div className="flex items-center justify-center">
-              <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-3/4 lg:w-1/2 overflow-x-auto">
+              <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 h-auto">
                 <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select topics to compare. </h1>
                 <h1 className="pl-3 pb-4 text-center">Choose at least one topic to view the number of reports.</h1>
                 {topicError && <h1 className="pl-3 pb-4 text-center text-red-500">You must choose at least one topic to compare.</h1>}
@@ -132,15 +131,15 @@ const ComparisonGraphSetup = () => {
             {/* Second screen that appears when user selects the comparison view. Allows user to select date range. */}
 
             {tab == 1 &&
-              <div className="lg:flex lg:items-center lg:justify-center">
+              <div className="flex flex-wrap lg:items-center lg:justify-center">
                 <button
                   onClick={() => setTab(0)}
                   data-tip="Previous"
-                  className={basicStyle}>
+                  className={basicStyle + " ml-[35%] lg:ml-0"}>
                   <IoIosArrowBack size={25} />
                   <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
                 </button>
-                <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-full lg:w-1/2 overflow-x-auto">
+                <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-full lg:w-1/3 overflow-x-auto order-first lg:order-none">
                   <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select dates</h1>
                   <h1 className="pl-3 text-center">Select a date range to collect the number of reports for the selected topics. </h1>
                   {dateError && <h1 className="pl-3 pb-4 text-center text-red-500">You must select a date range of at least three days and no more than three weeks.</h1>}
@@ -153,15 +152,17 @@ const ComparisonGraphSetup = () => {
                     ranges={dateRange}
                     direction="horizontal"/> */}
                   {/* TODO: fix resizing on mobile screen and choose one of these calendar views*/}
-                    <DateRange
-                      editableDateInputs={true}
-                      onChange={item => handleDateSelection(item)}
-                      moveRangeOnFirstSelection={false}
-                      showSelectionPreview={true}
-                      months={1}
-                      ranges={dateRange}
-                      maxDate={new Date()}
-                    />
+                    <div className="flex items-center justify-center pt-3">
+                        <DateRange
+                        editableDateInputs={true}
+                        onChange={item => handleDateSelection(item)}
+                        moveRangeOnFirstSelection={false}
+                        showSelectionPreview={true}
+                        months={1}
+                        ranges={dateRange}
+                        maxDate={new Date()}
+                      />
+                    </div>
                    
                 </div>
                 <button
