@@ -1,7 +1,8 @@
 /* This component is the settings bar for the comparison chart
 that allows the user to change the topics and dates selected. */
 import React, { useState, useEffect } from 'react'
-import { DateRangePicker } from 'react-date-range'
+import { DateRange } from 'react-date-range';
+
 import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css'; // theme css file
 import { subDays } from 'date-fns'
@@ -110,7 +111,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
 
   return (
   <div>
-    <div className="flex justify-between">
+    <div className="flex justify-stretch lg:justify-between flex-wrap">
       <div className="flex justify-between items-center">
         {/* Calendar allows user to change date range. */}
         {showCalendar == 0 ? 
@@ -131,7 +132,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
           </button> 
         }
 
-        <div className={"flex justify-between items-center"}>
+        
           
           {/* Allows user to change the selected topics. */}
           <div className={topicError ? errorOutline : null}>
@@ -144,7 +145,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
                 styles={topicError && borderStyle}
               />
           </div>
-
+        
           {/* Allows user to refresh graph when new topics or date range have been selected. */}
           {loaded && <button
                 onClick={() => handleGraphUpdate()}
@@ -153,7 +154,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
                 <IoMdRefresh size={25} />
                 <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
           </button>}
-
+          
 
           {/* Displays loading svg if the graph is being updated. */}	
           {!loaded &&         	
@@ -161,54 +162,55 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
               <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />	
               <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />	
             </svg>}
-
-          {/*Displays notification when user needs to refresh graph once the topic or date selection has been modified. */}
-          {updateGraph && loaded && !(topicError || dateError) && 	
-             <div className="flex flex-wrap text-black bg-green-200 rounded p-3 ml-2 border-2 border-green-600">
-              <IoIosAlert size={25} />
-              <h1 className="pl-3">Refresh the graph to see the report data for the most recent changes.</h1>
-
             </div>
-          }
+            
+            <div className="flex items-center">
+            {/*Displays notification when user needs to refresh graph once the topic or date selection has been modified. */}
+            {updateGraph && loaded && !(topicError || dateError) && !showCalendar &&
+              <div className="flex flex-wrap text-black bg-green-200 rounded p-3 ml-2 border-2 border-green-600">
+                <IoIosAlert size={25} />
+                <h1 className="pl-3">Refresh the graph to see the report data for the most recent changes.</h1>
 
-          {/* Displays error when there are not three selected topics, or the date range is not valid. */}
-          {(topicError || dateError) && 
-            <div className="flex flex-cols flex-wrap text-black bg-red-200 rounded p-3 ml-2 border-2 border-rose-600">
-              <IoIosAlert size={25} />
-              <div className="inline-block">
-                  {topicError && <h1 className="pl-3">You must select at least one topic to compare.</h1>}
-                  {dateError && <h1 className="pl-3">You must select a date range of at least three days and no more than three weeks.</h1>}
               </div>
-            </div>
-          }
-        </div>
+            }
+
+            {/* Displays error when there are not three selected topics, or the date range is not valid. */}
+            {(topicError || dateError) && !showCalendar && 
+              <div className="flex flex-cols flex-wrap text-black bg-red-200 rounded p-3 ml-2 border-2 border-rose-600">
+                <IoIosAlert size={25} />
+                <div className="inline-block">
+                    {topicError && <h1 className="pl-3">You must select at least one topic to compare.</h1>}
+                    {dateError && <h1 className="pl-3">You must select a date range of at least three days and no more than three weeks.</h1>}
+                </div>
+              </div>
+            }
+          
+          <button
+          onClick={() => handleReset()}
+          data-tip="Clear graph"
+          className={basicStyle + "justify-between ml-auto lg:justify-self-end pr-2"}>
+          <IoIosTrash size={25}/>
+          <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+          </button>
+
       </div>
       
       {/*Allows user to clear graph and start from initial screen to select topics. */}
-      <button
-      onClick={() => handleReset()}
-      data-tip="Clear graph"
-      className={basicStyle + "justify-self-end pr-5"}>
-      <IoIosTrash size={25}/>
-      <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
-      </button>
+
    
     </div>
     {showCalendar == 1 &&  
       <div>    
-        <div>
-          <DateRangePicker
-          onChange={item => handleDateSelection(item)}
-          showSelectionPreview={true}
-          moveRangeOnFirstSelection={false}
-          months={1}
-          maxDate={new Date()}
-          ranges={dateRange}
-          shownDate={subDays(new Date(), 3)}
-          focusedRange={[0,1]}
-          editableDateInputs={true}
-          inputRanges={[]}
-          direction="horizontal"/>
+        <div class="bg-gray-100 p-1 absolute z-9">
+        <DateRange
+            editableDateInputs={true}
+            onChange={item => handleDateSelection(item)}
+            moveRangeOnFirstSelection={false}
+            showSelectionPreview={true}
+            months={1}
+            ranges={dateRange}
+            maxDate={new Date()}
+          />
         </div>
       </div>
     }
