@@ -133,7 +133,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
         <button 
         onClick={() => setShowNav(!showNav)}
         data-tip="Menu"
-        className="absolute top-8 left-4 sm:hidden"
+        className="absolute top-8 left-4 z-10 sm:hidden"
         >
         <IoMenu size={40}/>
         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
