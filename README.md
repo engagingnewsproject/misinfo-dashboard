@@ -1,3 +1,7 @@
+### [Misinfo Dashboard Documentation](https://center-for-media-engagement.gitbook.io/misinfo-dashboard/)
+
+#### [Edit Misinfo Dashboard Documentation GitBook](https://app.gitbook.com/o/tmOnCbkSzYuWj7EVbFqg/s/h5B8zKreIfyiUKOT1awO/)
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
