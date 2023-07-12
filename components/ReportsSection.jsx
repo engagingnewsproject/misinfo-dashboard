@@ -629,7 +629,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 									.replace(/,/g, "")
 									.replace("at", "")
 								const reportIdKey = Object.keys(reportObj)[0].toString()+'-'+key
-								console.log(reportIdKey);
 								return (
 									<tr
 										onClick={() => handleModalShow(Object.keys(reportObj)[0])}
