@@ -66,9 +66,7 @@ console.log(report['images'])
 			 <div className="absolute top-4 md:top-6 md:right-6 md:left-6 flex justify-center items-center z-[1300] sm:overflow-y-scroll"> {/* {style.modal} */}
 				<div
 					className="flex-col justify-center items-center lg:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible" // {style.wrap}
-					onClick={(e) => {
-						e.stopPropagation()
-					}}>
+					onClick={(e) => { e.stopPropagation() }}>
 					<div className="flex justify-between w-full mb-6">
 						<div className="flex w-full items-baseline">
 							<div className="text-2xl font-bold text-blue-600 tracking-wider">
