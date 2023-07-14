@@ -137,7 +137,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
         styles={styles}
         customBurgerIcon={ false }
         isOpen={(windowSize[0] > 640 ? true : showNav)} onOpen={ ()=>handleOpenMenu()} onClose={() => shouldCloseMenu()}>
-      <div className="fixed top-0 left-0 w-16 h-screen z-10">
+      <div className="fixed top-0 left-0 w-16 h-screen">
         <div className="flex-col bg-white h-full">
             <div className="grid content-between w-full h-full">
                 <div>
