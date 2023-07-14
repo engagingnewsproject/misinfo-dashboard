@@ -8,7 +8,7 @@ import { RiMessage2Fill } from "react-icons/ri"
 import { BiEditAlt } from "react-icons/bi"
 import { BsShareFill } from "react-icons/bs"
 import { BiLinkExternal } from "react-icons/bi";
-import { AiOutlineFieldTime } from "react-icons/ai"
+import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
 import { IoClose, IoTrash, IoLocation } from "react-icons/io5"
 
 const ReportModal = ({
@@ -72,7 +72,7 @@ console.log(report['images'])
 					<div className="flex justify-between w-full mb-6">
 						<div className="flex w-full items-baseline">
 							<div className="text-2xl font-bold text-blue-600 tracking-wider">
-								More Information
+								Report Information
 							</div>
 							<Link href={`dashboard${reportURI}`} target="_blank">
 								<BiLinkExternal size={20} className="ml-2" />
@@ -90,25 +90,48 @@ console.log(report['images'])
 							<div className="left-side">
 								<div>
 									<div className={style.header}>Title</div>
-									<div className="text-sm bg-white rounded-xl p-4">{reportTitle || <span className="italic text-gray-400">No Title</span>}</div>
-									{reporterInfo && (
-										<div className="text-md mb-4 font-light text-right">
-											<div>
-												<span className="font-semibold">Reported by:</span>{" "}
-												{reporterInfo["name"]} (
-												<a
-													target="_blank"
-													rel="noopener noreferrer"
-													className="text-blue-600 hover:underline"
-													href={"mailto:" + reporterInfo["email"]}>
-													{reporterInfo["email"]}
-												</a>
-												)
-											</div>
-										</div>
-									)}
+									<div className="text-sm bg-white rounded-xl p-4 mb-5">{reportTitle || <span className="italic text-gray-400">No Title</span>}</div>
 
-									{/* Sources and stuff */}
+									{/* Detail/Description */}
+									<div className="mb-5">
+										<div className={style.header}>Description</div>
+										<textarea
+											placeholder="No detail provided"
+											className={detail ? style.textarea : style.textarea + ` italic`}
+											disabled
+											rows="6">{detail}</textarea>
+									</div>
+
+									{/* Links */}
+									<div>
+										<div className={style.header}>Links to the Information</div>
+										<div className="flex flex-col">
+											{info["link"] && (
+												<a
+													className={style.link}
+													target="_blank"
+													rel="noreferrer"
+													href={"//" + info["link"]}>
+													{info["link"]}
+												</a> 
+											) || <span className="italic text-gray-400">No link provided</span>}
+											{info["secondLink"] && (
+												<a
+													className={style.link}
+													target="_blank"
+													rel="noreferrer"
+													href={"//" + info["secondLink"]}>
+													{info["secondLink"]}
+												</a>
+											)}
+										</div>
+									</div>
+								</div>
+							</div> {/* END left side */}
+							
+							<div className="right-side flex flex-col justify-between">
+								<div>
+																	{/* Sources and stuff */}
 									<div className="flex flex-col mb-5">
 										<div className="flex flex-row mb-3 items-center">
 											<RiMessage2Fill size={20} />
@@ -139,51 +162,25 @@ console.log(report['images'])
 											</div>
 											<div className="text-md font-light">{setReportLocation}</div>
 										</div>
+										{reporterInfo && (
+										<div className="flex flex-row mb-3 items-center">
+										<AiOutlineUser size={20} />
+											<div className="text-md font-light">
+												<span className="font-semibold px-2 self-center pr-4">Reported by</span>{" "}
+												{reporterInfo["name"]} (
+												<a
+													target="_blank"
+													rel="noopener noreferrer"
+													className="text-blue-600 hover:underline"
+													href={"mailto:" + reporterInfo["email"]}>
+													{reporterInfo["email"]}
+												</a>
+												)
+											</div>
+										</div>
+									)}
 									</div>
 
-									{/* Links */}
-									<div>
-										<div className={style.header}>Link to the Information</div>
-										<div className="flex flex-col">
-											{info["link"] && (
-												<a
-													className={style.link}
-													target="_blank"
-													rel="noreferrer"
-													href={"//" + info["link"]}>
-													{info["link"]}
-												</a>
-											)}
-											{info["secondLink"] && (
-												<a
-													className={style.link}
-													target="_blank"
-													rel="noreferrer"
-													href={"//" + info["secondLink"]}>
-													{info["secondLink"]}
-												</a>
-											)}
-											{info["thirdLink"] && (
-												<a
-													className={style.link}
-													target="_blank"
-													rel="noreferrer"
-													href={"//" + info["thirdLink"]}>
-													{info["thirdLink"]}
-												</a>
-											)}
-										</div>
-									</div>
-								</div>
-							</div> {/* END left side */}
-							
-							<div className="right-side flex flex-col justify-between">
-								<div>
-									{/* Detail/Description */}
-									<div className="mb-12">
-										<div className={style.header}>Description</div>
-										<div className="text-sm bg-white rounded-xl p-4">{detail || <span className="italic text-gray-400">No description</span>}</div>
-									</div>
 									{/* Images */}
 									<div className="images mb-12">
 										<div className={style.header}>Images</div>
@@ -207,8 +204,8 @@ console.log(report['images'])
 							
 						</div>
 						
-						{/* Newsroom Notes & Save */}
-						<div className="grid pt-4 bg-slate-100 rounded-xl p-8 md:grid-cols-2 md:gap-10 lg:gap-15">
+						{/* Newsroom Edits */}
+						<div className="grid pt-4 mt-5 bg-slate-100 rounded-xl p-8 md:grid-cols-2 md:gap-10 lg:gap-15">
 							{/* Notes */}
 							<div className="notes">
 								<div className={style.header}>Newsroom's Notes</div>
@@ -216,7 +213,7 @@ console.log(report['images'])
 									id="note"
 									onChange={onNoteChange}
 									placeholder="No notes yet..."
-									className={style.textarea}
+									className={note ? style.textarea : style.textarea + ` italic`}
 									rows="6"
 									defaultValue={note}></textarea>
 							</div>
