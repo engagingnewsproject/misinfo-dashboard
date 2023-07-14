@@ -44,11 +44,12 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	}
 	// Styles
 	const tableHeading = {
-		default: "col-span-2 text-center p-2 text-sm font-semibold tracking-wide",
+		default: "px-3 py-1 text-sm font-semibold text-left tracking-wide",
+		default_center: "text-center p-2 text-sm font-semibold tracking-wide",
 		small: ""
 	}
 	const column = {
-		data: "whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 cursor-pointer",
+		data: "whitespace-normal text-sm px-3 py-1 cursor-pointer",
 		data_center: "whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 cursor-pointer text-center"
 	}
 	const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
@@ -65,6 +66,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
   const active = "rounded-lg bg-blue-600 text-white py-1 px-2 drop-shadow-lg text-sm font-light tracking-wide"
 
 	// Report modal states
+	const [report, setReport] = useState('')
 	const [reportModal, setReportModal] = useState(false)
 	const [reportModalId, setReportModalId] = useState(false)
 	const [note, setNote] = useState("")
@@ -82,7 +84,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
   // Indicates when reports have been updated once user presses the refresh button. 
   const [reportsUpdated, setReportsUpdated] = useState(false)
   const [refresh, setRefresh] = useState(false)
-
+	
   // Handler that is run once user wants to refresh the reports section
   const handleRefresh = async () => {
     setRefresh(true)
@@ -341,6 +343,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		// get doc
 
 		const docRef = await getDoc(doc(db, "reports", reportId))
+		setReport(docRef.data())
 		// get note
 		setNote(docRef.data()["note"])
 		setReportTitle(docRef.data()["title"])
@@ -608,15 +611,15 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				reportTitle={reportTitle}>
 				{/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
 				<table className="min-w-full bg-white rounded-xl p-1">
-					<thead className="border-b dark:border-indigo-100">
+					<thead className="border-b dark:border-indigo-100 bg-slate-100">
 						<tr>
 							<th scope="col" className={tableHeading.default}>Title</th>
-							<th scope="col" className={tableHeading.default}>Date/Time</th>
-							<th scope="col" className={tableHeading.default}>Candidates</th>
-							<th scope="col" className={tableHeading.default}>Topic Tags</th>
-							<th scope="col" className={tableHeading.default}>Sources</th>
-							<th scope="col" className={tableHeading.default}>Labels</th>
-							<th scope="col" colSpan={2} className={tableHeading.default}>Read/Unread</th>
+							<th scope="col" className={tableHeading.default_center}>Date/Time</th>
+							<th scope="col" className={tableHeading.default_center}>Candidates</th>
+							<th scope="col" className={tableHeading.default_center}>Topic Tags</th>
+							<th scope="col" className={tableHeading.default_center}>Sources</th>
+							<th scope="col" className={tableHeading.default_center}>Labels</th>
+							<th scope="col" colSpan={2} className={tableHeading.default_center}>Read/Unread</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -629,17 +632,16 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 									.replace(/,/g, "")
 									.replace("at", "")
 								const reportIdKey = Object.keys(reportObj)[0].toString()+'-'+key
-								console.log(reportIdKey);
 								return (
 									<tr
 										onClick={() => handleModalShow(Object.keys(reportObj)[0])}
 										className="border-b transition duration-300 ease-in-out hover:bg-indigo-100 dark:border-indigo-100 dark:hover:bg-indigo-100"
-										key={loadedReports.key}>
+										key={key}>
 										<td scope="row" className={column.data}>{report.title}</td>
-										<td className={column.data}>{posted}</td>
-										<td className={column.data}>-</td>
-										<td className={column.data}>{report.topic}</td>
-										<td className={column.data}>{report.hearFrom}</td>
+										<td className={column.data_center}>{posted}</td>
+										<td className={column.data_center}>-</td>
+										<td className={column.data_center}>{report.topic}</td>
+										<td className={column.data_center}>{report.hearFrom}</td>
 										<td className={column.data_center}>
 											{/* Change label tooltip */}
 											<ReactTooltip
@@ -658,7 +660,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 												{report.label || "None"}
 											</div>
 										</td>
-										<td className={column.data} onClick={(e) => e.stopPropagation()}>
+										<td className={column.data_center} onClick={(e) => e.stopPropagation()}>
 											<Switch
 												// Set checked to the initial reportRead value (false)
 												checked={report.read}
@@ -695,6 +697,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				</table>
 				{reportModal && (
 							<ReportModal
+								report={report}
 								reportTitle={reportTitle}
 								key={reportModalId}
 								note={note}

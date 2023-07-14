@@ -13,8 +13,6 @@ import {
   IoMenu
 } from "react-icons/io5";
 import ReactTooltip from "react-tooltip";
-import { useAuth } from '../context/AuthContext';
-import ConfirmModal from './modals/ConfirmModal';
 import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
 
@@ -56,7 +54,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
 
   // Only closes menu on mobile view
   function shouldCloseMenu() {
-    console.log(window.innerWidth)
+    // console.log(window.innerWidth)
     if (window.innerWidth < 640) {
       setShowNav(false)
     } else {
@@ -105,19 +103,13 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
     }
   }
 
-  const { logout } = useAuth()
   const [showNav, setShowNav] = useState(true)
 
   // Determines when to open the help modal popup 
   const [helpModal, setHelpModal] = useState(false)
 
   const router = useRouter()
-  const [logoutModal, setLogoutModal] = useState(false)
   const [newReportModal, setNewReportModal] = useState(false)
-  const handleLogout = () => {
-      logout()
-      router.push('/login')
-  }
 
 	const handleNewReportModal = (e) => {
 		e.preventDefault()
@@ -129,6 +121,8 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
 
     return (
       <>
+
+      {/* Menu icon that appears when being viewed on mobile screen */}
       {!showNav && 
         <button 
         onClick={() => setShowNav(!showNav)}
@@ -143,7 +137,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
         styles={styles}
         customBurgerIcon={ false }
         isOpen={(windowSize[0] > 640 ? true : showNav)} onOpen={ ()=>handleOpenMenu()} onClose={() => shouldCloseMenu()}>
-      <div className="fixed top-0 left-0 w-16 h-screen z-10">
+      <div className="fixed top-0 left-0 w-16 h-screen">
         <div className="flex-col bg-white h-full">
             <div className="grid content-between w-full h-full">
                 <div>
@@ -194,14 +188,6 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
 
                     </button>
-                    <button
-                        onClick={() => setLogoutModal(true)}
-                        data-tip="Logout"
-                        className={basicStyle}>
-                        <IoLogOutOutline size={30}/>
-                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
-                    </button>
-
                 </div>
             </div>
  
@@ -210,17 +196,11 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
       </Menu>
       {helpModal && <HelpModal setHelpModal={setHelpModal}/>}
 
-      { logoutModal && <ConfirmModal
-                func={handleLogout}
-                title="Are you sure you want to log out?"
-                subtitle=""
-                CTA="Log out"
-                closeModal={setLogoutModal}
-                />}
-            {newReportModal && (
+   
+      {newReportModal && (
 				<NewReport
 					setNewReportModal={setNewReportModal}
-                    handleNewReportSubmit={handleNewReportSubmit}
+          handleNewReportSubmit={handleNewReportSubmit}
 				/>
 			)}
       </>
