@@ -130,8 +130,8 @@ const ReportDetails = () => {
 						<div className={headerStyle}>Label</div>
             <select id="labels" onChange={(e) => handleLabelChanged(e)} defaultValue={selectedLabel} className="text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none">
               <option value={selectedLabel ? selectedLabel : "none"}>{selectedLabel ? selectedLabel : 'Choose a label'}</option>
-              {activeLabels.filter(label => label != selectedLabel).map((label) => {
-                return (<option value={label}>{label}</option>)
+              {activeLabels.filter(label => label != selectedLabel).map((label, i) => {
+                return (<option value={label} key={i}>{label}</option>)
                 })
               }
 						</select>
@@ -193,12 +193,14 @@ const ReportDetails = () => {
 					</div>
 					<div className="w-full mb-12">
 						<div className={headerStyle}>Images</div>
+						{console.log(info['images'])}
             {info['images'] && info['images'][0] ?
 							<div className="flex">
-                {info['images'].map((image) => {
+                {info['images'].map((image, i) => {
+								
 									return (
-										<div className="mr-2">
-                      <Image src={image} alt="image" width={200} height={200} />
+										<div className="mr-2" key={i}>
+                      <Image src={image} alt="image" width={200} height={200} priority={true} />
 										</div>
 									)
 								})}
