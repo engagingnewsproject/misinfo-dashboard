@@ -12,6 +12,7 @@ import { AiOutlineFieldTime } from "react-icons/ai"
 import { IoClose, IoTrash, IoLocation } from "react-icons/io5"
 
 const ReportModal = ({
+	report,
 	reportTitle,
 	note,
 	detail,
@@ -19,9 +20,7 @@ const ReportModal = ({
 	setPostedDate,
 	setReportLocation,
 	reporterInfo,
-	onTitleChange,
 	onNoteChange,
-	onDetailChange,
 	onFormSubmit,
 	onFormUpdate,
 	onReportDelete,
@@ -32,6 +31,7 @@ const ReportModal = ({
 	setReportModal,
 	setReportModalId,
 }) => {
+console.log(report['images'])
 	const style = {
 		header: "text-lg font-bold text-black tracking-wider mb-4",
 		link: "font-light mb-1 text-sm underline underline-offset-1",
@@ -40,7 +40,7 @@ const ReportModal = ({
 			"flex overflow-y- justify-center items-center z-20 absolute sm:top-0 md:top-4 left-0 w-full sm:w-full sm:h-full",
 		wrap: "flex-col justify-center items-center lg:w-8/12 h-auto rounded-2xl py-10 px-10 bg-sky-100",
 		textarea:
-			"border transition ease-in-out w-full text-md font-light bg-white rounded-xl p-4 border-none focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none mb-12",
+			"border transition ease-in-out w-full text-md font-light bg-white rounded-xl p-4 border-none focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none",
 		icon: "flex p-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
 	}
 	const label = {
@@ -84,37 +84,145 @@ const ReportModal = ({
 							<IoClose size={25} />
 						</button>
 					</div>
-					<form onSubmit={onFormSubmit} className="grid md:grid-cols-2 md:gap-10 lg:gap-15">
-						<div className="left-side">
-							<div>
-								<div className={style.header}>Title</div>
-								<input
-									id="title"
-									className="text-sm bg-white rounded-xl p-4 w-full mb-4"
-									onChange={onTitleChange}
-									placeholder="Report title"
-									defaultValue={reportTitle}
-								/>
+					<form onSubmit={onFormSubmit}>
+						<div  className="grid md:grid-cols-2 md:gap-10 lg:gap-15">
+						
+							<div className="left-side">
+								<div>
+									<div className={style.header}>Title</div>
+									<div className="text-sm bg-white rounded-xl p-4">{reportTitle || <span className="italic text-gray-400">No Title</span>}</div>
+									{reporterInfo && (
+										<div className="text-md mb-4 font-light text-right">
+											<div>
+												<span className="font-semibold">Reported by:</span>{" "}
+												{reporterInfo["name"]} (
+												<a
+													target="_blank"
+													rel="noopener noreferrer"
+													className="text-blue-600 hover:underline"
+													href={"mailto:" + reporterInfo["email"]}>
+													{reporterInfo["email"]}
+												</a>
+												)
+											</div>
+										</div>
+									)}
 
-								{reporterInfo && (
-									<div className="text-md mb-4 font-light text-right">
-										<div>
-											<span className="font-semibold">Reported by:</span>{" "}
-											{reporterInfo["name"]} (
-											<a
-												target="_blank"
-												rel="noopener noreferrer"
-												className="text-blue-600 hover:underline"
-												href={"mailto:" + reporterInfo["email"]}>
-												{reporterInfo["email"]}
-											</a>
-											)
+									{/* Sources and stuff */}
+									<div className="flex flex-col mb-5">
+										<div className="flex flex-row mb-3 items-center">
+											<RiMessage2Fill size={20} />
+											<div className="font-semibold px-2 self-center pr-4">
+												Tag
+											</div>
+											<div className="text-md font-light">{info["topic"]}</div>
+										</div>
+										<div className="flex flex-row mb-3 items-center">
+											<BiEditAlt size={20} />
+											<div className="font-semibold px-2 self-center pr-4">
+												Sources / Media
+											</div>
+											<div className="text-md font-light">{info["hearFrom"]}</div>
+										</div>
+										<div className="flex flex-row mb-3 items-center">
+											<AiOutlineFieldTime size={20} />
+											<div className="font-semibold px-2 self-center pr-4">
+												Date / Time
+											</div>
+											<div className="text-md font-light">{setPostedDate}</div>
+										</div>
+										{/* City state */}
+										<div className="flex flex-row mb-3 items-center">
+											<IoLocation size={20} />
+											<div className="font-semibold px-2 self-center pr-4">
+												City, State
+											</div>
+											<div className="text-md font-light">{setReportLocation}</div>
 										</div>
 									</div>
-								)}
 
+									{/* Links */}
+									<div>
+										<div className={style.header}>Link to the Information</div>
+										<div className="flex flex-col">
+											{info["link"] && (
+												<a
+													className={style.link}
+													target="_blank"
+													rel="noreferrer"
+													href={"//" + info["link"]}>
+													{info["link"]}
+												</a>
+											)}
+											{info["secondLink"] && (
+												<a
+													className={style.link}
+													target="_blank"
+													rel="noreferrer"
+													href={"//" + info["secondLink"]}>
+													{info["secondLink"]}
+												</a>
+											)}
+											{info["thirdLink"] && (
+												<a
+													className={style.link}
+													target="_blank"
+													rel="noreferrer"
+													href={"//" + info["thirdLink"]}>
+													{info["thirdLink"]}
+												</a>
+											)}
+										</div>
+									</div>
+								</div>
+							</div> {/* END left side */}
+							
+							<div className="right-side flex flex-col justify-between">
+								<div>
+									{/* Detail/Description */}
+									<div className="mb-12">
+										<div className={style.header}>Description</div>
+										<div className="text-sm bg-white rounded-xl p-4">{detail || <span className="italic text-gray-400">No description</span>}</div>
+									</div>
+									{/* Images */}
+									<div className="images mb-12">
+										<div className={style.header}>Images</div>
+										{info['images'] && info['images'][0] ?
+											<div className="flex w-full overflow-y-auto">
+												{report['images'].map((image, i) => {
+													return (
+														<div className="flex mr-2" key={i}>
+															<Link href={image} target="_blank">
+																<Image src={image} width={100} height={100} alt="image"/>
+															</Link>
+														</div>
+													)
+												})}
+											</div> :
+											<div className="italic font-light">No images for this report</div>
+										}
+									</div>
+								</div>
+							</div> {/* END right side */}
+							
+						</div>
+						
+						{/* Newsroom Notes & Save */}
+						<div className="grid pt-4 bg-slate-100 rounded-xl p-8 md:grid-cols-2 md:gap-10 lg:gap-15">
+							{/* Notes */}
+							<div className="notes">
+								<div className={style.header}>Newsroom's Notes</div>
+								<textarea
+									id="note"
+									onChange={onNoteChange}
+									placeholder="No notes yet..."
+									className={style.textarea}
+									rows="6"
+									defaultValue={note}></textarea>
+							</div>
+							<div>
 								{/* LABELS go here */}
-								<div className="mb-8">
+								<div className="mb-4">
 									<div className={style.header}>Label</div>
 									<select
 										id="labels"
@@ -136,131 +244,18 @@ const ReportModal = ({
 										</span>
 									)}
 								</div>
-
-								{/* Sources and stuff */}
-								<div className="flex flex-col mb-5">
-									<div className="flex flex-row mb-3 items-center">
-										<RiMessage2Fill size={20} />
-										<div className="font-semibold px-2 self-center pr-4">
-											Tag
-										</div>
-										<div className="text-md font-light">{info["topic"]}</div>
-									</div>
-									<div className="flex flex-row mb-3 items-center">
-										<BiEditAlt size={20} />
-										<div className="font-semibold px-2 self-center pr-4">
-											Sources / Media
-										</div>
-										<div className="text-md font-light">{info["hearFrom"]}</div>
-									</div>
-									<div className="flex flex-row mb-3 items-center">
-										<AiOutlineFieldTime size={20} />
-										<div className="font-semibold px-2 self-center pr-4">
-											Date / Time
-										</div>
-										<div className="text-md font-light">{setPostedDate}</div>
-									</div>
-									{/* City state */}
-									<div className="flex flex-row mb-3 items-center">
-										<IoLocation size={20} />
-										<div className="font-semibold px-2 self-center pr-4">
-											City, State
-										</div>
-										<div className="text-md font-light">{setReportLocation}</div>
-									</div>
-									<div className="flex flex-row mb-3 items-center">
-										<SwitchRead setReportModalId={setReportModalId} />
-									</div>
-								</div>
-
-								{/* Links */}
-								<div className="mb-8">
-									<div className={style.header}>Link to the Information</div>
-									<div className="flex flex-col">
-										{info["link"] && (
-											<a
-												className={style.link}
-												target="_blank"
-												rel="noreferrer"
-												href={"//" + info["link"]}>
-												{info["link"]}
-											</a>
-										)}
-										{info["secondLink"] && (
-											<a
-												className={style.link}
-												target="_blank"
-												rel="noreferrer"
-												href={"//" + info["secondLink"]}>
-												{info["secondLink"]}
-											</a>
-										)}
-										{info["thirdLink"] && (
-											<a
-												className={style.link}
-												target="_blank"
-												rel="noreferrer"
-												href={"//" + info["thirdLink"]}>
-												{info["thirdLink"]}
-											</a>
-										)}
-									</div>
-								</div>
-
-								{/* Detail */}
-								<div>
-									<div className={style.header}>Description</div>
-									<div className="font-light overflow-auto max-h-32">
-										<textarea
-											id="detail"
-											onChange={onDetailChange}
-											placeholder="Description..."
-											className={style.textarea}
-											rows="4"
-											defaultValue={detail}></textarea>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div className="right-side flex flex-col justify-between">
-							<div>
-								{/* Notes */}
-								<div className="notes">
-									<div className={style.header}>Newsroom's Notes</div>
-									<textarea
-										id="note"
-										onChange={onNoteChange}
-										placeholder="No notes yet..."
-										className={style.textarea}
-										rows="4"
-										defaultValue={note}></textarea>
-								</div>
-								{/* Images */}
-								<div className="images mb-12">
-									<div className={style.header}>Images</div>
-									{info['images'] && info['images'][0] ?
-										<div className="flex w-full overflow-y-auto">
-											{info['images'].map((image, i) => {
-												return (
-													<div className="flex mr-2">
-														<Image src={image} width={100} height={100} key={i} alt="image"/>
-													</div>
-												)
-											})}
-										</div> :
-										<div className="italic font-light">No images for this report</div>
-									}
+								{/* Read/Unread */}
+								<div className="flex flex-row mb-4 items-center">
+									<SwitchRead setReportModalId={setReportModalId} />
 								</div>
 								{/* Share */}
 								<button
-									className="flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none"
+									className="flex flex-row text-sm bg-white px-4 mb-4 border-none text-black py-1 rounded-md shadow hover:shadow-none"
 									onClick={SendLinkByMail}>
 									<BsShareFill className="my-1" size={15} />
 									<div className="px-3 py-1">Share The Report</div>
 								</button>
-							</div>
-							<div className="flex items-center justify-between justify-items-stretch">
+									<div className="flex items-center justify-between justify-items-stretch">
 								{/* Save button */}
 									<div className="save-button w-full">
 										<button
@@ -281,7 +276,11 @@ const ReportModal = ({
 									</button>
 								</div>
 							</div>
+							</div>
+							
+						
 						</div>
+								
 					</form>
 				</div>
 			</div>
