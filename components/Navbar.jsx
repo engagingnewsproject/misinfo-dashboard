@@ -54,7 +54,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
 
   // Only closes menu on mobile view
   function shouldCloseMenu() {
-    console.log(window.innerWidth)
+    // console.log(window.innerWidth)
     if (window.innerWidth < 640) {
       setShowNav(false)
     } else {
