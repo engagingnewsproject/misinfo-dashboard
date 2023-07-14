@@ -35,9 +35,9 @@ console.log(report['images'])
 	const style = {
 		header: "text-lg font-bold text-black tracking-wider mb-4",
 		link: "font-light mb-1 text-sm underline underline-offset-1",
-		overlay: "z-10 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50",
+		overlay: "z-[1200] fixed top-0 left-0 w-full h-full bg-black bg-opacity-50",
 		modal:
-			"flex overflow-y- justify-center items-center z-20 absolute sm:top-0 md:top-4 left-0 w-full sm:w-full sm:h-full",
+			"flex overflow-y- justify-center items-center z-[1300] absolute sm:top-0 md:top-4 left-0 w-full sm:w-full sm:h-full",
 		wrap: "flex-col justify-center items-center lg:w-8/12 h-auto rounded-2xl py-10 px-10 bg-sky-100",
 		textarea:
 			"border transition ease-in-out w-full text-md font-light bg-white rounded-xl p-4 border-none focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none",
@@ -61,9 +61,9 @@ console.log(report['images'])
 		window.open(uri)
 	}
 	return (
-		<div className="fixed z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto" // {style.overlay} 
+		<div className="fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto" // {style.overlay} 
 			onClick={() => setReportModal(false)}>
-			 <div className="absolute top-4 md:top-6 md:right-6 md:left-6 flex justify-center items-center z-20 sm:overflow-y-scroll"> {/* {style.modal} */}
+			 <div className="absolute top-4 md:top-6 md:right-6 md:left-6 flex justify-center items-center z-[1300] sm:overflow-y-scroll"> {/* {style.modal} */}
 				<div
 					className="flex-col justify-center items-center lg:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible" // {style.wrap}
 					onClick={(e) => {

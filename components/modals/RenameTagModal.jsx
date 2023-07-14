@@ -30,10 +30,10 @@ const RenameTagModal = ({ replaceTag, selected, list, setRenameTagModal, addNewT
 
     return (
         <div>
-            <div className="flex justify-center items-center z-10 absolute top-0 left-0 w-full h-full bg-black opacity-60">
+            <div className="flex justify-center items-center z-[1200] absolute top-0 left-0 w-full h-full bg-black opacity-60">
             </div>
-            <div className="flex justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
-                <div className="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10">
+            <div onClick={() => setRenameTagModal(false)} className="flex justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full">
+                <div onClick={(e) => { e.stopPropagation() }} className="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10">
                     <div className="flex justify-between w-full mb-5">
                         <div className="text-md font-bold text-blue-600 tracking-wide">Rename</div>
                         <button onClick={() => setRenameTagModal(false)} className="text-gray-800">
