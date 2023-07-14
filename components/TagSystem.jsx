@@ -50,7 +50,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
 
     const getData = async() => {
         const docRef = await getDoc(doc(db, "tags", user.uid))
-        console.log(docRef)
+        // console.log(docRef)
         try {
             const { [tagSystems[tagSystem]]: tagsData } = docRef.data()
             setList(tagsData.list)
@@ -64,7 +64,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
     const updateTag = (e, updateType) => {
         switch (updateType) {
             case "activate":
-                console.log(active.length)
+                // console.log(active.length)
                 if (active.length == maxTags[tagSystem]) {
                     setMaxTagsError(true)
                 } else {
@@ -129,7 +129,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
         e.preventDefault()
         if (search.length == 0) return
 
-        console.log(search)
+        // console.log(search)
     }
 
     const handleChange = (e) => {
@@ -212,10 +212,13 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                 <div className="shadow-lg absolute rounded-lg z-20 mt-2 w-1/2">
                     <div className="bg-white w-full rounded-lg">
                         {searchResult.map((item) => {
-                            return (<div onClick={() => {
+                            return (
+                                !item.includes('Other') &&
+                                <div onClick={() => {
                                 setSelected(item)
                                 setSearchResult([])
-                            }} className="text-light text-sm rounded-lg leading-tight py-2 pl-4 hover:bg-indigo-100 cursor-pointer">{item}</div>)
+                            }} className="text-light text-sm rounded-lg leading-tight py-2 pl-4 hover:bg-indigo-100 cursor-pointer">{item}</div>
+                            )
                         })}
                     </div>
                 </div>}
@@ -232,9 +235,14 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                         <div className="grid w-full p-4 mb-2 rounded-xl grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                             {active.map((item) => {
                                 return (
-                                    <div onClick={() => setSelected(item)} className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center">
+                                !item.includes('Other') ?
+                                    <div id={item !== `Other` && `this`} onClick={() => setSelected(item)} className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center">
                                         <GoPrimitiveDot size={25} className="text-green-600"/>
                                         <div className="pl-2">{item}</div>
+                                    </div> :
+                                    <div className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center">
+                                        <GoPrimitiveDot size={25} className="text-green-600"/>
+                                        <div className="pl-2">{`Other*`}</div>
                                     </div>
                                 )
                             })}
@@ -245,6 +253,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                             const normStyles = "text-md font-light p-2 my-3 md:mx-2 cursor-pointer leading-normal flex items-center justify-center"
                             const selectedStyles = normStyles + " bg-blue-600 text-white rounded-lg"
                             return (
+                                !item.includes('Other') &&
                                 <div onClick={() => setSelected(item)} className={selected == item ? selectedStyles : normStyles}>
                                     { active.includes(item) && <GoPrimitiveDot size={25} className="text-green-600"/> }
                                     <div className="pl-2">{item}</div>
