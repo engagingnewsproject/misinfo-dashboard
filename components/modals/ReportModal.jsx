@@ -22,7 +22,6 @@ const ReportModal = ({
 	reporterInfo,
 	onNoteChange,
 	onFormSubmit,
-	onFormUpdate,
 	onReportDelete,
 	selectedLabel,
 	activeLabels,
@@ -31,7 +30,6 @@ const ReportModal = ({
 	setReportModal,
 	setReportModalId,
 }) => {
-console.log(report['images'])
 	const style = {
 		header: "text-lg font-bold text-black tracking-wider mb-4",
 		link: "font-light mb-1 text-sm underline underline-offset-1",
@@ -97,7 +95,8 @@ console.log(report['images'])
 											placeholder="No detail provided"
 											className={detail ? style.textarea : style.textarea + ` italic`}
 											disabled
-											rows="6">{detail}</textarea>
+											value={detail}
+											rows="6"/>
 									</div>
 
 									{/* Links */}
@@ -254,7 +253,6 @@ console.log(report['images'])
 								{/* Save button */}
 									<div className="save-button w-full">
 										<button
-											onClick={onFormUpdate}
 											className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
 											type="submit">
 											Save
