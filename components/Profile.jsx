@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import UpdatePwModal from './modals/UpdatePwModal'
 import { useAuth } from '../context/AuthContext';
 import ConfirmModal from './modals/ConfirmModal';
-
+import { useRouter } from 'next/router'
 
 // Profile page that allows user to edit password or logout of their account
 const Profile = () => {
@@ -13,7 +13,8 @@ const Profile = () => {
 
   const { logout } = useAuth()
 
-
+  const router = useRouter()
+  
   const handleLogout = () => {
     logout()
     router.push('/login')
