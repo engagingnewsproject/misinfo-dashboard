@@ -341,7 +341,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 
 	const handleModalShow = async (reportId) => {
 		// get doc
-
 		const docRef = await getDoc(doc(db, "reports", reportId))
 		setReport(docRef.data())
 		// get note
@@ -369,30 +368,18 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	} // end handleModalShow
 
 	const handleFormSubmit = async (e) => {
+		e.preventDefault()
 		setReportModal(false)
 	}
-
-	const handleNoteChange = (e) => {
-		if (e.target.value != note) {
-			setUpdate(e.target.value)
-		} else {
-			setUpdate("")
-		}
-	}
-
-	const handleTitleChange = async (e) => {
-		if (e.target.value !== info['title']) {
-			setTitle(info['title'])
-			setUpdate(e.target.value)
-		} else {
-			setUpdate("")
-		}
-	}
-
-	const handleDetailChange = async (e) => {
-		if (e.target.value !== info['detail']) {
-			setDetail(info['detail'])
-			setUpdate(e.target.value)
+	
+	const handleNoteChange = async (e) => {
+		e.preventDefault()
+		let reportId = reportModalId
+		console.log(reportId);
+		if (e.target.value !== info['note']) {
+				const docRef = doc(db, "reports", reportId)
+				await updateDoc(docRef, { note: e.target.value })
+				setUpdate(e.target.value)
 		} else {
 			setUpdate("")
 		}
@@ -408,23 +395,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		} else {
 			setUpdate("")
 		}
-	}
-
-	const handleFormUpdate = async (e) => {
-		e.preventDefault()
-		setUpdate(true)
-		
-		let reportId = reportModalId
-		const docRef = doc(db, "reports", reportId)
-		updateDoc(docRef, {
-			note: document.getElementById("note").value,
-			title: document.getElementById("title").value,
-			detail: document.getElementById("detail").value,
-		})
-		
-		setNote(note)
-		setReportTitle(title)
-		handleFormSubmit(e)
 	}
 	
 	// Delete report
@@ -707,14 +677,11 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 								setReportModal={setReportModal}
 								setReportModalId={reportModalId}
 								onNoteChange={handleNoteChange}
-								onTitleChange={handleTitleChange}
-								onDetailChange={handleDetailChange}
 								onLabelChange={handleLabelChange}
 								selectedLabel={selectedLabel}
 								activeLabels={activeLabels}
 								changeStatus={changeStatus}
 								onFormSubmit={handleFormSubmit}
-								onFormUpdate={handleFormUpdate}
 								onReportDelete={handleReportDelete}
 								setPostedDate={postedDate}
 								setReportLocation={reportLocation}
