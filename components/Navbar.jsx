@@ -7,14 +7,17 @@ import {
 	IoAddCircleOutline,
 	IoPricetagsOutline,
 	IoLogOutOutline,
+  IoPeopleOutline,
   IoPersonOutline,
   IoHelpCircleOutline,
+  IoBusinessOutline,
   IoClose,
   IoMenu
 } from "react-icons/io5";
 import ReactTooltip from "react-tooltip";
 import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
+import { auth } from "../config/firebase"
 
 const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
 
@@ -156,6 +159,16 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                         <IoHomeOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
+                    {/* TESTING please correct this lol */}
+                    {auth.currentUser.displayName === 'Luke' &&
+                      <button 
+                          onClick={() => setTab(4)}
+                          data-tip="Agencies"
+                          className={tab == 4 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
+                          <IoBusinessOutline size={30}/>
+                          <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                      </button>
+                    }
                     <button
                         onClick={() => setTab(2)}
                         data-tip="Tagging Systems"
@@ -170,6 +183,16 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                         <IoAddCircleOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
+                    {/* TESTING please correct this lol */}
+                    {auth.currentUser.displayName === 'Luke' &&
+                      <button
+                          onClick={() => setTab(3)}
+                          data-tip="Users"
+                          className={basicStyle}>
+                          <IoPeopleOutline size={30}/>
+                          <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                      </button>
+                    }
                 </div>
                 <div>
                     <button

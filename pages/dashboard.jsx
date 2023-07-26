@@ -4,10 +4,12 @@ import { useState } from 'react'
 import Home from '../components/Home'
 import Profile from '../components/Profile'
 import Settings from '../components/Settings'
+import Users from '../components/Users'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
+import Agencies from '../components/Agencies'
 
-const tabList = ['Home', 'Profile', 'Settings'];
+const tabList = ['Home', 'Profile', 'Settings', 'Users'];
 
 const Dashboard = () => {
     const { user, logout } = useAuth()
@@ -29,6 +31,8 @@ const Dashboard = () => {
             { tab == 0 && <Home newReportSubmitted={newReportSubmitted} handleNewReportSubmit={handleNewReportSubmit} />}
             { tab == 1 && <Profile />}
             { tab == 2 && <Settings />}
+            { tab == 3 && <Users />}
+            { tab == 4 && <Agencies />}
             </div>
         </div>
     )
