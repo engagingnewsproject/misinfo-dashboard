@@ -1,8 +1,32 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { AiOutlineSearch } from 'react-icons/ai'
+import { collection, getDocs } from '@firebase/firestore'
+import { db, auth } from "../config/firebase"
 
 const Headbar = ({ search, setSearch}) => {
+    const [roles, setRoles] = useState('')
+    
+	// //
+	// Data
+	// //
+	const getData = async () => {
+		const userRoles = collection(db, 'userRoles')
+		
+		const snapshot = await getDocs(userRoles)
+		try {
+			var arr = []
+			snapshot.forEach((doc) => {
+				arr.push({
+					[doc.id]: doc.data(),
+				})
+			})
+			setRoles(arr)
+		} catch (error) {
+			console.log(error)
+		}
 
+	}
+    
     const handleSearch = (e) => {
         e.preventDefault()
         if (search.length == 0) return
@@ -14,6 +38,13 @@ const Headbar = ({ search, setSearch}) => {
         setSearch(e.target.value)
     }
     
+    // //
+	// Effects
+	// //
+	useEffect(() => {
+		getData()
+	})
+
     return (
         <div className="w-full">
             <div className="flex py-4 px-12 sm:px-10 justify-between">
@@ -21,8 +52,10 @@ const Headbar = ({ search, setSearch}) => {
                     <div className="flex justify-center">
                         <div className="w-10 h-10 font-extralight rounded-full tracking-widest flex justify-center text-sm items-center text-white bg-blue-500">M</div>
                     </div>
+
                     <div className="text-md font-semibold px-4 m-auto tracking-wide">
-                        Local Pipeline Dashboard
+                        {/* TESTING please correct this lol */}
+                        {auth.currentUser.displayName === 'Luke' ? `Misinfo Admin Dashboard` : `Local Pipeline Dashboard`}
                     </div>
                 </div>
                 <form className="flex relative w-1/4" onChange={handleChange} onSubmit={handleSearch}>
