@@ -86,12 +86,9 @@ const Users = () => {
 	}
 	
 	const addNewUser = (user) => {
-        let arr = list
-        arr.push(user)
-        // setList(arr)
-        // setData(tagSystem, list, active, user)
-        // setSearch("")
-    }
+		let arr = list
+		arr.push(user)
+	}
 	
 	const handleAddNew = (e) => {
 		e.preventDefault()
@@ -116,16 +113,7 @@ const Users = () => {
 					</div>
 				</div>
 				<div className="flex flex-col h-full">
-						      <ul>
-        {users.map((user) => (
-          <li key={user.uid}>
-            <p>UID: {user.uid}</p>
-            <p>Email: {user.email}</p>
-            <p>Name: {user.displayName}</p>
-            {/* Add any other user properties you want to display */}
-          </li>
-        ))}
-      </ul>
+
 					<InfiniteScroll
 						className="overflow-x-auto"
 						dataLength={endIndex}
