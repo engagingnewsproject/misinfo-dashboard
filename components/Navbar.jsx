@@ -14,7 +14,9 @@ import {
   IoClose,
   IoMenu
 } from "react-icons/io5";
+import { HiOutlineDocumentPlus } from "react-icons/hi2";
 import ReactTooltip from "react-tooltip";
+import Link from "next/link"
 import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
 import { auth } from "../config/firebase"
@@ -121,6 +123,9 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
 
   const basicStyle = "flex p-2 my-6 mx-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
 
+  const handleCreateReport = () => {
+    setTab(5)
+  }
 
     return (
       <>
@@ -159,8 +164,8 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                         <IoHomeOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
-                    {/* TESTING please correct this lol */}
-                    {auth.currentUser.displayName === 'Luke' &&
+                    {/* TESTING - replace with custom claim validation */}
+                    {auth.currentUser.displayName !== '' &&
                       <button 
                           onClick={() => setTab(4)}
                           data-tip="Agencies"
@@ -176,15 +181,15 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                         <IoPricetagsOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
-                    <button
-                        onClick={handleNewReportModal}
-                        data-tip="New Report"
-                        className={basicStyle}>
-                        <IoAddCircleOutline size={30}/>
-                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
-                    </button>
-                    {/* TESTING please correct this lol */}
-                    {auth.currentUser.displayName === 'Luke' &&
+                      <button
+                          onClick={handleNewReportModal}
+                          data-tip="New Report"
+                          className={basicStyle}>
+                          <IoAddCircleOutline size={30}/>
+                          <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                      </button>
+                    {/* TESTING - replace with custom claim validation */}
+                    {auth.currentUser.displayName !== '' &&
                       <button
                           onClick={() => setTab(3)}
                           data-tip="Users"

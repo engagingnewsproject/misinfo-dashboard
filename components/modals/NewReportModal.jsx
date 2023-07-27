@@ -9,7 +9,6 @@ import { Country, State, City }  from 'country-state-city';
 import { getDoc, getDocs, doc, setDoc, collection, updateDoc, addDoc } from "firebase/firestore";
 import { getStorage, ref, getDownloadURL, uploadBytes, deleteObject, uploadBytesResumable } from 'firebase/storage';
 import csc from "country-state-city";
-import auth from "@firebase/auth";
 import Select from "react-select";
 
 const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
@@ -26,9 +25,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [secondLink, setSecondLink] = useState("")
     const [detail, setDetail] = useState("")
     // Image upload
-    
-    
-    
+
     const [imageList, setImageList] = useState([])
     // Get a reference to the storage service, which is used to create references in your storage bucket
     const storage = getStorage();
@@ -39,7 +36,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [update, setUpdate] = useState(false)
     const [allTopicsArr, setTopics] = useState([])
     const [selectedTopic, setSelectedTopic] = useState("")
-    const [allSourcesArr, setSources] = useState([])
+    const [sources, setSources] = useState([])
     const [selectedSource, setSelectedSource] = useState("")
     const [errors, setErrors] = useState({})
     // console.log(Country.getCountryByCode('US'))
@@ -127,7 +124,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     }, [update]);
 
     const handleChange = (e) => {
-
+        console.log('Report value changed.');
     }
     
     const handleNewReport = async (e) => {
@@ -195,12 +192,15 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         e.preventDefault()
         setNewReportModal(false)
     }
-
+    
     return (
-        <div>
+        <div className="bk-white h-full w-full">
             <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-[1200]">
-                <div onClick={handleNewReportModalClose} className="flex overflow-y-auto justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full">
-                    <div onClick={(e) => {e.stopPropagation()}} className="flex-col justify-center items-center bg-white md:w-8/12 lg:w-6/12 h-auto rounded-2xl py-10 px-10 z-50">
+            <div 
+                onClick={handleNewReportModalClose} 
+                className={`flex overflow-y-auto justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full`}>
+                {/* <div onClick={handleNewReportModalClose} className="flex overflow-y-auto justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full"> */}
+                    <div onClick={(e) => {e.stopPropagation()}} className={`flex-col justify-center items-center bg-white md:w-8/12 lg:w-6/12 h-auto rounded-2xl py-10 px-10 z-50`}>
                         <div className="flex justify-between w-full mb-5">
                             <div className="text-md font-bold text-blue-600 tracking-wide">Add New Report</div>
                             <button onClick={handleNewReportModalClose} className="text-gray-800">
@@ -294,7 +294,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     type="text"
                                     placeholder="Source"
                                     
-                                    options={allSourcesArr.map(source => ({ label: source, value: source }))}
+                                    options={sources.map(source => ({ label: source, value: source }))}
                                                                 
                                     onChange={(selectedOption) => {
                                         setSelectedSource(selectedOption.value)
