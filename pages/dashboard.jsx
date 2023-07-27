@@ -8,8 +8,9 @@ import Users from '../components/Users'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
 import Agencies from '../components/Agencies'
+import SettingsReport from '../components/SettingsReport'
 
-const tabList = ['Home', 'Profile', 'Settings', 'Users'];
+const tabList = ['Home', 'Profile', 'Settings', 'Users', 'Agencies', 'ReportSettings'];
 
 const Dashboard = () => {
     const { user, logout } = useAuth()
@@ -33,6 +34,7 @@ const Dashboard = () => {
             { tab == 2 && <Settings />}
             { tab == 3 && <Users />}
             { tab == 4 && <Agencies />}
+            { tab == 5 && <SettingsReport />}
             </div>
         </div>
     )
