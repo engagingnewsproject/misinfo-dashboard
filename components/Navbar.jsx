@@ -198,6 +198,15 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                           <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
                     }
+                    {auth.currentUser.displayName !== '' &&
+                      <button
+                          onClick={() => setTab(5)}
+                          data-tip="Create Report"
+                          className={basicStyle}>
+                          <HiOutlineDocumentPlus size={30}/>
+                          <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                      </button>
+                    }
                 </div>
                 <div>
                     <button
