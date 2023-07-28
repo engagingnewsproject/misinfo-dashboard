@@ -54,6 +54,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
         // console.log(docRef)
         try {
             const { [tagSystems[tagSystem]]: tagsData } = docRef.data()
+            console.log(tagsData);
             setList(tagsData.list)
             setActive(tagsData.active)
         } catch (error) {
