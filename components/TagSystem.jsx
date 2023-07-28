@@ -10,6 +10,7 @@ import { GoPrimitiveDot } from 'react-icons/go'
 import { MdModeEditOutline } from 'react-icons/md'
 import { TiDelete } from 'react-icons/ti'
 import { IoIosRadioButtonOn } from 'react-icons/io'
+import { BsXCircleFill } from "react-icons/bs";
 import { setDoc, getDoc, doc } from "firebase/firestore"; 
 import { useAuth } from '../context/AuthContext'
 import { db } from '../config/firebase'
@@ -217,7 +218,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                                 <div onClick={() => {
                                 setSelected(item)
                                 setSearchResult([])
-                            }} className="text-light text-sm rounded-lg leading-tight py-2 pl-4 hover:bg-indigo-100 cursor-pointer">{item}</div>
+                            }} className="text-light text-sm rounded-lg leading-tight py-2 pl-4 hover:bg-indigo-100 cursor-pointer" key={item}>{item}</div>
                             )
                         })}
                     </div>
@@ -236,11 +237,11 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                             {active.map((item) => {
                                 return (
                                 !item.includes('Other') ?
-                                    <div id={item !== `Other` && `this`} onClick={() => setSelected(item)} className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center">
+                                    <div onClick={() => setSelected(item)} className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center" key={item}>
                                         <GoPrimitiveDot size={25} className="text-green-600"/>
                                         <div className="pl-2">{item}</div>
                                     </div> :
-                                    <div className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center">
+                                    <div className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center" key={`other`}>
                                         <GoPrimitiveDot size={25} className="text-green-600"/>
                                         <div className="pl-2">{`Other*`}</div>
                                     </div>
@@ -254,7 +255,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                             const selectedStyles = normStyles + " bg-blue-600 text-white rounded-lg"
                             return (
                                 !item.includes('Other') &&
-                                <div onClick={() => setSelected(item)} className={selected == item ? selectedStyles : normStyles}>
+                                <div onClick={() => setSelected(item)} className={selected == item ? selectedStyles : normStyles} key={item}>
                                     { active.includes(item) && <GoPrimitiveDot size={25} className="text-green-600"/> }
                                     <div className="pl-2">{item}</div>
                                 </div>
