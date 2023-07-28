@@ -12,6 +12,7 @@ import Select from "react-select";
 
 const setData = async(reportSystem, list, user) => {
     const docRef = await getDoc(doc(db, "reports", user.uid))
+    // TODO
     // const updatedDocRef = await setDoc(doc(db, "reports", user.uid), {
     //     ...docRef.data(),
     //     [reportSystems[reportSystem]]: {
@@ -25,6 +26,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
     const dbInstance = collection(db, 'reports');
     const { user } = useAuth()
     const [data, setData] = useState({ country: "US", state: null, city: null })
+    const [isSearchable, setIsSearchable] = useState(true);
     const [dontShowAgain, setDontShowAgain] = useState(false);
     const storage = getStorage();
     const imgPicker = useRef(null)
@@ -35,13 +37,12 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
     const [link, setLink] = useState("")
     const [secondLink, setSecondLink] = useState("")
     const [detail, setDetail] = useState("")
-    const [allTopicsArr, setTopics] = useState([])
+    const [allTopicsArr, setAllTopicsArr] = useState([])
     const [selectedTopic, setSelectedTopic] = useState("")
     const [sources, setSources] = useState([])
     const [selectedSource, setSelectedSource] = useState("")
     const [errors, setErrors] = useState({})
-    console.log(allTopicsArr);
-    console.log(reportSystem);
+
     // //
     // Text content
     // //
@@ -54,7 +55,9 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
         reminderIncorrect: "US officially marks 1 million American deaths from Covid.",
         reminderStart: "Start",
         reminderNoShow: "Do not show this again.",
-          share: "Share more information",
+        locationTitle: "Where are you located?",
+        sourceTitle: 'Where did you see the potential misinformation?',
+        share: "Share more information",
         title: "Title *",
         titleDescription: "Please provide a title for the potential misinformation",
         max: "(Max: 160 characters.)",
@@ -80,8 +83,17 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
 	// Styles
 	// //
 	const style = {
-		section_container: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-visible',
-		section_wrapper: 'flex items-center',
+		sectionContainer: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-visible',
+		sectionWrapper: 'flex items-center',
+        sectionTitle: 'text-2xl font-bold',
+        form: 'flex w-96 h-full justify-center',
+        viewWrapper: 'flex flex-col gap-2 mt-8',
+        inputSingle: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
+        inputCheckboxWrap: 'flex',
+        inputRadio: 'bg-blue-600 flex rounded-lg p-2 text-white justify-center checked:bg-blue-500',
+        inputRadioChecked: 'bg-blue-800 flex rounded-lg p-2 text-white justify-center checked:bg-blue-500',
+        inputImage: 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
+        inputTextarea: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
         button: 'w-80 self-center mt-4 shadow bg-blue-600 hover:bg-gray-100 text-sm text-white py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
 	}
     
@@ -114,6 +126,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
     // //
     const getData = async() => {
         const docRef = await getDoc(doc(db, "reports", user.uid))
+        // TODO
         try {
             // const { [reportSystems[reportSystem]]: reportsData } = docRef.data()
             // setList(reportsData.list)
@@ -128,7 +141,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
         const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
         const topicRef = await getDoc(topicDoc);
         const topics = topicRef.get("Topic")['active']
-        setTopics(topics);
+        setAllTopicsArr(topics);
     }
     
     // Get sources
@@ -225,7 +238,8 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
     };
     
     const handleChange = (e) => {
-        console.log('Report value changed.');
+        console.log('Report value changed: ' + e.target.id);
+        e.target.id === 'topic' ? setSelectedTopic(e.target.value) : setSelectedSource(e.target.value)
     }
     
     // //
@@ -246,8 +260,8 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
     }, [update]);
 
     return (
-        <div className={style.section_container}>
-            <div className={style.section_wrapper}>
+        <div className={style.sectionContainer}>
+            <div className={style.sectionWrapper}>
                 <button onClick={() => setReportSystem(reportSystem == 3 ? reportSystem == 0 : reportSystem - 1)}>
                     <IoMdArrowRoundBack size={25} />
                 </button>
@@ -283,15 +297,20 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                 </div>
             }
             <div className="flex gap-2 flex-col overflow-visible">
-                <form onChange={handleChange} onSubmit={handleNewReport}>
+                <form onChange={handleChange} onSubmit={handleNewReport} className={style.form}>
+                {/* Location */}
                 {reportSystem == 3 &&
-                    <>
-                        <div>Where are you located?</div>
+                    <div className={style.viewWrapper}>
+                        <div className={style.sectionTitle}>
+                            {t.locationTitle}
+                        </div>
+                        {/* State */}
                         <Select
-                            className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            className={style.inputSingle}
                             id="state"
                             type="text"
                             placeholder="State"
+                            isSearchable={isSearchable}
                             value={data.state}
                             options={State.getStatesOfCountry(data.country)}
                             getOptionLabel={(options) => {
@@ -304,18 +323,19 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                             onChange={(value => {
                             setData(data=>({...data, state: value, city: null })) 
                             })}
-                            />
+                        />
                         {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)}
+                        {/* City */}
                         {data.state != null && 
                             <Select
-                                className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                className={style.inputSingle}
                                 id="city"
                                 type="text"
                                 placeholder="City"
                                 value={data.city}
                                 options={City.getCitiesOfState(
-                                data.state?.countryCode,
-                                data.state?.isoCode
+                                    data.state?.countryCode,
+                                    data.state?.isoCode
                                 )}
                                 getOptionLabel={(options) => {
                                 return options["name"];
@@ -339,54 +359,59 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                                 <BiRightArrowCircle size={30} />
                             </button>
                         }
-                    </>
+                    </div>
                 }
+                {/* Topic tag */}
                 {reportSystem == 4 &&
-                    <>
-                        <div>What is the potential information about?</div>
-                        <Select
-                            className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="topic-selection"
-                            type="text"
-                            placeholder="Topic"
-                            options={allTopicsArr.map(topic => ({ label: topic, value: topic }))}
-                            onChange={(selectedOption) => {
-                                setSelectedTopic(selectedOption.value)
-                            }}
-                            value={selectedTopic.value}
-                        />
+                    <div className={style.viewWrapper}>
+                        <div className={style.sectionTitle}>What is the potential information about?</div>
+                        {allTopicsArr.map((topic, i) => (
+                            <>
+                            <label key={i} className={topic === selectedTopic ? style.inputRadioChecked : style.inputRadio}>
+                            <input
+                            className="absolute opacity-0"
+                            id='topic'
+                            type="radio"
+                            checked={selectedTopic === topic}
+                            onChange={handleChange}
+                            value={topic}
+                            />
+                            {topic}</label>
+                            </>
+                        ))}
                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
                         {selectedTopic != '' && 
                             <button onClick={() => setReportSystem(reportSystem + 1)} >
                                 <BiRightArrowCircle size={30} />
                             </button>
                         }
-                    </>
+                    </div>
                 }
-                {/* Source */}
+                {/* Source tag */}
                 {reportSystem == 5 &&
-                    <>
-                        <div>Where did you see the potential misinformation?</div>
-                        <Select
-                            className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="source-selection"
-                            type="text"
-                            placeholder="Source"
-                            
-                            options={sources.map(source => ({ label: source, value: source }))}
-                                                        
-                            onChange={(selectedOption) => {
-                                setSelectedSource(selectedOption.value)
-                            }}
-                            value={selectedSource.value}
-                        />
+                    <div className={style.viewWrapper}>
+                        <div className={style.sectionTitle}>{t.sourceTitle}</div>
+                        {sources.map((source, i) => (
+                            <>
+                            <label key={i} className={source === selectedSource ? style.inputRadioChecked : style.inputRadio}>
+                            <input
+                            className="absolute opacity-0"
+                            id='source'
+                            type="radio"
+                            checked={selectedSource === source}
+                            onChange={handleChange}
+                            value={source}
+                            />
+                            {source}</label>
+                            </>
+                        ))}
                         {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
                         {selectedSource != '' && 
                             <button onClick={() => setReportSystem(reportSystem + 1)} >
                                 <BiRightArrowCircle size={30} />
                             </button>
                         }
-                    </>
+                    </div>
                 }
                 {/* Details */}
                 {reportSystem == 6 &&
@@ -397,7 +422,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                             <div>{t.titleDescription}</div>
                             <div>{t.max}</div>
                                 <input
-                                    className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    className={style.inputSingle}
                                     id="title"
                                     type="text"
                                     placeholder="Briefly describe"
@@ -405,49 +430,49 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                                     onChange={(e) => setTitle(e.target.value)}
                                     value={title}
                                 />
-                                <div>{t.detail}</div>
-                                <div>{t.detailDescription}</div>
-                                {t.link}
-                                <input
-                                    className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="link"
-                                    type="text"
-                                    placeholder="https://"
-                                    required
-                                    onChange={(e) => setLink(e.target.value)}
-                                    value={link}
-                                />
-                                <input
-                                    className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="secondLink"
-                                    type="text"
-                                    placeholder="https://"
-                                    onChange={(e) => setSecondLink(e.target.value)}
-                                    value={secondLink}
-                                />
-                                <div>{t.image}</div>
-                                <div>{t.imageDescription}</div>
-                                <label className="block">
-                                    <span className="sr-only">Choose files</span>
-                                    <input className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer" 
-                                    id="multiple_files" 
-                                    type="file" 
-                                    multiple 
-                                    accept="image/*" 
-                                    onChange={(e) => {
-                                        handleImageChange(e)
-                                    }}
-                                    ref={imgPicker}
+                                    <div>{t.detail}</div>
+                                    <div>{t.detailDescription}</div>
+                                    {t.link}
+                                    <input
+                                        className={style.inputSingle}
+                                        id="link"
+                                        type="text"
+                                        placeholder="https://"
+                                        required
+                                        onChange={(e) => setLink(e.target.value)}
+                                        value={link}
                                     />
-                                </label>
-                                <div>
-                                {t.detailed}
-                                </div>
-                                <div>
-                                {t.detailedDescription}
-                                </div>
-                                <textarea
-                                    className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    <input
+                                        className={style.inputSingle}
+                                        id="secondLink"
+                                        type="text"
+                                        placeholder="https://"
+                                        onChange={(e) => setSecondLink(e.target.value)}
+                                        value={secondLink}
+                                    />
+                            <div>{t.image}</div>
+                            <div>{t.imageDescription}</div>
+                            <label className="block">
+                                <span className="sr-only">Choose files</span>
+                                <input className={style.inputImage} 
+                                id="multiple_files" 
+                                type="file" 
+                                multiple 
+                                accept="image/*" 
+                                onChange={(e) => {
+                                    handleImageChange(e)
+                                }}
+                                ref={imgPicker}
+                                />
+                            </label>
+                            <div>
+                            {t.detailed}
+                            </div>
+                            <div>
+                            {t.detailedDescription}
+                            </div>
+                                    <textarea
+                                    className={style.inputTextarea}
                                     id="detail"
                                     type="text"
                                     placeholder={t.describe}
@@ -456,17 +481,19 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                                     value={detail}
                                     rows="5"
                                     ></textarea>
-                                <button onClick={() => setReportSystem(7)} className={style.button} >
+                            <button onClick={() => setReportSystem(7)} className={style.button} >
                             Submit
                             </button>
                         </div>
                     </>
                 }
-                {/* {reportSystem > 1 && 
-                     <button onClick={() => setReportSystem(reportSystem + 1)} >
-                         <BiRightArrowCircle size={30} />
-                     </button>
-                } */}
+                {/* Output values */}
+                <div className='absolute bottom-5 right-5 flex flex-col'>
+                    <strong>Selected topic:</strong>
+                    {selectedTopic || "undefined"}
+                    <strong>Selected source:</strong>
+                    {selectedSource || "undefined"}
+                </div>
             </form>
         </div>
         </div>

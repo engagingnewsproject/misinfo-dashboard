@@ -136,6 +136,7 @@ const Agencies = () => {
 						</tr>
 					</thead>
 					<tbody>
+					{/* {console.log(endIndex)} */}
 						{agencies.slice(0, endIndex).map((agencyObj, i) => {
 							const agency = Object.values(agencyObj)[0]
 							return (
