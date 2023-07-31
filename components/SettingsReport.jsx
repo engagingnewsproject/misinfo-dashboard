@@ -4,7 +4,7 @@ import ReportList from './ReportList';
 import { IoChevronForward } from "react-icons/io5";
 import Image from 'next/image'
 
-export const reportSystems = ['default', 'Report', 'Reminder', 'Location', 'What', 'Where', 'Detail'];
+export const reportSystems = ['default', 'Report', 'Reminder', 'Location', 'What', 'Where', 'Detail', 'Thank You', 'View Report'];
 
 const SettingsReport = () => {
 

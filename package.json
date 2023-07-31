@@ -19,6 +19,7 @@
     "dotenv": "^16.0.1",
     "firebase": "^9.8.3",
     "firebase-admin": "^11.10.1",
+    "firebase-functions": "^4.4.1",
     "formik": "^2.2.9",
     "luxon": "^3.2.1",
     "moment": "^2.29.4",
