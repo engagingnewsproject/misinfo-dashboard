@@ -7,20 +7,10 @@ import { getStorage, ref, getDownloadURL, uploadBytes, deleteObject, uploadBytes
 import { useAuth } from '../context/AuthContext'
 import { db } from '../config/firebase'
 import { State, City }  from 'country-state-city';
+import Link from "next/link"
+import moment from "moment";
 import Image from 'next/image'
 import Select from "react-select";
-
-const setData = async(reportSystem, list, user) => {
-    const docRef = await getDoc(doc(db, "reports", user.uid))
-    // TODO
-    // const updatedDocRef = await setDoc(doc(db, "reports", user.uid), {
-    //     ...docRef.data(),
-    //     [reportSystems[reportSystem]]: {
-    //         list: list,
-    //     }
-    // });
-    // return updatedDocRef
-}
 
 const ReportSystem = ({ reportSystem, setReportSystem }) => {
     const dbInstance = collection(db, 'reports');
@@ -29,6 +19,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
     const [isSearchable, setIsSearchable] = useState(true);
     const [dontShowAgain, setDontShowAgain] = useState(false);
     const storage = getStorage();
+    const [reportId, setReportId] = useState('')
     const imgPicker = useRef(null)
     const [images, setImages] = useState([])
     const [imageURLs, setImageURLs] = useState([]);
@@ -76,33 +67,46 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
         submit: "Submit",
         titleRequired:"Title is required",
         alertTitle:"Alert",
-        atLeast:"We need at least one of the following: a link, a photo, or a detailed description."
+        atLeast:"We need at least one of the following: a link, a photo, or a detailed description.",
+        thanksTitle: 'Thank you',
+        thanksText: "We investigate as many reports as possible, although we aren't always able to get to everything. When we're able, we'd love to share the results of our investigation.",
+        thanksView:"View my Report",
+        viewReportTitle: 'Title',
+        viewReportLinks: 'Links',
+        viewReportImage: 'Image Upload',
+        viewReportDetails: 'Detail Description',
+        viewReportButton: 'View All Reports'
     }
     
     // //
-	// Styles
-	// //
-	const style = {
-		sectionContainer: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-visible',
-		sectionWrapper: 'flex items-center',
-        sectionTitle: 'text-2xl font-bold',
+    // Styles
+    // //
+    const style = {
+        sectionContainer: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-visible',
+        sectionWrapper: 'flex items-center',
+        sectionH1: 'text-2xl font-bold',
+        sectionH2: 'text-blue-600',
+        sectionSub: 'text-sm',
         form: 'flex w-96 h-full justify-center',
         viewWrapper: 'flex flex-col gap-2 mt-8',
-        inputSingle: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
+        inputSelect: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
+        inputSingle: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 bg-white leading-tight focus:outline-none focus:shadow-outline',
         inputCheckboxWrap: 'flex',
         inputRadio: 'bg-blue-600 flex rounded-lg p-2 text-white justify-center checked:bg-blue-500',
         inputRadioChecked: 'bg-blue-800 flex rounded-lg p-2 text-white justify-center checked:bg-blue-500',
         inputImage: 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
         inputTextarea: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
         button: 'w-80 self-center mt-4 shadow bg-blue-600 hover:bg-gray-100 text-sm text-white py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
-	}
-    
+    }
+
     // //
     // Save Report
     // //
     const saveReport = (imageURLs) => {
-        addDoc(dbInstance, {
-            userID: user.email,
+        const newReportRef = doc(collection(db, "reports"));
+        setReportId(newReportRef.id) // set report id
+        setDoc(newReportRef, {
+            userID: user.accountId,
             state: data.state.name,
             city: data.city == null ? "N/A" : data.city.name,
             title: title,
@@ -116,8 +120,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
             topic: selectedTopic,
             hearFrom: selectedSource
         }).then(() => {
-            console.log('Success: report saved');
-            // handleNewReportSubmit(); // Send a signal to ReportsSection so that it updates the list 
+            console.log('Success: report saved: ' + reportId);
         })
     }
     
@@ -126,14 +129,6 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
     // //
     const getData = async() => {
         const docRef = await getDoc(doc(db, "reports", user.uid))
-        // TODO
-        try {
-            // const { [reportSystems[reportSystem]]: reportsData } = docRef.data()
-            // setList(reportsData.list)
-        } catch (error) {
-            // setData(reportSystem, list, user)
-            console.log(error)
-        }
     }
     
     // Get topics
@@ -161,7 +156,6 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
     
     const handleNewReport = async (e) => {
         e.preventDefault()
-        // TODO: Check for any errors
         const allErrors = {}
         if (data.state == null) {
             console.log("state error")
@@ -196,6 +190,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
         if (Object.keys(allErrors).length == 0) {
             saveReport(imageURLs)
         }
+        setReportSystem(7)
     }
     
     // Image upload (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js, https://www.youtube.com/watch?v=S4zaZvM8IeI)
@@ -212,7 +207,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
     const handleUpload = () => {
         const promises = [];
         images.map((image) => {
-            const storageRef = ref(storage, `images/report_${new Date().getTime().toString()}-${image.name}`)
+            const storageRef = ref(storage, `report_${new Date().getTime().toString()}.png`)
             const uploadTask = uploadBytesResumable(storageRef, image)
             promises.push(uploadTask);
             uploadTask.on( "state_changed",
@@ -238,8 +233,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
     };
     
     const handleChange = (e) => {
-        console.log('Report value changed: ' + e.target.id);
-        e.target.id === 'topic' ? setSelectedTopic(e.target.value) : setSelectedSource(e.target.value)
+        console.log('REPORT VALUE CHANGED: ' + e.target.id + ': ' + e.target.value);
     }
     
     // //
@@ -267,7 +261,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                 </button>
             </div>
             {reportSystem == 1 &&
-                <div className='flex flex-col gap-2 items-center'>
+                <div className={style.viewWrapper}>
                     <Image src="/img/reminder.png" width={156} height={120} alt="reminder"/>
                     <div className="text-xl px-5 font-extrabold text-blue-600 tracking-wider">
                         {reportSystem == 1 ? t.reminderTitle : reportSystems[reportSystem]}
@@ -296,17 +290,17 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                     </div>
                 </div>
             }
-            <div className="flex gap-2 flex-col overflow-visible">
+            <div className={style.viewWrapper}>
                 <form onChange={handleChange} onSubmit={handleNewReport} className={style.form}>
-                {/* Location */}
-                {reportSystem == 3 &&
+                    {/* Location */}
+                    {reportSystem == 3 &&
                     <div className={style.viewWrapper}>
-                        <div className={style.sectionTitle}>
+                        <div className={style.sectionH1}>
                             {t.locationTitle}
                         </div>
                         {/* State */}
                         <Select
-                            className={style.inputSingle}
+                            className={style.inputSelect}
                             id="state"
                             type="text"
                             placeholder="State"
@@ -328,7 +322,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                         {/* City */}
                         {data.state != null && 
                             <Select
-                                className={style.inputSingle}
+                                className={style.inputSelect}
                                 id="city"
                                 type="text"
                                 placeholder="City"
@@ -360,20 +354,21 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                             </button>
                         }
                     </div>
-                }
-                {/* Topic tag */}
-                {reportSystem == 4 &&
+                    }
+                    {/* Topic tag */}
+                    {reportSystem == 4 &&
                     <div className={style.viewWrapper}>
-                        <div className={style.sectionTitle}>What is the potential information about?</div>
+                        <div className={style.sectionH1}>What is the potential information about?</div>
                         {allTopicsArr.map((topic, i) => (
                             <>
                             <label key={i} className={topic === selectedTopic ? style.inputRadioChecked : style.inputRadio}>
+                            {/* Topic Tag Input */}
                             <input
                             className="absolute opacity-0"
                             id='topic'
                             type="radio"
                             checked={selectedTopic === topic}
-                            onChange={handleChange}
+                            onChange={(e) => setSelectedTopic(e.target.value)}
                             value={topic}
                             />
                             {topic}</label>
@@ -386,20 +381,21 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                             </button>
                         }
                     </div>
-                }
-                {/* Source tag */}
-                {reportSystem == 5 &&
+                    }
+                    {/* Source tag */}
+                    {reportSystem == 5 &&
                     <div className={style.viewWrapper}>
-                        <div className={style.sectionTitle}>{t.sourceTitle}</div>
+                        <div className={style.sectionH1}>{t.sourceTitle}</div>
                         {sources.map((source, i) => (
                             <>
                             <label key={i} className={source === selectedSource ? style.inputRadioChecked : style.inputRadio}>
+                            {/* Source tag input */}
                             <input
                             className="absolute opacity-0"
                             id='source'
                             type="radio"
                             checked={selectedSource === source}
-                            onChange={handleChange}
+                            onChange={(e) => setSelectedSource(e.target.value)}
                             value={source}
                             />
                             {source}</label>
@@ -412,46 +408,65 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                             </button>
                         }
                     </div>
-                }
-                {/* Details */}
-                {reportSystem == 6 &&
-                    <>
+                    }
+                    {/* Details */}
+                    {reportSystem == 6 &&
+                    <div className={style.viewWrapper}>
+                        <div className={style.sectionH1}>
+                        {t.share}
+                        </div>
                         <div className="flex gap-2 flex-col">
-                            <div>{t.share}</div>
-                            <div>{t.title}</div>
-                            <div>{t.titleDescription}</div>
-                            <div>{t.max}</div>
-                                <input
-                                    className={style.inputSingle}
-                                    id="title"
-                                    type="text"
-                                    placeholder="Briefly describe"
-                                    required
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    value={title}
-                                />
-                                    <div>{t.detail}</div>
-                                    <div>{t.detailDescription}</div>
-                                    {t.link}
-                                    <input
-                                        className={style.inputSingle}
-                                        id="link"
-                                        type="text"
-                                        placeholder="https://"
-                                        required
-                                        onChange={(e) => setLink(e.target.value)}
-                                        value={link}
-                                    />
-                                    <input
-                                        className={style.inputSingle}
-                                        id="secondLink"
-                                        type="text"
-                                        placeholder="https://"
-                                        onChange={(e) => setSecondLink(e.target.value)}
-                                        value={secondLink}
-                                    />
-                            <div>{t.image}</div>
-                            <div>{t.imageDescription}</div>
+                            <div className={style.sectionH2}>
+                                {t.title}
+                            </div>
+                            <div>
+                                {t.titleDescription}
+                            </div>
+                            <div className={style.sectionSub}>
+                                {t.max}
+                            </div>
+                            {/* Title input */}
+                            <input
+                                className={style.inputSingle}
+                                id="title"
+                                type="text"
+                                placeholder="Briefly describe"
+                                required
+                                onChange={(e) => setTitle(e.target.value)}
+                                value={title}
+                            />
+                            <div className={style.sectionH2}>
+                                {t.detail}
+                            </div>
+                            <div>
+                                {t.detailDescription}
+                            </div>
+                            <div className={style.sectionH2}>
+                                {t.link}
+                            </div>
+                            <input
+                                className={style.inputSingle}
+                                id="link"
+                                type="text"
+                                placeholder="https://"
+                                required
+                                onChange={(e) => setLink(e.target.value)}
+                                value={link}
+                            />
+                            <input
+                                className={style.inputSingle}
+                                id="secondLink"
+                                type="text"
+                                placeholder="https://"
+                                onChange={(e) => setSecondLink(e.target.value)}
+                                value={secondLink}
+                            />
+                            <div className={style.sectionH2}>
+                                {t.image}
+                            </div>
+                            <div>
+                                {t.imageDescription}
+                            </div>
                             <label className="block">
                                 <span className="sr-only">Choose files</span>
                                 <input className={style.inputImage} 
@@ -459,43 +474,108 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                                 type="file" 
                                 multiple 
                                 accept="image/*" 
-                                onChange={(e) => {
-                                    handleImageChange(e)
-                                }}
+                                onChange={handleImageChange}
                                 ref={imgPicker}
                                 />
                             </label>
-                            <div>
+                            <div className={style.sectionH2}>
                             {t.detailed}
                             </div>
                             <div>
                             {t.detailedDescription}
                             </div>
-                                    <textarea
-                                    className={style.inputTextarea}
-                                    id="detail"
-                                    type="text"
-                                    placeholder={t.describe}
-                                    required
-                                    onChange={(e) => setDetail(e.target.value)}
-                                    value={detail}
-                                    rows="5"
-                                    ></textarea>
-                            <button onClick={() => setReportSystem(7)} className={style.button} >
+                            <textarea
+                            className={style.inputTextarea}
+                            id="detail"
+                            type="text"
+                            placeholder={t.describe}
+                            required
+                            onChange={(e) => setDetail(e.target.value)}
+                            value={detail}
+                            rows="5"
+                            ></textarea>
+                            {/* onClick={() => setReportSystem(7)}  */}
+                            <button className={style.button} type="submit">
                             Submit
                             </button>
                         </div>
-                    </>
-                }
-                {/* Output values */}
-                <div className='absolute bottom-5 right-5 flex flex-col'>
-                    <strong>Selected topic:</strong>
-                    {selectedTopic || "undefined"}
-                    <strong>Selected source:</strong>
-                    {selectedSource || "undefined"}
+                    </div>
+                    }
+                </form>
+                {/* Thank you */}
+                {reportSystem == 7 &&
+                <div className={style.viewWrapper + ' items-center'}>
+                    <Image src="/img/reportSuccess.png" width={156} height={120} alt="report success"/>
+                    <div className={style.sectionH1}>
+                        {t.thanksTitle}
+                    </div>
+                    <div className='text-center'>{t.thanksText}</div>
+                    <button onClick={() => setReportSystem(reportSystem + 1)} className={style.button}>
+                        {t.thanksView}
+                    </button>
                 </div>
-            </form>
-        </div>
+                }
+                {/* View Report */}
+                {reportSystem == 8 &&
+                <div className={style.viewWrapper}>
+                    <Image src="/img/reportSuccess.png" width={156} height={120} alt="report success"/>
+                    <div className={style.sectionH1}>
+                        {t.thanksTitle}
+                    </div>
+                    {/* Title */}
+                    <div className={style.inputSingle}>
+                        <div className={style.sectionH2}>
+                            {t.viewReportTitle}
+                        </div>
+                        {title}
+                    </div>
+                    {/* Links */}
+                    <div className={style.inputSingle}>
+                        <div className={style.sectionH2}>
+                            {t.viewReportLinks}
+                        </div>
+                        {link !== '' && 
+                            <div>
+                            {link}
+                            </div>
+                        }
+                        {secondLink !== '' && 
+                            <div>
+                            {secondLink}
+                            </div>
+                        }
+                    </div>
+                    {/* Image upload */}
+                    <div className={style.inputSingle}>
+                        <div className={style.sectionH2}>
+                            {t.viewReportImage}
+                        </div>
+                            <div className="flex w-full overflow-y-auto">
+                                {imageURLs.map((image, i) => {
+                                    console.log(image)
+                                    return (
+                                        <div className="flex mr-2" key={i}>
+                                            <Link href={image} target="_blank">
+                                                <Image src={image} width={100} height={100} alt="image"/>
+                                            </Link>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                    </div>
+                    {/* Details */}
+                    <div className={style.inputSingle}>
+                        <div className={style.sectionH2}>
+                            {t.viewReportDetails}
+                        </div>
+                        {detail}
+                    </div>
+                    <button onClick={() => setReportSystem(0)} className={style.button}>
+                        {t.viewReportButton}
+                    </button>
+                </div>
+                }
+            </div>
         </div>
     )
 }
