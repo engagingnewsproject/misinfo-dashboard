@@ -260,7 +260,8 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                     <IoMdArrowRoundBack size={25} />
                 </button>
             </div>
-            {reportSystem == 1 &&
+            {reportSystem == 2 &&
+            // REMINDER
                 <div className={style.viewWrapper}>
                     <Image src="/img/reminder.png" width={156} height={120} alt="reminder"/>
                     <div className="text-xl px-5 font-extrabold text-blue-600 tracking-wider">
@@ -277,7 +278,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                             <BiXCircle size={25} color='red' />
                             {t.reminderIncorrect}
                         </div>
-                        <button onClick={() => setReportSystem(3)} className={style.button} type="submit">
+                        <button onClick={() => setReportSystem(4)} className={style.button} type="submit">
                             <div className="px-2 font-normal tracking-wide">{t.reminderStart}</div>
                         </button>
                         <div className='flex items-center justify-center gap-2'>
@@ -518,10 +519,6 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                 {/* View Report */}
                 {reportSystem == 8 &&
                 <div className={style.viewWrapper}>
-                    <Image src="/img/reportSuccess.png" width={156} height={120} alt="report success"/>
-                    <div className={style.sectionH1}>
-                        {t.thanksTitle}
-                    </div>
                     {/* Title */}
                     <div className={style.inputSingle}>
                         <div className={style.sectionH2}>
@@ -571,7 +568,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                         {detail}
                     </div>
                     <button onClick={() => setReportSystem(0)} className={style.button}>
-                        {t.viewReportButton}
+                        {t.viewReportButton+' (end of report create)'}
                     </button>
                 </div>
                 }
