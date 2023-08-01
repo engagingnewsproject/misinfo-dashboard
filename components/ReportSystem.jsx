@@ -47,6 +47,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
         reminderStart: "Start",
         reminderNoShow: "Do not show this again.",
         locationTitle: "Where are you located?",
+        topicTitle: 'What is the potential information about?',
         sourceTitle: 'Where did you see the potential misinformation?',
         share: "Share more information",
         title: "Title *",
@@ -87,8 +88,11 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
         sectionH1: 'text-2xl font-bold',
         sectionH2: 'text-blue-600',
         sectionSub: 'text-sm',
-        form: 'flex w-96 h-full justify-center',
-        viewWrapper: 'flex flex-col gap-2 mt-8',
+        sectionIconButtonWrap: 'self-end',
+        sectionIconButton: 'fill-blue-600',
+        form: 'flex w-96 h-full justify-center self-center',
+        viewWrapper: 'flex flex-col gap-2 mt-4',
+        viewWrapperCenter: 'flex flex-col gap-2 mt-8 items-center',
         inputSelect: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
         inputSingle: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 bg-white leading-tight focus:outline-none focus:shadow-outline',
         inputCheckboxWrap: 'flex',
@@ -151,7 +155,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
     // Handlers
     // //
     const handleDontShowAgain = () => {
-        setDontShowAgain(!dontShowAgain)
+        setDontShowAgain(true)
     }
     
     const handleNewReport = async (e) => {
@@ -212,14 +216,14 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
             promises.push(uploadTask);
             uploadTask.on( "state_changed",
                 (snapshot) => {
-                    console.log(snapshot);
+                    // console.log(snapshot);
                 },
                 (error) => {
                     console.log(error);
                 },
                 () => {
                     getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                        console.log('File available at', downloadURL);
+                        // console.log('File available at', downloadURL);
                         setImageURLs(
                             (prev) => [...prev, downloadURL]
                         )
@@ -233,13 +237,12 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
     };
     
     const handleChange = (e) => {
-        console.log('REPORT VALUE CHANGED: ' + e.target.id + ': ' + e.target.value);
+        // console.log('REPORT VALUE CHANGED: ' + e.target.id + ': ' + e.target.value);
     }
     
     // //
     // Effects
     // //
-    
     // On page load (mount), update the tags from firebase
     useEffect(() => {
         getData()
@@ -252,17 +255,19 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
             handleUpload()
         }
     }, [update]);
-
+    console.log(dontShowAgain); // TODO: finish dontshowagain checkbox
     return (
         <div className={style.sectionContainer}>
             <div className={style.sectionWrapper}>
-                <button onClick={() => setReportSystem(reportSystem == 3 ? reportSystem == 0 : reportSystem - 1)}>
+                {reportSystem < 7 && 
+                <button onClick={() => setReportSystem(reportSystem == 2 ? reportSystem == 0 : reportSystem - 1)}>
                     <IoMdArrowRoundBack size={25} />
                 </button>
+                }
             </div>
-            {reportSystem == 2 &&
+            {reportSystem == 2 && // dontShowAgain == false ?
             // REMINDER
-                <div className={style.viewWrapper}>
+                <div className={style.viewWrapperCenter}>
                     <Image src="/img/reminder.png" width={156} height={120} alt="reminder"/>
                     <div className="text-xl px-5 font-extrabold text-blue-600 tracking-wider">
                         {reportSystem == 1 ? t.reminderTitle : reportSystems[reportSystem]}
@@ -278,7 +283,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                             <BiXCircle size={25} color='red' />
                             {t.reminderIncorrect}
                         </div>
-                        <button onClick={() => setReportSystem(4)} className={style.button} type="submit">
+                        <button onClick={() => setReportSystem(3)} className={style.button} type="submit">
                             <div className="px-2 font-normal tracking-wide">{t.reminderStart}</div>
                         </button>
                         <div className='flex items-center justify-center gap-2'>
@@ -290,6 +295,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                         </div>
                     </div>
                 </div>
+            // : <div>Hidden</div>
             }
             <div className={style.viewWrapper}>
                 <form onChange={handleChange} onSubmit={handleNewReport} className={style.form}>
@@ -350,8 +356,8 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                         }
                         {errors.city && data.city === null &&  (<span className="text-red-500">{errors.city}</span>)}
                         {data.city != null && 
-                            <button onClick={() => setReportSystem(reportSystem + 1)} >
-                                <BiRightArrowCircle size={30} />
+                            <button onClick={() => setReportSystem(reportSystem + 1)} className={style.sectionIconButtonWrap}>
+                                <BiRightArrowCircle size={40} className={style.sectionIconButton}/>
                             </button>
                         }
                     </div>
@@ -359,10 +365,10 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                     {/* Topic tag */}
                     {reportSystem == 4 &&
                     <div className={style.viewWrapper}>
-                        <div className={style.sectionH1}>What is the potential information about?</div>
+                        <div className={style.sectionH1}>{t.topicTitle}</div>
                         {allTopicsArr.map((topic, i) => (
                             <>
-                            <label key={i} className={topic === selectedTopic ? style.inputRadioChecked : style.inputRadio}>
+                            <label key={i+'-'+topic} className={topic === selectedTopic ? style.inputRadioChecked : style.inputRadio}>
                             {/* Topic Tag Input */}
                             <input
                             className="absolute opacity-0"
@@ -377,8 +383,8 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                         ))}
                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
                         {selectedTopic != '' && 
-                            <button onClick={() => setReportSystem(reportSystem + 1)} >
-                                <BiRightArrowCircle size={30} />
+                            <button onClick={() => setReportSystem(reportSystem + 1)} className={style.sectionIconButtonWrap}>
+                                <BiRightArrowCircle size={40} className={style.sectionIconButton} />
                             </button>
                         }
                     </div>
@@ -404,8 +410,8 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                         ))}
                         {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
                         {selectedSource != '' && 
-                            <button onClick={() => setReportSystem(reportSystem + 1)} >
-                                <BiRightArrowCircle size={30} />
+                            <button onClick={() => setReportSystem(reportSystem + 1)} className={style.sectionIconButtonWrap}>
+                                <BiRightArrowCircle size={40} className={style.sectionIconButton} />
                             </button>
                         }
                     </div>
@@ -549,7 +555,6 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                         </div>
                             <div className="flex w-full overflow-y-auto">
                                 {imageURLs.map((image, i) => {
-                                    console.log(image)
                                     return (
                                         <div className="flex mr-2" key={i}>
                                             <Link href={image} target="_blank">
@@ -568,7 +573,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                         {detail}
                     </div>
                     <button onClick={() => setReportSystem(0)} className={style.button}>
-                        {t.viewReportButton+' (end of report create)'}
+                        {t.viewReportButton}
                     </button>
                 </div>
                 }

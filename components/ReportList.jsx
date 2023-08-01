@@ -1,33 +1,29 @@
 import React, { useState, useEffect } from "react"
-import Link from "next/link"
 import ReportView from "./ReportView"
-import { reportSystems } from './SettingsReport'
-import SettingsReport from "./SettingsReport"
-
+import { useAuth } from "../context/AuthContext"
 import {
 	collection,
-	getDoc,
 	getDocs,
-	doc,
-	updateDoc,
-	deleteDoc,
+	query,
+	where
 } from "firebase/firestore"
 import { db } from "../config/firebase"
 
 const ReportList = ({reportView, setReportView}) => {
 	const [reports, setReports] = useState([])
-	const [report, setReport] = useState('')
 	const [reportId, setReportId] = useState('')
-	const [update, setUpdate] = useState("")
+	const { user } = useAuth()
 
 	const getData = async () => {
-		const reportsCollection = collection(db, "reports")
-		const snapshot = await getDocs(reportsCollection)
+		const reportsRef = collection(db, "reports")
+		// Get only reports belonging to the user's accountId
+		const q = query(reportsRef, where('userID', "==", user.accountId));
+		const snapshot = await getDocs(q)
 		try {
 			var arr = []
 			var reportId
 			snapshot.forEach((doc) => {
-				setReportId(doc.id)
+				setReportId(doc.id) // get and set the report ID
 				arr.push({
 					[doc.id]: doc.data(),
 				})
@@ -38,6 +34,7 @@ const ReportList = ({reportView, setReportView}) => {
 			console.log(error)
 		}
 	}
+	
 	const dateOptions = {
 		month: "2-digit",
 		day: "2-digit",
@@ -50,11 +47,12 @@ const ReportList = ({reportView, setReportView}) => {
 	
 	useEffect(() => {
 		getData()
-	}, [update])
+	})
+
 	return (
 		<>
 		{reportView == 0 &&
-			<div className="bg-slate-100 p-4 rounded-lg">
+			<div className="bg-slate-100 p-4 rounded-lg mt-2">
 				{reports.map((reportObj, i) => {
 					const report = Object.values(reportObj)[0]
 					const reportId = Object.keys(reportObj)[0]
@@ -64,12 +62,13 @@ const ReportList = ({reportView, setReportView}) => {
 						.replace(/,/g, "")
 
 					return (
-							<button onClick={() => handleReportView(Object.keys(reportObj)[0])} key={i} className="flex gap-4">
+							<button onClick={() => handleReportView(Object.keys(reportObj)[0])} key={i} className="flex gap-4 text-left">
 								<div>{posted}</div>
 								<div>{report.title}</div>
 							</button>
 					)
 				})}
+				{reports == 0 && <div>No reports yet.</div>}
 			</div>
 		}
 		{reportView == 1 &&
