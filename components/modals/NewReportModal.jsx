@@ -38,6 +38,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [selectedTopic, setSelectedTopic] = useState("")
     const [sources, setSources] = useState([])
     const [selectedSource, setSelectedSource] = useState("")
+    const [reportState, setReportState] = useState(0)
     const [errors, setErrors] = useState({})
     // console.log(Country.getCountryByCode('US'))
   
@@ -123,7 +124,48 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     }, [update]);
 
     const handleChange = (e) => {
-        console.log('Report value changed.');
+        // console.log('Report value changed.');
+    }
+    
+    const handleStateChange = (e) => {
+        setData(data=>({...data, state: e, city: null })) 
+        setReportState(1)
+    }
+    
+    const handleCityChange = (e) => {
+        setData(data=>({...data,city: e !== null ? e : null })) 
+        setReportState(2)
+    }
+    
+    const handleTitleChange = (e) => {
+        e.preventDefault()
+        setTitle(e.target.value)
+        reportState < 3 && setReportState(3)
+    }
+    
+    const handleTopicChange = (e) => {
+        setSelectedTopic(e.value)
+        setReportState(4)
+    }
+    
+    const handleSourceChange = (e) => {
+        setSelectedSource(e.value)
+        setReportState(5)
+    }
+    
+    const handleSubmitClick = (e) => {
+        e.preventDefault()
+        if (!title) {
+            alert('Title is required')
+        } else if (images == '' && !detail && !link) {
+            alert('We need at least one of the following: a link, a photo, or a detailed description.')
+        } else {
+            if (images.length > 0) {
+                setUpdate(!update)
+            }
+            saveReport(imageURLs)
+            setNewReportModal(false)
+        }
     }
     
     const handleNewReport = async (e) => {
@@ -161,9 +203,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         console.log(allErrors.length + "Error array length")
 
         if (Object.keys(allErrors).length == 0) {
-            saveReport(imageURLs)
+            handleSubmitClick(e)
         }
-        setNewReportModal(false)
     }
 
     // On mount, grab all the possible topic choices
@@ -212,7 +253,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="state"
                                     type="text"
-                                    placeholder="State"
+                                    required
+                                    placeholder="Select the State"
                                     value={data.state}
                                     options={State.getStatesOfCountry(data.country)}
                                     getOptionLabel={(options) => {
@@ -222,19 +264,18 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     return options["name"];
                                     }}                                
                                     label="state"
-                                    onChange={(value => {
-                                    setData(data=>({...data, state: value, city: null })) 
-                                    })}
+                                    onChange={handleStateChange}
                                     />
                                 {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)}    
 
                             </div>
+                            {reportState >= 1 && 
                             <div className="mt-4 mb-0.5">
                                 <Select
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="city"
                                     type="text"
-                                    placeholder="City"
+                                    placeholder="Select the City"
                                     value={data.city}
                                     options={City.getCitiesOfState(
                                     data.state?.countryCode,
@@ -246,18 +287,11 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     getOptionValue={(options) => {
                                     return options["name"];
                                     }}                                 
-                                    onChange={
-                                        (value => {
-                                            setData(data=>({
-                                                ...data,
-                                                city: value !== null ? value : null
-                                            })) 
-                                        })
-                                    }
-                                
+                                    onChange={handleCityChange}
                                     />
                                     {errors.city && data.city === null &&  (<span className="text-red-500">{errors.city}</span>)}
                             </div>
+                            }
                             {/*
                             TODO: only one of the details inputs are required. 
                             - Links
@@ -265,114 +299,118 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                             - Detailed Description
                             . . . so user only has to fill in one of the the above
                             */}
+                            {reportState >= 2 && 
                             <div className="mt-4 mb-0.5">
                                 <input
                                     className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="title"
                                     type="text"
-                                    placeholder="Report Title"
+                                    placeholder="Add a Report Title"
                                     required
-                                    onChange={(e) => setTitle(e.target.value)}
+                                    onChange={handleTitleChange}
                                     value={title}
                                     />
                             </div>
-                            <div className="mt-4 mb-0.5">
-                                <Select
-                                    className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="topic-selection"
-                                    type="text"
-                                    placeholder="Topic"
-                                    
-                                    options={allTopicsArr.map(topic => ({ label: topic, value: topic }))}
-                                                                
-                                    onChange={(selectedOption) => {
-                                        setSelectedTopic(selectedOption.value)
-                                    }}
-                                    value={selectedTopic.value}
-                                    />
-                                    {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
-                            </div>
+                            }
+                            {reportState >= 3 &&
+                                <div className="mt-4 mb-0.5">
+                                    <Select
+                                        className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                        id="topic-selection"
+                                        type="text"
+                                        placeholder="Topic"
+                                        options={allTopicsArr.map(topic => ({ label: topic, value: topic }))}
+                                        onChange={handleTopicChange}
+                                        value={selectedTopic.topic}
+                                        />
+                                        {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
+                                </div>
+                            }
+                            {reportState >= 4 &&
                             <div className="mt-4 mb-0.5">
                                 <Select
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="source-selection"
                                     type="text"
                                     placeholder="Source"
-                                    
                                     options={sources.map(source => ({ label: source, value: source }))}
-                                                                
-                                    onChange={(selectedOption) => {
-                                        setSelectedSource(selectedOption.value)
-                                    }}
-                                    value={selectedSource.value}
+                                    onChange={handleSourceChange}
+                                    value={selectedSource.source}
                                     />
                                     {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
                             </div>
-                            <div className="mt-4 mb-0.5">
-                                <input
-                                    className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="link"
-                                    type="text"
-                                    placeholder="Link"
-                                    required
-                                    onChange={(e) => setLink(e.target.value)}
-                                    value={link}
-                                    />
-                            </div>
-                            <div className="mt-4 mb-0.5">
-                                <input
-                                    className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="secondLink"
-                                    type="text"
-                                    placeholder="Second Link"
-                                    onChange={(e) => setSecondLink(e.target.value)}
-                                    value={secondLink}
-                                    />
-                            </div>
-                            <div className="mt-4 mb-0.5">
-                                <textarea
-                                    className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="detail"
-                                    type="text"
-                                    placeholder="Detail"
-                                    required
-                                    onChange={(e) => setDetail(e.target.value)}
-                                    value={detail}
-                                    rows="5"
-                                    ></textarea>
-                            </div>
-                            <div className="mt-4 mb-0.5">
-                                <label className="block">
-                                    <span className="sr-only">Choose files</span>
-                                    <input className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer" 
-                                    id="multiple_files" 
-                                    type="file" 
-                                    multiple 
-                                    accept="image/*" 
-                                    // onChange={(e) => {onImageChange(e) }}
-                                    onChange={(e) => {
-                                        handleImageChange(e)
-                                    }}
-                                    ref={imgPicker}
-                                    />
-                                </label>
-                                <div className="flex shrink-0 mt-2 space-x-2">
-                                    {imageURLs.map((url, i) => (
-                                    <div className='relative'>
-                                        <Image src={url} key={i} width={100} height={100} alt={`image-upload-${i}`}/>
-                                        {/* TODO: delete file after upload */}
-                                        {/* <IoClose size={15} color='white' className='absolute top-0 right-0' onClick={handleImageDelete}/> */}
-                                    </div>
-                                    ))}
+                            }
+                            {reportState >= 5 &&
+                            <>
+                                <div className="mt-4 mb-0.5">Details</div>
+                                <div className="mt-4 mb-0.5">
+                                    <input
+                                        className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                        id="link"
+                                        type="text"
+                                        placeholder="Link"
+                                        onChange={(e) => setLink(e.target.value)}
+                                        value={link}
+                                        />
                                 </div>
-                            </div>
+                                <div className="mt-4 mb-0.5">
+                                    <input
+                                        className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                        id="secondLink"
+                                        type="text"
+                                        placeholder="Second Link"
+                                        onChange={(e) => setSecondLink(e.target.value)}
+                                        value={secondLink}
+                                        />
+                                </div>
+                                <div className="mt-4 mb-0.5">
+                                    <textarea
+                                        className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                        id="detail"
+                                        type="text"
+                                        placeholder="Detail"
+                                        onChange={(e) => setDetail(e.target.value)}
+                                        value={detail}
+                                        rows="5"
+                                        ></textarea>
+                                </div>
+                                <div className="mt-4 mb-0.5">
+                                    <label className="block">
+                                        <span className="sr-only">Choose files</span>
+                                        <input className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer" 
+                                        id="multiple_files" 
+                                        type="file" 
+                                        multiple 
+                                        accept="image/*" 
+                                        // onChange={(e) => {onImageChange(e) }}
+                                        onChange={(e) => {
+                                            handleImageChange(e)
+                                        }}
+                                        ref={imgPicker}
+                                        />
+                                    </label>
+                                    <div className="flex shrink-0 mt-2 space-x-2">
+                                        {imageURLs.map((url, i) => (
+                                        <div className='relative'>
+                                            <Image src={url} key={i} width={100} height={100} alt={`image-upload-${i}`}/>
+                                            {/* TODO: delete file after upload */}
+                                            {/* <IoClose size={15} color='white' className='absolute top-0 right-0' onClick={handleImageDelete}/> */}
+                                        </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </>
+                            }
+                            {reportState >= 5 &&
                             <div className="mt-3 sm:mt-6">
                                 <button
-                                    className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline" 
+                                    className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                                    onClick={handleSubmitClick}
                                     type="submit">
                                     Create
                                 </button>
                             </div>
+                            }
                         </form>
                     </div>
                 </div>
