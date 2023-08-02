@@ -158,6 +158,21 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
         setDontShowAgain(true)
     }
     
+    const handleSubmitClick = (e) => {
+        e.preventDefault()
+        if (!title) {
+            alert('Title is required')
+        } else if (images == '' && !detail && !link) {
+            alert('We need at least one of the following: a link, a photo, or a detailed description.')
+        } else {
+            if (images.length > 0) {
+                setUpdate(!update)
+            }
+            saveReport(imageURLs)
+            setReportSystem(7)
+        }
+    }
+    
     const handleNewReport = async (e) => {
         e.preventDefault()
         const allErrors = {}
@@ -192,9 +207,8 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
         console.log(allErrors.length + "Error array length")
 
         if (Object.keys(allErrors).length == 0) {
-            saveReport(imageURLs)
+            handleSubmitClick(e)
         }
-        setReportSystem(7)
     }
     
     // Image upload (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js, https://www.youtube.com/watch?v=S4zaZvM8IeI)
@@ -255,7 +269,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
             handleUpload()
         }
     }, [update]);
-    console.log(dontShowAgain); // TODO: finish dontshowagain checkbox
+    // console.log(dontShowAgain); // TODO: finish dontshowagain checkbox
     return (
         <div className={style.sectionContainer}>
             <div className={style.sectionWrapper}>
@@ -395,7 +409,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                         <div className={style.sectionH1}>{t.sourceTitle}</div>
                         {sources.map((source, i) => (
                             <>
-                            <label key={i} className={source === selectedSource ? style.inputRadioChecked : style.inputRadio}>
+                            <label key={i+'-'+source} className={source === selectedSource ? style.inputRadioChecked : style.inputRadio}>
                             {/* Source tag input */}
                             <input
                             className="absolute opacity-0"
@@ -445,7 +459,6 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                                 id="title"
                                 type="text"
                                 placeholder="Briefly describe"
-                                required
                                 onChange={(e) => setTitle(e.target.value)}
                                 value={title}
                             />
@@ -463,7 +476,6 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                                 id="link"
                                 type="text"
                                 placeholder="https://"
-                                required
                                 onChange={(e) => setLink(e.target.value)}
                                 value={link}
                             />
@@ -503,13 +515,12 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                             id="detail"
                             type="text"
                             placeholder={t.describe}
-                            required
                             onChange={(e) => setDetail(e.target.value)}
                             value={detail}
                             rows="5"
                             ></textarea>
                             {/* onClick={() => setReportSystem(7)}  */}
-                            <button className={style.button} type="submit">
+                            <button onClick={handleSubmitClick} className={style.button} type="submit">
                             Submit
                             </button>
                         </div>
