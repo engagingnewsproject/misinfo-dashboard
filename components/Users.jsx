@@ -145,9 +145,23 @@ const Users = () => {
 												className="border-b transition duration-300 ease-in-out dark:border-indigo-100"
 												key={key}>
 												<td scope="row" className={column.data}>{user.name}</td>
+												{/* 
+												TODO:
+												- add geopoint fields as a column in table.
+												*/}
 												<td className={column.data_center}>{user.email}</td>
+												{/* TODO
+												- format joined date
+												 */}
 												<td className={column.data_center}>{posted}</td>
+												{/* TODO:
+												- finish banned feature (with confirm modal)
+												 */}
 												<td className={column.data_center}>{user.isBanned && 'yes' || 'no'}</td>
+												{/* TODO:
+												- make sure the user is deleted, or the name is removed 
+												- dont want to tie the user after deletion to their prior data.
+												 */}
 												<td className={column.data_center} onClick={(e) => e.stopPropagation()}>
 													<button
 														onClick={() =>
