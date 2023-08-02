@@ -433,6 +433,13 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                                 {t.max}
                             </div>
                             {/* Title input */}
+                            {/*
+                            TODO: only one of the details inputs are required. 
+                            - Links
+                            - Image Upload
+                            - Detailed Description
+                            . . . so user only has to fill in one of the the above
+                            */}
                             <input
                                 className={style.inputSingle}
                                 id="title"

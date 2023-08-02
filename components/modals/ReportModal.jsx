@@ -128,7 +128,7 @@ const ReportModal = ({
 							
 							<div className="right-side flex flex-col justify-between">
 								<div>
-																	{/* Sources and stuff */}
+									{/* Sources and stuff */}
 									<div className="flex flex-col mb-5">
 										<div className="flex flex-row mb-3 items-center">
 											<RiMessage2Fill size={20} />
