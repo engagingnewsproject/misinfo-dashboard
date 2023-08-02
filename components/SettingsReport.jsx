@@ -19,9 +19,7 @@ const SettingsReport = () => {
   
   const [reportSystem, setReportSystem] = useState(0)
   const [reportView, setReportView] = useState(0)
-  const [search, setSearch] = useState("")  
-  console.log('report system: '+reportSystem);
-  console.log('report view: '+reportView);
+
     // //
     // Styles
     // //
