@@ -15,7 +15,7 @@ import SettingsReport from '../components/SettingsReport'
 const tabList = ['Home', 'Profile', 'Settings', 'Users', 'Agencies', 'ReportSettings'];
 
 const Dashboard = () => {
-    const { user, logout, verifyPrivilege, changeRole, addAdminRole } = useAuth()
+    const { user, logout, verifyPrivilege, changeRole, addAdminRole, addAgencyRole, viewRole } = useAuth()
     const [tab, setTab] = useState(0)
     const router = useRouter()
 
@@ -39,7 +39,15 @@ const Dashboard = () => {
     };
 
     useEffect(()=> {
-      // callback function to verify user role before displaying dashboard view
+      // TODO: debugging callback function to verify user role before displaying dashboard view
+      const claims = viewRole()
+      console.log(claims)
+      console.log(claims['admin'])
+      if (claims['admin']) {
+        setIsAdmin(true)
+      } else if (claims['agency']) {
+        setIsAgency(true)
+      } 
     }, [])
 
     
