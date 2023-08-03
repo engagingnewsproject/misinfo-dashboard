@@ -49,7 +49,6 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             title: title,
             link: link,
             secondLink: secondLink,
-            // images: imageURLs,
             images: imageURLs,
             detail: detail,
             createdDate: moment().toDate(),
@@ -76,7 +75,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const handleUpload = () => {
         const promises = [];
         images.map((image) => {
-            const storageRef = ref(storage, `images/report_${new Date().getTime().toString()}-${image.name}`)
+            const storageRef = ref(storage, `report_${new Date().getTime().toString()}.png`)
             const uploadTask = uploadBytesResumable(storageRef, image)
             promises.push(uploadTask);
             uploadTask.on( "state_changed",
@@ -259,7 +258,13 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     />
                                     {errors.city && data.city === null &&  (<span className="text-red-500">{errors.city}</span>)}
                             </div>
-
+                            {/*
+                            TODO: only one of the details inputs are required. 
+                            - Links
+                            - Image Upload
+                            - Detailed Description
+                            . . . so user only has to fill in one of the the above
+                            */}
                             <div className="mt-4 mb-0.5">
                                 <input
                                     className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
