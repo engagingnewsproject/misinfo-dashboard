@@ -51,18 +51,10 @@ exports.addAgencyRole = functions.https.onCall((data, context)=> {
 
 exports.viewRole = functions.https.onCall((data, context)=> {
   // get user and add custom claim to user
-  return admin.auth().getUserByEmail(data.email).then(user => {
-    
-    // Once user object is retrieved, returns  custom claim
-    admin.auth().currentUser.getIdTokenResult()
-    .then((idTokenResult) => {
-      return idTokenResult.claims;
-  // callback for frontend if success
-    })
-
-  })
-  .catch(err => {
+  return admin.auth().getUserByEmail(data.email).then(user =>
+  {
+    return user.customClaims;
+  }).catch(err => {
     return err;
   })
-
 })
