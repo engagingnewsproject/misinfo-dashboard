@@ -29,19 +29,6 @@ const Users = () => {
 	const [newUserModal, setNewUserModal] = useState(false)
 	const [users, setUsers] = useState([]);
 
-	// Styles
-	const tableHeading = {
-		default: "px-3 py-1 text-sm font-semibold text-left tracking-wide",
-		default_center: "text-center p-2 text-sm font-semibold tracking-wide",
-		small: ""
-	}
-	const column = {
-		data: "whitespace-normal text-sm px-3 py-1",
-		data_center: "whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 text-center"
-	}
- 	const style = {
-		icon: "hover:fill-cyan-700"
-	}
 	const getData = async () => {
 		const usersCollection = collection(db, 'mobileUsers')
 		const snapshot = await getDocs(usersCollection)
@@ -94,7 +81,26 @@ const Users = () => {
 		e.preventDefault()
 		setNewUserModal(true)
 	}
-  
+	const dateOptions = {
+		day: "2-digit",
+		year: "numeric",
+		month: "short",
+		hour: "numeric",
+		minute: "numeric",
+	}
+	// Styles
+	const tableHeading = {
+		default: "px-3 py-1 text-sm font-semibold text-left tracking-wide",
+		default_center: "text-center p-2 text-sm font-semibold tracking-wide",
+		small: ""
+	}
+	const column = {
+		data: "whitespace-normal text-sm px-3 py-1",
+		data_center: "whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 text-center"
+	}
+ 	const style = {
+		icon: "hover:fill-cyan-700"
+	}
   return (
 		<div className="w-full h-full flex flex-col py-5">
 			<div className="w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto" id="scrollableDiv">
@@ -135,11 +141,10 @@ const Users = () => {
 								{/*Infinite scroll for the mobileUsers to load more mobileUsers when user scrolls to bottom*/}
 									{loadedMobileUsers.slice(0, endIndex).map((userObj, key) => {
 										const user = Object.values(userObj)[0]
-										const posted = user["joiningDate"]
-											// .toDate()
-											// .toLocaleString("en-US", dateOptions)
-											// .replace(/,/g, "")
-											// .replace("at", "")
+										let posted = user["joiningDate"]
+										posted = posted * 1000 
+										posted = new Date(posted)
+										posted = posted.toLocaleString("en-US", dateOptions)
 										return (
 											<tr
 												className="border-b transition duration-300 ease-in-out dark:border-indigo-100"
