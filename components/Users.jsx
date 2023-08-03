@@ -85,8 +85,6 @@ const Users = () => {
 		day: "2-digit",
 		year: "numeric",
 		month: "short",
-		hour: "numeric",
-		minute: "numeric",
 	}
 	// Styles
 	const tableHeading = {
