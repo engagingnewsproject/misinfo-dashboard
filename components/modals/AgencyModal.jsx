@@ -1,11 +1,36 @@
-import React, { useState } from "react"
+import React, { useState, useRef } from "react"
+import { useRouter } from 'next/router'
 import { IoClose } from "react-icons/io5"
+import { useAuth } from "../../context/AuthContext"
+import Image from "next/image"
+import { db } from "../../config/firebase"
+import { getDoc, getDocs, doc, setDoc, collection, updateDoc, addDoc } from "firebase/firestore";
+import { getStorage, ref, getDownloadURL, uploadBytes, deleteObject, uploadBytesResumable } from 'firebase/storage';
 
-const AgencyModal = ({setAgencyId, agencyInfo, setAgencyInfo, onFormSubmit, onFormUpdate, onAdminChange, setAdminUser, setAgencyModal}) => {
+const AgencyModal = ({setAgencyId, agencyInfo, setAgencyInfo, onFormSubmit, onFormUpdate, onAdminChange, setAgencyAdminUsers, setAgencyModal}) => {
 	// //
 	// States
 	// //
-
+	const [image, setImage] = useState([])
+	const [update, setUpdate] = useState(false)
+	
+	const dbInstance = collection(db, 'agency');
+	const router = useRouter()
+	const imgPicker = useRef(null)
+	// console.log(setAgencyAdminUsers);
+	// //
+	// Handlers
+	// //
+	const handleImageChange = (e) => {
+    console.log('handle image change run');
+			for (let i = 0; i < e.target.files.length; i++) {
+					const newImage = e.target.files[i];
+					setImage((prevState) => [...prevState, newImage]);
+					setUpdate(!update)
+			}
+	};
+	
+	
 	// //
 	// Styles
 	// //
@@ -20,6 +45,7 @@ const AgencyModal = ({setAgencyId, agencyInfo, setAgencyInfo, onFormSubmit, onFo
 		modal_form_container: 'grid md:grid-cols-2 md:gap-10 lg:gap-15',
 		modal_form_label: 'text-lg font-bold text-black tracking-wider mb-4',
 		modal_form_data: 'text-sm bg-white rounded-xl p-4 mb-5',
+		modal_form_upload_image: 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
 		modal_form_button: 'flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
 	}
 
@@ -41,9 +67,23 @@ const AgencyModal = ({setAgencyId, agencyInfo, setAgencyInfo, onFormSubmit, onFo
 								<div className={style.modal_form_label}>Agency name</div>
 								<div className={style.modal_form_data}>{agencyInfo.name}</div>
 								<div className={style.modal_form_label}>Agency location</div>
-								<div className={style.modal_form_data}>{agencyInfo.location}</div>
+								<div className={style.modal_form_data}>{`${agencyInfo.city}, ${agencyInfo.state}`}</div>
 								<div className={style.modal_form_label}>Agency admin user</div>
-								<input onChange={onAdminChange} defaultValue={agencyInfo.adminUser} placeholder="Admin user email" className={style.modal_form_data}/>
+								<input onChange={onAdminChange} defaultValue={agencyInfo.agencyUsers} placeholder="Admin user email" className={style.modal_form_data}/>
+								<label className="block">
+									<span className="sr-only">Choose files</span>
+									<input className={style.modal_form_upload_image} 
+									id="multiple_files" 
+									type="file" 
+									multiple 
+									accept="image/*" 
+									// onChange={(e) => {onImageChange(e) }}
+									onChange={(e) => {
+											handleImageChange(e)
+									}}
+									ref={imgPicker}
+									/>
+							</label>
 								<button onClick={onFormUpdate} className={style.modal_form_button}>Update Agency</button> 
 								{/* TODO: finish update agency */}
 							</div>

@@ -1,21 +1,35 @@
 import React, { useState, useEffect } from 'react'
-import { doc, collection, getDocs, setDoc, getDoc, updateDoc, onSnapshot } from '@firebase/firestore'
-import { db } from "../config/firebase"
+import { 
+	doc, 
+	collection, 
+	getDocs, 
+	setDoc, 
+	getDoc, 
+	updateDoc, 
+	onSnapshot,
+	query,
+	where
+	} from '@firebase/firestore'
+import { db, auth } from "../config/firebase"
+import { getAuth } from 'firebase/auth'
+import { useAuth } from '../context/AuthContext'
 import Image from 'next/image'
 import AgencyModal from './modals/AgencyModal'
+import NewAgencyModal from './modals/NewAgencyModal'
 import ConfirmModal from "./modals/ConfirmModal"
 import ReactTooltip from "react-tooltip"
 import { IoTrash } from "react-icons/io5"
 
-const Agencies = () => {
+const Agencies = ({updateAgencySubmit, handleUpdateAgencySubmit}) => {
 	// //
 	// States
 	// //
 	const [agencies, setAgencies] = useState([])
 	const [agencyInfo, setAgencyInfo] = useState('')
 	const [agencyId, setAgencyId] = useState('')
-	const [adminUser, setAdminUser] = useState('')
+	const [agencyAdminUsers, setAgencyAdminUsers] = useState('')
 	const [agencyModal, setAgencyModal] = useState(false)
+	const [newAgencyModal, setNewAgencyModal] = useState(false)
 	const [update, setUpdate] = useState('')
 	const [search, setSearch] = useState('')
 	const [endIndex, setEndIndex] = useState(10)
@@ -81,10 +95,10 @@ const Agencies = () => {
 	}
 	
 	// Handler: On agency admin user change
-	const handleAdminChange = async (e) => {
+	const handleAgencyUserChange = async (e) => {
 		const docRef = doc(db, "agency", agencyId)
 		await updateDoc(docRef, {
-			adminUser: 'true'
+			agencyUsers: 'true'
 		})
 	}
 	// Handler: Form submit
@@ -100,9 +114,9 @@ const Agencies = () => {
 		setUpdate(true)
 		const docRef = doc(db, 'agency', agencyId)
 		updateDoc(docRef, {
-			adminUser: e.target.value
+			agencyUsers: e.target.value
 		})
-		setAdminUser(adminUser)
+		// setAgencyAdminUsers(agencyAdminUsers)
 	}
 	
 	// //
@@ -151,7 +165,7 @@ const Agencies = () => {
 									</td>
 									<td className={style.table_td}>{agency.name}</td>
 									<td className={style.table_td}>{agency.location}</td>
-									<td className={style.table_td}>{agency.adminUser}</td>
+									<td className={style.table_td}>{agency.agencyAdminUsers}</td>
 									<td className={style.table_td}>
 										<button
 											onClick={() =>
@@ -170,14 +184,15 @@ const Agencies = () => {
 				</table>
 			</div>
 			{agencyModal && <AgencyModal 
+				handleUpdateAgencySubmit={handleUpdateAgencySubmit}
 				setAgencyId={agencyId}
 				agencyInfo={agencyInfo}
 				setAgencyInfo={setAgencyInfo}
 				onFormSubmit={handleFormSubmit}
 				onFormUpdate={handleFormUpdate}
 				setAgencyModal={setAgencyModal}
-				onAdminChange={handleAdminChange} 
-				setAdminUser={adminUser}/>
+				onAgencyUserChange={handleAgencyUserChange} 
+				setAgencyAdminUsers={agencyAdminUsers}/>
 			}
 			{deleteModal && <ConfirmModal
 				func={handleDelete}
@@ -185,6 +200,15 @@ const Agencies = () => {
 				subtitle=""
 				CTA="Delete"
 				closeModal={setDeleteModal}
+			/>}
+			{newAgencyModal && 
+				<NewAgencyModal 
+				// tagSystems={tagSystems}
+				// tagSystem={tagSystem}
+				// list={list}
+				// setList={setList}
+				setNewAgencyModal={setNewAgencyModal}
+				// addNewUser={addNewUser} 
 			/>}
 		</div>
 	)
