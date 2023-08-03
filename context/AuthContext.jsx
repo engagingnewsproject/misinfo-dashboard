@@ -8,7 +8,8 @@ import {
     updateProfile,
     signOut,
     sendPasswordResetEmail,
-    sendSignInLinkToEmail
+    sendSignInLinkToEmail,
+    updateEmail
 } from 'firebase/auth'
 import { auth, app, db } from '../config/firebase'
 import { getDoc, doc } from "firebase/firestore";
@@ -88,9 +89,17 @@ export const AuthContextProvider = ({children}) => {
             return error
         })
     }
+    
+    const updateUserEmail = (auth, currentEmail, newEmail) => {
+        reauthenticateWithCredential(auth, user.email, currentEmail).then(() => {
+            return updateEmail(auth, newEmail)
+        }).catch((error) => {
+            return error
+        })
+    }
  
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword, sendSignIn }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updateUserEmail, updatePassword, sendSignIn }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )
