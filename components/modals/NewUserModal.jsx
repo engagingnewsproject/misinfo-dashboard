@@ -2,13 +2,13 @@ import React, { useState } from 'react'
 import { IoClose } from 'react-icons/io5'
 import { useAuth } from '../../context/AuthContext'
 
-const NewUserModal = ({ setNewUserModal /*, addNewUser */ }) => {
+const NewUserModal = ({ setNewUserModal }) => {
 	
 	// TESTING
 	const [signUpError, setSignUpError] = useState("")
-	const { user, signup } = useAuth()
+	const [update, setUpdate] = useState(false)
+	const { user, sendSignIn } = useAuth()
     const [data, setData] = useState({
-       displayName: '',
        email: '',
     })
 	
@@ -16,7 +16,10 @@ const NewUserModal = ({ setNewUserModal /*, addNewUser */ }) => {
         e.preventDefault()
 
         try {
-            await signup(data.displayName, data.email)
+						let email = data.email
+						email = window.localStorage.getItem(email);
+            await sendSignIn(data.email)
+						setUpdate(!update)
             setSignUpError("")
         } catch (err) {
             if (err.message == "Firebase: Error (auth/email-already-in-use).") {
@@ -44,17 +47,6 @@ const NewUserModal = ({ setNewUserModal /*, addNewUser */ }) => {
 						<div className="mb-4">
 							<input
 								className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-								id="displayName"
-								type="text"
-								placeholder="Name"
-								required
-								value={data.displayName}
-								onChange={handleChange}
-								/>
-						</div>
-						<div className="mb-4">
-							<input
-								className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 								id="email"
 								type="text"
 								placeholder="Email"
@@ -64,6 +56,7 @@ const NewUserModal = ({ setNewUserModal /*, addNewUser */ }) => {
 								/>
 						</div>
 						{signUpError && <div className="text-red-500 text-sm font-normal pt-3">{signUpError}</div>}
+						{update && <div className="text-blue-500 text-sm font-normal pt-3">Email Sent</div>}
 						<div className="flex-col items-center content-center mt-7">
 							<button className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" type="submit">
 								Sign Up
