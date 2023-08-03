@@ -27,8 +27,13 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
     window.innerWidth,
     window.innerHeight,
   ]);
-
   const [disableOverlay, setDisableOverlay] = useState(true)
+  const [showNav, setShowNav] = useState(true)
+  // Determines when to open the help modal popup 
+  const [helpModal, setHelpModal] = useState(false)
+  const router = useRouter()
+  const [newReportModal, setNewReportModal] = useState(false)
+  const [update, setUpdate] = useState(false)
   useEffect(() => {
     const handleWindowResize = () => {
       setWindowSize([window.innerWidth, window.innerHeight]);
@@ -107,14 +112,6 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
       right: '0 px'
     }
   }
-
-  const [showNav, setShowNav] = useState(true)
-
-  // Determines when to open the help modal popup 
-  const [helpModal, setHelpModal] = useState(false)
-
-  const router = useRouter()
-  const [newReportModal, setNewReportModal] = useState(false)
 
 	const handleNewReportModal = (e) => {
 		e.preventDefault()
@@ -200,7 +197,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                     }
                     {auth.currentUser.displayName !== '' &&
                       <button
-                          onClick={() => setTab(5)}
+                          onClick={handleCreateReport}
                           data-tip="Create Report"
                           className={basicStyle}>
                           <HiOutlineDocumentPlus size={30}/>
