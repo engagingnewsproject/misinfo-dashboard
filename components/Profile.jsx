@@ -68,7 +68,7 @@ const Profile = () => {
             {agencies.length > 1 ? 'Agencies' : 'Agency'}
             <div className='text-xs text-blue-300 text-left flex gap-2'><pre>agencyUsers</pre> view</div>
             </div>
-              <div className='flex gap-2 mx-6 my-2 tracking-normal items-center'>
+              <div className='flex gap-2 my-2 tracking-normal items-center'>
                 <div className="font-light">
                 {agencies.map((agencyObj, i) => {
                   const agency = Object.values(agencyObj)[0]
@@ -88,7 +88,7 @@ const Profile = () => {
           </div>
           <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">Email</div>
-              <div className='flex gap-2 mx-6 my-2 tracking-normal items-center'>
+              <div className='flex gap-2 my-2 tracking-normal items-center'>
                 <div className="font-light">{user.email}</div>
                 <button
                     onClick={() => setEmailModal(true)}
