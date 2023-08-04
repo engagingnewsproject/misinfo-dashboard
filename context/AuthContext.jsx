@@ -8,7 +8,9 @@ import {
     updateProfile,
     signOut,
     sendPasswordResetEmail,
-    getUserByEmail
+    getUserByEmail,
+    sendSignInLinkToEmail,
+    updateEmail
 } from 'firebase/auth'
 
 
@@ -68,6 +70,27 @@ export const AuthContextProvider = ({children}) => {
     const signup = (teamName, email, password) => {
         return createUserWithEmailAndPassword(auth, email, password)
     }
+    
+    const sendSignIn = async (email) => {
+        var actionCodeSettings = {
+            // URL you want to redirect back to. The domain (www.example.com) for this URL
+            // must be whitelisted in the Firebase Console.
+            'url': 'https://misinfo-dashboard.netlify.app/signup', // Here we redirect back to this same page.
+            'handleCodeInApp': true // This must be true.
+        };
+        try
+        {
+            await sendSignInLinkToEmail(auth,email, actionCodeSettings)
+            // The link was successfully sent. Inform the user.
+            // Save the email locally so you don't need to ask the user for it again
+            // if they open the link on the same device.
+            window.localStorage.setItem('emailForSignIn',email)
+        } catch (error)
+        {
+            const errorCode = error.code
+            const errorMessage = error.message
+        }
+    }
 
     const login = (email, password) => {
         return signInWithEmailAndPassword(auth, email, password)
@@ -99,9 +122,17 @@ export const AuthContextProvider = ({children}) => {
             return error
         })
     }
+    
+    const updateUserEmail = (auth, currentEmail, newEmail) => {
+        reauthenticateWithCredential(auth, user.email, currentEmail).then(() => {
+            return updateEmail(auth, newEmail)
+        }).catch((error) => {
+            return error
+        })
+    }
  
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword, addAdminRole, addAgencyRole, viewRole, verifyRole }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updateUserEmail, updatePassword, addAdminRole, addAgencyRole, viewRole, verifyRole, sendSignIn }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )
