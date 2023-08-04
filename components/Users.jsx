@@ -10,13 +10,15 @@ import {
 } from "firebase/firestore"
 import { db } from "../config/firebase"
 import ReactTooltip from "react-tooltip"
-import { IoTrash } from "react-icons/io5"
+import { IoTrash, IoPencil } from "react-icons/io5"
 import { IoMdRefresh } from "react-icons/io"
 import { FaPlus } from 'react-icons/fa'
 import InfiniteScroll from "react-infinite-scroll-component"
 import Headbar from '../components/Headbar'
 import NewUserModal from './modals/NewUserModal'
 import ConfirmModal from './modals/ConfirmModal'
+import EditUserModal from './modals/EditUserModal'
+
 // Profile page that allows user to edit password or logout of their account
 const Users = () => {
 	const [mobileUsers, setMobileUsers] = useState([])
@@ -28,7 +30,8 @@ const Users = () => {
 	const [deleteModal, setDeleteModal] = useState(false)
 	const [newUserModal, setNewUserModal] = useState(false)
 	const [users, setUsers] = useState([]);
-
+  const [editUser, setEditUser] = useState(null)
+  const [userInfo, setUserInfo] = useState(null)
   const {verifyRole} = useAuth()
 
 	const getData = async () => {
@@ -56,6 +59,12 @@ const Users = () => {
 		getData()
 	})
 	
+  	// Delete report
+	const handleEditUser= (userObj) => {
+		setUserInfo(userObj)
+    setEditUser(true)
+	}
+		
 	// Delete report
 	const handleMobileUserDelete = async (e) => {
 		setDeleteModal(true)
@@ -68,6 +77,7 @@ const Users = () => {
 			.then(() => {
 				getData()
 				setDeleteModal(false)
+        // to do: delete user from firebase authentification console
 			})
 			.catch((error) => {
 				console.log('The write failed' + error);
@@ -148,8 +158,9 @@ const Users = () => {
 										return (
 											<tr
 												className="border-b transition duration-300 ease-in-out dark:border-indigo-100"
-												key={key}>
-												<td scope="row" className={column.data}>{user.name}</td>
+												key={key} onClick={()=>handleEditUser(user)}>
+												<td scope="row" className={column.data}>{user.name}
+                        </td>
 												{/* 
 												TODO:
 												- add geopoint fields as a column in table.
@@ -202,6 +213,8 @@ const Users = () => {
 				setNewUserModal={setNewUserModal}
 				// addNewUser={addNewUser} 
 			/>}
+
+      {editUser && <EditUserModal setEditUser={setEditUser} editUser={editUser} userInfo={userInfo} setUserInfo={setUserInfo}/>}
 		</div>
   )
 }
