@@ -21,7 +21,11 @@ const Profile = () => {
   const [agencies, setAgencies] = useState([])
   const { logout } = useAuth()
 
+  // default claim, reset upon loading page
+  const {claims, setCustomClaims} = useState({admin: false, agency: false})
+
   const router = useRouter()
+
   
   	// //
 	// Data
@@ -47,6 +51,20 @@ const Profile = () => {
 	// Effects
 	// //
 	useEffect(() => {
+    auth.currentUser.getIdTokenResult()
+    .then((idTokenResult) => {
+       // Confirm the user is an Admin.
+       if (!!idTokenResult.claims.admin) {
+         // Show admin UI.
+         setCustomClaims({admin: true})
+       } else if (!!idTokenResult.claims.agency) {
+         // Show regular user UI.
+         setCustomClaims({agency: true})
+       }
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 		getData()
 	})
 	
@@ -63,8 +81,9 @@ const Profile = () => {
     <div className="w-full h-auto">
       <div className="z-0 flex-col p-16">
         <div className="text-xl font-extrabold text-blue-600 tracking-wider">Account</div>
-          <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
+          {claims.agency && <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">
+            
             {agencies.length > 1 ? 'Agencies' : 'Agency'}
             <div className='text-xs text-blue-300 text-left flex gap-2'><pre>agencyUsers</pre> view</div>
             </div>
@@ -85,7 +104,7 @@ const Profile = () => {
                     Edit Agency
                 </button> */}
               </div>
-          </div>
+          </div>}
           <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">Email</div>
               <div className='flex gap-2 my-2 tracking-normal items-center'>
