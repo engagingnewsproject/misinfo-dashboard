@@ -9,6 +9,7 @@ import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
 import Agencies from '../components/Agencies'
 
+import { auth } from "../config/firebase"
 
 import SettingsReport from '../components/SettingsReport'
 
@@ -24,11 +25,10 @@ const Dashboard = () => {
     // admin.initializeApp();
 
 
-    // determines if user has admin privileges
-    const [isAdmin, setIsAdmin] = useState(null)
-    
-    // determines if user is an agency
-    const [isAgency, setIsAgency] = useState(null)
+    // stores the admin/agency privilege of current user
+    const [customClaims, setCustomClaims] = useState({admin: false, agency: false})    
+
+
 
     // JUST ADDED
     const [newReportSubmitted, setNewReportSubmitted] = useState(0);
@@ -40,30 +40,37 @@ const Dashboard = () => {
 
     useEffect(()=> {
       // TODO: debugging callback function to verify user role before displaying dashboard view
-      const claims = viewRole()
-      console.log(claims)
-      console.log(claims['admin'])
-      if (claims['admin']) {
-        setIsAdmin(true)
-      } else if (claims['agency']) {
-        setIsAgency(true)
-      } 
+      auth.currentUser.getIdTokenResult()
+      .then((idTokenResult) => {
+         // Confirm the user is an Admin.
+         if (!!idTokenResult.claims.admin) {
+           // Show admin UI.
+           setCustomClaims({admin: true})
+         } else if (!!idTokenResult.claims.agency) {
+           // Show regular user UI.
+           setCustomClaims({agency: true})
+         }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+      
     }, [])
 
     
     return (
         <div className="h-full w-full">
-            <Navbar tab={tab} setTab={setTab} handleNewReportSubmit={handleNewReportSubmit} />
+            <Navbar tab={tab} setTab={setTab} handleNewReportSubmit={handleNewReportSubmit} customClaims={customClaims} setCustomClaims={setCustomClaims} />
             <div className="pl-2 sm:pl-12">
             { tab == 0 && <Home newReportSubmitted={newReportSubmitted} handleNewReportSubmit={handleNewReportSubmit} />}
             { tab == 1 && <Profile />}
             { tab == 2 && <Settings />}
 
             {/* If the user is an agency or a superadmin, will display tab of list of users for agency or list of users for app */}
-            { (isAgency || isAdmin) && tab == 3 && <Users />}
+            { customClaims.agency || customClaims.admin && tab == 3 && <Users />}
 
             {/* If the user is a superadmin, will display list of agencies */}
-            { isAdmin && tab == 4 && <Agencies />}
+            { customClaims.admin && tab == 4 && <Agencies />}
             { tab == 5 && <SettingsReport />}
             </div>
         </div>
