@@ -29,7 +29,10 @@ const Users = () => {
 	const [newUserModal, setNewUserModal] = useState(false)
 	const [users, setUsers] = useState([]);
 
-	// Styles
+  const {verifyRole} = useAuth()
+
+  
+  // Styles
 	const tableHeading = {
 		default: "px-3 py-1 text-sm font-semibold text-left tracking-wide",
 		default_center: "text-center p-2 text-sm font-semibold tracking-wide",

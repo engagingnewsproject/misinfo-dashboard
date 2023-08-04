@@ -7,10 +7,20 @@ import {
     updatePassword,
     updateProfile,
     signOut,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    getUserByEmail
 } from 'firebase/auth'
-import { auth, app, db } from '../config/firebase'
+
+
+import {
+  getFunctions,
+  httpsCallable,
+  connectFunctionsEmulator,
+} from "firebase/functions";
+import { auth, app, db, functions } from '../config/firebase'
 import { getDoc, doc } from "firebase/firestore";
+
+
 
 const AuthContext = createContext({})
 
@@ -23,24 +33,37 @@ export const AuthContextProvider = ({children}) => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
+          let customClaims = { admin: false, agency: false}
             if (user) {
                 const ref = await getDoc(doc(db, "locations", "Texas"))
                 const localId = ref.data()['Austin']
+
                 setUser({
-                    uid: localId,
+                    uid: localId, // not sure what this is used for
                     accountId: user.uid,
                     displayName: user.displayName,
-                    email: user.email
+                    email: user.email,
+                    admin: customClaims.admin,
+                    agency: customClaims.agency
                 })
                 localStorage.setItem("userId", localId)
+              
             } else {
-                setUser(null)
+              setUser(null)
             }
             setLoading(false)
         })
 
         return () => unsubscribe()
     }, [])
+
+
+    // add admin cloud function
+    const addAdminRole = httpsCallable(functions, 'addAdminRole')
+
+    const addAgencyRole = httpsCallable(functions, 'addAgencyRole')
+
+    const viewRole = httpsCallable(functions, 'viewRole')
 
     const signup = (teamName, email, password) => {
         return createUserWithEmailAndPassword(auth, email, password)
@@ -55,6 +78,16 @@ export const AuthContextProvider = ({children}) => {
         await signOut(auth)
     }
 
+    const verifyRole = () => {
+      return auth.currentUser.getIdTokenResult()
+      .then((idTokenResult) => {
+         // Confirm the user is an Admin.
+          return idTokenResult.claims;        
+      }).catch((error) => {
+        console.log(error);
+      });
+      
+    }
     const resetPassword = (email) => {
         return sendPasswordResetEmail(auth, email)
     }
@@ -68,7 +101,7 @@ export const AuthContextProvider = ({children}) => {
     }
  
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword, addAdminRole, addAgencyRole, viewRole, verifyRole }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )
