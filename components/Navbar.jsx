@@ -165,7 +165,6 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     }
-                    {/* TESTING - replace with custom claim validation */}
                     {customClaims.admin &&
                       <button 
                           onClick={() => setTab(4)}
@@ -184,8 +183,9 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     }
-                    {(customClaims.admin || customClaims.agency) &&
+                    {(customClaims.admin || customClaims.agency) ? // if admin user or agency user show the add report & users icons
                     <>
+                      {/* agency user create report */}
                       <button
                           onClick={handleNewReportModal}
                           data-tip="New Report"
@@ -193,6 +193,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                           <IoAddCircleOutline size={30}/>
                           <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
+                      {/* users */}
                       <button
                           onClick={() => setTab(3)}
                           data-tip="Users"
@@ -201,8 +202,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                           <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
                       </>
-                    }
-                    {!customClaims.admin || !customClaims.agency &&
+                    : // otherwise show the create report icon for general users
                       <button
                           onClick={handleCreateReport}
                           data-tip="Create Report"
