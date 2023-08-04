@@ -51,10 +51,25 @@ exports.addAgencyRole = functions.https.onCall((data, context)=> {
 
 exports.viewRole = functions.https.onCall((data, context)=> {
   // get user and add custom claim to user
-  return admin.auth().getUserByEmail(data.email).then(user =>
-  {
-    return user.customClaims;
-  }).catch(err => {
-    return err;
-  })
+
+
+  return admin
+    .auth()
+    .verifyIdToken(data.id)
+    .then((decodedToken) => {
+       
+      const claims = decodedToken.customClaims;
+      console.log(claims);
+      if (claims['admin']) {
+        return {admin: true};
+      } else if (claims['agency']) {
+        return {agency: true};
+      } else {
+        return {admin: false,
+               agency: false};
+      }
+    })
+    .catch((error) => {
+        console.log(error.code, error.message);
+    });
 })

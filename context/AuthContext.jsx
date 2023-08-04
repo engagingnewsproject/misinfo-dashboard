@@ -78,6 +78,16 @@ export const AuthContextProvider = ({children}) => {
         await signOut(auth)
     }
 
+    const verifyRole = () => {
+      return auth.currentUser.getIdTokenResult()
+      .then((idTokenResult) => {
+         // Confirm the user is an Admin.
+          return idTokenResult.claims;        
+      }).catch((error) => {
+        console.log(error);
+      });
+      
+    }
     const resetPassword = (email) => {
         return sendPasswordResetEmail(auth, email)
     }
@@ -91,7 +101,7 @@ export const AuthContextProvider = ({children}) => {
     }
  
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword, addAdminRole, addAgencyRole, viewRole }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword, addAdminRole, addAgencyRole, viewRole, verifyRole }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )
