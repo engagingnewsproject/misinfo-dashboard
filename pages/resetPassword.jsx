@@ -15,7 +15,6 @@ const ResetPassword = () => {
         heading: "Forget Your Password?",
         subtitle: "Don't worry! Enter your registered email below to receive password reset email",
         btnText: "Send",
-        icon: "svgs/illu-Password.svg"
     })
 
     const handleReset = async (e) => {
@@ -32,7 +31,6 @@ const ResetPassword = () => {
                 heading: "Password Reset Email Has Been Sent!",
                 subtitle: "Please check your inbox and reset password via email for your privacy safety",
                 btnText: "Send it again",
-                icon: "svgs/illu-email.svg"
             })
         } catch (err) {
             console.log(err)
