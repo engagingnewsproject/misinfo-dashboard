@@ -156,7 +156,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                       <IoClose size={30}/>
                       <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                   </button> 
-                
+                    {(customClaims.admin || customClaims.agency) &&
                     <button 
                         onClick={() => setTab(0)}
                         data-tip="Home"
@@ -164,6 +164,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                         <IoHomeOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
+                    }
                     {/* TESTING - replace with custom claim validation */}
                     {customClaims.admin &&
                       <button 
@@ -174,6 +175,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                           <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
                     }
+                    {(customClaims.admin || customClaims.agency) &&
                     <button
                         onClick={() => setTab(2)}
                         data-tip="Tagging Systems"
@@ -181,6 +183,9 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                         <IoPricetagsOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
+                    }
+                    {(customClaims.admin || customClaims.agency) &&
+                    <>
                       <button
                           onClick={handleNewReportModal}
                           data-tip="New Report"
@@ -188,8 +193,6 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                           <IoAddCircleOutline size={30}/>
                           <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
-                    {/* TESTING - replace with custom claim validation */}
-                    {(customClaims.admin || customClaims.agency) &&
                       <button
                           onClick={() => setTab(3)}
                           data-tip="Users"
@@ -197,8 +200,9 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                           <IoPeopleOutline size={30}/>
                           <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
+                      </>
                     }
-                    {!customClaims.admin &&
+                    {!customClaims.admin || !customClaims.agency &&
                       <button
                           onClick={handleCreateReport}
                           data-tip="Create Report"
