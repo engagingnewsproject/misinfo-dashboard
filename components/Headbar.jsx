@@ -56,10 +56,7 @@ const Headbar = ({ search, setSearch}) => {
                         <div className="w-10 h-10 font-extralight rounded-full tracking-widest flex justify-center text-sm items-center text-white bg-blue-500">M</div>
                     </div>
 
-                    <div className="text-md font-semibold px-4 m-auto tracking-wide">
-                        {/* TESTING please correct this lol */}
-                        {auth.currentUser.displayName === 'Luke' ? `Misinfo Admin Dashboard` : `Local Pipeline Dashboard`}
-                    </div>
+                    <div className="text-md font-semibold px-4 m-auto tracking-wide">Misinfo Admin Dashboard</div>
                 </div>
                 <form className="flex relative w-1/4" onChange={handleChange} onSubmit={handleSearch}>
                    

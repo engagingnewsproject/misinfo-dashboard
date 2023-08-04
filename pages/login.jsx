@@ -51,6 +51,7 @@ const Login = () => {
                         required
                         value={data.email}
                         onChange={handleChange}
+                        autoComplete='username'
                         />
                 </div>
                 <div className="mb-1">
@@ -62,6 +63,7 @@ const Login = () => {
                         required 
                         value={data.password}
                         onChange={handleChange}
+                        autoComplete='current-password'
                         />
                 </div>
                 {error && <span className="text-red-500 text-sm font-light">Incorrect password or username</span>}
