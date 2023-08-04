@@ -21,7 +21,7 @@ import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
 import { auth } from "../config/firebase"
 
-const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
+const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClaims}) => {
 
   const [windowSize, setWindowSize] = useState([
     window.innerWidth,
@@ -34,6 +34,9 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
   const router = useRouter()
   const [newReportModal, setNewReportModal] = useState(false)
   const [update, setUpdate] = useState(false)
+
+  // Stores privilege role of the current user, and displays dashboard
+  
   useEffect(() => {
     const handleWindowResize = () => {
       setWindowSize([window.innerWidth, window.innerHeight]);
@@ -162,7 +165,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     {/* TESTING - replace with custom claim validation */}
-                    {auth.currentUser.displayName !== '' &&
+                    {customClaims.admin &&
                       <button 
                           onClick={() => setTab(4)}
                           data-tip="Agencies"
@@ -186,7 +189,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                           <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
                     {/* TESTING - replace with custom claim validation */}
-                    {auth.currentUser.displayName !== '' &&
+                    {(customClaims.admin || customClaims.agency) &&
                       <button
                           onClick={() => setTab(3)}
                           data-tip="Users"
@@ -195,7 +198,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                           <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
                     }
-                    {auth.currentUser.displayName !== '' &&
+                    {!customClaims.admin &&
                       <button
                           onClick={handleCreateReport}
                           data-tip="Create Report"
