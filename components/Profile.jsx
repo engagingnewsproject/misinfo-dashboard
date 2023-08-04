@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import UpdatePwModal from './modals/UpdatePwModal'
 import UpdateEmailModal from './modals/UpdateEmailModal';
 import { useAuth } from '../context/AuthContext';
+import { auth } from 'firebase-admin';
 import ConfirmModal from './modals/ConfirmModal';
 import { useRouter } from 'next/router'
 import { 
@@ -13,16 +14,14 @@ import {
   import { db } from "../config/firebase"
 // Profile page that allows user to edit password or logout of their account
 const Profile = () => {
-
-  const { user } = useAuth()
+  const { user, logout, verifyPrivilege, changeRole, addAdminRole, addAgencyRole, viewRole } = useAuth()
   const [openModal, setOpenModal] = useState(false)
   const [emailModal, setEmailModal] = useState(false)
   const [logoutModal, setLogoutModal] = useState(false)
   const [agencies, setAgencies] = useState([])
-  const { logout } = useAuth()
 
   // default claim, reset upon loading page
-  const {claims, setCustomClaims} = useState({admin: false, agency: false})
+  const {customClaims, setCustomClaims} = useState({admin: false, agency: false})
 
   const router = useRouter()
 
@@ -50,23 +49,24 @@ const Profile = () => {
   // //
 	// Effects
 	// //
-	useEffect(() => {
-    auth.currentUser.getIdTokenResult()
-    .then((idTokenResult) => {
-       // Confirm the user is an Admin.
-       if (!!idTokenResult.claims.admin) {
-         // Show admin UI.
-         setCustomClaims({admin: true})
-       } else if (!!idTokenResult.claims.agency) {
-         // Show regular user UI.
-         setCustomClaims({agency: true})
-       }
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-		getData()
-	})
+  // Had to remove it for a sec. Wasn't allowing me to view the profile page.
+	// useEffect(() => {
+  //   auth.currentUser.getIdTokenResult()
+  //   .then((idTokenResult) => {
+  //      // Confirm the user is an Admin.
+  //      if (!!idTokenResult.claims.admin) {
+  //        // Show admin UI.
+  //        setCustomClaims({admin: true})
+  //      } else if (!!idTokenResult.claims.agency) {
+  //        // Show regular user UI.
+  //        setCustomClaims({agency: true})
+  //      }
+  //   })
+  //   .catch((error) => {
+  //     console.log(error);
+  //   });
+	// 	getData()
+	// })
 	
   
   const handleLogout = () => {
@@ -81,7 +81,7 @@ const Profile = () => {
     <div className="w-full h-auto">
       <div className="z-0 flex-col p-16">
         <div className="text-xl font-extrabold text-blue-600 tracking-wider">Account</div>
-          {claims.agency && <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
+          <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">
             
             {agencies.length > 1 ? 'Agencies' : 'Agency'}
@@ -104,7 +104,7 @@ const Profile = () => {
                     Edit Agency
                 </button> */}
               </div>
-          </div>}
+          </div>
           <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">Email</div>
               <div className='flex gap-2 my-2 tracking-normal items-center'>
