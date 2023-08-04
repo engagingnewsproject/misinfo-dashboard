@@ -85,7 +85,6 @@ const Profile = () => {
             <div className="font-light">
             
             {agencies.length > 1 ? 'Agencies' : 'Agency'}
-            <div className='text-xs text-blue-300 text-left flex gap-2'><pre>agencyUsers</pre> view</div>
             </div>
               <div className='flex gap-2 my-2 tracking-normal items-center'>
                 <div className="font-light">
