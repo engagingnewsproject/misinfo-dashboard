@@ -3,6 +3,27 @@ const admin = require('firebase-admin');
 admin.initializeApp();
 
 
+
+exports.addUserRole= functions.https.onCall((data, context)=> {
+  // get user and add custom claim to user
+  return admin.auth().getUserByEmail(data.email).then(user => {
+    
+    // Once user object is retrieved, updates custom claim
+    return admin.auth().setCustomUserClaims(user.uid, {});
+  
+  // callback for frontend if success
+  }).then(()=> {
+    return {
+      message: "Success! ${data.email} has been reset to user privileges."
+    }
+
+  // callback if there is an error
+  }).catch(err => {
+    return err;
+  })
+
+})
+
 // Adds admin privilege to user based on the email provided
 exports.addAdminRole = functions.https.onCall((data, context)=> {
   // get user and add custom claim to user
