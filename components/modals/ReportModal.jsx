@@ -9,7 +9,7 @@ import { BiEditAlt } from "react-icons/bi"
 import { BsShareFill } from "react-icons/bs"
 import { BiLinkExternal } from "react-icons/bi";
 import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
-import { IoClose, IoTrash, IoLocation } from "react-icons/io5"
+import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
 
 const ReportModal = ({
 	report,
@@ -159,6 +159,15 @@ const ReportModal = ({
 											</div>
 											<div className="text-md font-light">{setReportLocation}</div>
 										</div>
+										{/* Agency */}
+										{report.agency &&
+										<div className="flex flex-row mb-3 items-center">
+											<IoBusinessOutline size={20} />
+											<div className="font-semibold px-2 self-center pr-4">
+												Agency
+											</div>
+											<div className="text-md font-light">{report.agency}</div>
+										</div>}
 										{reporterInfo && (
 										<div className="flex flex-row mb-3 items-center">
 										<AiOutlineUser size={20} />
