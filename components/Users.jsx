@@ -31,20 +31,6 @@ const Users = () => {
 
   const {verifyRole} = useAuth()
 
-  
-  // Styles
-	const tableHeading = {
-		default: "px-3 py-1 text-sm font-semibold text-left tracking-wide",
-		default_center: "text-center p-2 text-sm font-semibold tracking-wide",
-		small: ""
-	}
-	const column = {
-		data: "whitespace-normal text-sm px-3 py-1",
-		data_center: "whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 text-center"
-	}
- 	const style = {
-		icon: "hover:fill-cyan-700"
-	}
 	const getData = async () => {
 		const usersCollection = collection(db, 'mobileUsers')
 		const snapshot = await getDocs(usersCollection)
