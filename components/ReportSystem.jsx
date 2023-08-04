@@ -430,6 +430,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                         }
                     </div>
                     }
+                    {/* TODO: add agency dropdown */}
                     {/* Details */}
                     {reportSystem == 6 &&
                     <div className={style.viewWrapper}>
