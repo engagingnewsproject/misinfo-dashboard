@@ -83,7 +83,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
     // Styles
     // //
     const style = {
-        sectionContainer: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-visible',
+        sectionContainer: 'w-full h-full flex flex-col mb-5 overflow-visible',
         sectionWrapper: 'flex items-center',
         sectionH1: 'text-2xl font-bold',
         sectionH2: 'text-blue-600',
