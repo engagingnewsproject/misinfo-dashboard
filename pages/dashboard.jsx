@@ -11,8 +11,6 @@ import Agencies from '../components/Agencies'
 
 import { auth } from "../config/firebase"
 
-import SettingsReport from '../components/SettingsReport'
-
 const tabList = ['Home', 'Profile', 'Settings', 'Users', 'Agencies', 'ReportSettings'];
 
 const Dashboard = () => {

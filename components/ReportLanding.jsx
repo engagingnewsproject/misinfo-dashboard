@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image';
-import { reportSystems } from './SettingsReport'
+import { reportSystems } from '../pages/report';
 import ReportList from './ReportList';
 import { IoChevronForward } from "react-icons/io5";
 const ReportLanding = ({ reportSystem, setReportSystem, reportView, setReportView }) => {

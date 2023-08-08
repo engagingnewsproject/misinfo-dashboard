@@ -39,15 +39,15 @@ const SettingsReport = () => {
             </div>
             <div className="w-full">
               <button
-                  onClick={() => setReportSystem(2)}
-                  className="flex items-center justify-center gap-5 bg-blue-600 w-full hover:bg-blue-200 text-white font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                  
-                  <Image src="/img/report.png" width={200} height={120} alt="report" className='h-auto'/>
-                  <span className='flex flex-col text-left'>
-                    <span className='flex items-center'>Report<IoChevronForward size={25}/></span>
-                    <span className='text-xs'>Potential Misinformation</span>
-                  </span>
-                </button>
+                onClick={() => setReportSystem(2)}
+                className="flex items-center justify-center gap-5 bg-blue-600 w-full hover:bg-blue-200 text-white font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                
+                <Image src="/img/report.png" width={200} height={120} alt="report" className='h-auto'/>
+                <span className='flex flex-col text-left'>
+                  <span className='flex items-center'>Report<IoChevronForward size={25}/></span>
+                  <span className='text-xs'>Potential Misinformation</span>
+                </span>
+              </button>
             </div>
           </>
         }

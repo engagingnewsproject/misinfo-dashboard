@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { reportSystems } from './SettingsReport'
+// import { reportSystems } from './SettingsReport'
+import { reportSystems } from '../pages/report';
 import { IoMdArrowRoundBack } from 'react-icons/io'
 import { BiCheckCircle, BiXCircle, BiRightArrowCircle } from "react-icons/bi";
 import { setDoc, getDoc, doc, addDoc, collection } from "firebase/firestore"; 
@@ -269,18 +270,20 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
             handleUpload()
         }
     }, [update]);
-    // console.log(dontShowAgain); // TODO: finish dontshowagain checkbox
+    
+    // TODO: finish dontshowagain checkbox
+    
     return (
         <div className={style.sectionContainer}>
             <div className={style.sectionWrapper}>
-                {reportSystem < 7 && 
+                {reportSystem > 0 && 
                 <button onClick={() => setReportSystem(reportSystem == 2 ? reportSystem == 0 : reportSystem - 1)}>
                     <IoMdArrowRoundBack size={25} />
                 </button>
                 }
             </div>
             {reportSystem == 2 && // dontShowAgain == false ?
-            // REMINDER
+                // REMINDER
                 <div className={style.viewWrapperCenter}>
                     <Image src="/img/reminder.png" width={156} height={120} alt="reminder"/>
                     <div className="text-xl px-5 font-extrabold text-blue-600 tracking-wider">
