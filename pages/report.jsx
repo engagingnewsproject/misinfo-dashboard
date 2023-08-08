@@ -40,18 +40,18 @@ const Report = () => {
   const style = {
 		button: 'w-80 self-center mt-4 shadow bg-blue-600 hover:bg-gray-100 text-sm text-white py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
   }
-	console.log(reportView);
+
   return (
 		<div className="h-full w-full">
 			<Navbar tab={tab} setTab={setTab} customClaims={customClaims} setCustomClaims={setCustomClaims} />
 			<div className="pl-2 sm:pl-12">
 				<div className="w-full h-full flex flex-col py-5">
 					<div className="w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto">
-						{reportSystem == 0 && <ReportLanding reportSystem={reportSystem} setReportSystem={setReportSystem} reportView={reportView} setReportView={setReportView} />}
-						<ReportSystem reportSystem={reportSystem} setReportSystem={setReportSystem} />
+						{tab == 0 && reportSystem == 0 && <ReportLanding reportSystem={reportSystem} setReportSystem={setReportSystem} reportView={reportView} setReportView={setReportView} />}
+						{tab == 0 && reportSystem > 0 && <ReportSystem reportSystem={reportSystem} setReportSystem={setReportSystem} /> }
+						{tab == 1 && <Profile />}
 					</div>
 				</div>
-				{ tab == 1 && <Profile />}
 			</div>
 			
 		</div>

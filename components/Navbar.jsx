@@ -123,10 +123,6 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
 
   const basicStyle = "flex p-2 my-6 mx-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
 
-  const handleCreateReport = () => {
-    setTab(5)
-  }
-
     return (
       <>
 
@@ -204,7 +200,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                       </>
                     : // otherwise show the create report icon for general users
                       <button
-                          onClick={handleCreateReport}
+                          onClick={() => setTab(0)}
                           data-tip="Create Report"
                           className={basicStyle}>
                           <HiOutlineDocumentPlus size={30}/>

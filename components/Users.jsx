@@ -8,7 +8,7 @@ import {
 	getUser,
 	deleteDoc,
 } from "firebase/firestore"
-import { db } from "../config/firebase"
+import { db, auth } from "../config/firebase"
 import ReactTooltip from "react-tooltip"
 import { IoTrash, IoPencil } from "react-icons/io5"
 import { IoMdRefresh } from "react-icons/io"
@@ -31,6 +31,7 @@ const Users = () => {
 	const [newUserModal, setNewUserModal] = useState(false)
 	const [users, setUsers] = useState([]);
   const [editUser, setEditUser] = useState(null)
+	const [userId, setUserId] = useState(null)
   const [userInfo, setUserInfo] = useState(null)
   const {verifyRole} = useAuth()
 
@@ -66,12 +67,19 @@ const Users = () => {
 	}
 		
 	// Delete report
-	const handleMobileUserDelete = async (e) => {
+	const handleMobileUserDelete = async (userId) => {
 		setDeleteModal(true)
+		setUserId(userId)
 	}
 		
 	const handleDelete = async (e) => {
 		e.preventDefault()
+		auth.onAuthStateChanged((user) => {
+			if (user) {
+				setUserId(user.uid)
+				const uid = user.uid;
+			}
+		});
 		const docRef = doc(db, "mobileUsers", userId)
 		deleteDoc(docRef)
 			.then(() => {
@@ -143,6 +151,7 @@ const Users = () => {
 									<th scope="col" className={tableHeading.default}>Name</th>
 									<th scope="col" className={tableHeading.default_center}>Email</th>
 									<th scope="col" className={tableHeading.default_center}>Join Date</th>
+									<th scope="col" className={tableHeading.default_center}>Role</th>
 									<th scope="col" className={tableHeading.default_center}>Banned</th>
 									<th scope="col" colSpan={2} className={tableHeading.default_center}>Delete</th>
 								</tr>
@@ -151,6 +160,7 @@ const Users = () => {
 								{/*Infinite scroll for the mobileUsers to load more mobileUsers when user scrolls to bottom*/}
 									{loadedMobileUsers.slice(0, endIndex).map((userObj, key) => {
 										const user = Object.values(userObj)[0]
+										const userId = Object.keys(userObj)[0]
 										let posted = user["joiningDate"]
 										posted = posted * 1000 
 										posted = new Date(posted)
@@ -170,6 +180,7 @@ const Users = () => {
 												- format joined date
 												 */}
 												<td className={column.data_center}>{posted}</td>
+												<td className={column.data_center}>{user.role}</td>
 												{/* TODO:
 												- finish banned feature (with confirm modal)
 												 */}
@@ -180,9 +191,7 @@ const Users = () => {
 												 */}
 												<td className={column.data_center} onClick={(e) => e.stopPropagation()}>
 													<button
-														onClick={() =>
-															handleMobileUserDelete(Object.keys(userObj)[0])
-														}
+														onClick={() => handleMobileUserDelete(userId) }
 														data-tip="Delete user"
 														className={style.icon}>
 														<IoTrash size={20} className="ml-4 fill-gray-400 hover:fill-red-600" />
