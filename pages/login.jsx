@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
-
+import { db, auth } from '../config/firebase'
 const Login = () => {
   const router = useRouter()
   const { user, login } = useAuth()
@@ -12,8 +12,18 @@ const Login = () => {
   })
   const [error, setError] = useState()
 
+//   Get user custom token
   if (user) {
-    router.push('/dashboard')
+    auth.currentUser.getIdTokenResult()
+    .then((idTokenResult) => {
+        // if admin load the dashboard
+        if (!!idTokenResult.claims.admin) {
+            router.push('/dashboard')
+        // otherwise load the report page
+        } else {
+            router.push('/report')
+        }
+    })
   }
 
   const handleLogin = async (e) => {
