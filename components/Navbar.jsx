@@ -21,7 +21,7 @@ import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
 import { auth } from "../config/firebase"
 
-const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClaims}) => {
+const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClaims, onReportTabClick}) => {
 
   const [windowSize, setWindowSize] = useState([
     window.innerWidth,
@@ -200,7 +200,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                       </>
                     : // otherwise show the create report icon for general users
                       <button
-                          onClick={() => setTab(0)}
+                          onClick={onReportTabClick}
                           data-tip="Create Report"
                           className={basicStyle}>
                           <HiOutlineDocumentPlus size={30}/>

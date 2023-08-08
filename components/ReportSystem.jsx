@@ -13,12 +13,22 @@ import moment from "moment";
 import Image from 'next/image'
 import Select from "react-select";
 
-const ReportSystem = ({ reportSystem, setReportSystem }) => {
+const ReportSystem = ({ 
+    tab, 
+    setTab, 
+    reportSystem, 
+    setReportSystem,
+    reminderShow,
+    onChangeCheckbox,
+    onReminderStart,
+    onReportSystemPrevStep,
+    disableReminder
+    }) => {
+    // console.log('disableReminder: '+disableReminder+' ||| reminderShow: '+reminderShow);
     const dbInstance = collection(db, 'reports');
     const { user } = useAuth()
     const [data, setData] = useState({ country: "US", state: null, city: null })
     const [isSearchable, setIsSearchable] = useState(true);
-    const [dontShowAgain, setDontShowAgain] = useState(false);
     const storage = getStorage();
     const [reportId, setReportId] = useState('')
     const imgPicker = useRef(null)
@@ -45,7 +55,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
         reminderExample: "Example:",
         reminderCorrect: "Flight prices sky-high in Austin.",
         reminderIncorrect: "US officially marks 1 million American deaths from Covid.",
-        reminderStart: "Start",
+        reminderStart: "Start btn",
         reminderNoShow: "Do not show this again.",
         locationTitle: "Where are you located?",
         topicTitle: 'What is the potential information about?',
@@ -155,9 +165,6 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
     // //
     // Handlers
     // //
-    const handleDontShowAgain = () => {
-        setDontShowAgain(true)
-    }
     
     const handleSubmitClick = (e) => {
         e.preventDefault()
@@ -271,21 +278,26 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
         }
     }, [update]);
     
-    // TODO: finish dontshowagain checkbox
-    
     return (
         <div className={style.sectionContainer}>
             <div className={style.sectionWrapper}>
                 {reportSystem > 0 && 
-                <button onClick={() => setReportSystem(reportSystem == 2 ? reportSystem == 0 : reportSystem - 1)}>
+                <button onClick={onReportSystemPrevStep}>
                     <IoMdArrowRoundBack size={25} />
                 </button>
                 }
             </div>
-            {reportSystem == 2 && // dontShowAgain == false ?
-                // REMINDER
+            {reminderShow != false && reportSystem == 1 &&
                 <div className={style.viewWrapperCenter}>
-                    <Image src="/img/reminder.png" width={156} height={120} alt="reminder"/>
+                    <button onClick={onReminderStart} className={style.button}>{t.reminderStart}</button>
+                    <div className='flex items-center justify-center gap-2'>
+                        <input 
+                        onChange={onChangeCheckbox} 
+                        checked={disableReminder}
+                        type="checkbox" id="noShow" name="noShow" />
+                        <label htmlFor="noShow">{t.reminderNoShow}</label>
+                    </div>
+                    <Image src="/img/reminder.png" width={156} height={120} alt="reminderShow"/>
                     <div className="text-xl px-5 font-extrabold text-blue-600 tracking-wider">
                         {reportSystem == 1 ? t.reminderTitle : reportSystems[reportSystem]}
                     </div>
@@ -300,24 +312,13 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                             <BiXCircle size={25} color='red' />
                             {t.reminderIncorrect}
                         </div>
-                        <button onClick={() => setReportSystem(3)} className={style.button} type="submit">
-                            <div className="px-2 font-normal tracking-wide">{t.reminderStart}</div>
-                        </button>
-                        <div className='flex items-center justify-center gap-2'>
-                            <input 
-                            onChange={handleDontShowAgain} 
-                            checked={dontShowAgain}
-                            type="checkbox" id="noShow" name="noShow" />
-                            <label htmlFor="noShow">{t.reminderNoShow}</label>
-                        </div>
                     </div>
                 </div>
-            // : <div>Hidden</div>
             }
             <div className={style.viewWrapper}>
                 <form onChange={handleChange} onSubmit={handleNewReport} className={style.form}>
                     {/* Location */}
-                    {reportSystem == 3 &&
+                    {reportSystem == 2 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>
                             {t.locationTitle}
@@ -380,7 +381,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                     </div>
                     }
                     {/* Topic tag */}
-                    {reportSystem == 4 &&
+                    {reportSystem == 3 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>{t.topicTitle}</div>
                         {allTopicsArr.map((topic, i) => (
@@ -407,7 +408,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                     </div>
                     }
                     {/* Source tag */}
-                    {reportSystem == 5 &&
+                    {reportSystem == 4 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>{t.sourceTitle}</div>
                         {sources.map((source, i) => (
@@ -435,7 +436,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                     }
                     {/* TODO: add agency dropdown */}
                     {/* Details */}
-                    {reportSystem == 6 &&
+                    {reportSystem == 5 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>
                         {t.share}
@@ -532,7 +533,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                     }
                 </form>
                 {/* Thank you */}
-                {reportSystem == 7 &&
+                {reportSystem == 6 &&
                 <div className={style.viewWrapper + ' items-center'}>
                     <Image src="/img/reportSuccess.png" width={156} height={120} alt="report success"/>
                     <div className={style.sectionH1}>
@@ -545,7 +546,7 @@ const ReportSystem = ({ reportSystem, setReportSystem }) => {
                 </div>
                 }
                 {/* View Report */}
-                {reportSystem == 8 &&
+                {reportSystem == 7 &&
                 <div className={style.viewWrapper}>
                     {/* Title */}
                     <div className={style.inputSingle}>
