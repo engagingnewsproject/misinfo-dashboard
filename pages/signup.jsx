@@ -2,6 +2,9 @@ import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
+import { doc, setDoc } from '@firebase/firestore'
+import { db, auth } from '../config/firebase'
+import moment from 'moment'
 
 const SignUp = () => {
     const router = useRouter()
@@ -9,15 +12,33 @@ const SignUp = () => {
     const { user, signup } = useAuth()
 
     const [data, setData] = useState({
-       teamName: '',
+       name: '',
        email: '',
        password: '',
        confirmPW: ''
     })
+    
+    const setMobileUser = () => {
+        // Get user object
+        const user = auth.currentUser;
+        if (user) {
+            // Set user uid
+            const uid = user.uid;
+            // create a new mobileUsers doc with signed in user's uid
+            setDoc(doc(db, "mobileUsers", uid), {
+                name: data.name,
+                email: data.email,
+                joiningDate: moment().utc().unix(),
+                isBanned: false
+            });
+        } else {
+            console.log('no user');
+        }
+    }
 
     const handleSignUp = async (e) => {
         e.preventDefault()
-        
+
         if (data.password.length < 8) {
             return
         }
@@ -32,6 +53,8 @@ const SignUp = () => {
             } else {
                 setSignUpError(err.message)
             }
+        } finally {
+            setMobileUser()
         }
     }
 
@@ -50,11 +73,11 @@ const SignUp = () => {
                     <div className="mb-4">
                         <input
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="teamName"
+                            id="name"
                             type="text"
                             placeholder="Name of your team"
                             required
-                            value={data.teamName}
+                            value={data.name}
                             onChange={handleChange}
                             />
                     </div>
