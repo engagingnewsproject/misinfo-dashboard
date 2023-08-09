@@ -10,7 +10,6 @@ const SignUp = () => {
     const router = useRouter()
     const [signUpError, setSignUpError] = useState("")
     const { user, signup } = useAuth()
-
     const [data, setData] = useState({
        name: '',
        email: '',
@@ -18,7 +17,7 @@ const SignUp = () => {
        confirmPW: ''
     })
     
-    const setMobileUser = () => {
+    const addMobileUser = () => {
         // Get user object
         const user = auth.currentUser;
         if (user) {
@@ -46,7 +45,7 @@ const SignUp = () => {
         try {
             await signup(data.teamName, data.email, data.password)
             setSignUpError("")
-            router.push('/dashboard')
+            router.push('/report')
         } catch (err) {
             if (err.message == "Firebase: Error (auth/email-already-in-use).") {
                 setSignUpError("Email already in use. Please log in.")
@@ -54,14 +53,13 @@ const SignUp = () => {
                 setSignUpError(err.message)
             }
         } finally {
-            setMobileUser()
+            addMobileUser()
         }
     }
 
     const handleChange = (e) => {
         setData({ ...data, [e.target.id]: e.target.value})
     }
-
 
     return (
         <div className="w-screen h-screen flex justify-center items-center">
