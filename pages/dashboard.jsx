@@ -30,10 +30,16 @@ const Dashboard = () => {
 
     // JUST ADDED
     const [newReportSubmitted, setNewReportSubmitted] = useState(0);
+    const [agencyUpdateSubmitted, setAgencyUpdateSubmitted] = useState(0);
 
     const handleNewReportSubmit = () => {
         // increment the newReportSubmitted
         setNewReportSubmitted(prevState => prevState + 1);
+    };
+    
+    const handleAgencyUpdateSubmit = () => {
+        // increment the agencyUpdateSubmitted
+        setAgencyUpdateSubmitted(prevState => prevState + 1);
     };
 
     useEffect(()=> {
@@ -68,7 +74,7 @@ const Dashboard = () => {
             { customClaims.agency || customClaims.admin && tab == 3 && <Users />}
 
             {/* If the user is a superadmin, will display list of agencies */}
-            { customClaims.admin && tab == 4 && <Agencies />}
+            { customClaims.admin && tab == 4 && <Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />}
             { tab == 5 && <SettingsReport />}
             </div>
         </div>
