@@ -2,27 +2,40 @@ import React, { useState } from 'react'
 import { IoClose } from 'react-icons/io5'
 import { useAuth } from '../../context/AuthContext'
 import { db } from '../../config/firebase';
-import { collection, addDoc } from '@firebase/firestore';
+import { collection, addDoc, arrayUnion } from '@firebase/firestore';
 import Select from "react-select";
 import { Country, State, City }  from 'country-state-city';
 
 const NewAgencyModal = ({ setNewAgencyModal, handleNewAgencySubmit }) => {
 
-	const [signUpError, setSignUpError] = useState("")
-	const { user, signup } = useAuth()
-
 	// TESTING add state // // // // // // // // // // // // // //
 	const dbInstance = collection(db, 'agency');
 	const [name, setName] = useState("")
+	const [agencyUser, setAgencyUser] = useState([])
+	// Add agency user send signup email
+	const [signUpError, setSignUpError] = useState("")
+	const { user, sendSignIn } = useAuth()
 	const [data, setData] = useState({ country: "US", state: null, city: null })
-	// const [agencyState, setAgencyState] = useState(0)
 	
 	const saveAgency = () => {
 		addDoc(dbInstance, {
 			name: name,
+			agencyUsers: arrayUnion(...agencyUser),
 			state: data.state.name,
 			city: data.city == null ? "N/A" : data.city.name,
-		}).then(() => {
+		}).then(async () => {
+			// Agency User send email
+			try {
+			// TODO: need to send email to more than one email.
+			// in case a comma separated list is added.
+				await sendSignIn(...agencyUser)
+			} catch (err) {
+				if (err.message == "Firebase: Error (auth/email-already-in-use).") {
+						setSignUpError("Email already in use. Please log in.")
+				} else {
+						setSignUpError(err.message)
+				}
+			}
 			handleNewAgencySubmit(); // Send a signal to ReportsSection so that it updates the list 
 		})
 	}
@@ -31,17 +44,23 @@ const NewAgencyModal = ({ setNewAgencyModal, handleNewAgencySubmit }) => {
 		e.preventDefault()
 		setName(e.target.value)
 	}
+	// Agency User
+	const handleAgencyUserChange = (e) => {
+		e.preventDefault()
+		let usersArr = e.target.value
+		usersArr = usersArr.split(',')
+		setAgencyUser(usersArr)
+	}
 	// Agency State
 	const handleStateChange = (e) => {
 		setData(data=>({...data, state: e, city: null })) 
-		// setAgencyState(1)
 	}
 	// Agency City
 	const handleCityChange = (e) => {
 		setData(data=>({...data,city: e !== null ? e : null })) 
-		// setAgencyState(2)
 	}
-	const handleSubmitClick = (e) => {
+	
+	const handleSubmitClick = async (e) => {
 		e.preventDefault()
 		!name ? alert('Agency name is required') :
 		saveAgency()
@@ -60,7 +79,8 @@ const NewAgencyModal = ({ setNewAgencyModal, handleNewAgencySubmit }) => {
 
 	const style = {
 		input: 'shadow mb-4 border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
-		button: 'w-full bg-blue-500 hover:bg-blue-700 text-white py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline',
+		inputSelect: 'shadow my-4 border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
+		button: 'w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline',
 	}
 	return (
 		<div>
@@ -81,12 +101,21 @@ const NewAgencyModal = ({ setNewAgencyModal, handleNewAgencySubmit }) => {
 							value={data.agencyName}
 							onChange={handleNameChange}
 							/>
-						<label className='text-blue-600'>Agency Location</label>
-						<Select // Agency Location
-								className={style.input}
+						<input // Agency Admin User
+							className={style.input}
+							id="agencyUser"
+							type="text"
+							placeholder="Agency User Email"
+							required
+							value={data.agencyUser}
+							onChange={handleAgencyUserChange}
+							/>
+						<label className='text-blue-600'>Location</label>
+						<Select // Agency State
+								className={style.inputSelect}
 								id="agencyState"
 								type="text"
-								placeholder="Add Agency State"
+								placeholder="Select State"
 								value={data.state}
 								options={State.getStatesOfCountry(data.country)}
 								getOptionLabel={(options) => {
@@ -97,12 +126,13 @@ const NewAgencyModal = ({ setNewAgencyModal, handleNewAgencySubmit }) => {
 								}}                                
 								label="state"
 								onChange={handleStateChange}
+								required
 								/>
-						<Select // Agency Location
-								className={style.input}
+						<Select // Agency City
+								className={style.inputSelect}
 								id="agencyCity"
 								type="text"
-								placeholder="Add Agency City"
+								placeholder="Select City"
 								value={data.city}
 								options={City.getCitiesOfState(
 									data.state?.countryCode,
@@ -116,6 +146,7 @@ const NewAgencyModal = ({ setNewAgencyModal, handleNewAgencySubmit }) => {
 								}}                                
 								label="state"
 								onChange={handleCityChange}
+								required
 								/>
 						{/* <input
 							className={style.input}
