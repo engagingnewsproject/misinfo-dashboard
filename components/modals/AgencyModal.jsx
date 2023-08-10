@@ -144,7 +144,9 @@ const AgencyModal = ({setAgencyModal, handleAgencyUpdateSubmit, agencyInfo, agen
 								<div className={style.modal_form_label}>Agency location</div>
 								<div className={style.modal_form_data}>{`${agencyInfo.city}, ${agencyInfo.state}`}</div>
 								<div className={style.modal_form_label}>Agency admin user</div>
-								<div className={style.modal_form_data}>{agencyInfo['agencyUsers'].map((user, i) => {return(<div>{user}</div>)})}</div>
+								<div className={style.modal_form_data}>
+									{agencyInfo['agencyUsers']}
+								</div>
 								{/* TODO: user should be able to add an admin user */}
 								{/* <input onChange={onAdminChange} defaultValue='this' placeholder="Admin user email" className={style.modal_form_data}/> */} 
 								<div>
