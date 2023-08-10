@@ -114,14 +114,14 @@ const AgencyModal = ({setAgencyModal, handleAgencyUpdateSubmit, agencyInfo, agen
 		modal_container: 'absolute top-4 md:top-6 md:right-6 md:left-6 flex justify-center items-center z-[1300] sm:overflow-y-scroll',
 		modal_wrapper: 'flex-col justify-center items-center lg:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible',
 		modal_header_container: 'flex justify-between w-full mb-6',
-		modal_header_wrapper: 'flex w-full items-baseline',
+		modal_header_wrapper: 'flex w-full justify-between items-baseline',
 		modal_header: 'text-2xl font-bold text-blue-600 tracking-wider',
 		modal_close: 'text-gray-800',
 		modal_form_container: 'grid md:grid-cols-2 md:gap-10 lg:gap-15',
 		modal_form_label: 'text-lg font-bold text-black tracking-wider mb-4',
 		modal_form_data: 'text-sm bg-white rounded-xl p-4 mb-5',
 		modal_form_upload_image: 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
-		modal_form_button: 'flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
+		modal_form_button: 'bg-blue-500 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
 	}
 // TODO: add agency to report creation
 // TODO: filter reports, tags & users by agency login
@@ -162,18 +162,18 @@ const AgencyModal = ({setAgencyModal, handleAgencyUpdateSubmit, agencyInfo, agen
 											})}
 										</div> :
 										<div className="italic font-light">No agency logo uploaded.</div>
-									}
+									}	
+									<label className="block">
+										<span className="sr-only">Choose files</span>
+										<input className={style.modal_form_upload_image} 
+										id="agency_logo_file" 
+										type="file" 
+										accept="image/*" 
+										onChange={handleImageChange}
+										ref={imgPicker}
+										/>
+									</label>
 								</div>
-								<label className="block">
-									<span className="sr-only">Choose files</span>
-									<input className={style.modal_form_upload_image} 
-									id="agency_logo_file" 
-									type="file" 
-									accept="image/*" 
-									onChange={handleImageChange}
-									ref={imgPicker}
-									/>
-								</label>
 							<button onClick={handleSubmitClick} className={style.modal_form_button} type="submit">Update Agency</button> 
 								{/* TODO: finish update agency */}
 							</div>
