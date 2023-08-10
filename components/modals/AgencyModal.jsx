@@ -123,7 +123,8 @@ const AgencyModal = ({setAgencyModal, handleAgencyUpdateSubmit, agencyInfo, agen
 		modal_form_upload_image: 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
 		modal_form_button: 'flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
 	}
-
+// TODO: add agency to report creation
+// TODO: filter reports, tags & users by agency login
 	return (
 		<div className={style.modal_background} onClick={() => setAgencyModal(false)}>
 			<div className={style.modal_container}>
