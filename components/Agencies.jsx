@@ -20,7 +20,7 @@ import ConfirmModal from "./modals/ConfirmModal"
 import ReactTooltip from "react-tooltip"
 import { IoTrash } from "react-icons/io5"
 
-const Agencies = ({updateAgencySubmit, handleUpdateAgencySubmit}) => {
+const Agencies = ({handleAgencyUpdateSubmit}) => {
 	// //
 	// States
 	// //
@@ -77,6 +77,7 @@ const Agencies = ({updateAgencySubmit, handleUpdateAgencySubmit}) => {
 	// //
 	// Handlers
 	// //
+	
 	const handleDelete = async (e) => {
 		e.preventDefault()
 	}
@@ -116,7 +117,6 @@ const Agencies = ({updateAgencySubmit, handleUpdateAgencySubmit}) => {
 		updateDoc(docRef, {
 			agencyUsers: e.target.value
 		})
-		// setAgencyAdminUsers(agencyAdminUsers)
 	}
 	
 	// //
@@ -150,22 +150,31 @@ const Agencies = ({updateAgencySubmit, handleUpdateAgencySubmit}) => {
 						</tr>
 					</thead>
 					<tbody>
-					{/* {console.log(endIndex)} */}
 						{agencies.slice(0, endIndex).map((agencyObj, i) => {
 							const agency = Object.values(agencyObj)[0]
 							return (
 								<tr onClick={() => handleAgencyModalShow(Object.keys(agencyObj)[0])} className={style.table_tr} key={i}>
 									<td className={style.table_td}>
-										<Image
-											src={agency.logo}
-											width={100}
-											height={100}
-											alt={agency.name + ' logo'}
-										/>
+										{agency['logo'] && agency['logo'][0] ?
+											<div className="flex w-full overflow-y-auto">
+												{agency['logo'].map((image, i) => {
+													return (
+														<div className="flex mr-2" key={i}>
+															<Image src={image} width={100} height={100} alt="image"/>
+														</div>
+													)
+												})}
+											</div> :
+											<div className="italic font-light">No images for this report</div>
+										}
 									</td>
 									<td className={style.table_td}>{agency.name}</td>
-									<td className={style.table_td}>{agency.location}</td>
-									<td className={style.table_td}>{agency.agencyAdminUsers}</td>
+									<td className={style.table_td}>
+										{agency.city}, {agency.state}
+									</td>
+									<td className={style.table_td}>
+									{agency['agencyUsers'].map((user, i) => {return(<div>{user}</div>)})}
+									</td>
 									<td className={style.table_td}>
 										<button
 											onClick={() =>
@@ -184,8 +193,8 @@ const Agencies = ({updateAgencySubmit, handleUpdateAgencySubmit}) => {
 				</table>
 			</div>
 			{agencyModal && <AgencyModal 
-				handleUpdateAgencySubmit={handleUpdateAgencySubmit}
-				setAgencyId={agencyId}
+				handleAgencyUpdateSubmit={handleAgencyUpdateSubmit}
+				agencyId={agencyId}
 				agencyInfo={agencyInfo}
 				setAgencyInfo={setAgencyInfo}
 				onFormSubmit={handleFormSubmit}
