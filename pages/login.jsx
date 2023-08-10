@@ -17,7 +17,7 @@ const Login = () => {
     auth.currentUser.getIdTokenResult()
     .then((idTokenResult) => {
         // if admin load the dashboard
-        if (!!idTokenResult.claims.admin) {
+        if (!!idTokenResult.claims.admin || !!idTokenResult.claims.agency) {
             router.push('/dashboard')
         // otherwise load the report page
         } else {
