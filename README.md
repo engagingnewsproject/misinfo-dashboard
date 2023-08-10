@@ -72,3 +72,12 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
     `git push origin main`
 
 ## [Misinfo Dashboard Documentation](http://localhost:5000/o/tmOnCbkSzYuWj7EVbFqg/s/h5B8zKreIfyiUKOT1awO/)
+
+# TESTING Firebase Dev Project
+
+- Project name: misinfo-dashboard-dev
+- Project ID: misinfo-dashboard-dev
+
+## Deploy Firebase Functions
+
+`firebase deploy -P dev  --only functions:misinfo-dashboard-dev`
