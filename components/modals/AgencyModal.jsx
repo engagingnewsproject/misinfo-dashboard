@@ -1,35 +1,110 @@
-import React, { useState, useRef } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { useRouter } from 'next/router'
 import { IoClose } from "react-icons/io5"
-import { useAuth } from "../../context/AuthContext"
 import Image from "next/image"
 import { db } from "../../config/firebase"
-import { getDoc, getDocs, doc, setDoc, collection, updateDoc, addDoc } from "firebase/firestore";
-import { getStorage, ref, getDownloadURL, uploadBytes, deleteObject, uploadBytesResumable } from 'firebase/storage';
+import { doc, updateDoc } from "firebase/firestore";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
-const AgencyModal = ({setAgencyId, agencyInfo, setAgencyInfo, onFormSubmit, onFormUpdate, onAdminChange, setAgencyAdminUsers, setAgencyModal}) => {
+const AgencyModal = ({setAgencyModal, handleAgencyUpdateSubmit, agencyInfo, agencyId, onAdminChange}) => {
+	const router = useRouter()
+	const imgPicker = useRef(null)
+	const storage = getStorage();
 	// //
 	// States
 	// //
-	const [image, setImage] = useState([])
+	const [errors, setErrors] = useState({})
+	const [images, setImages] = useState([])
+	const [imageURLs, setImageURLs] = useState([]);
 	const [update, setUpdate] = useState(false)
+	const [agencyUsers, setAgencyUsers] = useState([])
 	
-	const dbInstance = collection(db, 'agency');
-	const router = useRouter()
-	const imgPicker = useRef(null)
-	// console.log(setAgencyAdminUsers);
 	// //
 	// Handlers
 	// //
+	const handleChange = (e) => {
+		// console.log('Agency value changed.');
+	}
+	
+	// Image upload (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js, https://www.youtube.com/watch?v=S4zaZvM8IeI)
 	const handleImageChange = (e) => {
-    console.log('handle image change run');
 			for (let i = 0; i < e.target.files.length; i++) {
 					const newImage = e.target.files[i];
-					setImage((prevState) => [...prevState, newImage]);
+					setImages((prevState) => [...prevState, newImage]);
 					setUpdate(!update)
 			}
 	};
 	
+	// Image upload to firebase
+	const handleUpload = () => {
+		const promises = [];
+		images.map((image) => {
+			const storageRef = ref(storage, `agencies/logo_${new Date().getTime().toString()}.png`)
+			const uploadTask = uploadBytesResumable(storageRef, image)
+			promises.push(uploadTask);
+			uploadTask.on( "state_changed",
+			(snapshot) => {
+				// console.log(snapshot);
+			},
+			(error) => {
+				console.log(error);
+			},
+			() => {
+				getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+					// console.log('File available at', downloadURL);
+					setImageURLs(
+						(prev) => [...prev, downloadURL]
+						)
+					});
+				}
+				);
+			});
+			
+			Promise.all(promises)
+			.catch((err) => console.log(err));
+	};
+	
+	
+	const handleAgencyUpdate = async (e) => {
+		e.preventDefault()
+		// TODO: Check for any errors
+		const allErrors = {}
+		setErrors(allErrors)
+		console.log(allErrors.length + "Error array length")
+			
+		if (Object.keys(allErrors).length == 0) {
+			handleSubmitClick(e)
+		}
+	}
+		
+	// Form button click handler
+	const handleSubmitClick = (e) => {
+		e.preventDefault()
+		if (images.length > 0) {
+			setUpdate(!update)
+			saveAgency(imageURLs)
+			setAgencyModal(false)
+		}
+	}
+		
+	// Save Agency
+	const saveAgency = (imageURLs) => {
+		const agencyRef = doc(db, "agency", agencyId);
+		updateDoc(agencyRef, {
+			logo: imageURLs,
+		}).then(() => {
+			handleAgencyUpdateSubmit(); // Send a signal to ReportsSection so that it updates the list 
+		})
+	}
+		
+	// //
+	// Effects
+	// //
+	useEffect(() => {
+		if (update) {
+			handleUpload()
+		}
+	}, [update]);
 	
 	// //
 	// Styles
@@ -62,29 +137,41 @@ const AgencyModal = ({setAgencyId, agencyInfo, setAgencyInfo, onFormSubmit, onFo
 						</div>
 					</div>
 					<div>
-						<form onSubmit={onFormSubmit}>
+						<form onChange={handleChange} onSubmit={handleAgencyUpdate}>
 							<div className={style.modal_form_container}>
 								<div className={style.modal_form_label}>Agency name</div>
 								<div className={style.modal_form_data}>{agencyInfo.name}</div>
 								<div className={style.modal_form_label}>Agency location</div>
 								<div className={style.modal_form_data}>{`${agencyInfo.city}, ${agencyInfo.state}`}</div>
 								<div className={style.modal_form_label}>Agency admin user</div>
-								<input onChange={onAdminChange} defaultValue={agencyInfo.agencyUsers} placeholder="Admin user email" className={style.modal_form_data}/>
+								<div className={style.modal_form_data}>{agencyInfo['agencyUsers'].map((user, i) => {return(<div>{user}</div>)})}</div>
+								{/* TODO: user should be able to add an admin user */}
+								{/* <input onChange={onAdminChange} defaultValue='this' placeholder="Admin user email" className={style.modal_form_data}/> */} 
+								<div>
+									{agencyInfo['logo'] && agencyInfo['logo'][0] ?
+										<div className="flex w-full overflow-y-auto">
+											{agencyInfo['logo'].map((image, i) => {
+												return (
+													<div className="flex mr-2" key={i}>
+														<Image src={image} width={100} height={100} alt="image"/>
+													</div>
+												)
+											})}
+										</div> :
+										<div className="italic font-light">No agency logo uploaded.</div>
+									}
+								</div>
 								<label className="block">
 									<span className="sr-only">Choose files</span>
 									<input className={style.modal_form_upload_image} 
-									id="multiple_files" 
+									id="agency_logo_file" 
 									type="file" 
-									multiple 
 									accept="image/*" 
-									// onChange={(e) => {onImageChange(e) }}
-									onChange={(e) => {
-											handleImageChange(e)
-									}}
+									onChange={handleImageChange}
 									ref={imgPicker}
 									/>
-							</label>
-								<button onClick={onFormUpdate} className={style.modal_form_button}>Update Agency</button> 
+								</label>
+							<button onClick={handleSubmitClick} className={style.modal_form_button} type="submit">Update Agency</button> 
 								{/* TODO: finish update agency */}
 							</div>
 						</form>
