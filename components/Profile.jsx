@@ -83,26 +83,25 @@ const Profile = () => {
         <div className="text-xl font-extrabold text-blue-600 tracking-wider">Account</div>
           <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">
-            
-            {agencies.length > 1 ? 'Agencies' : 'Agency'}
+              {agencies.length > 1 ? 'Agencies' : 'Agency'}
             </div>
-              <div className='flex gap-2 my-2 tracking-normal items-center'>
-                <div className="font-light">
-                {agencies.map((agencyObj, i) => {
-                  const agency = Object.values(agencyObj)[0]
-                  return (
-                    <div className='' key={i+'-'+agency.name}>
-                    {agency.name}
-                    </div>
-                  )
-                })}
-                </div>
-                {/* <button
-                    onClick={() => setEmailModal(true)}
-                    className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                    Edit Agency
-                </button> */}
+            <div className='flex gap-2 my-2 tracking-normal items-center'>
+              <div className="font-light">
+              {agencies.map((agencyObj, i) => {
+                const agency = Object.values(agencyObj)[0]
+                return (
+                  <div className='' key={i+'-'+agency.name}>
+                  {agency.name}
+                  </div>
+                )
+              })}
               </div>
+              {/* <button
+                  onClick={() => setEmailModal(true)}
+                  className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                  Edit Agency
+              </button> */}
+            </div>
           </div>
           <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">Email</div>
