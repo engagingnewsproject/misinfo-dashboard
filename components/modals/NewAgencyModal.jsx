@@ -112,51 +112,42 @@ const NewAgencyModal = ({ setNewAgencyModal, handleNewAgencySubmit }) => {
 							/>
 						<label className='text-blue-600'>Location</label>
 						<Select // Agency State
-								className={style.inputSelect}
-								id="agencyState"
-								type="text"
-								placeholder="Select State"
-								value={data.state}
-								options={State.getStatesOfCountry(data.country)}
-								getOptionLabel={(options) => {
-									return options["name"];
-								}}
-								getOptionValue={(options) => {
-									return options["name"];
-								}}                                
-								label="state"
-								onChange={handleStateChange}
-								required
-								/>
+						className={style.inputSelect}
+						id="agencyState"
+						type="text"
+						placeholder="Select State"
+						value={data.state}
+						options={State.getStatesOfCountry(data.country)}
+						getOptionLabel={(options) => {
+							return options["name"];
+						}}
+						getOptionValue={(options) => {
+							return options["name"];
+						}}                                
+						label="state"
+						onChange={handleStateChange}
+						required
+						/>
 						<Select // Agency City
-								className={style.inputSelect}
-								id="agencyCity"
-								type="text"
-								placeholder="Select City"
-								value={data.city}
-								options={City.getCitiesOfState(
-									data.state?.countryCode,
-									data.state?.isoCode
-								)}
-								getOptionLabel={(options) => {
-									return options["name"];
-								}}
-								getOptionValue={(options) => {
-									return options["name"];
-								}}                                
-								label="state"
-								onChange={handleCityChange}
-								required
-								/>
-						{/* <input
-							className={style.input}
-							id="email"
-							type="text"
-							placeholder="Agency Admin Email"
+						className={style.inputSelect}
+						id="agencyCity"
+						type="text"
+						placeholder="Select City"
+						value={data.city}
+						options={City.getCitiesOfState(
+							data.state?.countryCode,
+							data.state?.isoCode
+							)}
+							getOptionLabel={(options) => {
+								return options["name"];
+							}}
+							getOptionValue={(options) => {
+								return options["name"];
+							}}                                
+							label="state"
+							onChange={handleCityChange}
 							required
-							value={data.email}
-							onChange={handleChange}
-							/> */}
+							/>
 						{signUpError && <div className="text-red-500 text-sm font-normal pt-3">{signUpError}</div>}
 						<button className={style.button} type="submit">
 							Add Agency
