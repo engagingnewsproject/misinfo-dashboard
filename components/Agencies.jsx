@@ -19,6 +19,7 @@ import NewAgencyModal from './modals/NewAgencyModal'
 import ConfirmModal from "./modals/ConfirmModal"
 import ReactTooltip from "react-tooltip"
 import { IoTrash } from "react-icons/io5"
+import { FaPlus } from 'react-icons/fa'
 
 const Agencies = ({handleAgencyUpdateSubmit}) => {
 	// //
@@ -28,13 +29,30 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [agencyInfo, setAgencyInfo] = useState('')
 	const [agencyId, setAgencyId] = useState('')
 	const [agencyAdminUsers, setAgencyAdminUsers] = useState('')
+	// EXISTING Agency Modal
 	const [agencyModal, setAgencyModal] = useState(false)
-	const [newAgencyModal, setNewAgencyModal] = useState(false)
 	const [update, setUpdate] = useState('')
 	const [search, setSearch] = useState('')
 	const [endIndex, setEndIndex] = useState(10)
 	const [deleteModal, setDeleteModal] = useState(false)
 
+	// TESTING Start // // // // // // // // // // // // // // // //
+	
+	// NEW Agency Modal
+	const [newAgencyModal, setNewAgencyModal] = useState(false)
+	const [newAgencySubmitted, setNewAgencySubmitted] = useState(0);
+	
+	// Handler: Add new agency
+	const handleAddNew = (e) => {
+		e.preventDefault()
+		setNewAgencyModal(true)
+	}
+	
+	const handleNewAgencySubmit = () => {
+		setNewAgencySubmitted(prevState => prevState + 1)
+	}
+	// TESTING END // // // // // // // // // // // // // // // // // 
+	
 	// //
 	// Styles
 	// //
@@ -44,14 +62,15 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		section_header: 'flex flex-col md:flex-row py-5 md:justify-between',
 		section_title: 'text-center md:text-left text-lg font-bold text-blue-600 tracking-wider pb-2 md:pb-0',
 		section_filters: 'flex flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-evenly',
-		section_filtersWrap: 'p-0 px-4 md:p-4 md:py-0 md:px-4',
+		section_filtersWrap: 'p-0 px-4 md:p-4 md:py-0 md:px-4 flex items-center',
 		table_main: 'min-w-full bg-white rounded-xl p-1',
 		table_thead: 'border-b dark:border-indigo-100 bg-slate-100',
 		table_th: 'px-3 p-3 text-sm font-semibold text-left tracking-wide',
 		table_tr: 'border-b transition duration-300 ease-in-out hover:bg-indigo-100 dark:border-indigo-100 dark:hover:bg-indigo-100',
 		table_td: 'whitespace-normal text-sm px-3 p-2 cursor-pointer',
 		table_button: 'hover:fill-cyan-700',
-		table_icon: 'ml-4 fill-gray-400 hover:fill-red-600'
+		table_icon: 'ml-4 fill-gray-400 hover:fill-red-600',
+		button: 'flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
 	}
 	
 	// //
@@ -135,6 +154,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 					</div>
 					<div className={style.section_filters}>
 						<div className={style.section_filtersWrap}>
+						<button className={style.button} onClick={handleAddNew}><FaPlus className="text-blue-600 mr-2" size={12}/>Add Agency</button>
 							<pre>-- Filters here--</pre>
 						</div>
 					</div>
@@ -160,12 +180,12 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 												{agency['logo'].map((image, i) => {
 													return (
 														<div className="flex mr-2" key={i}>
-															<Image src={image} width={100} height={100} alt="image"/>
+															<Image src={image} width={70} height={100} alt="image"/>
 														</div>
 													)
 												})}
 											</div> :
-											<div className="italic font-light">No images for this report</div>
+											<div className="italic font-light">No logo for this agency</div>
 										}
 									</td>
 									<td className={style.table_td}>{agency.name}</td>
@@ -173,7 +193,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 										{agency.city}, {agency.state}
 									</td>
 									<td className={style.table_td}>
-									{agency['agencyUsers'].map((user, i) => {return(<div>{user}</div>)})}
+									{/* {agency['agencyUsers'].map((user, i) => {return(<div>{user}</div>)})} */}
 									</td>
 									<td className={style.table_td}>
 										<button
@@ -215,7 +235,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 				// tagSystems={tagSystems}
 				// tagSystem={tagSystem}
 				// list={list}
-				// setList={setList}
+				handleNewAgencySubmit={handleNewAgencySubmit}
 				setNewAgencyModal={setNewAgencyModal}
 				// addNewUser={addNewUser} 
 			/>}
