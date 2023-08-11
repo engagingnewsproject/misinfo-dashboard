@@ -14,7 +14,6 @@ const Home = ({newReportSubmitted, handleNewReportSubmit}) => {
     // TODO: debugging callback function to verify user role before displaying dashboard view
     auth.currentUser.getIdTokenResult()
     .then((idTokenResult) => {
-    console.log(idTokenResult);
       // Confirm the user is an Admin.
       if (!!idTokenResult.claims.admin) {
         // Show admin UI.

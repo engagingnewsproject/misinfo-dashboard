@@ -20,7 +20,6 @@ const Headbar = ({ search, setSearch, customClaims}) => {
 					[doc.id]: doc.data(),
 				})
 			})
-			setRoles(arr)
 		} catch (error) {
 			console.log(error)
 		}
