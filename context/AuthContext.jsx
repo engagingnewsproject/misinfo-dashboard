@@ -31,7 +31,7 @@ export const AuthContextProvider = ({children}) => {
 
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
-
+    const [userRole, setUserRole] = useState('user')
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
           let customClaims = { admin: false, agency: false}
@@ -54,7 +54,6 @@ export const AuthContextProvider = ({children}) => {
             }
             setLoading(false)
         })
-
         return () => unsubscribe()
     }, [])
 
@@ -81,16 +80,15 @@ export const AuthContextProvider = ({children}) => {
         await signOut(auth)
     }
 
-    const verifyRole = () => {
-      return auth.currentUser.getIdTokenResult()
-      .then((idTokenResult) => {
-         // Confirm the user is an Admin.
-          return idTokenResult.claims;        
-      }).catch((error) => {
-        console.log(error);
-      });
-      
+    const verifyRole = async () => {
+        try {
+            const idTokenResult = await auth.currentUser.getIdTokenResult()
+            return idTokenResult.claims
+        } catch (error) {
+            console.log(error)
+        }
     }
+    
     const resetPassword = (email) => {
         return sendPasswordResetEmail(auth, email)
     }
@@ -146,7 +144,7 @@ export const AuthContextProvider = ({children}) => {
     // TODO: add reCAPTCHA
  
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword, sendSignIn, addAdminRole, addAgencyRole, viewRole, addUserRole }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )

@@ -1,17 +1,41 @@
 import React, { useState, useEffect } from 'react'
 import { AiOutlineSearch } from 'react-icons/ai'
 import { collection, getDocs } from '@firebase/firestore'
+import { useAuth } from '../context/AuthContext'
 import { db, auth } from "../config/firebase"
 
 const Headbar = ({ search, setSearch}) => {
+    
+    // // // // //
+    // Get user Roles
+    // // // // //
+    const { user, verifyRole } = useAuth()
     const [roles, setRoles] = useState('')
+    const [userRole, setUserRole] = useState('User')
+
+    // Effect: get user token
+    useEffect(()=> {
+        verifyRole()
+        .then((result) => {
+            if(result.admin) {
+                setUserRole('ADMIN')
+            } else if (result.agency) {
+                setUserRole('AGENCY')
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+        });
+    }, [])
+    // // // // //
+    // Get user Roles END
+    // // // // //
     
 	// //
 	// Data
 	// //
 	const getData = async () => {
 		const userRoles = collection(db, 'userRoles')
-		
 		const snapshot = await getDocs(userRoles)
 		try {
 			var arr = []
@@ -41,10 +65,10 @@ const Headbar = ({ search, setSearch}) => {
     // //
 	// Effects
 	// //
+    // Effect: get data
 	useEffect(() => {
 		getData()
 	})
-
     return (
         <div className="w-full">
             <div className="flex py-4 px-12 sm:px-10 justify-between">
@@ -56,8 +80,9 @@ const Headbar = ({ search, setSearch}) => {
                         <div className="w-10 h-10 font-extralight rounded-full tracking-widest flex justify-center text-sm items-center text-white bg-blue-500">M</div>
                     </div>
 
-                    <div className="text-md font-semibold px-4 m-auto tracking-wide">Misinfo Admin Dashboard</div>
+                    <div className="text-md font-semibold px-4 m-auto tracking-wide">{userRole != 'User' ? `${userRole} Misinfo Dashboard` : 'Report Misinformation'}</div>
                 </div>
+                {userRole != 'User' &&
                 <form className="flex relative w-1/4" onChange={handleChange} onSubmit={handleSearch}>
                    
                     <input
@@ -73,6 +98,7 @@ const Headbar = ({ search, setSearch}) => {
                         <AiOutlineSearch size={25}/>
                     </button>
                 </form>
+                }
             </div>
         </div>
     )

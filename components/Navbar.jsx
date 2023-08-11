@@ -125,7 +125,6 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
 
     return (
       <>
-
       {/* Menu icon that appears when being viewed on mobile screen */}
       {!showNav && 
         <button 
@@ -153,16 +152,16 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                       <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                   </button> 
                     {(customClaims.admin || customClaims.agency) &&
-                    <button 
+                      <button // Home/Reports view
                         onClick={() => setTab(0)}
                         data-tip="Home"
                         className={tab == 0 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
                         <IoHomeOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
-                    </button>
+                      </button>
                     }
                     {customClaims.admin &&
-                      <button 
+                      <button // Agencies
                           onClick={() => setTab(4)}
                           data-tip="Agencies"
                           className={tab == 4 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
@@ -170,36 +169,35 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                           <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
                     }
-                    {(customClaims.admin || customClaims.agency) &&
-                    <button
-                        onClick={() => setTab(2)}
-                        data-tip="Tagging Systems"
-                        className={tab == 2 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
-                        <IoPricetagsOutline size={30}/>
-                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
-                    </button>
+                    {(customClaims.agency ||customClaims.admin) &&
+                      <button // Tags
+                          onClick={() => setTab(2)}
+                          data-tip="Tagging Systems"
+                          className={tab == 2 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
+                          <IoPricetagsOutline size={30}/>
+                          <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                      </button>
                     }
-                    {(customClaims.admin || customClaims.agency) ? // if admin user or agency user show the add report & users icons
-                    <>
-                      {/* agency user create report */}
-                      <button
+                    {customClaims.agency && // if admin user or agency user show the add report & users icons
+                      <button //  Agency user create report
                           onClick={handleNewReportModal}
                           data-tip="New Report"
                           className={basicStyle}>
                           <IoAddCircleOutline size={30}/>
                           <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
-                      {/* users */}
-                      <button
+                    } 
+                    { (customClaims.admin || customClaims.agency) &&
+                      <button // Users
                           onClick={() => setTab(3)}
                           data-tip="Users"
                           className={basicStyle}>
                           <IoPeopleOutline size={30}/>
                           <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
-                      </>
-                    : // otherwise show the create report icon for general users
-                      <button
+                    }
+                    { (!customClaims.admin && !customClaims.agency) &&
+                      <button // General User create report
                           onClick={onReportTabClick}
                           data-tip="Create Report"
                           className={basicStyle}>
