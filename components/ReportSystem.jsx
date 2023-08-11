@@ -54,7 +54,7 @@ const ReportSystem = ({
         reminderExample: "Example:",
         reminderCorrect: "Flight prices sky-high in Austin.",
         reminderIncorrect: "US officially marks 1 million American deaths from Covid.",
-        reminderStart: "Start btn",
+        reminderStart: "Start",
         reminderNoShow: "Do not show this again.",
         locationTitle: "Where are you located?",
         topicTitle: 'What is the potential information about?',
@@ -288,14 +288,6 @@ const ReportSystem = ({
             </div>
             {reminderShow != false && reportSystem == 1 &&
                 <div className={style.viewWrapperCenter}>
-                    <button onClick={onReminderStart} className={style.button}>{t.reminderStart}</button>
-                    <div className='flex items-center justify-center gap-2'>
-                        <input 
-                        onChange={onChangeCheckbox} 
-                        checked={disableReminder}
-                        type="checkbox" id="noShow" name="noShow" />
-                        <label htmlFor="noShow">{t.reminderNoShow}</label>
-                    </div>
                     <Image src="/img/reminder.png" width={156} height={120} alt="reminderShow"/>
                     <div className="text-xl px-5 font-extrabold text-blue-600 tracking-wider">
                         {reportSystem == 1 ? t.reminderTitle : reportSystems[reportSystem]}
@@ -311,6 +303,14 @@ const ReportSystem = ({
                             <BiXCircle size={25} color='red' />
                             {t.reminderIncorrect}
                         </div>
+                    </div>
+                    <button onClick={onReminderStart} className={style.button}>{t.reminderStart}</button>
+                    <div className='flex items-center justify-center gap-2'>
+                        <input 
+                        onChange={onChangeCheckbox} 
+                        checked={disableReminder}
+                        type="checkbox" id="noShow" name="noShow" />
+                        <label htmlFor="noShow">{t.reminderNoShow}</label>
                     </div>
                 </div>
             }
