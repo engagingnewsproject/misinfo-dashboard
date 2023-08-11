@@ -103,26 +103,47 @@ export const AuthContextProvider = ({children}) => {
         })
     }
     
-    const sendSignIn = async (email) => {
+    const sendSignIn = async (auth, email) => {
+    console.log('sending signin email to: ' + email);
         var actionCodeSettings = {
             // URL you want to redirect back to. The domain (www.example.com) for this URL
             // must be whitelisted in the Firebase Console.
             'url': 'https://misinfo-dashboard.netlify.app/signup', // Here we redirect back to this same page.
             'handleCodeInApp': true // This must be true.
         };
-        try
-        {
-            await sendSignInLinkToEmail(auth,email, actionCodeSettings)
-            // The link was successfully sent. Inform the user.
-            // Save the email locally so you don't need to ask the user for it again
-            // if they open the link on the same device.
-            window.localStorage.setItem('emailForSignIn',email)
-        } catch (error)
-        {
-            const errorCode = error.code
-            const errorMessage = error.message
-        }
+        sendSignInLinkToEmail(auth, email, actionCodeSettings)
+          .then(() => {
+                // The link was successfully sent. Inform the user.
+                // Save the email locally so you don't need to ask the user for it again
+                // if they open the link on the same device.
+                window.localStorage.setItem('emailForSignIn', email);
+                console.log(localStorage);
+                // ...
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                console.log(errorMessage);
+                // ...
+            });
+            
+            
+        // try {
+        //     window.localStorage.setItem('emailForSignIn',email)
+        //     await sendSignInLinkToEmail(auth,email, actionCodeSettings)
+        //     // The link was successfully sent. Inform the user.
+        //     // Save the email locally so you don't need to ask the user for it again
+        //     // if they open the link on the same device.
+        //     alert(`Login link sent to ${email}`);
+        // } catch (error)
+        // {
+        //     const errorCode = error.code
+        //     const errorMessage = error.message
+        // }
+        
+        
     }
+    // TODO: add reCAPTCHA
  
     return (
         <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword, sendSignIn, addAdminRole, addAgencyRole, viewRole, addUserRole }}>

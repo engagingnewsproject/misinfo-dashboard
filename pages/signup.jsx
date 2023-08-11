@@ -9,7 +9,7 @@ import moment from 'moment'
 const SignUp = () => {
     const router = useRouter()
     const [signUpError, setSignUpError] = useState("")
-    const { user, signup } = useAuth()
+    const { user, signup, sendSignIn } = useAuth()
     const [data, setData] = useState({
        name: '',
        email: '',
@@ -53,6 +53,10 @@ const SignUp = () => {
                 setSignUpError(err.message)
             }
         } finally {
+            // Send the user a validation email
+            console.log(user)
+            console.log(data.email)
+            await sendSignIn(user, data.email)
             addMobileUser()
         }
     }
@@ -77,6 +81,7 @@ const SignUp = () => {
                             required
                             value={data.name}
                             onChange={handleChange}
+                            autoComplete=''
                             />
                     </div>
                     <div className="mb-4">
@@ -88,6 +93,7 @@ const SignUp = () => {
                             required
                             value={data.email}
                             onChange={handleChange}
+                            autoComplete='email'
                             />
                     </div>
                     <div className="mb-1">
@@ -99,6 +105,7 @@ const SignUp = () => {
                             required 
                             value={data.password}
                             onChange={handleChange}
+                            autoComplete='new-password'
                             />
                     </div>
                     {data.password.length > 0 && data.password.length < 8 && <span className="text-red-500 text-sm font-light">Password must be atleast 8 characters</span>}
@@ -111,6 +118,7 @@ const SignUp = () => {
                             required 
                             value={data.confirmPW}
                             onChange={handleChange}
+                            autoComplete='new-password'
                             />
                     </div>
                     {data.password !== data.confirmPW && <span className="text-red-500 text-sm font-light">Passwords don't match</span>}
