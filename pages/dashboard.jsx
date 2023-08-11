@@ -75,7 +75,6 @@ const Dashboard = () => {
 
             {/* If the user is a superadmin, will display list of agencies */}
             { tab == 4 && customClaims.admin && <Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />}
-            { tab == 5 && <SettingsReport />}
             </div>
         </div>
     )
