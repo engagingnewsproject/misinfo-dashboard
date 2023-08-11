@@ -46,6 +46,7 @@ const Dashboard = () => {
       // TODO: debugging callback function to verify user role before displaying dashboard view
       auth.currentUser.getIdTokenResult()
       .then((idTokenResult) => {
+      console.log(idTokenResult);
          // Confirm the user is an Admin.
          if (!!idTokenResult.claims.admin) {
            // Show admin UI.
@@ -61,7 +62,7 @@ const Dashboard = () => {
       
     }, [])
 
-    
+    console.log(tab);
     return (
         <div className="h-full w-full">
             <Navbar tab={tab} setTab={setTab} handleNewReportSubmit={handleNewReportSubmit} customClaims={customClaims} setCustomClaims={setCustomClaims} />
@@ -71,10 +72,10 @@ const Dashboard = () => {
             { tab == 2 && <Settings />}
 
             {/* If the user is an agency or a superadmin, will display tab of list of users for agency or list of users for app */}
-            { tab == 3 && customClaims.admin && <Users />}
+            { tab == 3 && <Users />}
 
             {/* If the user is a superadmin, will display list of agencies */}
-            { tab == 4 && customClaims.admin && <Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />}
+            { tab == 4 && <Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />}
             </div>
         </div>
     )
