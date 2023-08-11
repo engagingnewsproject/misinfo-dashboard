@@ -116,7 +116,10 @@ const SignUp = () => {
                     {data.password !== data.confirmPW && <span className="text-red-500 text-sm font-light">Passwords don't match</span>}
                     {signUpError && <div className="text-red-500 text-sm font-normal pt-3">{signUpError}</div>}
                     <div className="flex-col items-center content-center mt-7">
-                        <button disabled={data.password !== data.confirmPW} className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" type="submit">
+                        <button 
+                        disabled={data.password !== data.confirmPW} 
+                        className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" 
+                        type="submit">
                             Sign Up
                         </button>
                     </div>

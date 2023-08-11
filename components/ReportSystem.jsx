@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react'
-// import { reportSystems } from './SettingsReport'
 import { reportSystems } from '../pages/report';
 import { IoMdArrowRoundBack } from 'react-icons/io'
 import { BiCheckCircle, BiXCircle, BiRightArrowCircle } from "react-icons/bi";
@@ -401,7 +400,10 @@ const ReportSystem = ({
                         ))}
                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
                         {selectedTopic != '' && 
-                            <button onClick={() => setReportSystem(reportSystem + 1)} className={style.sectionIconButtonWrap}>
+                            <button 
+                            onClick={() => setReportSystem(reportSystem + 1)} 
+                            className={style.sectionIconButtonWrap} 
+                            type='submit'>
                                 <BiRightArrowCircle size={40} className={style.sectionIconButton} />
                             </button>
                         }

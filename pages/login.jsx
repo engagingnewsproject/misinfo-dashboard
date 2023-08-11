@@ -78,7 +78,9 @@ const Login = () => {
                 </div>
                 {error && <span className="text-red-500 text-sm font-light">Incorrect password or username</span>}
                 <div className="mt-5 flex-col items-center content-center">
-                    <button className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-4 px-6 rounded focus:outline-none focus:shadow-outline" type="submit">
+                    <button 
+                    className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-4 px-6 rounded focus:outline-none focus:shadow-outline"
+                    type="submit">
                         Log In
                     </button>
                     <div className="flex items-center justify-between">

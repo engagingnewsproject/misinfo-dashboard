@@ -254,7 +254,8 @@ const ReportModal = ({
 								{/* Share */}
 								<button
 									className="flex flex-row text-sm bg-white px-4 mb-4 border-none text-black py-1 rounded-md shadow hover:shadow-none"
-									onClick={SendLinkByMail}>
+									onClick={SendLinkByMail}
+									type="button">
 									<BsShareFill className="my-1" size={15} />
 									<div className="px-3 py-1">Share The Report</div>
 								</button>
@@ -272,7 +273,8 @@ const ReportModal = ({
 									<button
 										onClick={onReportDelete}
 										data-tip="Delete report"
-										className={style.icon}>
+										className={style.icon}
+										type='button'>
 										<IoTrash size={30} color="red"/>
 										<ReactTooltip place="left" type="light" effect="solid" delayShow={500} />
 									</button>

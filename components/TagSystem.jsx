@@ -198,7 +198,9 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                 </div>
                 <div className="relative">
                 <form className="w-full mt-7 pr-6 ml-2" onChange={handleChange} onSubmit={handleSearch}>
-                    <button className="p-1 absolute right-[5.75rem] top-[8.2rem] bg-blue-500 text-white rounded-xl">
+                    <button 
+                    className="p-1 absolute right-[5.75rem] top-[8.2rem] bg-blue-500 text-white rounded-xl" 
+                    type='submit'>
                         <AiOutlineSearch size={25}/>
                     </button>
                     <input
