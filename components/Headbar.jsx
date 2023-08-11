@@ -4,32 +4,8 @@ import { collection, getDocs } from '@firebase/firestore'
 import { useAuth } from '../context/AuthContext'
 import { db, auth } from "../config/firebase"
 
-const Headbar = ({ search, setSearch}) => {
-    
-    // // // // //
-    // Get user Roles
-    // // // // //
-    const { user, verifyRole } = useAuth()
-    const [roles, setRoles] = useState('')
-    const [userRole, setUserRole] = useState('User')
-
-    // Effect: get user token
-    useEffect(()=> {
-        verifyRole()
-        .then((result) => {
-            if(result.admin) {
-                setUserRole('ADMIN')
-            } else if (result.agency) {
-                setUserRole('AGENCY')
-            }
-        })
-        .catch((error) => {
-            console.log(error);
-        });
-    }, [])
-    // // // // //
-    // Get user Roles END
-    // // // // //
+const Headbar = ({ search, setSearch, customClaims}) => {
+    const { user } = useAuth()
     
 	// //
 	// Data
@@ -80,9 +56,9 @@ const Headbar = ({ search, setSearch}) => {
                         <div className="w-10 h-10 font-extralight rounded-full tracking-widest flex justify-center text-sm items-center text-white bg-blue-500">M</div>
                     </div>
 
-                    <div className="text-md font-semibold px-4 m-auto tracking-wide">{userRole != 'User' ? `${userRole} Misinfo Dashboard` : 'Report Misinformation'}</div>
+                    <div className="text-md font-semibold px-4 m-auto tracking-wide">{customClaims.admin ? 'ADMIN ' : 'AGENCY '}{(customClaims.admin || customClaims.agency) ? 'Misinfo Dashboard' : 'Report Misinformation'}</div>
                 </div>
-                {userRole != 'User' &&
+                {(customClaims.admin || customClaims.agency) &&
                 <form className="flex relative w-1/4" onChange={handleChange} onSubmit={handleSearch}>
                    
                     <input
