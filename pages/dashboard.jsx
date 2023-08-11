@@ -46,7 +46,6 @@ const Dashboard = () => {
       // TODO: debugging callback function to verify user role before displaying dashboard view
       auth.currentUser.getIdTokenResult()
       .then((idTokenResult) => {
-      console.log(idTokenResult);
          // Confirm the user is an Admin.
          if (!!idTokenResult.claims.admin) {
            // Show admin UI.
@@ -62,7 +61,6 @@ const Dashboard = () => {
       
     }, [])
 
-    console.log(tab);
     return (
         <div className="h-full w-full">
             <Navbar tab={tab} setTab={setTab} handleNewReportSubmit={handleNewReportSubmit} customClaims={customClaims} setCustomClaims={setCustomClaims} />

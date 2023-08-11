@@ -7,7 +7,7 @@ const Settings = ({customClaims}) => {
 
   const [openModal, setOpenModal] = useState(false)
   const [tagSystem, setTagSystem] = useState(0)
-  console.log(customClaims);
+
   return (
     <div>
     {!customClaims.admin ?
