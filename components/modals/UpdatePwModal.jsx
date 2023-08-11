@@ -78,7 +78,8 @@ const UpdatePwModal = ({ setOpenModal }) => {
                         <div className="mt-6">
                             <button
                                 disabled={data.newPassword !== data.confirmNewPW || data.newPassword.length > 0 && data.newPassword.length < 8}
-                                className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">
+                                className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                                type="submit">
                                 Reset
                             </button>
                         </div>

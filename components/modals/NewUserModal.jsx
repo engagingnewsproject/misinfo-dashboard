@@ -45,10 +45,13 @@ const NewUserModal = ({ setNewUserModal }) => {
 					</div>
 					<form onChange={handleChange} onSubmit={handleSignUp}>
 						<div className="mb-4">
+							<label htmlFor="email" className='text-sm text-neutral-400'>Email</label>
 							<input
-								className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-								id="email"
 								type="text"
+								id="email"
+								name='Email'
+								autoComplete='email'
+								className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 								placeholder="Email"
 								required
 								value={data.email}
@@ -58,7 +61,9 @@ const NewUserModal = ({ setNewUserModal }) => {
 						{signUpError && <div className="text-red-500 text-sm font-normal pt-3">{signUpError}</div>}
 						{update && <div className="text-blue-500 text-sm font-normal pt-3">Email Sent</div>}
 						<div className="flex-col items-center content-center mt-7">
-							<button className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" type="submit">
+							<button 
+							className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline"
+							type="submit">
 								Sign Up
 							</button>
 						</div>

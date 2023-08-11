@@ -67,7 +67,9 @@ const Headbar = ({ search, setSearch}) => {
                         placeholder="Search"
                         onChange={handleChange}
                         value={search} />
-                    <button className="py-1 px-1 mt-1.5 mr-1 absolute right-0 top-0 bg-blue-500 text-white rounded-xl">
+                    <button 
+                    className="py-1 px-1 mt-1.5 mr-1 absolute right-0 top-0 bg-blue-500 text-white rounded-xl" 
+                    type='submit'>
                         <AiOutlineSearch size={25}/>
                     </button>
                 </form>

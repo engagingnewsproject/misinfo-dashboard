@@ -173,8 +173,12 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 					<tbody>
 						{agencies.slice(0, endIndex).map((agencyObj, i) => {
 							const agency = Object.values(agencyObj)[0]
+							i = Object.keys(agencyObj)[0]
 							return (
-								<tr onClick={() => handleAgencyModalShow(Object.keys(agencyObj)[0])} className={style.table_tr} key={i}>
+								<tr 
+								onClick={() => handleAgencyModalShow(Object.keys(agencyObj)[0])} 
+								className={style.table_tr} 
+								key={i}>
 									<td className={style.table_td}>
 										{agency['logo'] && agency['logo'][0] ?
 											<div className="flex w-full overflow-y-auto">
