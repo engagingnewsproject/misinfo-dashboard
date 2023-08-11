@@ -14,8 +14,6 @@ import { IoTrash, IoPencil } from "react-icons/io5"
 import { IoMdRefresh } from "react-icons/io"
 import { FaPlus } from 'react-icons/fa'
 import InfiniteScroll from "react-infinite-scroll-component"
-import Headbar from '../components/Headbar'
-import NewUserModal from './modals/NewUserModal'
 import ConfirmModal from './modals/ConfirmModal'
 import EditUserModal from './modals/EditUserModal'
 
@@ -25,15 +23,11 @@ const Users = () => {
 	const [search, setSearch] = useState("")
 	const [loadedMobileUsers, setLoadedMobileUsers] = useState([])
 	const [mobileUserName, setMobileUserName] = useState('')
-	const [mobileUsersUpdated, setMobileUsersUpdated] = useState(false) // TODO: finish user update
 	const [endIndex, setEndIndex] = useState(0)
 	const [deleteModal, setDeleteModal] = useState(false)
-	const [newUserModal, setNewUserModal] = useState(false)
-	const [users, setUsers] = useState([]);
   const [editUser, setEditUser] = useState(null)
 	const [userId, setUserId] = useState(null)
   const [userInfo, setUserInfo] = useState(null)
-  const {verifyRole} = useAuth()
 
 	const getData = async () => {
 		const usersCollection = collection(db, 'mobileUsers')
@@ -92,15 +86,6 @@ const Users = () => {
 			})
 	}
 	
-	const addNewUser = (user) => {
-		let arr = list
-		arr.push(user)
-	}
-	
-	const handleAddNew = (e) => {
-		e.preventDefault()
-		setNewUserModal(true)
-	}
 	const dateOptions = {
 		day: "2-digit",
 		year: "numeric",
@@ -125,15 +110,6 @@ const Users = () => {
 				<div className="flex flex-col md:flex-row py-5 md:justify-between">
 					<div className="text-center md:text-left text-lg font-bold text-blue-600 tracking-wider pb-2 md:pb-0">
 						Users
-					</div>
-					<div className='flex justify-between'>
-						<button
-							className='flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
-							type="submit"
-							onClick={handleAddNew}>
-							<FaPlus className="text-blue-600" size={12}/>
-							<div className='px-2 font-normal tracking-wide'>Add New User</div>
-						</button>
 					</div>
 				</div>
 				<div className="flex flex-col h-full">
@@ -213,16 +189,6 @@ const Users = () => {
 				CTA="Delete"
 				closeModal={setDeleteModal}
 			/>}
-			{newUserModal && 
-				<NewUserModal 
-				// tagSystems={tagSystems}
-				// tagSystem={tagSystem}
-				// list={list}
-				// setList={setList}
-				setNewUserModal={setNewUserModal}
-				// addNewUser={addNewUser} 
-			/>}
-
       {editUser && <EditUserModal setEditUser={setEditUser} editUser={editUser} userInfo={userInfo} setUserInfo={setUserInfo}/>}
 		</div>
   )

@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext"
 import { auth } from "../config/firebase"
 // Components
 import Navbar from "../components/Navbar"
+import Headbar from "../components/Headbar"
 import ReportLanding from "../components/ReportLanding"
 import ReportSystem from "../components/ReportSystem"
 import Profile from "../components/Profile"
@@ -70,15 +71,16 @@ const Report = () => {
 	// //
   const style = {
 		button: 'w-80 self-center mt-4 shadow bg-blue-600 hover:bg-gray-100 text-sm text-white py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
-		pageContainer: 'h-full w-full',
+		pageContainer: 'h-full w-full pt-4',
 		container: 'pl-2 sm:pl-12',
-		wrapper: 'w-full h-full flex flex-col py-8 px-3 md:px-12 mb-5 overflow-visible'
+		wrapper: 'w-full h-full flex flex-col py-4 px-3 md:px-12 mb-5 overflow-visible'
 	}
 
   return (
 		<div className={style.pageContainer}>
 			<Navbar customClaims={customClaims} setCustomClaims={setCustomClaims} tab={tab} setTab={setTab} onReportTabClick={handleReportTabClick}/>
 			<div className={style.container}>
+				<Headbar />
 				<div className={style.wrapper}>
 					{ tab == 0 && reportSystem == 0 && 
 					<ReportLanding 
