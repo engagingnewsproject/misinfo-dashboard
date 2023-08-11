@@ -211,7 +211,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                 <div>
                     <button
                         onClick={() => setTab(1)}
-                        data-tip="Settings"
+                        data-tip="Profile"
                         className={tab == 1 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
                         <IoPersonOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
