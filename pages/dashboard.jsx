@@ -69,7 +69,7 @@ const Dashboard = () => {
             <div className="pl-2 sm:pl-12 h-full">
             { tab == 0 && <Home newReportSubmitted={newReportSubmitted} handleNewReportSubmit={handleNewReportSubmit} />}
             { tab == 1 && <Profile />}
-            { tab == 2 && <Settings />}
+            { tab == 2 && <Settings customClaims={customClaims} />}
 
             {/* If the user is an agency or a superadmin, will display tab of list of users for agency or list of users for app */}
             { tab == 3 && <Users />}

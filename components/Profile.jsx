@@ -14,19 +14,27 @@ import {
   import { db } from "../config/firebase"
 // Profile page that allows user to edit password or logout of their account
 const Profile = () => {
-  const { user, logout, verifyPrivilege, changeRole, addAdminRole, addAgencyRole, viewRole } = useAuth()
+  const { user, logout, verifyRole, changeRole, addAdminRole, addAgencyRole, viewRole } = useAuth()
   const [openModal, setOpenModal] = useState(false)
   const [emailModal, setEmailModal] = useState(false)
   const [logoutModal, setLogoutModal] = useState(false)
   const [agencies, setAgencies] = useState([])
-
-  // default claim, reset upon loading page
-  const {customClaims, setCustomClaims} = useState({admin: false, agency: false})
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [isAgency, setIsAgency] = useState(false)
 
   const router = useRouter()
 
-  
-  	// //
+  useEffect(() => {
+    verifyRole().then((result) => {
+      if (result.admin) {
+        setIsAdmin(true)
+      } else if (result.agency) {
+        setIsAgency(true)
+      }
+    })
+  }, [])
+
+  // //
 	// Data
 	// //
 	const getData = async () => {
@@ -79,8 +87,9 @@ const Profile = () => {
 
   return (
     <div className="w-full h-auto">
-      <div className="z-0 flex-col p-16">
+      <div className="z-0 flex-col p-16 pt-10">
         <div className="text-xl font-extrabold text-blue-600 tracking-wider">Account</div>
+          {isAgency && // agency user will see the agency row
           <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">
               {agencies.length > 1 ? 'Agencies' : 'Agency'}
@@ -103,6 +112,7 @@ const Profile = () => {
               </button> */}
             </div>
           </div>
+          }
           <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">Email</div>
               <div className='flex gap-2 my-2 tracking-normal items-center'>
