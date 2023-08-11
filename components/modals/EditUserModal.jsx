@@ -7,7 +7,7 @@ import { db, auth } from "../../config/firebase"
 import { getDoc, getDocs, doc, setDoc, collection, updateDoc, addDoc } from "firebase/firestore";
 import { getStorage, ref, getDownloadURL, uploadBytes, deleteObject, uploadBytesResumable } from 'firebase/storage';
 
-const EditUserModal = ({userInfo, onFormSubmit, onFormUpdate, onAdminChange, setEditUser, editUser, setUserInfo}) => {
+const EditUserModal = ({customClaims, userInfo, onFormSubmit, onFormUpdate, onAdminChange, setEditUser, editUser, setUserInfo}) => {
 	// //
 	// States
 	// //
@@ -102,36 +102,40 @@ const EditUserModal = ({userInfo, onFormSubmit, onFormUpdate, onAdminChange, set
 								<div className={style.modal_form_data}>{userInfo.name}</div>
 								<div className={style.modal_form_label}>User email</div>
 								<div className={style.modal_form_data}>{userInfo.email}</div>
-								<div className={style.modal_form_label}>Change user privileges</div>
-            <div className="inline">    
-            <label>
-              <input
-                type="radio"
-                value="Admin"
-                checked={selectedOption === "Admin"}
-                onChange={handleOptionChange}
-              />
-              Admin
-            </label>
-            <label>
-              <input
-                type="radio"
-                value="Agency"
-                checked={selectedOption === "Agency"}
-                onChange={handleOptionChange}
-              />
-              Agency
-            </label>
-            <label>
-              <input
-                type="radio"
-                value="User"
-                checked={selectedOption === "User"}
-                onChange={handleOptionChange}
-              />
-              User
-            </label>
-            </div>
+								{customClaims.admin &&
+									<>
+										<div className={style.modal_form_label}>Change user privileges</div>
+										<div className="inline">    
+											<label>
+												<input
+													type="radio"
+													value="Admin"
+													checked={selectedOption === "Admin"}
+													onChange={handleOptionChange}
+												/>
+												Admin
+											</label>
+											<label>
+												<input
+													type="radio"
+													value="Agency"
+													checked={selectedOption === "Agency"}
+													onChange={handleOptionChange}
+												/>
+												Agency
+											</label>
+											<label>
+												<input
+													type="radio"
+													value="User"
+													checked={selectedOption === "User"}
+													onChange={handleOptionChange}
+												/>
+												User
+											</label>
+										</div>
+									</>
+								}
 								<button onClick={onFormUpdate} className={style.modal_form_button} type="submit">Update User</button> 
 								{/* TODO: finish update agency */}
 							</div>
