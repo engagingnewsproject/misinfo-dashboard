@@ -70,7 +70,7 @@ const Dashboard = () => {
             { tab == 2 && <Settings customClaims={customClaims} />}
 
             {/* If the user is an agency or a superadmin, will display tab of list of users for agency or list of users for app */}
-            { tab == 3 && <Users />}
+            { tab == 3 && <Users customClaims={customClaims} />}
 
             {/* If the user is a superadmin, will display list of agencies */}
             { tab == 4 && <Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />}

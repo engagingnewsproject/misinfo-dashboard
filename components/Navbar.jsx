@@ -21,7 +21,7 @@ import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
 import { auth } from "../config/firebase"
 
-const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClaims, onReportTabClick}) => {
+const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, onReportTabClick}) => {
 
   const [windowSize, setWindowSize] = useState([
     window.innerWidth,

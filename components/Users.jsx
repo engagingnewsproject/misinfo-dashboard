@@ -18,7 +18,7 @@ import ConfirmModal from './modals/ConfirmModal'
 import EditUserModal from './modals/EditUserModal'
 
 // Profile page that allows user to edit password or logout of their account
-const Users = () => {
+const Users = ({customClaims}) => {
 	const [mobileUsers, setMobileUsers] = useState([])
 	const [search, setSearch] = useState("")
 	const [loadedMobileUsers, setLoadedMobileUsers] = useState([])
@@ -53,6 +53,10 @@ const Users = () => {
 	useEffect(() => {
 		getData()
 	})
+	
+	useEffect(() => {
+		console.log(customClaims);
+	}, [])
 	
   	// Delete report
 	const handleEditUser= (userObj) => {
@@ -127,7 +131,7 @@ const Users = () => {
 									<th scope="col" className={tableHeading.default}>Name</th>
 									<th scope="col" className={tableHeading.default_center}>Email</th>
 									<th scope="col" className={tableHeading.default_center}>Join Date</th>
-									<th scope="col" className={tableHeading.default_center}>Role</th>
+									{customClaims.agency && <th scope="col" className={tableHeading.default_center}>Role</th>}
 									<th scope="col" className={tableHeading.default_center}>Banned</th>
 									<th scope="col" colSpan={2} className={tableHeading.default_center}>Delete</th>
 								</tr>
@@ -156,7 +160,9 @@ const Users = () => {
 												- format joined date
 												 */}
 												<td className={column.data_center}>{posted}</td>
-												<td className={column.data_center}>{user.role}</td>
+												{customClaims.agency && 
+													<td className={column.data_center}>{`customClaims`}</td>
+												}
 												{/* TODO:
 												- finish banned feature (with confirm modal)
 												 */}
@@ -189,7 +195,7 @@ const Users = () => {
 				CTA="Delete"
 				closeModal={setDeleteModal}
 			/>}
-      {editUser && <EditUserModal setEditUser={setEditUser} editUser={editUser} userInfo={userInfo} setUserInfo={setUserInfo}/>}
+      {editUser && <EditUserModal customClaims={customClaims} setEditUser={setEditUser} editUser={editUser} userInfo={userInfo} setUserInfo={setUserInfo}/>}
 		</div>
   )
 }
