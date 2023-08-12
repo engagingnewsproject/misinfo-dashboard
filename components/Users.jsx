@@ -54,10 +54,6 @@ const Users = ({customClaims}) => {
 		getData()
 	})
 	
-	useEffect(() => {
-		console.log(customClaims);
-	}, [])
-	
   	// Delete report
 	const handleEditUser= (userObj) => {
 		setUserInfo(userObj)

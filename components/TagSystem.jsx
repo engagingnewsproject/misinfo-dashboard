@@ -28,6 +28,7 @@ const setData = async(tagSystem, list, active, user) => {
         }
     });
     return updatedDocRef
+    
 }
 
 const TagSystem = ({ tagSystem, setTagSystem }) => {
@@ -43,6 +44,7 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
     const [renameModal, setRenameTagModal] = useState(false)
     const [deleteModal, setDeleteModal] = useState(false)
     const [maxTagsError, setMaxTagsError] = useState(false)
+        console.log(tagSystem)
 
     // On page load (mount), update the tags from firebase
     useEffect(() => {
@@ -51,10 +53,9 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
 
     const getData = async() => {
         const docRef = await getDoc(doc(db, "tags", user.uid))
-        // console.log(docRef)
+
         try {
             const { [tagSystems[tagSystem]]: tagsData } = docRef.data()
-            console.log(tagsData);
             setList(tagsData.list)
             setActive(tagsData.active)
         } catch (error) {
