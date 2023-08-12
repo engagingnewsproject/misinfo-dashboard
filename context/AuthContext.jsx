@@ -14,9 +14,7 @@ import {
 
 
 import {
-  getFunctions,
   httpsCallable,
-  connectFunctionsEmulator,
 } from "firebase/functions";
 import { auth, app, db, functions } from '../config/firebase'
 import { getDoc, doc } from "firebase/firestore";

@@ -6,8 +6,6 @@ import { getStorage } from "firebase/storage";
 
 import {
   getFunctions,
-  httpsCallable,
-  connectFunctionsEmulator,
 } from "firebase/functions";
 
 
@@ -30,4 +28,3 @@ export const storage = getStorage(app);
 
 export const auth = getAuth(app);
 export const functions = getFunctions(app);
-export const httpsCall = httpsCallable(app)
