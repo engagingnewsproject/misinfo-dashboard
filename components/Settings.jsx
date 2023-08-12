@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import TagSystem from './TagSystem';
+import TagList from './TagList';
 
 export const tagSystems = ['default', 'Topic', 'Source', 'Labels'];
 
@@ -44,7 +45,13 @@ const Settings = ({customClaims}) => {
         }
       </div>
     :
-    <div className='p-16'>Admin list of tags & sources</div> // TODO: add list of tags and sources
+    <>
+      {tagSystem == 0 &&
+        <div className='tag-list'>
+            <TagList tagSystem={tagSystem} setTagSystem={setTagSystem} /> 
+        </div>
+      }
+    </>
     }
     </div>
   )
