@@ -29,9 +29,12 @@ const TagList = ({ tagSystem, setTagSystem }) => {
     const getData = async() => {
         const docRef = await getDoc(doc(db, "tags", user.uid))
         try {
+			const sourceTags = docRef.data()['Source'] // Source tags
+			const topicTags = docRef.data()['Topic'] // Topic tags
+
             const { [tagSystems[tagSystem]]: tagsData } = docRef.data()
-			console.log({[tagSystems[tagSystem]]: tagsData});
-			console.log(docRef.data())
+			// console.log({[tagSystems[tagSystem]]: tagsData});
+			// console.log()
             setList(tagsData.list)
             setActive(tagsData.active)
         } catch (error) {
@@ -39,13 +42,13 @@ const TagList = ({ tagSystem, setTagSystem }) => {
             console.log(error)
         }
     }
-	tagSystem = 1
-	// console.log(...tagSystems[tagSystem]);
+	// tagSystem = 2
+	console.log(tagSystem);
 	return (
 		<div className='p-16'>
 		
 			<div>
-			{tagSystem == 1 &&
+			{tagSystem == 2 &&
 			<>
 				<div>{`${tagSystems[1]} Tags`}</div>
 				{active.map((item, i) => {
@@ -67,6 +70,7 @@ const TagList = ({ tagSystem, setTagSystem }) => {
 					})}
 			</>
 			}
+			
 			</div>
 			
 		</div>
