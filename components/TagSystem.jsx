@@ -31,8 +31,7 @@ const setData = async(tagSystem, list, active, user) => {
     
 }
 
-const TagSystem = ({ tagSystem, setTagSystem }) => {
-
+const TagSystem = ({ tagSystem, setTagSystem, customClaims }) => {
     const [list, setList] = useState([])
     const [active, setActive] = useState([])
     //const docRef = getDoc(db, "tags", tagSystem)
@@ -44,7 +43,6 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
     const [renameModal, setRenameTagModal] = useState(false)
     const [deleteModal, setDeleteModal] = useState(false)
     const [maxTagsError, setMaxTagsError] = useState(false)
-        console.log(tagSystem)
 
     // On page load (mount), update the tags from firebase
     useEffect(() => {
@@ -166,35 +164,40 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                     <div className="text-sm font-light">
                         {"Maximum: " + (maxTags[tagSystem] - 1) + " + 1 Others Tags"}
                     </div>
-                    {selected.length == 0 ? <button
-                        className="flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
+                    {selected.length == 0 && !customClaims.admin ? 
+                    <button
+                        className={`flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline`}
                         type="submit"
                         onClick={handleAddNew}>
                         <FaPlus className="text-blue-600" size={12}/>
                         <div className="px-2 font-normal tracking-wide">{"New " + tagSystems[tagSystem]}</div>
                     </button> :
                     <div className="flex items-center ml-auto mr-6">
-                        <button
-                            className="flex items-center shadow mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
-                            type="submit"
-                            onClick={(e) => updateTag(e, "delete")}>
-                            <TiDelete className="text-red-600" size={20}/>
-                            <div className="px-2 font-normal tracking-wide">Delete</div>
-                        </button>
-                        <button
-                            className="flex items-center shadow mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
-                            type="submit"
-                            onClick={(e) => updateTag(e, "rename")}>
-                            <MdModeEditOutline className="text-blue-600" size={18}/>
-                            <div className="px-2 font-normal tracking-wide">Rename</div>
-                        </button>
-                        <button
-                            className="flex items-center shadow bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
-                            type="submit"
-                            onClick={(e) => active.includes(search) ? updateTag(e, "deactivate") : updateTag(e, "activate")}>
-                            <IoIosRadioButtonOn className={active.includes(search) ? "text-red-600" : "text-green-600"} size={18}/>
-                            <div className="px-2 font-normal tracking-wide">{active.includes(search) ? "Mark as Inactive" : "Mark as Active"}</div>
-                        </button>
+                        {!customClaims.admin &&
+                        <>
+                            <button
+                                className="flex items-center shadow mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
+                                type="submit"
+                                onClick={(e) => updateTag(e, "delete")}>
+                                <TiDelete className="text-red-600" size={20}/>
+                                <div className="px-2 font-normal tracking-wide">Delete</div>
+                            </button>
+                            <button
+                                className="flex items-center shadow mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
+                                type="submit"
+                                onClick={(e) => updateTag(e, "rename")}>
+                                <MdModeEditOutline className="text-blue-600" size={18}/>
+                                <div className="px-2 font-normal tracking-wide">Rename</div>
+                            </button>
+                            <button
+                                className="flex items-center shadow bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
+                                type="submit"
+                                onClick={(e) => active.includes(search) ? updateTag(e, "deactivate") : updateTag(e, "activate")}>
+                                <IoIosRadioButtonOn className={active.includes(search) ? "text-red-600" : "text-green-600"} size={18}/>
+                                <div className="px-2 font-normal tracking-wide">{active.includes(search) ? "Mark as Inactive" : "Mark as Active"}</div>
+                            </button>
+                        </>
+                        }
                     </div>}
                 </div>
                 <div className="relative">
@@ -240,14 +243,20 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                         <div className="grid w-full p-4 mb-2 rounded-xl grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                             {active.map((item) => {
                                 return (
-                                !item.includes('Other') ?
-                                    <div onClick={() => setSelected(item)} className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center" key={item}>
+                                !customClaims.admin ?
+                                    !item.includes('Other') ?
+                                        <div onClick={() => setSelected(item)} className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center" key={item}>
+                                            <GoPrimitiveDot size={25} className="text-green-600"/>
+                                            <div className="pl-2">{item}</div>
+                                        </div> :
+                                        <div className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center" key={`other`}>
+                                            <GoPrimitiveDot size={25} className="text-green-600"/>
+                                            <div className="pl-2">{`Other*`}</div>
+                                        </div>
+                                    :
+                                    <div className="text-md font-light my-5 leading-normal flex items-center justify-center" key={item}>
                                         <GoPrimitiveDot size={25} className="text-green-600"/>
                                         <div className="pl-2">{item}</div>
-                                    </div> :
-                                    <div className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center" key={`other`}>
-                                        <GoPrimitiveDot size={25} className="text-green-600"/>
-                                        <div className="pl-2">{`Other*`}</div>
                                     </div>
                                 )
                             })}
@@ -258,8 +267,14 @@ const TagSystem = ({ tagSystem, setTagSystem }) => {
                             const normStyles = "text-md font-light p-2 my-3 md:mx-2 cursor-pointer leading-normal flex items-center justify-center"
                             const selectedStyles = normStyles + " bg-blue-600 text-white rounded-lg"
                             return (
-                                !item.includes('Other') &&
-                                <div onClick={() => setSelected(item)} className={selected == item ? selectedStyles : normStyles} key={item}>
+                                !customClaims.admin ?
+                                    !item.includes('Other') &&
+                                    <div onClick={() => setSelected(item)} className={selected == item ? selectedStyles : normStyles} key={item}>
+                                        { active.includes(item) && <GoPrimitiveDot size={25} className="text-green-600"/> }
+                                        <div className="pl-2">{item}</div>
+                                    </div>
+                                :
+                                <div className={`text-md font-light p-2 my-3 md:mx-2 leading-normal flex items-center justify-center`} key={item}>
                                     { active.includes(item) && <GoPrimitiveDot size={25} className="text-green-600"/> }
                                     <div className="pl-2">{item}</div>
                                 </div>
