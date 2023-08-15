@@ -4,7 +4,7 @@ import TagSystem from './TagSystem';
 export const tagSystems = ['default', 'Topic', 'Source', 'Labels'];
 
 const Settings = ({customClaims}) => {
-
+  console.log(customClaims);
   const [openModal, setOpenModal] = useState(false)
   const [tagSystem, setTagSystem] = useState(0)
 
@@ -18,7 +18,7 @@ const Settings = ({customClaims}) => {
             <button
                 onClick={() => setTagSystem(1)}
                 className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                {!customClaims == 'admin' ? `Edit ` : `View `}Topics
+                {customClaims.admin ? `View ` : `Edit `}Topics
             </button>
         </div>
         <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
@@ -26,7 +26,7 @@ const Settings = ({customClaims}) => {
             <button
                 onClick={() => setTagSystem(2)}
                 className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                {!customClaims == 'admin' ? `Edit ` : `View `}Sources
+                {customClaims.admin ? `View ` : `Edit `}Sources
             </button>
         </div>
         <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
@@ -34,7 +34,7 @@ const Settings = ({customClaims}) => {
             <button
                 onClick={() => setTagSystem(3)}
                 className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                {!customClaims == 'admin' ? `Edit ` : `View `}Labels
+                {customClaims.admin ? `View ` : `Edit `}Labels
             </button>
         </div>
       </div> :
