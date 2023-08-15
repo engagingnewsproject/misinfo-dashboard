@@ -8,7 +8,7 @@ import { auth } from '../config/firebase'
 const Home = ({newReportSubmitted, handleNewReportSubmit}) => {
   const [search, setSearch] = useState("")
   const { user, logout, verifyPrivilege, changeRole, addAdminRole, addAgencyRole, viewRole } = useAuth()
-  const [customClaims, setCustomClaims] = useState({admin: false, agency: false})    
+  const [customClaims, setCustomClaims] = useState({admin: false, agency: false})
 
   useEffect(()=> {
     // TODO: debugging callback function to verify user role before displaying dashboard view

@@ -5,8 +5,22 @@ import { useAuth } from '../context/AuthContext'
 import { db, auth } from "../config/firebase"
 
 const Headbar = ({ search, setSearch, customClaims}) => {
-    const { user } = useAuth()
+    const { user, verifyRole } = useAuth()
+    const [userRole, setUserRole] = useState('')
     
+    // Verify user role
+    useEffect(() => {
+        verifyRole().then((result) => {
+            if (result.admin) {
+                setUserRole('admin')
+            } else if (result.agency) {
+                setUserRole('agency')
+            } else {
+                setUserRole('user')
+            }
+        })
+    }, [])
+
 	// //
 	// Data
 	// //
@@ -54,10 +68,12 @@ const Headbar = ({ search, setSearch, customClaims}) => {
                     <div className="flex justify-center">
                         <div className="w-10 h-10 font-extralight rounded-full tracking-widest flex justify-center text-sm items-center text-white bg-blue-500">M</div>
                     </div>
-
-                    <div className="text-md font-semibold px-4 m-auto tracking-wide">{customClaims.admin ? 'ADMIN ' : 'AGENCY '}{(customClaims.admin || customClaims.agency) ? 'Misinfo Dashboard' : 'Report Misinformation'}</div>
+                    <div className="text-md font-semibold px-4 m-auto tracking-wide">
+                        {`${userRole.toUpperCase()} `}
+                        {userRole == 'user' ? 'Report Misinformation' : 'Misinfo Dashboard'}
+                    </div>
                 </div>
-                {(customClaims.admin || customClaims.agency) &&
+                {(userRole == 'admin' || userRole == 'agency') &&
                 <form className="flex relative w-1/4" onChange={handleChange} onSubmit={handleSearch}>
                    
                     <input
@@ -73,7 +89,7 @@ const Headbar = ({ search, setSearch, customClaims}) => {
                         <AiOutlineSearch size={25}/>
                     </button>
                 </form>
-                }
+                } 
             </div>
         </div>
     )
