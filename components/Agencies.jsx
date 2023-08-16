@@ -156,7 +156,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 					<div className={style.section_filters}>
 						<div className={style.section_filtersWrap}>
 						<button className={style.button} onClick={handleAddNew}><FaPlus className="text-blue-600 mr-2" size={12}/>Add Agency</button>
-							<pre>-- Filters here--</pre>
 							{/* TODO: add filters to agency list */}
 						</div>
 					</div>
