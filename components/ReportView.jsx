@@ -96,7 +96,7 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 					<div className={style.sectionH2}>
 						{t.reportHeaderDetails}
 					</div>
-					{data['detail']}
+					{data['detail'] ? data['detail'] : `No description provided.`}
 				</div>
 				<div className={style.inputSingle}>
 					<div className={style.sectionH2}>

@@ -31,7 +31,7 @@ const ConfirmModal = ({ func, title, subtitle, CTA, closeModal }) => {
                                 Cancel
                             </button>
                             <button
-                                className="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">
+                                className="bg-blue-500 hover:bg-white text-white text-sm hover:text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit" autoFocus>
                                 {CTA}
                             </button>
                         </div>
