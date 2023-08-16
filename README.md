@@ -81,3 +81,5 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 ## Deploy Firebase Functions
 
 `firebase deploy -P dev  --only functions:misinfo-dashboard-dev`
+
+<!-- TODO: fix netlify deployment issue with yarn file -->
