@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { reportSystems } from '../pages/report';
 import { IoMdArrowRoundBack } from 'react-icons/io'
 import { BiCheckCircle, BiXCircle, BiRightArrowCircle } from "react-icons/bi";
-import { setDoc, getDoc, doc, addDoc, collection } from "firebase/firestore"; 
+import { setDoc, getDoc, doc, addDoc, collection, getDocs } from "firebase/firestore"; 
 import { getStorage, ref, getDownloadURL, uploadBytes, deleteObject, uploadBytesResumable } from 'firebase/storage';
 import { useAuth } from '../context/AuthContext'
 import { db } from '../config/firebase'
@@ -39,6 +39,8 @@ const ReportSystem = ({
     const [secondLink, setSecondLink] = useState("")
     const [detail, setDetail] = useState("")
     const [allTopicsArr, setAllTopicsArr] = useState([])
+    const [agencies, setAgencies] = useState([]);
+    const [selectedAgency, setSelectedAgency] = useState('');
     const [selectedTopic, setSelectedTopic] = useState("")
     const [sources, setSources] = useState([])
     const [selectedSource, setSelectedSource] = useState("")
@@ -57,6 +59,7 @@ const ReportSystem = ({
         reminderStart: "Start",
         reminderNoShow: "Do not show this again.",
         locationTitle: "Where are you located?",
+        agencyTitle: 'Which agency would you like to report to?',
         topicTitle: 'What is the potential information about?',
         sourceTitle: 'Where did you see the potential misinformation?',
         share: "Share more information",
@@ -123,6 +126,7 @@ const ReportSystem = ({
             userID: user.accountId,
             state: data.state.name,
             city: data.city == null ? "N/A" : data.city.name,
+            agency: selectedAgency,
             title: title,
             link: link,
             secondLink: secondLink,
@@ -143,6 +147,24 @@ const ReportSystem = ({
     // //
     const getData = async() => {
         const docRef = await getDoc(doc(db, "reports", user.uid))
+    }
+    
+    async function getAllAgencies() {
+        // Get agency collection docs
+        const agencyRef = await getDocs(collection(db, "agency"));
+		try {
+            // build an array of agency names
+			var arr = []
+			agencyRef.forEach((doc) => {
+				arr.push(
+					doc.data()['name']
+				)
+			})
+            // set the agencies state with the agency names
+			setAgencies(arr)
+		} catch (error) {
+			console.log(error)
+		}
     }
     
     // Get topics
@@ -267,6 +289,7 @@ const ReportSystem = ({
     // On page load (mount), update the tags from firebase
     useEffect(() => {
         getData()
+        getAllAgencies()
         getAllTopics()
         getAllSources()
     }, [])
@@ -280,7 +303,7 @@ const ReportSystem = ({
     return (
         <div className={style.sectionContainer}>
             <div className={style.sectionWrapper}>
-                {reportSystem > 0 && 
+                {reportSystem > 0 && reportSystem < 7 && 
                 <button onClick={onReportSystemPrevStep}>
                     <IoMdArrowRoundBack size={25} />
                 </button>
@@ -379,8 +402,38 @@ const ReportSystem = ({
                         }
                     </div>
                     }
-                    {/* Topic tag */}
+                    {/* Agency */}
                     {reportSystem == 3 &&
+                    <div className={style.viewWrapper}>
+                        <div className={style.sectionH1}>{t.agencyTitle}</div>
+                        {agencies.map((agency, i) => (
+                            <>
+                            <label key={i+'-'+agency} className={agency === selectedAgency ? style.inputRadioChecked : style.inputRadio}>
+                            {/* Agency Input */}
+                            <input
+                            className="absolute opacity-0"
+                            id='agency'
+                            type="radio"
+                            checked={selectedAgency === agency}
+                            onChange={(e) => setSelectedAgency(e.target.value)}
+                            value={agency}
+                            />
+                            {agency}</label>
+                            </>
+                        ))}
+                        {errors.agency && selectedAgency === '' &&  (<span className="text-red-500">{errors.agency}</span>)}
+                        {selectedAgency != '' && 
+                            <button 
+                            onClick={() => setReportSystem(reportSystem + 1)} 
+                            className={style.sectionIconButtonWrap} 
+                            type='submit'>
+                                <BiRightArrowCircle size={40} className={style.sectionIconButton} />
+                            </button>
+                        }
+                    </div>
+                    }
+                    {/* Topic tag */}
+                    {reportSystem == 4 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>{t.topicTitle}</div>
                         {allTopicsArr.map((topic, i) => (
@@ -410,7 +463,7 @@ const ReportSystem = ({
                     </div>
                     }
                     {/* Source tag */}
-                    {reportSystem == 4 &&
+                    {reportSystem == 5 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>{t.sourceTitle}</div>
                         {sources.map((source, i) => (
@@ -438,7 +491,7 @@ const ReportSystem = ({
                     }
                     {/* TODO: add agency dropdown */}
                     {/* Details */}
-                    {reportSystem == 5 &&
+                    {reportSystem == 6 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>
                         {t.share}
@@ -486,14 +539,16 @@ const ReportSystem = ({
                                 onChange={(e) => setLink(e.target.value)}
                                 value={link}
                             />
-                            <input
-                                className={style.inputSingle}
-                                id="secondLink"
-                                type="text"
-                                placeholder="https://"
-                                onChange={(e) => setSecondLink(e.target.value)}
-                                value={secondLink}
-                            />
+                            {link &&
+                                <input
+                                    className={style.inputSingle}
+                                    id="secondLink"
+                                    type="text"
+                                    placeholder="https://"
+                                    onChange={(e) => setSecondLink(e.target.value)}
+                                    value={secondLink}
+                                />
+                            }
                             <div className={style.sectionH2}>
                                 {t.image}
                             </div>
@@ -535,7 +590,7 @@ const ReportSystem = ({
                     }
                 </form>
                 {/* Thank you */}
-                {reportSystem == 6 &&
+                {reportSystem == 7 &&
                 <div className={style.viewWrapper + ' items-center'}>
                     <Image src="/img/reportSuccess.png" width={156} height={120} alt="report success"/>
                     <div className={style.sectionH1}>
@@ -548,7 +603,7 @@ const ReportSystem = ({
                 </div>
                 }
                 {/* View Report */}
-                {reportSystem == 7 &&
+                {reportSystem == 8 &&
                 <div className={style.viewWrapper}>
                     {/* Title */}
                     <div className={style.inputSingle}>
@@ -562,16 +617,7 @@ const ReportSystem = ({
                         <div className={style.sectionH2}>
                             {t.viewReportLinks}
                         </div>
-                        {link !== '' && 
-                            <div>
-                            {link}
-                            </div>
-                        }
-                        {secondLink !== '' && 
-                            <div>
-                            {secondLink}
-                            </div>
-                        }
+                        {(link || secondLink != '') ? <>{link}<br></br>{secondLink}</> : `No links added.`}
                     </div>
                     {/* Image upload */}
                     <div className={style.inputSingle}>
@@ -595,7 +641,7 @@ const ReportSystem = ({
                         <div className={style.sectionH2}>
                             {t.viewReportDetails}
                         </div>
-                        {detail}
+                        {detail ? detail : `No description provided.`}
                     </div>
                     <button onClick={() => setReportSystem(0)} className={style.button}>
                         {t.viewReportButton}

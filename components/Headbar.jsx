@@ -69,7 +69,7 @@ const Headbar = ({ search, setSearch, customClaims}) => {
                         <div className="w-10 h-10 font-extralight rounded-full tracking-widest flex justify-center text-sm items-center text-white bg-blue-500">M</div>
                     </div>
                     <div className="text-md font-semibold px-4 m-auto tracking-wide">
-                        {`${userRole.toUpperCase()} `}
+                        {userRole !== 'user' && `${userRole.toUpperCase()} `}
                         {userRole == 'user' ? 'Report Misinformation' : 'Misinfo Dashboard'}
                     </div>
                 </div>
