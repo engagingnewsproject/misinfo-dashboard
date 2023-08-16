@@ -35,6 +35,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [progress, setProgress] = useState(0);
     const [update, setUpdate] = useState(false)
     const [allTopicsArr, setTopics] = useState([])
+    const [agencies, setAgencies] = useState([]);
+    const [selectedAgency, setSelectedAgency] = useState('');
     const [selectedTopic, setSelectedTopic] = useState("")
     const [sources, setSources] = useState([])
     const [selectedSource, setSelectedSource] = useState("")
@@ -47,6 +49,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             userID: user.email,
             state: data.state.name,
             city: data.city == null ? "N/A" : data.city.name,
+            agency: selectedAgency,
             title: title,
             link: link,
             secondLink: secondLink,
@@ -129,28 +132,33 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     
     const handleStateChange = (e) => {
         setData(data=>({...data, state: e, city: null })) 
-        setReportState(1)
+        // setReportState(1)
     }
     
     const handleCityChange = (e) => {
         setData(data=>({...data,city: e !== null ? e : null })) 
-        setReportState(2)
+        // setReportState(2)
+    }
+    
+    const handleAgencyChange = (e) => {
+        setSelectedAgency(e.value)
+        // setReportState(4)
     }
     
     const handleTitleChange = (e) => {
         e.preventDefault()
         setTitle(e.target.value)
-        reportState < 3 && setReportState(3)
+        // reportState < 3 && setReportState(3)
     }
     
     const handleTopicChange = (e) => {
         setSelectedTopic(e.value)
-        setReportState(4)
+        // setReportState(4)
     }
     
     const handleSourceChange = (e) => {
         setSelectedSource(e.value)
-        setReportState(5)
+        // setReportState(5)
     }
     
     const handleSubmitClick = (e) => {
@@ -210,10 +218,29 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     // On mount, grab all the possible topic choices
     // to add to drop down list
     useEffect(() => {
+        getAllAgencies()
         getAllTopics()
         getAllSources()
     }, []);
     
+    async function getAllAgencies() {
+        // Get collection docs
+        const agencyRef = await getDocs(collection(db, "agency"));
+		try {
+            // build an array of agency names
+			var arr = []
+			agencyRef.forEach((doc) => {
+				arr.push(
+					doc.data()['name']
+				)
+			})
+            // set the agencies state with the agency names
+			setAgencies(arr)
+		} catch (error) {
+			console.log(error)
+		}
+    }
+
     async function getAllTopics() {
         const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
         const topicRef = await getDoc(topicDoc);
@@ -269,7 +296,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                 {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)}    
 
                             </div>
-                            {reportState >= 1 && 
+                            {/* {reportState >= 1 &&  */}
                             <div className="mt-4 mb-0.5">
                                 <Select
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -291,15 +318,22 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     />
                                     {errors.city && data.city === null &&  (<span className="text-red-500">{errors.city}</span>)}
                             </div>
-                            }
-                            {/*
-                            TODO: only one of the details inputs are required. 
-                            - Links
-                            - Image Upload
-                            - Detailed Description
-                            . . . so user only has to fill in one of the the above
-                            */}
-                            {reportState >= 2 && 
+                            {/* } */}
+                            {/* {reportState >= 2 && */}
+                                <div className="mt-4 mb-0.5">
+                                    <Select
+                                        className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                        id="agency-selection"
+                                        type="text"
+                                        placeholder="Agency"
+                                        options={agencies.map(agency => ({ label: agency, value: agency }))}
+                                        onChange={handleAgencyChange}
+                                        value={selectedAgency.agency}
+                                        />
+                                        {errors.topic && selectedAgency === '' &&  (<span className="text-red-500">{errors.agency}</span>)}
+                                </div>
+                            {/* } */}
+                            {/* {reportState >= 2 &&  */}
                             <div className="mt-4 mb-0.5">
                                 <input
                                     className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -311,8 +345,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     value={title}
                                     />
                             </div>
-                            }
-                            {reportState >= 3 &&
+                            {/* } */}
+                            {/* {reportState >= 3 && */}
                                 <div className="mt-4 mb-0.5">
                                     <Select
                                         className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -325,8 +359,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         />
                                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
                                 </div>
-                            }
-                            {reportState >= 4 &&
+                            {/* } */}
+                            {/* {reportState >= 4 && */}
                             <div className="mt-4 mb-0.5">
                                 <Select
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -339,8 +373,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     />
                                     {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
                             </div>
-                            }
-                            {reportState >= 5 &&
+                            {/* } */}
+                            {/* {reportState >= 5 && */}
                             <>
                                 <div className="mt-4 mb-0.5">Details</div>
                                 <div className="mt-4 mb-0.5">
@@ -400,8 +434,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     </div>
                                 </div>
                             </>
-                            }
-                            {reportState >= 5 &&
+                            {/* } */}
+                            {/* {reportState >= 5 && */}
                             <div className="mt-3 sm:mt-6">
                                 <button
                                     className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
@@ -410,7 +444,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     Create
                                 </button>
                             </div>
-                            }
+                            {/* } */}
                         </form>
                     </div>
                 </div>
