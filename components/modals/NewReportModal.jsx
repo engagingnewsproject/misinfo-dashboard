@@ -42,11 +42,10 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [selectedSource, setSelectedSource] = useState("")
     const [reportState, setReportState] = useState(0)
     const [errors, setErrors] = useState({})
-    // console.log(Country.getCountryByCode('US'))
-  
+
     const saveReport = (imageURLs) => {
         addDoc(dbInstance, {
-            userID: user.email,
+            userID: user.accountId,
             state: data.state.name,
             city: data.city == null ? "N/A" : data.city.name,
             agency: selectedAgency,
@@ -132,33 +131,33 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     
     const handleStateChange = (e) => {
         setData(data=>({...data, state: e, city: null })) 
-        // setReportState(1)
+        setReportState(1)
     }
     
     const handleCityChange = (e) => {
         setData(data=>({...data,city: e !== null ? e : null })) 
-        // setReportState(2)
+        setReportState(2)
     }
     
     const handleAgencyChange = (e) => {
         setSelectedAgency(e.value)
-        // setReportState(4)
+        setReportState(3)
     }
     
     const handleTitleChange = (e) => {
         e.preventDefault()
         setTitle(e.target.value)
-        // reportState < 3 && setReportState(3)
+        reportState < 4 && setReportState(4)
     }
     
     const handleTopicChange = (e) => {
         setSelectedTopic(e.value)
-        // setReportState(4)
+        setReportState(5)
     }
     
     const handleSourceChange = (e) => {
         setSelectedSource(e.value)
-        // setReportState(5)
+        setReportState(6)
     }
     
     const handleSubmitClick = (e) => {
@@ -224,7 +223,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     }, []);
     
     async function getAllAgencies() {
-        // Get collection docs
+        // Get agency collection docs
         const agencyRef = await getDocs(collection(db, "agency"));
 		try {
             // build an array of agency names
@@ -259,7 +258,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         e.preventDefault()
         setNewReportModal(false)
     }
-    
+
     return (
         <div className="bk-white h-full w-full">
             <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-[1200]">
@@ -296,7 +295,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                 {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)}    
 
                             </div>
-                            {/* {reportState >= 1 &&  */}
+                            {reportState >= 1 && 
                             <div className="mt-4 mb-0.5">
                                 <Select
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -318,8 +317,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     />
                                     {errors.city && data.city === null &&  (<span className="text-red-500">{errors.city}</span>)}
                             </div>
-                            {/* } */}
-                            {/* {reportState >= 2 && */}
+                            } 
+                            {reportState >= 2 &&
                                 <div className="mt-4 mb-0.5">
                                     <Select
                                         className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -332,8 +331,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         />
                                         {errors.topic && selectedAgency === '' &&  (<span className="text-red-500">{errors.agency}</span>)}
                                 </div>
-                            {/* } */}
-                            {/* {reportState >= 2 &&  */}
+                            } 
+                            {reportState >= 3 && 
                             <div className="mt-4 mb-0.5">
                                 <input
                                     className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -345,8 +344,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     value={title}
                                     />
                             </div>
-                            {/* } */}
-                            {/* {reportState >= 3 && */}
+                            } 
+                            {reportState >= 4 &&
                                 <div className="mt-4 mb-0.5">
                                     <Select
                                         className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -359,8 +358,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         />
                                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
                                 </div>
-                            {/* } */}
-                            {/* {reportState >= 4 && */}
+                            } 
+                            {reportState >= 5 &&
                             <div className="mt-4 mb-0.5">
                                 <Select
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -373,8 +372,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     />
                                     {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
                             </div>
-                            {/* } */}
-                            {/* {reportState >= 5 && */}
+                            } 
+                            {reportState >= 6 &&
                             <>
                                 <div className="mt-4 mb-0.5">Details</div>
                                 <div className="mt-4 mb-0.5">
@@ -434,8 +433,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     </div>
                                 </div>
                             </>
-                            {/* } */}
-                            {/* {reportState >= 5 && */}
+                            } 
+                            {reportState >= 6 &&
                             <div className="mt-3 sm:mt-6">
                                 <button
                                     className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
@@ -444,7 +443,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     Create
                                 </button>
                             </div>
-                            {/* } */}
+                            } 
                         </form>
                     </div>
                 </div>
