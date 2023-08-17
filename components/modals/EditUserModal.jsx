@@ -55,9 +55,9 @@ const EditUserModal = ({customClaims, selectedOption, onOptionChange, onNameChan
 								{/* BANNED */}
 								<div className="flex gap-2">
 								<Switch
-									// Set checked to the initial reportRead value (false)
+									// Set checked to the initial banned value (false)
 									checked={banned}
-									// When switch toggled setReportRead
+									// When switch toggled setBanned
 									onChange={onBannedChange}
 									// On click handler
 									onClick={() => setBanned(!banned)}
