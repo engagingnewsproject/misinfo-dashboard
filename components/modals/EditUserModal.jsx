@@ -1,74 +1,21 @@
-import React, { useState, useRef } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { useRouter } from 'next/router'
 import { IoClose } from "react-icons/io5"
+import { Switch } from "@headlessui/react"
 import { useAuth } from "../../context/AuthContext"
 import Image from "next/image"
 import { db, auth } from "../../config/firebase"
 import { getDoc, getDocs, doc, setDoc, collection, updateDoc, addDoc } from "firebase/firestore";
 import { getStorage, ref, getDownloadURL, uploadBytes, deleteObject, uploadBytesResumable } from 'firebase/storage';
 
-const EditUserModal = ({customClaims, user, name, onNameChange, onFormSubmit, onFormUpdate, onAdminChange, setEditUser, editUser, setUserInfo}) => {
-	// //
-	// States
-	// //
+const EditUserModal = ({customClaims, selectedOption, onOptionChange, onNameChange, name, onEmailChange, email, onBannedChange, banned, onFormSubmit, onFormUpdate, setEditUser }) => {
 
-  const {addAdminRole, addAgencyRole, addUserRole} = useAuth()
-	const [image, setImage] = useState([])
-	const [update, setUpdate] = useState(false)
-	
-	const router = useRouter()
-	const imgPicker = useRef(null)
-
-	// //
-	// Handlers
-	// //
-	const handleImageChange = (e) => {
-    console.log('handle image change run');
-			for (let i = 0; i < e.target.files.length; i++) {
-					const newImage = e.target.files[i];
-					setImage((prevState) => [...prevState, newImage]);
-					setUpdate(!update)
-			}
-	};
-
-  const [selectedOption, setSelectedOption] = useState(null);
-
-  // Function to handle radio option selection and change selected user role
-  const handleOptionChange = (event) => {
-    setSelectedOption(event.target.value);
-  };
-
-
-	const handleChange = (e) => {
-		// console.log(e.target.value);
-	}
-
-  const handleEditUser = (e) => {
-    e.preventDefault()
-    auth.currentUser.getIdTokenResult()
-    .then((idTokenResult) => {
-       // Confirm the user is an Admin.
-       if (!!idTokenResult.claims.admin) {
-        
-        // Change the selected user's privileges as requested
-         if (selectedOption === "Admin") {
-          console.log(addAdminRole({email: user.email}))
-         } else if (selectedOption === "Agency") {
-          console.log(addAgencyRole({email: user.email}))
-         } else if (selectedOption === "User") {
-          console.log(addUserRole({email: user.email}))
-         }
-       }
-       setEditUser(false)
-    })
-    .catch((error) => {
-      console.log(error);
-      setEditUser(false)
-    });
-		const name = ''
-  }
-
-
+	useEffect(() => {
+		console.log('MODAL banned: ',banned);
+		// console.log('Mname: ', user.name);
+		// console.log('MODAL DB USER: ',user);
+		// console.log('USER ROLE: '+userRole);
+	}, [])
 
 	// //
 	// Styles
@@ -78,14 +25,14 @@ const EditUserModal = ({customClaims, user, name, onNameChange, onFormSubmit, on
 		modal_container: 'absolute top-4 md:top-6 md:right-6 md:left-6 flex justify-center items-center z-[1300] sm:overflow-y-scroll',
 		modal_wrapper: 'flex-col justify-center items-center lg:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible',
 		modal_header_container: 'flex justify-between w-full mb-6',
-		modal_header_wrapper: 'flex w-full items-baseline',
+		modal_header_wrapper: 'flex w-full items-baseline justify-between',
 		modal_header: 'text-2xl font-bold text-blue-600 tracking-wider',
 		modal_close: 'text-gray-800',
 		modal_form_container: 'grid md:grid-cols-2 md:gap-10 lg:gap-15',
 		modal_form_label: 'text-lg font-bold text-black tracking-wider mb-4',
-		modal_form_data: 'text-sm bg-white rounded-xl p-4 mb-5',
 		modal_form_upload_image: 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
-		modal_form_button: 'flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
+		modal_form_radio: 'mr-1',
+		modal_form_button: 'bg-blue-500 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
 	}
 
 	return (
@@ -101,37 +48,56 @@ const EditUserModal = ({customClaims, user, name, onNameChange, onFormSubmit, on
 						</div>
 					</div>
 					<div>
-						<form onChange={handleChange} onSubmit={handleEditUser}>
+						<form onSubmit={onFormSubmit}>
 							<div className={style.modal_form_container}>
-								<div className={style.modal_form_label}>User name</div>
-								<div className={style.modal_form_data}>
+								<div className={style.modal_form_label}>Name</div>
 								<input
 								className="shadow border-none rounded-xl w-full p-3 pr-11 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 								id="name"
 								type="text"
 								onChange={onNameChange}
 								value={name}/>
-								</div>
-								<div className={style.modal_form_label}>User email</div>
-								<div className={style.modal_form_data}>
-								{user.email}
+								<div className={style.modal_form_label}>Email</div>
 								<input
 								className="shadow border-none rounded-xl w-full p-3 pr-11 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 								id="search"
 								type="text"
-								onChange={handleChange}
-								defaultValue={user.email}/>
+								onChange={onEmailChange}
+								value={email}/>
+								<div className={style.modal_form_label}>Banned</div>
+								{/* BANNED */}
+								<div className="flex gap-2">
+								<Switch
+									// Set checked to the initial reportRead value (false)
+									checked={banned}
+									// When switch toggled setReportRead
+									onChange={onBannedChange}
+									// On click handler
+									onClick={() => console.log('banned?')}
+									className={`${
+										banned ? "bg-blue-600" : "bg-gray-200"
+									} relative inline-flex h-6 w-11 items-center rounded-full`}>
+									<span className="sr-only">Banned</span>
+									<span
+										aria-hidden="true"
+										className={`${
+											banned ? "translate-x-6" : "translate-x-1"
+										} inline-block h-4 w-4 transform rounded-full bg-white transition`}
+									/>
+								</Switch>
+								{banned == true ? `Banned` : `Not banned`}
 								</div>
 								{customClaims.admin &&
 									<>
-										<div className={style.modal_form_label}>Change user privileges</div>
-										<div className="inline">    
+										<div className={style.modal_form_label}>Permissions</div>
+										<div className="flex gap-2">    
 											<label>
 												<input
 													type="radio"
 													value="Admin"
 													checked={selectedOption === "Admin"}
-													onChange={handleOptionChange}
+													onChange={onOptionChange}
+													className={style.modal_form_radio}
 												/>
 												Admin
 											</label>
@@ -140,7 +106,8 @@ const EditUserModal = ({customClaims, user, name, onNameChange, onFormSubmit, on
 													type="radio"
 													value="Agency"
 													checked={selectedOption === "Agency"}
-													onChange={handleOptionChange}
+													onChange={onOptionChange}
+													className={style.modal_form_radio}
 												/>
 												Agency
 											</label>
@@ -149,15 +116,18 @@ const EditUserModal = ({customClaims, user, name, onNameChange, onFormSubmit, on
 													type="radio"
 													value="User"
 													checked={selectedOption === "User"}
-													onChange={handleOptionChange}
+													onChange={onOptionChange}
+													className={style.modal_form_radio}
 												/>
 												User
 											</label>
 										</div>
 									</>
 								}
+								<div className="grid col-span-2 justify-center">
 								<button onClick={onFormUpdate} className={style.modal_form_button} type="submit">Update User</button> 
 								{/* TODO: finish update agency */}
+								</div>
 							</div>
 						</form>
 					</div>
