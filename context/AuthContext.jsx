@@ -8,6 +8,7 @@ import {
     updateProfile,
     signOut,
     sendPasswordResetEmail,
+    deleteUser,
     getUserByEmail,
     sendSignInLinkToEmail
 } from 'firebase/auth'
@@ -91,6 +92,10 @@ export const AuthContextProvider = ({children}) => {
         return sendPasswordResetEmail(auth, email)
     }
 
+    const deleteAdminUser = (user) => {
+        return deleteUser(user)
+    }
+
     const updatePassword = (auth, currentPassword, newPassword) => {
         reauthenticateWithCredential(auth, user.email, currentPassword).then(() => {
             return updatePassword(auth, newPassword)
@@ -142,7 +147,7 @@ export const AuthContextProvider = ({children}) => {
     // TODO: add reCAPTCHA
  
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, deleteAdminUser, updatePassword, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )
