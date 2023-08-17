@@ -38,32 +38,32 @@ const Users = ({customClaims}) => {
 	const [userId, setUserId] = useState(null)
   const [selectedOption, setSelectedOption] = useState(null);
 	const [update, setUpdate] = useState(false)
-
-	const getData = async () => {
-		const usersCollection = collection(db, 'mobileUsers')
-		const snapshot = await getDocs(usersCollection)
-		
-		try {
-			var arr = []
-			snapshot.forEach((doc) => {
-				arr.push({
-					[doc.id]: doc.data(),
-				})
-			})
-
-			setMobileUsers(arr)
-			setLoadedMobileUsers(arr)
-			setEndIndex(endIndex + 14)
-
-		} catch (error) {
-			console.log(error)
-		}
+	// Delete report
+	const handleMobileUserDelete = async (userId) => {
+		setDeleteModal(true)
+		setUserId(userId)
 	}
-	
-	useEffect(() => {
-		getData()
-	})
-	
+	// Handle user delete
+	const handleDelete = async (e) => {
+		e.preventDefault()
+		auth.onAuthStateChanged((user) => {
+			if (user) {
+				setUserId(user.uid)
+				const uid = user.uid;
+			}
+		});
+		const docRef = doc(db, "mobileUsers", userId)
+		deleteDoc(docRef)
+		.then(() => {
+			getData()
+			setDeleteModal(false)
+			// to do: delete user from firebase authentification console
+		})
+		.catch((error) => {
+			console.log('The write failed' + error);
+		})
+	}
+	// Handle EditUserModal open/close & set values
 	const handleEditUser = async (userId) => {
 		// On user click set user id
 		setUserId(userId)
@@ -75,7 +75,7 @@ const Users = ({customClaims}) => {
 		setBanned(userRef.data()['isBanned'])
     setEditUser(true)
 	}
-	
+	// Handle form submit
 	const handleFormSubmit = (e) => {
 		e.preventDefault()
 		// User Role change
@@ -120,54 +120,54 @@ const Users = ({customClaims}) => {
 			setBanned(banned)
 		}
 	}
-	
+	// Handle user permissions
 	const handleOptionChange = (e) => {
     setSelectedOption(e.target.value);
   };
-	
+	// Handle name change
 	const handleNameChange = (e) => {
 		e.preventDefault()
 		setName(e.target.value)
 	}
-	
+	// Handle email change
 	const handleEmailChange = (e) => {
 		e.preventDefault()
 		setEmail(e.target.value)
 	}
-	
+	// Handle banned change
 	const handleBannedChange = (e) => {
 		console.log(banned);
 		setBanned(!banned)
 	}
-	
+	// Handle getting data
+	const getData = async () => {
+		const usersCollection = collection(db, 'mobileUsers')
+		const snapshot = await getDocs(usersCollection)
+		
+		try {
+			var arr = []
+			snapshot.forEach((doc) => {
+				arr.push({
+					[doc.id]: doc.data(),
+				})
+			})
+			
+			setMobileUsers(arr)
+			setLoadedMobileUsers(arr)
+			setEndIndex(endIndex + 14)
+			
+		} catch (error) {
+			console.log(error)
+		}
+	}
+	// Get data
+	useEffect(() => {
+		getData()
+	})
+	// Handle updates
 	useEffect(() => {
 		getData()
 	}, [update])
-	// Delete report
-	const handleMobileUserDelete = async (userId) => {
-		setDeleteModal(true)
-		setUserId(userId)
-	}
-		
-	const handleDelete = async (e) => {
-		e.preventDefault()
-		auth.onAuthStateChanged((user) => {
-			if (user) {
-				setUserId(user.uid)
-				const uid = user.uid;
-			}
-		});
-		const docRef = doc(db, "mobileUsers", userId)
-		deleteDoc(docRef)
-			.then(() => {
-				getData()
-				setDeleteModal(false)
-        // to do: delete user from firebase authentification console
-			})
-			.catch((error) => {
-				console.log('The write failed' + error);
-			})
-	}
 	
 	const dateOptions = {
 		day: "2-digit",
