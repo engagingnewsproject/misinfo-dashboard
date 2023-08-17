@@ -8,6 +8,7 @@ import {
 	addDoc,
 	getUser,
 	deleteDoc,
+	updateDoc,
 } from "firebase/firestore"
 import { db, auth } from "../config/firebase"
 import ReactTooltip from "react-tooltip"
@@ -21,6 +22,8 @@ import { async } from '@firebase/util'
 
 // Profile page that allows user to edit password or logout of their account
 const Users = ({customClaims}) => {
+	const {addAdminRole, addAgencyRole, addUserRole} = useAuth()
+	const [userRole, setUserRole] = useState('')
 	const [mobileUsers, setMobileUsers] = useState([])
 	const [search, setSearch] = useState("")
 	const [loadedMobileUsers, setLoadedMobileUsers] = useState([])
@@ -29,8 +32,12 @@ const Users = ({customClaims}) => {
 	const [deleteModal, setDeleteModal] = useState(false)
 	const [user, setUser] = useState('')
 	const [name, setName] = useState('')
+	const [email, setEmail] = useState('')
+	const [banned, setBanned] = useState('')
   const [editUser, setEditUser] = useState(null)
 	const [userId, setUserId] = useState(null)
+  const [selectedOption, setSelectedOption] = useState(null);
+	const [update, setUpdate] = useState(false)
 
 	const getData = async () => {
 		const usersCollection = collection(db, 'mobileUsers')
@@ -57,17 +64,101 @@ const Users = ({customClaims}) => {
 		getData()
 	})
 	
-  	// Delete report
-	const handleEditUser = async (user) => {
-		setUser(user)
-		setName(user.name)
+	const handleEditUser = async (userId) => {
+		// On user click set user id
+		setUserId(userId)
+		// with userId get mobileUsers doc ref
+		const userRef = await getDoc(doc(db, "mobileUsers", userId));
+		setUser(userRef.data()) 
+		setName(userRef.data()['name'])
+		setEmail(userRef.data()['email'])
+		setBanned(userRef.data()['isBanned'])
+		// userSnap.exists() ? 
+			
+			// : 
+			// console.log("No such document!")
+			// TODO: get clicked user name
+			// TODO: get clicked user name
+			// TODO: get clicked user name
+			// TODO: get clicked user name
+			// TODO: get clicked user name
+			// TODO: get clicked user name
+			// TODO: get clicked user name
+			// TODO: get clicked user name
+			// TODO: get clicked user name
+			// TODO: get clicked user name
+			// TODO: get clicked user name
+			// console.log(user.name);
     setEditUser(true)
 	}
 	
+	const handleFormSubmit = (e) => {
+		e.preventDefault()
+		// User Role change
+    auth.currentUser.getIdTokenResult()
+    .then((idTokenResult) => {
+       // Confirm the user is an Admin.
+       if (!!idTokenResult.claims.admin) {
+        
+        // Change the selected user's privileges as requested
+         if (selectedOption === "Admin") {
+          console.log(addAdminRole({email: user.email}))
+					setUserRole('Admin')
+         } else if (selectedOption === "Agency") {
+          console.log(addAgencyRole({email: user.email}))
+					setUserRole('Agency')
+         } else if (selectedOption === "User") {
+          console.log(addUserRole({email: user.email}))
+					setUserRole('User')
+         }
+       }
+       setEditUser(false)
+    })
+    .catch((error) => {
+      console.log(error);
+      setEditUser(false)
+    });
+
+		// Name change
+		const docRef = doc(db, "mobileUsers", userId)
+		if (name != user.name) {
+			updateDoc(docRef, { name: name })
+			setName(name)
+		}
+		// Email change
+		if (email != user.email) {
+			updateDoc(docRef, { email: email })
+			setEmail(email)
+		}
+		// Banned change
+		if (banned != user.isBanned) {
+			updateDoc(docRef, { isBanned: banned })
+			setBanned(banned)
+		}
+	}
+	
+	const handleOptionChange = (e) => {
+    setSelectedOption(e.target.value);
+  };
+	
 	const handleNameChange = (e) => {
+		e.preventDefault()
 		setName(e.target.value)
 	}
 	
+	const handleEmailChange = (e) => {
+		e.preventDefault()
+		setEmail(e.target.value)
+	}
+	
+	const handleBannedChange = (e) => {
+		console.log(banned);
+		setBanned(!banned)
+	}
+	
+	useEffect(() => {
+		getData()
+	}, [update])
 	// Delete report
 	const handleMobileUserDelete = async (userId) => {
 		setDeleteModal(true)
@@ -152,7 +243,8 @@ const Users = ({customClaims}) => {
 										return (
 											<tr
 												className="border-b transition duration-300 ease-in-out dark:border-indigo-100"
-												key={key} onClick={()=>handleEditUser(user)}>
+												key={key} 
+												onClick={()=>handleEditUser(userId)}>
 												<td scope="row" className={column.data}>{user.name}
                         </td>
 												{/* 
@@ -201,12 +293,21 @@ const Users = ({customClaims}) => {
 			/>}
       {editUser && <EditUserModal 
 			customClaims={customClaims} 
+			userRole={userRole}
+			setUserRole={setUserRole}
 			setEditUser={setEditUser} 
 			editUser={editUser} 
 			user={user}
+			userId={userId}
 			name={name}
-			setName={setName}
 			onNameChange={handleNameChange}
+			email={email}
+			onEmailChange={handleEmailChange}
+			banned={banned}
+			onBannedChange={handleBannedChange}
+			onFormSubmit={handleFormSubmit}
+			selectedOption={selectedOption}
+			onOptionChange={handleOptionChange}
 			setUser={setUser} />}
 		</div>
   )
