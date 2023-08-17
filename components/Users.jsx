@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext"
 import {
 	collection,
 	getDocs,
+	getDoc,
 	doc,
 	addDoc,
 	getUser,
@@ -16,6 +17,7 @@ import { FaPlus } from 'react-icons/fa'
 import InfiniteScroll from "react-infinite-scroll-component"
 import ConfirmModal from './modals/ConfirmModal'
 import EditUserModal from './modals/EditUserModal'
+import { async } from '@firebase/util'
 
 // Profile page that allows user to edit password or logout of their account
 const Users = ({customClaims}) => {
@@ -25,9 +27,10 @@ const Users = ({customClaims}) => {
 	const [mobileUserName, setMobileUserName] = useState('')
 	const [endIndex, setEndIndex] = useState(0)
 	const [deleteModal, setDeleteModal] = useState(false)
+	const [user, setUser] = useState('')
+	const [name, setName] = useState('')
   const [editUser, setEditUser] = useState(null)
 	const [userId, setUserId] = useState(null)
-  const [userInfo, setUserInfo] = useState(null)
 
 	const getData = async () => {
 		const usersCollection = collection(db, 'mobileUsers')
@@ -55,11 +58,16 @@ const Users = ({customClaims}) => {
 	})
 	
   	// Delete report
-	const handleEditUser= (userObj) => {
-		setUserInfo(userObj)
+	const handleEditUser = async (user) => {
+		setUser(user)
+		setName(user.name)
     setEditUser(true)
 	}
-		
+	
+	const handleNameChange = (e) => {
+		setName(e.target.value)
+	}
+	
 	// Delete report
 	const handleMobileUserDelete = async (userId) => {
 		setDeleteModal(true)
@@ -191,7 +199,15 @@ const Users = ({customClaims}) => {
 				CTA="Delete"
 				closeModal={setDeleteModal}
 			/>}
-      {editUser && <EditUserModal customClaims={customClaims} setEditUser={setEditUser} editUser={editUser} userInfo={userInfo} setUserInfo={setUserInfo}/>}
+      {editUser && <EditUserModal 
+			customClaims={customClaims} 
+			setEditUser={setEditUser} 
+			editUser={editUser} 
+			user={user}
+			name={name}
+			setName={setName}
+			onNameChange={handleNameChange}
+			setUser={setUser} />}
 		</div>
   )
 }
