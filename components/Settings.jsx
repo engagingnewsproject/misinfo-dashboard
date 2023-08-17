@@ -4,7 +4,6 @@ import TagSystem from './TagSystem';
 export const tagSystems = ['default', 'Topic', 'Source', 'Labels'];
 
 const Settings = ({customClaims}) => {
-  console.log(customClaims);
   const [openModal, setOpenModal] = useState(false)
   const [tagSystem, setTagSystem] = useState(0)
 

@@ -5,29 +5,22 @@ import {
 	getDocs,
 	getDoc,
 	doc,
-	addDoc,
-	getUser,
 	deleteDoc,
 	updateDoc,
 } from "firebase/firestore"
 import { db, auth } from "../config/firebase"
 import ReactTooltip from "react-tooltip"
-import { IoTrash, IoPencil } from "react-icons/io5"
-import { IoMdRefresh } from "react-icons/io"
-import { FaPlus } from 'react-icons/fa'
+import { IoTrash } from "react-icons/io5"
 import InfiniteScroll from "react-infinite-scroll-component"
 import ConfirmModal from './modals/ConfirmModal'
 import EditUserModal from './modals/EditUserModal'
-import { async } from '@firebase/util'
 
 // Profile page that allows user to edit password or logout of their account
 const Users = ({customClaims}) => {
 	const {addAdminRole, addAgencyRole, addUserRole} = useAuth()
 	const [userRole, setUserRole] = useState('')
 	const [mobileUsers, setMobileUsers] = useState([])
-	const [search, setSearch] = useState("")
 	const [loadedMobileUsers, setLoadedMobileUsers] = useState([])
-	const [mobileUserName, setMobileUserName] = useState('')
 	const [endIndex, setEndIndex] = useState(0)
 	const [deleteModal, setDeleteModal] = useState(false)
 	const [user, setUser] = useState('')
@@ -202,8 +195,7 @@ const Users = ({customClaims}) => {
 						dataLength={endIndex}
 						inverse={false} //
 						loader={<h4>Loading...</h4>}
-						scrollableTarget="scrollableDiv"
-						mobileUserName={mobileUserName}>
+						scrollableTarget="scrollableDiv">
 						<table className="min-w-full bg-white rounded-xl p-1">
 							<thead className="border-b dark:border-indigo-100 bg-slate-100">
 								<tr>
