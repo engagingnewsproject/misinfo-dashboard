@@ -7,7 +7,7 @@ import { db, auth } from "../../config/firebase"
 import { getDoc, getDocs, doc, setDoc, collection, updateDoc, addDoc } from "firebase/firestore";
 import { getStorage, ref, getDownloadURL, uploadBytes, deleteObject, uploadBytesResumable } from 'firebase/storage';
 
-const EditUserModal = ({customClaims, userInfo, onFormSubmit, onFormUpdate, onAdminChange, setEditUser, editUser, setUserInfo}) => {
+const EditUserModal = ({customClaims, user, name, onNameChange, onFormSubmit, onFormUpdate, onAdminChange, setEditUser, editUser, setUserInfo}) => {
 	// //
 	// States
 	// //
@@ -18,7 +18,7 @@ const EditUserModal = ({customClaims, userInfo, onFormSubmit, onFormUpdate, onAd
 	
 	const router = useRouter()
 	const imgPicker = useRef(null)
-	// console.log(setAgencyAdminUsers);
+
 	// //
 	// Handlers
 	// //
@@ -30,7 +30,7 @@ const EditUserModal = ({customClaims, userInfo, onFormSubmit, onFormUpdate, onAd
 					setUpdate(!update)
 			}
 	};
-	
+
   const [selectedOption, setSelectedOption] = useState(null);
 
   // Function to handle radio option selection and change selected user role
@@ -38,6 +38,10 @@ const EditUserModal = ({customClaims, userInfo, onFormSubmit, onFormUpdate, onAd
     setSelectedOption(event.target.value);
   };
 
+
+	const handleChange = (e) => {
+		// console.log(e.target.value);
+	}
 
   const handleEditUser = (e) => {
     e.preventDefault()
@@ -48,11 +52,11 @@ const EditUserModal = ({customClaims, userInfo, onFormSubmit, onFormUpdate, onAd
         
         // Change the selected user's privileges as requested
          if (selectedOption === "Admin") {
-          console.log(addAdminRole({email: userInfo.email}))
+          console.log(addAdminRole({email: user.email}))
          } else if (selectedOption === "Agency") {
-          console.log(addAgencyRole({email: userInfo.email}))
+          console.log(addAgencyRole({email: user.email}))
          } else if (selectedOption === "User") {
-          console.log(addUserRole({email: userInfo.email}))
+          console.log(addUserRole({email: user.email}))
          }
        }
        setEditUser(false)
@@ -61,6 +65,7 @@ const EditUserModal = ({customClaims, userInfo, onFormSubmit, onFormUpdate, onAd
       console.log(error);
       setEditUser(false)
     });
+		const name = ''
   }
 
 
@@ -96,12 +101,27 @@ const EditUserModal = ({customClaims, userInfo, onFormSubmit, onFormUpdate, onAd
 						</div>
 					</div>
 					<div>
-						<form onSubmit={handleEditUser}>
+						<form onChange={handleChange} onSubmit={handleEditUser}>
 							<div className={style.modal_form_container}>
 								<div className={style.modal_form_label}>User name</div>
-								<div className={style.modal_form_data}>{userInfo.name}</div>
+								<div className={style.modal_form_data}>
+								<input
+								className="shadow border-none rounded-xl w-full p-3 pr-11 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								id="name"
+								type="text"
+								onChange={onNameChange}
+								value={name}/>
+								</div>
 								<div className={style.modal_form_label}>User email</div>
-								<div className={style.modal_form_data}>{userInfo.email}</div>
+								<div className={style.modal_form_data}>
+								{user.email}
+								<input
+								className="shadow border-none rounded-xl w-full p-3 pr-11 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								id="search"
+								type="text"
+								onChange={handleChange}
+								defaultValue={user.email}/>
+								</div>
 								{customClaims.admin &&
 									<>
 										<div className={style.modal_form_label}>Change user privileges</div>
