@@ -73,22 +73,6 @@ const Users = ({customClaims}) => {
 		setName(userRef.data()['name'])
 		setEmail(userRef.data()['email'])
 		setBanned(userRef.data()['isBanned'])
-		// userSnap.exists() ? 
-			
-			// : 
-			// console.log("No such document!")
-			// TODO: get clicked user name
-			// TODO: get clicked user name
-			// TODO: get clicked user name
-			// TODO: get clicked user name
-			// TODO: get clicked user name
-			// TODO: get clicked user name
-			// TODO: get clicked user name
-			// TODO: get clicked user name
-			// TODO: get clicked user name
-			// TODO: get clicked user name
-			// TODO: get clicked user name
-			// console.log(user.name);
     setEditUser(true)
 	}
 	
@@ -304,6 +288,7 @@ const Users = ({customClaims}) => {
 			email={email}
 			onEmailChange={handleEmailChange}
 			banned={banned}
+			setBanned={setBanned}
 			onBannedChange={handleBannedChange}
 			onFormSubmit={handleFormSubmit}
 			selectedOption={selectedOption}
