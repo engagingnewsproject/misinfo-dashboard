@@ -1,21 +1,8 @@
-import React, { useState, useRef, useEffect } from "react"
-import { useRouter } from 'next/router'
+import React from "react"
 import { IoClose } from "react-icons/io5"
 import { Switch } from "@headlessui/react"
-import { useAuth } from "../../context/AuthContext"
-import Image from "next/image"
-import { db, auth } from "../../config/firebase"
-import { getDoc, getDocs, doc, setDoc, collection, updateDoc, addDoc } from "firebase/firestore";
-import { getStorage, ref, getDownloadURL, uploadBytes, deleteObject, uploadBytesResumable } from 'firebase/storage';
 
-const EditUserModal = ({customClaims, selectedOption, onOptionChange, onNameChange, name, onEmailChange, email, onBannedChange, banned, onFormSubmit, onFormUpdate, setEditUser }) => {
-
-	useEffect(() => {
-		console.log('MODAL banned: ',banned);
-		// console.log('Mname: ', user.name);
-		// console.log('MODAL DB USER: ',user);
-		// console.log('USER ROLE: '+userRole);
-	}, [])
+const EditUserModal = ({customClaims, selectedOption, onOptionChange, onNameChange, name, onEmailChange, email, onBannedChange, banned, setBanned, onFormSubmit, onFormUpdate, setEditUser }) => {
 
 	// //
 	// Styles
@@ -73,7 +60,7 @@ const EditUserModal = ({customClaims, selectedOption, onOptionChange, onNameChan
 									// When switch toggled setReportRead
 									onChange={onBannedChange}
 									// On click handler
-									onClick={() => console.log('banned?')}
+									onClick={() => setBanned(!banned)}
 									className={`${
 										banned ? "bg-blue-600" : "bg-gray-200"
 									} relative inline-flex h-6 w-11 items-center rounded-full`}>
