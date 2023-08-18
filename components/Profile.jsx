@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import UpdatePwModal from './modals/UpdatePwModal'
+import AgencyDesign from './AgencyDesign';
 import UpdateEmailModal from './modals/UpdateEmailModal';
 import { useAuth } from '../context/AuthContext';
 import { auth } from 'firebase-admin';
@@ -140,6 +141,10 @@ const Profile = () => {
                 Logout
             </button>
         </div>
+      </div>
+      <div>
+      {/* Agency customizations go here */}
+      <AgencyDesign />
       </div>
       {openModal && <UpdatePwModal setOpenModal={setOpenModal} />}
       {emailModal && <UpdateEmailModal setEmailModal={setEmailModal} />}
