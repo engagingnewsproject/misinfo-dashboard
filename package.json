@@ -17,12 +17,13 @@
     "country-state-city": "^3.1.2",
     "date-fns": "^2.29.3",
     "dotenv": "^16.0.1",
-    "firebase": "^9.8.3",
+    "firebase": "^9.23.0",
     "firebase-admin": "^11.10.1",
+    "firebase-functions": "^4.4.1",
     "formik": "^2.2.9",
     "luxon": "^3.2.1",
     "moment": "^2.29.4",
-    "next": "^13.2.4",
+    "next": "^13.4.12",
     "node": "^18.7.0",
     "react": "^18.2.0",
     "react-burger-menu": "^3.0.9",
@@ -35,13 +36,15 @@
     "react-modal": "^3.16.1",
     "react-responsive-carousel": "3.2.23",
     "react-select": "^5.7.0",
-    "react-tooltip": "^4.5.1"
+    "react-tooltip": "^4.5.1",
+    "request": "^2.88.2"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.2",
     "autoprefixer": "^10.4.7",
+    "encoding": "^0.1.13",
     "eslint": "8.16.0",
-    "eslint-config-next": "^13.2.4",
+    "eslint-config-next": "^13.4.12",
     "postcss": "^8.4.14",
     "tailwindcss": "^3.0.24"
   }

@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
-import { auth } from '../config/firebase'
+import { db, auth } from '../config/firebase'
 
 
 const Login = () => {
@@ -14,8 +14,18 @@ const Login = () => {
   })
   const [error, setError] = useState()
 
+//   Get user custom token
   if (user && auth.currentUser?.emailVerified) {
-    router.push('/dashboard')
+    auth.currentUser.getIdTokenResult()
+    .then((idTokenResult) => {
+        // if admin load the dashboard
+        if (!!idTokenResult.claims.admin || !!idTokenResult.claims.agency) {
+            router.push('/dashboard')
+        // otherwise load the report page
+        } else {
+            router.push('/report')
+        }
+    })
   }
 
   const handleLogin = async (e) => {
@@ -58,6 +68,7 @@ const Login = () => {
                         required
                         value={data.email}
                         onChange={handleChange}
+                        autoComplete='username'
                         />
                 </div>
                 <div className="mb-1">
@@ -69,11 +80,14 @@ const Login = () => {
                         required 
                         value={data.password}
                         onChange={handleChange}
+                        autoComplete='current-password'
                         />
                 </div>
                 {error && <span className="text-red-500 text-sm font-light">Incorrect password or username</span>}
                 <div className="mt-5 flex-col items-center content-center">
-                    <button className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-4 px-6 rounded focus:outline-none focus:shadow-outline" type="submit">
+                    <button 
+                    className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-4 px-6 rounded focus:outline-none focus:shadow-outline"
+                    type="submit">
                         Log In
                     </button>
                     <div className="flex items-center justify-between">
