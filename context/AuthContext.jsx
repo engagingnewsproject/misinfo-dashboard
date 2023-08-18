@@ -5,10 +5,9 @@ import {
     signInWithEmailAndPassword,
     reauthenticateWithCredential,
     updatePassword,
-    updateProfile,
     signOut,
     sendPasswordResetEmail,
-    getUserByEmail,
+    deleteUser,
     sendSignInLinkToEmail,
     sendEmailVerification,
 } from 'firebase/auth'
@@ -109,6 +108,10 @@ export const AuthContextProvider = ({children}) => {
         return sendPasswordResetEmail(auth, email)
     }
 
+    const deleteAdminUser = (user) => {
+        return deleteUser(user)
+    }
+
     const updatePassword = (auth, currentPassword, newPassword) => {
         reauthenticateWithCredential(auth, user.email, currentPassword).then(() => {
             return updatePassword(auth, newPassword)
@@ -117,50 +120,30 @@ export const AuthContextProvider = ({children}) => {
         })
     }
     
-    const sendSignIn = async (auth, email) => {
-    console.log('sending signin email to: ' + email);
+    const sendSignIn = async (email) => {
         var actionCodeSettings = {
             // URL you want to redirect back to. The domain (www.example.com) for this URL
             // must be whitelisted in the Firebase Console.
             'url': 'https://misinfo-dashboard.netlify.app/signup', // Here we redirect back to this same page.
             'handleCodeInApp': true // This must be true.
         };
-        sendSignInLinkToEmail(auth, email, actionCodeSettings)
-          .then(() => {
-                // The link was successfully sent. Inform the user.
-                // Save the email locally so you don't need to ask the user for it again
-                // if they open the link on the same device.
-                window.localStorage.setItem('emailForSignIn', email);
-                console.log(localStorage);
-                // ...
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                console.log(errorMessage);
-                // ...
-            });
-            
-            
-        // try {
-        //     window.localStorage.setItem('emailForSignIn',email)
-        //     await sendSignInLinkToEmail(auth,email, actionCodeSettings)
-        //     // The link was successfully sent. Inform the user.
-        //     // Save the email locally so you don't need to ask the user for it again
-        //     // if they open the link on the same device.
-        //     alert(`Login link sent to ${email}`);
-        // } catch (error)
-        // {
-        //     const errorCode = error.code
-        //     const errorMessage = error.message
-        // }
-        
-        
+        await sendSignInLinkToEmail(auth, email, actionCodeSettings)
+        .then(() => {
+            // The link was successfully sent. Inform the user.
+            // Save the email locally so you don't need to ask the user for it again
+            // if they open the link on the same device.
+            window.localStorage.setItem('emailForSignIn', email);
+            // ...
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            console.log(errorMessage)
+        });
     }
-    // TODO: add reCAPTCHA
  
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole, verifyEmail }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, deleteAdminUser, updatePassword, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )

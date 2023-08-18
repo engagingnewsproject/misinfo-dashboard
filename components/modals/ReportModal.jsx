@@ -93,6 +93,7 @@ const ReportModal = ({
 										<div className={style.header}>Description</div>
 										<textarea
 											placeholder="No detail provided"
+											id='detail'
 											className={detail ? style.textarea : style.textarea + ` italic`}
 											disabled
 											value={detail}
