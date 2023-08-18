@@ -8,7 +8,6 @@ import Users from '../components/Users'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
 import Agencies from '../components/Agencies'
-import { auth } from "../config/firebase"
 
 const tabList = ['Home', 'Profile', 'Settings', 'Users', 'Agencies', 'ReportSettings'];
 
