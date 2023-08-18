@@ -69,6 +69,9 @@ const Headbar = ({ search, setSearch, customClaims}) => {
                     <div className="text-md font-semibold px-4 m-auto tracking-wide">
                         {userRole !== 'user' && `${userRole.toUpperCase()} `}
                         {userRole == 'user' ? 'Report Misinformation' : 'Misinfo Dashboard'}
+                        {userRole ==  'admin' && 
+                        <div className='text-sm font-normal'>Hi Talia!</div>
+                        }
                     </div>
                 </div>
                 {(userRole == 'admin' || userRole == 'agency') &&
