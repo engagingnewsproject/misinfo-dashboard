@@ -13,9 +13,10 @@ const NewAgencyModal = ({
 	data,
 	onNewAgencyState,
 	onNewAgencyCity,
-	onFormSubmit }) => {
+	onFormSubmit,
+	errors }) => {
 	useEffect(() => {
-		// console.log(data.state);
+
 	}, [])
 	
 	const style = {
@@ -94,6 +95,11 @@ const NewAgencyModal = ({
 							Add Agency
 						</button>
 					</form>
+					{errors && (
+						<div className="bg-red-800 p-4 font-bold text-white">
+						{errors}
+						</div>
+						)}
 				</div>
 			</div>
 		</div>

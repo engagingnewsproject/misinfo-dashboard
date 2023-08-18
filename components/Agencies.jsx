@@ -42,9 +42,9 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [newAgencyEmails, setAgencyEmails] = useState([])
 	const [data, setData] = useState({ country: "US", state: null, city: null })
 	const [emailSent, setEmailSent] = useState(false) // check if email was sent
-	const [errors, setErrors] = useState({})
+	const [errors, setErrors] = useState(null)
 	// Handler: new agency MODAL
-	const handleAddNew = (e) => {
+	const handleAddNewAgencyModal = (e) => {
 		e.preventDefault()
 		setNewAgencyModal(true)
 	}
@@ -103,6 +103,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		if (e.target.id == 'newAgency') {
 			// handleSubmitClick validates if all inputs are filled.
 			handleSubmitClick(e)
+			setNewAgencyName('')
 		}
 	}
 	// validate fields
@@ -132,7 +133,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	}
 	// Handlers //
 	// Handler: Delete agency modal
-	const handleAgencyDelete = async (e) => {
+	const handleAgencyDelete = async (agencyId) => {
 		setDeleteModal(true)
 		setAgencyId(agencyId)
 	}
@@ -142,7 +143,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		const agencyRef = doc(db, "agency", agencyId)
 		deleteDoc(agencyRef)
 		.then(() => {
-			getData()
+			// getData()
 			setDeleteModal(false)
 			// to do: delete user from firebase authentification console
 		})
@@ -178,6 +179,18 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	useEffect(() => {
 		getData()
 	})
+	useEffect(() => {
+		validateEmail();
+	}, [newAgencyEmails]);
+	// validation
+	const validateEmail = () => {
+		const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+		if (!emailRegex.test(newAgencyEmails)) {
+			setErrors('Please enter a valid email address');
+		} else {
+			setErrors('');
+		}
+	}
 	// Styles //
 	const style = {
 		section_container: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
@@ -204,7 +217,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 					</div>
 					<div className={style.section_filters}>
 						<div className={style.section_filtersWrap}>
-						<button className={style.button} onClick={handleAddNew}><FaPlus className="text-blue-600 mr-2" size={12}/>Add Agency</button>
+						<button className={style.button} onClick={handleAddNewAgencyModal}><FaPlus className="text-blue-600 mr-2" size={12}/>Add Agency</button>
 							{/* TODO: add filters to agency list */}
 						</div>
 					</div>
@@ -255,9 +268,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 									</td>
 									<td className={style.table_td} onClick={(e) => e.stopPropagation()}>
 										<button
-											onClick={() =>
-												handleAgencyDelete(Object.keys(agencyObj)[0])
-											}
+											onClick={() => handleAgencyDelete(Object.keys(agencyObj)[0]) }
 											data-tip="Delete agency"
 											className={style.table_button}>
 											<IoTrash size={20} className={style.table_icon} />
@@ -290,6 +301,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			/>}
 			{newAgencyModal && 
 				<NewAgencyModal 
+				setNewAgencyModal={setNewAgencyModal}
 				newAgencyName={newAgencyName}
 				onNewAgencyName={handleNewAgencyName}
 				newAgencyEmails={newAgencyEmails}
@@ -297,7 +309,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 				data={data}
 				onNewAgencyState={handleNewAgencyState}
 				onNewAgencyCity={handleNewAgencyCity}
-				setNewAgencyModal={setNewAgencyModal}
 				onFormSubmit={handleFormSubmit} 
 				errors={errors}
 			/>}
