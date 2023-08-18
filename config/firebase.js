@@ -1,26 +1,24 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp } from 'firebase/app';
+
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
+import {
+  getFunctions,
+} from "firebase/functions";
+
 
 const firebaseConfig = {
-    /* apiKey: "AIzaSyBkD07zb1NS6J8Um617Bxz2O16E0IOgB0Y",
-    authDomain: "misinfo-e2144.firebaseapp.com",
-    projectId: "misinfo-e2144",
-    storageBucket: "misinfo-e2144.appspot.com",
-    messagingSenderId: "10043942539",
-    appId: "1:10043942539:web:4d2ab14272000c38f4d68e",
-    measurementId: "G-EJ0G2CVELW" */
-
-    /* NEW combined database keys */
-    apiKey: "AIzaSyAsGCi7VgxuovHAbY4tRDAKDRN6sxw8MHo",
-    authDomain: "misinfo-5d004.firebaseapp.com",
-    projectId: "misinfo-5d004",
-    storageBucket: "misinfo-5d004.appspot.com",
-    messagingSenderId: "2581605663",
-    appId: "1:2581605663:web:5c1f1a43d80568fd5b542a",
-    measurementId: "G-L4GJJGV0V1"
+    // Values found at /.env file. 
+    // If this file is not present create a .env file in the root directory
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
@@ -28,4 +26,5 @@ export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-export const auth = getAuth()
+export const auth = getAuth(app);
+export const functions = getFunctions(app);

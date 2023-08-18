@@ -15,7 +15,6 @@ const ResetPassword = () => {
         heading: "Forget Your Password?",
         subtitle: "Don't worry! Enter your registered email below to receive password reset email",
         btnText: "Send",
-        icon: "svgs/illu-Password.svg"
     })
 
     const handleReset = async (e) => {
@@ -32,7 +31,6 @@ const ResetPassword = () => {
                 heading: "Password Reset Email Has Been Sent!",
                 subtitle: "Please check your inbox and reset password via email for your privacy safety",
                 btnText: "Send it again",
-                icon: "svgs/illu-email.svg"
             })
         } catch (err) {
             console.log(err)
@@ -87,12 +85,8 @@ const ResetPassword = () => {
 					)}
 					<p className="text-center text-gray-500 text-sm mt-2">
 						Already have an account?
-						<Link href="/login">
-							<a
-								className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800"
-								href="#">
-								Log In
-							</a>
+						<Link href="/login" className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+							Log In
 						</Link>
 					</p>
 				</div>
