@@ -62,11 +62,6 @@ const SignUp = () => {
             } else {
                 setSignUpError(err.message)
             }
-        } finally {
-            // Send the user a validation email
-            console.log(data.email)
-            await sendSignIn(data.email)
-            addMobileUser()
         }
     }
 
