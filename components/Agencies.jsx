@@ -6,6 +6,8 @@ import {
 	getDoc, 
 	updateDoc,
 	deleteDoc,
+	addDoc,
+	arrayUnion
 	} from '@firebase/firestore'
 import { db, auth } from "../config/firebase"
 import { getAuth } from 'firebase/auth'
@@ -32,22 +34,83 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [search, setSearch] = useState('')
 	const [endIndex, setEndIndex] = useState(10)
 	const [deleteModal, setDeleteModal] = useState(false)
-	
 	// NEW Agency Modal
+	const { user, sendSignIn } = useAuth() // Add agency user send signup email
 	const [newAgencyModal, setNewAgencyModal] = useState(false)
 	const [newAgencySubmitted, setNewAgencySubmitted] = useState(0);
-	
-	// Handler: Add new agency
+	const [newAgencyName, setNewAgencyName] = useState("")
+	const [newAgencyEmails, setAgencyEmails] = useState([])
+	const [data, setData] = useState({ country: "US", state: null, city: null })
+	const [emailSent, setEmailSent] = useState(false) // check if email was sent
+	const [errors, setErrors] = useState({})
+	// Handler: new agency MODAL
 	const handleAddNew = (e) => {
 		e.preventDefault()
 		setNewAgencyModal(true)
 	}
-	
-	const handleNewAgencySubmit = () => {
-		setNewAgencySubmitted(prevState => prevState + 1)
+	// Handler: new agency NAME
+	const handleNewAgencyName = (e) => {
+		e.preventDefault()
+		setNewAgencyName(e.target.value)
 	}
-	// TESTING END // // // // // // // // // // // // // // // // // 
-	
+	// Handler: new agency EMAIL
+	const handleNewAgencyEmails = (e) => {
+		e.preventDefault()
+		let usersArr = e.target.value
+		usersArr = usersArr.split(',')
+		setAgencyEmails(usersArr)
+	}
+	// Handler: new agency state
+	const handleNewAgencyState = (e) => {
+		setData(data=>({...data, state: e, city: null })) 
+	}
+	// Handler: new agency city
+	const handleNewAgencyCity = (e) => {
+		setData(data=>({...data,city: e !== null ? e : null })) 
+	}
+	// Handler: new agency SAVE
+	const saveAgency = () => {
+		const dbInstance = collection(db, 'agency');
+		addDoc(dbInstance, {
+			name: newAgencyName,
+			agencyUsers: arrayUnion(...newAgencyEmails),
+			state: data.state.name,
+			city: data.city == null ? "N/A" : data.city.name,
+			logo: []
+		})
+		// TODO: Send new agency user and email 
+		// .then(async () => {
+		// 	// Agency User send email
+		// 	try {
+		// 		const user = auth.currentUser;
+		// 		// TODO: need to send email to more than one email.
+		// 		// in case a comma separated list is added.
+		// 		await sendSignIn(...newAgencyEmails)
+		// 	} catch (err) {
+		// 		if (err.message == "Firebase: Error (auth/email-already-in-use).") {
+		// 			setErrors("Email already in use. Please log in.")
+		// 		} else {
+		// 			setErrors(err.message)
+		// 		}
+		// 	}
+		// })
+	}
+	// Handler: Form submit NEW & EXISTING AGENCY
+	const handleFormSubmit = async (e) => {
+		e.preventDefault()
+		setUpdate(!update)
+		// check form id
+		if (e.target.id == 'newAgency') {
+			// handleSubmitClick validates if all inputs are filled.
+			handleSubmitClick(e)
+		}
+	}
+	// validate fields
+	const handleSubmitClick = async (e) => {
+		e.preventDefault()
+		saveAgency()
+		setNewAgencyModal(false)
+	}
 	// //
 	// Data
 	// //
@@ -67,10 +130,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			console.log(error)
 		}
 	}
-	
-	// //
-	// Handlers
-	// //
+	// Handlers //
 	// Handler: Delete agency modal
 	const handleAgencyDelete = async (e) => {
 		setDeleteModal(true)
@@ -87,10 +147,9 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			// to do: delete user from firebase authentification console
 		})
 		.catch((error) => {
-			console.log('The write failed' + error);
+			console.log('The write failed', error);
 		})
 	}
-	
 	// Handler: Agency modal
 	const handleAgencyModalShow = async (agencyId) => {
 		setAgencyModal(true)
@@ -98,7 +157,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		setAgencyInfo(docRef.data())
 		setAgencyId(agencyId)
 	}
-	
 	// Handler: On agency admin user change
 	const handleAgencyUserChange = async (e) => {
 		const docRef = doc(db, "agency", agencyId)
@@ -106,34 +164,21 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			agencyUsers: 'true'
 		})
 	}
-	
-	// Handler: Form submit
-	const handleFormSubmit = async (e) => {
-		e.preventDefault()
-		setUpdate(true)
-		const docRef = doc(db, 'agency', agencyId)
-	}
-	
 	// Handler: Update form
 	const handleFormUpdate = async (e) => {
 		e.preventDefault()
 		setUpdate(true)
 		const docRef = doc(db, 'agency', agencyId)
+		console.log(docRef);
 		updateDoc(docRef, {
 			agencyUsers: e.target.value
 		})
 	}
-	
-	// //
-	// Effects
-	// //
+	// Effects //
 	useEffect(() => {
 		getData()
 	})
-	
-	// //
-	// Styles
-	// //
+	// Styles //
 	const style = {
 		section_container: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
 		section_wrapper: 'flex flex-col h-full',
@@ -245,12 +290,16 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			/>}
 			{newAgencyModal && 
 				<NewAgencyModal 
-				// tagSystems={tagSystems}
-				// tagSystem={tagSystem}
-				// list={list}
-				handleNewAgencySubmit={handleNewAgencySubmit}
+				newAgencyName={newAgencyName}
+				onNewAgencyName={handleNewAgencyName}
+				newAgencyEmails={newAgencyEmails}
+				onNewAgencyEmails={handleNewAgencyEmails}
+				data={data}
+				onNewAgencyState={handleNewAgencyState}
+				onNewAgencyCity={handleNewAgencyCity}
 				setNewAgencyModal={setNewAgencyModal}
-				// addNewUser={addNewUser} 
+				onFormSubmit={handleFormSubmit} 
+				errors={errors}
 			/>}
 		</div>
 	)
