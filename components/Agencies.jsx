@@ -32,8 +32,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [search, setSearch] = useState('')
 	const [endIndex, setEndIndex] = useState(10)
 	const [deleteModal, setDeleteModal] = useState(false)
-
-	// TESTING Start // // // // // // // // // // // // // // // //
 	
 	// NEW Agency Modal
 	const [newAgencyModal, setNewAgencyModal] = useState(false)
@@ -49,26 +47,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		setNewAgencySubmitted(prevState => prevState + 1)
 	}
 	// TESTING END // // // // // // // // // // // // // // // // // 
-	
-	// //
-	// Styles
-	// //
-	const style = {
-		section_container: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
-		section_wrapper: 'flex flex-col h-full',
-		section_header: 'flex flex-col md:flex-row py-5 md:justify-between',
-		section_title: 'text-center md:text-left text-lg font-bold text-blue-600 tracking-wider pb-2 md:pb-0',
-		section_filters: 'flex flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-evenly',
-		section_filtersWrap: 'p-0 px-4 md:p-4 md:py-0 md:px-4 flex items-center',
-		table_main: 'min-w-full bg-white rounded-xl p-1',
-		table_thead: 'border-b dark:border-indigo-100 bg-slate-100',
-		table_th: 'px-3 p-3 text-sm font-semibold text-left tracking-wide',
-		table_tr: 'border-b transition duration-300 ease-in-out hover:bg-indigo-100 dark:border-indigo-100 dark:hover:bg-indigo-100',
-		table_td: 'whitespace-normal text-sm px-3 p-2 cursor-pointer',
-		table_button: 'hover:fill-cyan-700',
-		table_icon: 'ml-4 fill-gray-400 hover:fill-red-600',
-		button: 'flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
-	}
 	
 	// //
 	// Data
@@ -93,12 +71,12 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	// //
 	// Handlers
 	// //
-	// Handler: Delete agency
+	// Handler: Delete agency modal
 	const handleAgencyDelete = async (e) => {
 		setDeleteModal(true)
 		setAgencyId(agencyId)
 	}
-	
+	// Handler: delete agency from database
 	const handleDelete = async (e) => {
 		e.preventDefault()
 		const agencyRef = doc(db, "agency", agencyId)
@@ -153,6 +131,25 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		getData()
 	})
 	
+	// //
+	// Styles
+	// //
+	const style = {
+		section_container: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
+		section_wrapper: 'flex flex-col h-full',
+		section_header: 'flex flex-col md:flex-row py-5 md:justify-between',
+		section_title: 'text-center md:text-left text-lg font-bold text-blue-600 tracking-wider pb-2 md:pb-0',
+		section_filters: 'flex flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-evenly',
+		section_filtersWrap: 'p-0 px-4 md:p-4 md:py-0 md:px-4 flex items-center',
+		table_main: 'min-w-full bg-white rounded-xl p-1',
+		table_thead: 'border-b dark:border-indigo-100 bg-slate-100',
+		table_th: 'px-3 p-3 text-sm font-semibold text-left tracking-wide',
+		table_tr: 'border-b transition duration-300 ease-in-out hover:bg-indigo-100 dark:border-indigo-100 dark:hover:bg-indigo-100',
+		table_td: 'whitespace-normal text-sm px-3 p-2 cursor-pointer',
+		table_button: 'hover:fill-cyan-700',
+		table_icon: 'ml-4 fill-gray-400 hover:fill-red-600',
+		button: 'flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
+	}
 	return (
 		<div className={style.section_container}>
 			<div className={style.section_wrapper}>
