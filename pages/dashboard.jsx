@@ -8,7 +8,6 @@ import Users from '../components/Users'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
 import Agencies from '../components/Agencies'
-import { auth } from "../config/firebase"
 
 import { auth } from "../config/firebase"
 
@@ -32,13 +31,6 @@ const Dashboard = () => {
     // JUST ADDED
     const [newReportSubmitted, setNewReportSubmitted] = useState(0);
     const [agencyUpdateSubmitted, setAgencyUpdateSubmitted] = useState(0);
-
-
-    
-
-    // stores the admin/agency privilege of current user
-    const [customClaims, setCustomClaims] = useState({admin: false, agency: false})    
-
 
 
     const handleNewReportSubmit = () => {
@@ -99,7 +91,7 @@ const Dashboard = () => {
             { tab == 0 && (customClaims.admin || customClaims.agency) && <Home newReportSubmitted={newReportSubmitted} handleNewReportSubmit={handleNewReportSubmit} />}
             { tab == 1 && <Profile />}
             { tab == 2 && (customClaims.admin || customClaims.agency) && <Settings customClaims={customClaims} />}
-            { tab == 3 && (customClaims.admin || customClaims.agency) && <Users customClaims={customClaims}}
+            { tab == 3 && (customClaims.admin || customClaims.agency) && <Users customClaims={customClaims}/>}
             { tab == 4 && (customClaims.admin) && <Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />}
             </div>
         </div>
