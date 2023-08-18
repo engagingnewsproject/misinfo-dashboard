@@ -665,27 +665,27 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 					</tbody>
 				</table>
 				{reportModal && (
-							<ReportModal
-								report={report}
-								reportTitle={reportTitle}
-								key={reportModalId}
-								note={note}
-								detail={detail}
-								info={info}
-								reporterInfo={reporterInfo}
-								setReportModal={setReportModal}
-								setReportModalId={reportModalId}
-								onNoteChange={handleNoteChange}
-								onLabelChange={handleLabelChange}
-								selectedLabel={selectedLabel}
-								activeLabels={activeLabels}
-								changeStatus={changeStatus}
-								onFormSubmit={handleFormSubmit}
-								onReportDelete={handleReportDelete}
-								setPostedDate={postedDate}
-								setReportLocation={reportLocation}
-							/>
-						)}
+					<ReportModal
+						report={report}
+						reportTitle={reportTitle}
+						key={reportModalId}
+						note={note}
+						detail={detail}
+						info={info}
+						reporterInfo={reporterInfo}
+						setReportModal={setReportModal}
+						setReportModalId={reportModalId}
+						onNoteChange={handleNoteChange}
+						onLabelChange={handleLabelChange}
+						selectedLabel={selectedLabel}
+						activeLabels={activeLabels}
+						changeStatus={changeStatus}
+						onFormSubmit={handleFormSubmit}
+						onReportDelete={handleReportDelete}
+						setPostedDate={postedDate}
+						setReportLocation={reportLocation}
+					/>
+				)}
 			</InfiniteScroll>
 			{newReportModal && (
 				<NewReport
