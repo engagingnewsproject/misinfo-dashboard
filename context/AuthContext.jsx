@@ -9,8 +9,7 @@ import {
     sendPasswordResetEmail,
     deleteUser,
     sendSignInLinkToEmail,
-    isSignInWithEmailLink,
-    signInWithEmailLink
+    sendEmailVerification,
 } from 'firebase/auth'
 
 
@@ -67,11 +66,28 @@ export const AuthContextProvider = ({children}) => {
     const addUserRole = httpsCallable(functions, 'addUserRole')
 
     const signup = (teamName, email, password) => {
-        return createUserWithEmailAndPassword(auth, email, password)
+        createUserWithEmailAndPassword(auth, email, password).then((userCredential)=> {
+          
+          return verifyEmail(userCredential.user)
+        }).catch((error) => {
+          return error
+        })
     }
 
+    const verifyEmail = (user) => {
+  
+      sendEmailVerification(user).then((task)=> {
+        if (task.isSuccessful()) {
+          return true;
+        } else {
+          return false;
+        }
+    }).catch((error) => {
+      return error
+      })
+    }
     const login = (email, password) => {
-        return signInWithEmailAndPassword(auth, email, password)
+      return signInWithEmailAndPassword(auth, email, password);
     }
 
     const logout = async () => {

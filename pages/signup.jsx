@@ -9,7 +9,9 @@ import moment from 'moment'
 const SignUp = () => {
     const router = useRouter()
     const [signUpError, setSignUpError] = useState("")
-    const { user, signup, sendSignIn } = useAuth()
+
+    const { user, signup, sendSignIn, verifyEmail } = useAuth()
+
     const [data, setData] = useState({
        name: '',
        email: '',
@@ -44,9 +46,16 @@ const SignUp = () => {
         }
 
         try {
-            await signup(data.teamName, data.email, data.password)
-            setSignUpError("")
-            router.push('/report')
+            const userVerified = await signup(data.teamName, data.email, data.password)
+            if (userVerified) {
+              setSignUpError("")
+              console.log("in try")
+              router.push('/dashboard')
+            } else {
+              console.log("here")
+              router.push('/verifyEmail')
+            }
+            
         } catch (err) {
             if (err.message == "Firebase: Error (auth/email-already-in-use).") {
                 setSignUpError("Email already in use. Please log in.")
