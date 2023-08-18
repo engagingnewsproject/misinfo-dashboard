@@ -281,7 +281,6 @@ const Users = ({customClaims}) => {
 			setBanned={setBanned}
 			onBannedChange={handleBannedChange}
 			onFormSubmit={handleFormSubmit}
-			userRole={userRole}
 			onOptionChange={handleOptionChange}
 			setUser={setUser} />}
 		</div>
