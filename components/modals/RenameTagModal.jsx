@@ -57,11 +57,13 @@ const RenameTagModal = ({ replaceTag, selected, list, setRenameTagModal, addNewT
                         <div className="mt-6 flex justify-between">
                             <button
                                 onClick={handleReplaceTag}
-                                className="bg-white hover:bg-gray-500 hover:text-white text-sm text-gray-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline">
+                                className="bg-white hover:bg-gray-500 hover:text-white text-sm text-gray-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                                 type='button'>
                                 Replace
                             </button>
                             <button
-                                className="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">
+                                className="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                                type="submit">
                                 Keep Both
                             </button>
                         </div>
