@@ -29,7 +29,6 @@ const Users = ({customClaims}) => {
 	const [banned, setBanned] = useState('')
   const [editUser, setEditUser] = useState(null)
 	const [userId, setUserId] = useState(null)
-  const [selectedOption, setSelectedOption] = useState(null);
 	const [update, setUpdate] = useState(false)
 	// Delete report
 	const handleMobileUserDelete = async (userId) => {
@@ -66,36 +65,31 @@ const Users = ({customClaims}) => {
 		setName(userRef.data()['name'])
 		setEmail(userRef.data()['email'])
 		setBanned(userRef.data()['isBanned'])
+		setUserRole(userRef.data()['userRole'])
     setEditUser(true)
 	}
 	// Handle form submit
 	const handleFormSubmit = (e) => {
 		e.preventDefault()
 		// User Role change
-    auth.currentUser.getIdTokenResult()
-    .then((idTokenResult) => {
-       // Confirm the user is an Admin.
-       if (!!idTokenResult.claims.admin) {
-        
-        // Change the selected user's privileges as requested
-         if (selectedOption === "Admin") {
-          console.log(addAdminRole({email: user.email}))
-					setUserRole('Admin')
-         } else if (selectedOption === "Agency") {
-          console.log(addAgencyRole({email: user.email}))
-					setUserRole('Agency')
-         } else if (selectedOption === "User") {
-          console.log(addUserRole({email: user.email}))
-					setUserRole('User')
-         }
-       }
-       setEditUser(false)
-    })
-    .catch((error) => {
-      console.log(error);
-      setEditUser(false)
-    });
-
+		auth.currentUser.getIdTokenResult()
+		.then((idTokenResult) => {
+			// Confirm the user is an Admin.
+			if (!!idTokenResult.claims.admin) {
+				// Change the selected user's privileges as requested
+				if (userRole === "Admin") {
+					console.log(addAdminRole({email: user.email}))
+				} else if (userRole === "Agency") {
+					console.log(addAgencyRole({email: user.email}))
+				} else if (userRole === "User") {
+					console.log(addUserRole({email: user.email}))
+				}
+				setUserRole(userRole)
+			}
+		})
+		.catch((error) => {
+			console.log(error);
+		});
 		// Name change
 		const docRef = doc(db, "mobileUsers", userId)
 		if (name != user.name) {
@@ -112,11 +106,15 @@ const Users = ({customClaims}) => {
 			updateDoc(docRef, { isBanned: banned })
 			setBanned(banned)
 		}
+		if (userRole != user.userRole) {
+			updateDoc(docRef, { userRole: userRole })
+		}
+		setEditUser(false)
 	}
 	// Handle user permissions
 	const handleOptionChange = (e) => {
-    setSelectedOption(e.target.value);
-  };
+		setUserRole(e.target.value)
+  }
 	// Handle name change
 	const handleNameChange = (e) => {
 		e.preventDefault()
@@ -129,7 +127,6 @@ const Users = ({customClaims}) => {
 	}
 	// Handle banned change
 	const handleBannedChange = (e) => {
-		console.log(banned);
 		setBanned(!banned)
 	}
 	// Handle getting data
@@ -157,11 +154,12 @@ const Users = ({customClaims}) => {
 	useEffect(() => {
 		getData()
 	})
+	
 	// Handle updates
 	useEffect(() => {
 		getData()
 	}, [update])
-	
+
 	const dateOptions = {
 		day: "2-digit",
 		year: "numeric",
@@ -202,7 +200,7 @@ const Users = ({customClaims}) => {
 									<th scope="col" className={tableHeading.default}>Name</th>
 									<th scope="col" className={tableHeading.default_center}>Email</th>
 									<th scope="col" className={tableHeading.default_center}>Join Date</th>
-									{customClaims.agency && <th scope="col" className={tableHeading.default_center}>Role</th>}
+									{customClaims.admin && <th scope="col" className={tableHeading.default_center}>Role</th>}
 									<th scope="col" className={tableHeading.default_center}>Banned</th>
 									<th scope="col" colSpan={2} className={tableHeading.default_center}>Delete</th>
 								</tr>
@@ -232,9 +230,9 @@ const Users = ({customClaims}) => {
 												- format joined date
 												 */}
 												<td className={column.data_center}>{posted}</td>
-												{customClaims.agency && 
-													<td className={column.data_center}>{`customClaims`}</td>
-												}
+												{customClaims.admin && 
+													<td className={column.data_center}>{user.userRole}</td>
+												} 
 												{/* TODO:
 												- finish banned feature (with confirm modal)
 												 */}
@@ -283,7 +281,7 @@ const Users = ({customClaims}) => {
 			setBanned={setBanned}
 			onBannedChange={handleBannedChange}
 			onFormSubmit={handleFormSubmit}
-			selectedOption={selectedOption}
+			userRole={userRole}
 			onOptionChange={handleOptionChange}
 			setUser={setUser} />}
 		</div>
