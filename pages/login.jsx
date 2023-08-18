@@ -2,31 +2,38 @@ import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
+import { auth } from '../config/firebase'
+
 
 const Login = () => {
   const router = useRouter()
-  const { user, login } = useAuth()
+  const { user, login, verifyEmail } = useAuth()
   const [data, setData] = useState({
     email: '',
     password: '',
   })
   const [error, setError] = useState()
 
-  if (user) {
+  if (user && auth.currentUser?.emailVerified) {
     router.push('/dashboard')
   }
 
   const handleLogin = async (e) => {
     e.preventDefault()
-
-    //console.log(user)
     try {
-        await login(data.email, data.password)
-        setError(null)
+      //console.log(user)
+      await login(data.email, data.password)
+      setError(null)
+
+      if (auth.currentUser?.emailVerified) {
         router.push('/dashboard')
+      } else if (!auth.currentUser?.emailVerified) {
+        verifyEmail(auth.currentUser)
+        router.push('/verifyEmail')
+      }
     } catch (err) {
-        setError(err)
-        console.log(err)
+      setError(err)
+      console.log(err.message)
     }
   }
 

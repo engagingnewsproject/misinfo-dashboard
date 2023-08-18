@@ -19,7 +19,7 @@ import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
 import { auth } from "../config/firebase"
 
-const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
+const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClaims}) => {
 
   const [windowSize, setWindowSize] = useState([
     window.innerWidth,
@@ -152,15 +152,16 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                       <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                   </button> 
                 
+                  {customClaims.admin &&
                     <button 
                         onClick={() => setTab(0)}
                         data-tip="Home"
                         className={tab == 0 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
                         <IoHomeOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
-                    </button>
+                    </button>}
                     {/* TESTING please correct this lol */}
-                    {auth.currentUser.displayName === 'Luke' &&
+                    {customClaims.admin &&
                       <button 
                           onClick={() => setTab(4)}
                           data-tip="Agencies"
@@ -169,13 +170,15 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                           <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
                     }
+                    {(customClaims.admin || customClaims.agency) &&
+
                     <button
                         onClick={() => setTab(2)}
                         data-tip="Tagging Systems"
                         className={tab == 2 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
                         <IoPricetagsOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
-                    </button>
+                    </button>}
                     <button
                         onClick={handleNewReportModal}
                         data-tip="New Report"
@@ -184,7 +187,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     {/* TESTING please correct this lol */}
-                    {auth.currentUser.displayName === 'Luke' &&
+                    {(customClaims.admin || customClaims.agency) &&
                       <button
                           onClick={() => setTab(3)}
                           data-tip="Users"
@@ -202,7 +205,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                         <IoPersonOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
-                    <button
+                    {(customClaims.admin || customClaims.agency) && <button
                         onClick={()=>setHelpModal(true)}
                         data-tip="Help"
                         className={helpModal ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
@@ -210,7 +213,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit}) => {
                         <IoHelpCircleOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
 
-                    </button>
+                    </button>}
                 </div>
             </div>
  
