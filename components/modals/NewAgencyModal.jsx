@@ -33,7 +33,7 @@ const NewAgencyModal = ({
 						<div className='text-md font-bold text-blue-600 tracking-wide'>{'Add new Agency'}</div>
 						<button onClick={() => setNewAgencyModal(false)} className='text-gray-800'><IoClose size={25} /></button>
 					</div>
-					<form onSubmit={onFormSubmit} id="newAgency">
+					<form onSubmit={onFormSubmit} id="newAgencyModal">
 						<input // Agency Name
 							className={style.input}
 							id="agencyName"
@@ -42,7 +42,7 @@ const NewAgencyModal = ({
 							value={newAgencyName}
 							onChange={onNewAgencyName}
 							/>
-						<input // Agency Admin User
+						<input // New agency emails
 							className={style.input}
 							id="agencyUser"
 							type="text"

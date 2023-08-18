@@ -39,7 +39,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [newAgencyModal, setNewAgencyModal] = useState(false)
 	const [newAgencySubmitted, setNewAgencySubmitted] = useState(0);
 	const [newAgencyName, setNewAgencyName] = useState("")
-	const [newAgencyEmails, setAgencyEmails] = useState([])
+	const [newAgencyEmails, setNewAgencyEmails] = useState([])
 	const [data, setData] = useState({ country: "US", state: null, city: null })
 	const [emailSent, setEmailSent] = useState(false) // check if email was sent
 	const [errors, setErrors] = useState(null)
@@ -58,7 +58,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		e.preventDefault()
 		let usersArr = e.target.value
 		usersArr = usersArr.split(',')
-		setAgencyEmails(usersArr)
+		setNewAgencyEmails(usersArr)
 	}
 	// Handler: new agency state
 	const handleNewAgencyState = (e) => {
@@ -77,6 +77,18 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			state: data.state.name,
 			city: data.city == null ? "N/A" : data.city.name,
 			logo: []
+		}).then(async() => {
+			// send email here
+			try {
+				await sendSignIn(...newAgencyEmails)
+				setEmailSent(true)
+			} catch (err) {
+				console.log(err)
+			}
+			// Reset add agency form fields
+			setNewAgencyName('')
+			setNewAgencyEmails('')
+			// setData('')
 		})
 		// TODO: Send new agency user and email 
 		// .then(async () => {
@@ -100,10 +112,11 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		e.preventDefault()
 		setUpdate(!update)
 		// check form id
-		if (e.target.id == 'newAgency') {
-			// handleSubmitClick validates if all inputs are filled.
-			handleSubmitClick(e)
-			setNewAgencyName('')
+		if (e.target.id == 'newAgencyModal') { // NEW AGENCY
+			saveAgency()
+			setNewAgencyModal(false)
+		} else if (e.target.id == 'agencyModal') { // EXISTING AGENCY
+			handleAgencyUpdate(e)
 		}
 	}
 	// validate fields
@@ -157,6 +170,18 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		const docRef = await getDoc(doc(db, 'agency', agencyId))
 		setAgencyInfo(docRef.data())
 		setAgencyId(agencyId)
+	}
+		// Handler: Agency update
+	const handleAgencyUpdate = async (e) => {
+		e.preventDefault()
+		// TODO: Check for any errors
+		const allErrors = {}
+		setErrors(allErrors)
+		console.log(allErrors.length + "Error array length")
+			
+		if (Object.keys(allErrors).length == 0) {
+			handleSubmitClick(e)
+		}
 	}
 	// Handler: On agency admin user change
 	const handleAgencyUserChange = async (e) => {
