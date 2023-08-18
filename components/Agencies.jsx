@@ -202,7 +202,11 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 										{agency.city}, {agency.state}
 									</td>
 									<td className={style.table_td}>
-									{agency['agencyUsers'].map((user, i) => {return(<div>{user}</div>)})}
+									{agency['agencyUsers'].map((user, i = self.crypto.randomUUID()) => {
+										return(
+											<div key={i}>{user}</div>
+										)
+									})}
 									</td>
 									<td className={style.table_td} onClick={(e) => e.stopPropagation()}>
 										<button
