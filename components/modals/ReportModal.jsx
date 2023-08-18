@@ -9,7 +9,7 @@ import { BiEditAlt } from "react-icons/bi"
 import { BsShareFill } from "react-icons/bs"
 import { BiLinkExternal } from "react-icons/bi";
 import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
-import { IoClose, IoTrash, IoLocation } from "react-icons/io5"
+import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
 
 const ReportModal = ({
 	report,
@@ -93,6 +93,7 @@ const ReportModal = ({
 										<div className={style.header}>Description</div>
 										<textarea
 											placeholder="No detail provided"
+											id='detail'
 											className={detail ? style.textarea : style.textarea + ` italic`}
 											disabled
 											value={detail}
@@ -128,7 +129,7 @@ const ReportModal = ({
 							
 							<div className="right-side flex flex-col justify-between">
 								<div>
-																	{/* Sources and stuff */}
+									{/* Sources and stuff */}
 									<div className="flex flex-col mb-5">
 										<div className="flex flex-row mb-3 items-center">
 											<RiMessage2Fill size={20} />
@@ -159,6 +160,15 @@ const ReportModal = ({
 											</div>
 											<div className="text-md font-light">{setReportLocation}</div>
 										</div>
+										{/* Agency */}
+										{report.agency &&
+										<div className="flex flex-row mb-3 items-center">
+											<IoBusinessOutline size={20} />
+											<div className="font-semibold px-2 self-center pr-4">
+												Agency
+											</div>
+											<div className="text-md font-light">{report.agency}</div>
+										</div>}
 										{reporterInfo && (
 										<div className="flex flex-row mb-3 items-center">
 										<AiOutlineUser size={20} />
@@ -245,7 +255,8 @@ const ReportModal = ({
 								{/* Share */}
 								<button
 									className="flex flex-row text-sm bg-white px-4 mb-4 border-none text-black py-1 rounded-md shadow hover:shadow-none"
-									onClick={SendLinkByMail}>
+									onClick={SendLinkByMail}
+									type="button">
 									<BsShareFill className="my-1" size={15} />
 									<div className="px-3 py-1">Share The Report</div>
 								</button>
@@ -263,7 +274,8 @@ const ReportModal = ({
 									<button
 										onClick={onReportDelete}
 										data-tip="Delete report"
-										className={style.icon}>
+										className={style.icon}
+										type='button'>
 										<IoTrash size={30} color="red"/>
 										<ReactTooltip place="left" type="light" effect="solid" delayShow={500} />
 									</button>

@@ -375,7 +375,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	const handleNoteChange = async (e) => {
 		e.preventDefault()
 		let reportId = reportModalId
-		console.log(reportId);
 		if (e.target.value !== info['note']) {
 				const docRef = doc(db, "reports", reportId)
 				await updateDoc(docRef, { note: e.target.value })
@@ -534,7 +533,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 							delayShow={500}
 						/>
             <select
-              id="labels"
+              id="label_read"
               onChange={(e) => handleReadFilterChanged(e)}
               defaultValue="All"
 							data-tip="Filter reports"
@@ -555,7 +554,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 							delayShow={500}
 						/>
             <select
-              id="labels"
+              id="label_date"
               onChange={(e) => handleDateChanged(e)}
               defaultValue="4"
 							data-tip="Select timeframe"
