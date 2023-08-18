@@ -3,12 +3,9 @@ import {
 	doc, 
 	collection, 
 	getDocs, 
-	setDoc, 
 	getDoc, 
-	updateDoc, 
-	onSnapshot,
-	query,
-	where
+	updateDoc,
+	deleteDoc,
 	} from '@firebase/firestore'
 import { db, auth } from "../config/firebase"
 import { getAuth } from 'firebase/auth'
@@ -96,9 +93,24 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	// //
 	// Handlers
 	// //
+	// Handler: Delete agency
+	const handleAgencyDelete = async (e) => {
+		setDeleteModal(true)
+		setAgencyId(agencyId)
+	}
 	
 	const handleDelete = async (e) => {
 		e.preventDefault()
+		const agencyRef = doc(db, "agency", agencyId)
+		deleteDoc(agencyRef)
+		.then(() => {
+			getData()
+			setDeleteModal(false)
+			// to do: delete user from firebase authentification console
+		})
+		.catch((error) => {
+			console.log('The write failed' + error);
+		})
 	}
 	
 	// Handler: Agency modal
@@ -107,11 +119,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		const docRef = await getDoc(doc(db, 'agency', agencyId))
 		setAgencyInfo(docRef.data())
 		setAgencyId(agencyId)
-	}
-	
-	// Handler: Delete agency
-	const handleAgencyDelete = async (e) => {
-		setDeleteModal(true)
 	}
 	
 	// Handler: On agency admin user change
@@ -185,7 +192,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 												{agency['logo'].map((image, i) => {
 													return (
 														<div className="flex mr-2" key={i}>
-															<Image src={image} width={70} height={100} alt="image"/>
+															<Image src={image} width={70} height={100} className='w-auto' alt="image"/>
 														</div>
 													)
 												})}
@@ -200,7 +207,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 									<td className={style.table_td}>
 									{agency['agencyUsers'].map((user, i) => {return(<div>{user}</div>)})}
 									</td>
-									<td className={style.table_td}>
+									<td className={style.table_td} onClick={(e) => e.stopPropagation()}>
 										<button
 											onClick={() =>
 												handleAgencyDelete(Object.keys(agencyObj)[0])
