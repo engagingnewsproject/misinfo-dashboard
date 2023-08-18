@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "misinfo-5d004"
+    "default": "misinfo-5d004",
+    "dev": "misinfo-dashboard-dev"
   }
 }

@@ -533,7 +533,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 							delayShow={500}
 						/>
             <select
-              id="labels"
+              id="label_read"
               onChange={(e) => handleReadFilterChanged(e)}
               defaultValue="All"
 							data-tip="Filter reports"
@@ -554,7 +554,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 							delayShow={500}
 						/>
             <select
-              id="labels"
+              id="label_date"
               onChange={(e) => handleDateChanged(e)}
               defaultValue="4"
 							data-tip="Select timeframe"

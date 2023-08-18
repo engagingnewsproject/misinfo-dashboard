@@ -50,4 +50,36 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 
 ## Modals
 
-- [React URL Modal](https://github.com/remoteoss/react-url-modal)
+* [React URL Modal](https://github.com/remoteoss/react-url-modal)
+
+#### Sync with the caet-saga repo
+
+* [Syncing a fork branch from the command line](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line)
+* [Netlify dashboard for CME Misinfo Dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview)
+* [Live CME Misinfo Dashboard](https://misinfo-dashboard.netlify.app/dashboard)
+
+1.  Fetch the branches and their respective commits from the upstream repository
+
+    `git fetch upstream`
+2.  Check out your fork's local default branch
+
+    `git checkout main`
+3.  Merge the changes from the upstream default branch
+
+    `git merge upstream/main`
+4.  Push your changes
+
+    `git push origin main`
+
+## [Misinfo Dashboard Documentation](http://localhost:5000/o/tmOnCbkSzYuWj7EVbFqg/s/h5B8zKreIfyiUKOT1awO/)
+
+# TESTING Firebase Dev Project
+
+- Project name: misinfo-dashboard-dev
+- Project ID: misinfo-dashboard-dev
+
+## Deploy Firebase Functions
+
+`firebase deploy -P dev  --only functions:misinfo-dashboard-dev`
+
+<!-- TODO: fix netlify deployment issue with yarn file -->

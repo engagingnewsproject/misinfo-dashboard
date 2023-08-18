@@ -5,10 +5,10 @@ import { BiLogOut } from 'react-icons/bi'
 const ConfirmModal = ({ func, title, subtitle, CTA, closeModal }) => {
     return (
         <div>
-            <div className="flex justify-center items-center z-10 absolute top-0 left-0 w-full h-full bg-black opacity-60">
+            <div className="flex justify-center items-center z-[1900] absolute top-0 left-0 w-full h-full bg-black opacity-60">
             </div>
             <div 
-            className="flex justify-center items-center z-20 absolute top-0 left-0 w-full h-full"
+            className="flex justify-center items-center z-[1900] absolute top-0 left-0 w-full h-full"
             onClick={() => closeModal(false)}>
                 <div 
                 className="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10"
@@ -31,7 +31,7 @@ const ConfirmModal = ({ func, title, subtitle, CTA, closeModal }) => {
                                 Cancel
                             </button>
                             <button
-                                className="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">
+                                className="bg-blue-500 hover:bg-white text-white text-sm hover:text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit" autoFocus>
                                 {CTA}
                             </button>
                         </div>

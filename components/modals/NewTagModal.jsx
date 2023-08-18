@@ -53,11 +53,13 @@ const NewTagModal = ({ tagSystems, tagSystem, list, setNewTagModal, addNewTag })
                         <div className="mt-6 flex justify-between">
                             <button
                                 onClick={() => setNewTagModal(false)}
-                                className="bg-white hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline">
+                                className="bg-white hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                                type='button'>
                                 Cancel
                             </button>
                             <button
-                                className="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">
+                                className="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                                type="submit">
                                 Add
                             </button>
                         </div>
