@@ -14,14 +14,16 @@ module.exports = {
     "no-restricted-globals": ["error", "name", "length"],
     "prefer-arrow-callback": "error",
     "quotes": ["error", "double", {"allowTemplateLiterals": true}],
+
   },
+
   overrides: [
+    // Next.js needs default exports for pages and API points
     {
-      files: ["**/*.spec.*"],
-      env: {
-        mocha: true,
+      files: ["pages/*', 'pages/api/*"],
+      rules: {
+        "import/no-default-export": "off",
       },
-      rules: {},
     },
   ],
   globals: {},
