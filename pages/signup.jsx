@@ -30,7 +30,8 @@ const SignUp = () => {
                 name: data.name,
                 email: data.email,
                 joiningDate: moment().utc().unix(),
-                isBanned: false
+                isBanned: false,
+                userRole: 'User'
             });
         } else {
             console.log('no user');
