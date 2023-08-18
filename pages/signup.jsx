@@ -55,9 +55,8 @@ const SignUp = () => {
             }
         } finally {
             // Send the user a validation email
-            console.log(user)
             console.log(data.email)
-            await sendSignIn(user, data.email)
+            await sendSignIn(data.email)
             addMobileUser()
         }
     }
