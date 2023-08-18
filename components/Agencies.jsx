@@ -10,7 +10,6 @@ import {
 	arrayUnion
 	} from '@firebase/firestore'
 import { db, auth } from "../config/firebase"
-import { getAuth } from 'firebase/auth'
 import { useAuth } from '../context/AuthContext'
 import Image from 'next/image'
 import AgencyModal from './modals/AgencyModal'
@@ -42,7 +41,9 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [newAgencyEmails, setNewAgencyEmails] = useState([])
 	const [data, setData] = useState({ country: "US", state: null, city: null })
 	const [emailSent, setEmailSent] = useState(false) // check if email was sent
-	const [errors, setErrors] = useState(null)
+	// validation states
+	const [errors, setErrors] = useState({});
+
 	// Handler: new agency MODAL
 	const handleAddNewAgencyModal = (e) => {
 		e.preventDefault()
@@ -68,7 +69,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const handleNewAgencyCity = (e) => {
 		setData(data=>({...data,city: e !== null ? e : null })) 
 	}
-	// Handler: new agency SAVE
+
+	// Handler: new agency SAVE & send confirmation email to user
 	const saveAgency = () => {
 		const dbInstance = collection(db, 'agency');
 		addDoc(dbInstance, {
@@ -77,35 +79,21 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			state: data.state.name,
 			city: data.city == null ? "N/A" : data.city.name,
 			logo: []
-		}).then(async() => {
-			// send email here
+		}).then(async() => { // send email to agency admin emails
 			try {
 				await sendSignIn(...newAgencyEmails)
+				// When user signs in from the email they recieved,
+				// they will added to the mobileUsers database collection
 				setEmailSent(true)
 			} catch (err) {
 				console.log(err)
+			} finally {
+				// Reset add agency form fields
+				setNewAgencyName('')
+				setNewAgencyEmails('')
+				// setData('') // reset State & City?
 			}
-			// Reset add agency form fields
-			setNewAgencyName('')
-			setNewAgencyEmails('')
-			// setData('')
 		})
-		// TODO: Send new agency user and email 
-		// .then(async () => {
-		// 	// Agency User send email
-		// 	try {
-		// 		const user = auth.currentUser;
-		// 		// TODO: need to send email to more than one email.
-		// 		// in case a comma separated list is added.
-		// 		await sendSignIn(...newAgencyEmails)
-		// 	} catch (err) {
-		// 		if (err.message == "Firebase: Error (auth/email-already-in-use).") {
-		// 			setErrors("Email already in use. Please log in.")
-		// 		} else {
-		// 			setErrors(err.message)
-		// 		}
-		// 	}
-		// })
 	}
 	// Handler: Form submit NEW & EXISTING AGENCY
 	const handleFormSubmit = async (e) => {
@@ -119,12 +107,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			handleAgencyUpdate(e)
 		}
 	}
-	// validate fields
-	const handleSubmitClick = async (e) => {
-		e.preventDefault()
-		saveAgency()
-		setNewAgencyModal(false)
-	}
+	
 	// //
 	// Data
 	// //
@@ -144,7 +127,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			console.log(error)
 		}
 	}
-	// Handlers //
 	// Handler: Delete agency modal
 	const handleAgencyDelete = async (agencyId) => {
 		setDeleteModal(true)
@@ -158,7 +140,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		.then(() => {
 			// getData()
 			setDeleteModal(false)
-			// to do: delete user from firebase authentification console
+			// TODO: delete user from firebase authentification console
 		})
 		.catch((error) => {
 			console.log('The write failed', error);
@@ -177,11 +159,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		// TODO: Check for any errors
 		const allErrors = {}
 		setErrors(allErrors)
+		console.log(e.target.value);
 		console.log(allErrors.length + "Error array length")
-			
-		if (Object.keys(allErrors).length == 0) {
-			handleSubmitClick(e)
-		}
 	}
 	// Handler: On agency admin user change
 	const handleAgencyUserChange = async (e) => {
@@ -204,18 +183,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	useEffect(() => {
 		getData()
 	})
-	useEffect(() => {
-		validateEmail();
-	}, [newAgencyEmails]);
-	// validation
-	const validateEmail = () => {
-		const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-		if (!emailRegex.test(newAgencyEmails)) {
-			setErrors('Please enter a valid email address');
-		} else {
-			setErrors('');
-		}
-	}
+
 	// Styles //
 	const style = {
 		section_container: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
@@ -233,6 +201,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		table_icon: 'ml-4 fill-gray-400 hover:fill-red-600',
 		button: 'flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
 	}
+	
 	return (
 		<div className={style.section_container}>
 			<div className={style.section_wrapper}>

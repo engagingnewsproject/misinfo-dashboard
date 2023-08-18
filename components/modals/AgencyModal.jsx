@@ -99,19 +99,19 @@ const AgencyModal = ({
 		modal_wrapper: 'flex-col justify-center items-center lg:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible',
 		modal_header_container: 'flex justify-between w-full mb-6',
 		modal_header_wrapper: 'flex w-full justify-between items-baseline',
-		modal_header: 'text-2xl font-bold text-blue-600 tracking-wider',
+		modal_header: 'text-lg font-bold text-blue-600 tracking-wider',
 		modal_close: 'text-gray-800',
-		modal_form_container: 'grid md:grid-cols-2 md:gap-10 lg:gap-15',
-		modal_form_label: 'text-lg font-bold text-black tracking-wider mb-4',
-		modal_form_data: 'text-sm bg-white rounded-xl p-4 mb-5',
+		modal_form_container: 'grid md:grid-cols-3 md:gap-10 lg:gap-15',
+		modal_form_label: 'text-black tracking-wider mb-4',
+		modal_form_data: 'col-span-2 text-sm bg-white rounded-xl p-4 mb-5',
 		modal_form_upload_image: 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
-		modal_form_button: 'bg-blue-500 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
+		modal_form_button: 'bg-blue-500 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
 	}
 	// TODO: filter reports, tags & users by agency login
 	return (
 		<div className={style.modal_background} onClick={() => setAgencyModal(false)}>
 			<div className={style.modal_container}>
-				<div className={style.modal_wrapper} onClick={(e) => { e.stopPropagation() }}>
+				<div className={style.modal_wrapper} onClick={(e) => { e.stopPropagation()}}>
 					<div className={style.modal_header_container}>
 						<div className={style.modal_header_wrapper}>
 							<div className={style.modal_header}>Agency Info</div>
@@ -120,48 +120,46 @@ const AgencyModal = ({
 							</button>
 						</div>
 					</div>
-					<div>
-						<form onSubmit={onFormSubmit} id='agencyModal'>
-							<div className={style.modal_form_container}>
-								<div className={style.modal_form_label}>Agency name</div>
-								<div className={style.modal_form_data}>{agencyInfo.name}</div>
-								<div className={style.modal_form_label}>Agency location</div>
-								<div className={style.modal_form_data}>{`${agencyInfo.city}, ${agencyInfo.state}`}</div>
-								<div className={style.modal_form_label}>Agency admin user</div>
-								<div className={style.modal_form_data}>
-									{agencyInfo['agencyUsers']}
-								</div>
-								{/* TODO: user should be able to add an admin user */}
-								{/* <input onChange={onAdminChange} defaultValue='this' placeholder="Admin user email" className={style.modal_form_data}/> */} 
-								<div>
-									{agencyInfo['logo'] && agencyInfo['logo'][0] ?
-										<div className="flex w-full overflow-y-auto">
-											{agencyInfo['logo'].map((image, i) => {
-												return (
-													<div className="flex mr-2" key={i}>
-														<Image src={image} width={100} height={100} alt="image"/>
-													</div>
-												)
-											})}
-										</div> :
-										<div className="italic font-light">No agency logo uploaded.</div>
-									}	
-									<label className="block">
-										<span className="sr-only">Choose files</span>
-										<input className={style.modal_form_upload_image} 
-										id="agency_logo_file" 
-										type="file" 
-										accept="image/*" 
-										onChange={handleImageChange}
-										ref={imgPicker}
-										/>
-									</label>
-								</div>
-							<button onClick={handleSubmitClick} className={style.modal_form_button} type="submit">Update Agency</button> 
-								{/* TODO: finish update agency */}
+					<form onSubmit={onFormSubmit} id='agencyModal'>
+						<div className={style.modal_form_container}>
+							<div className={style.modal_form_label}>Agency name</div>
+							<div className={style.modal_form_data}>{agencyInfo.name}</div>
+							<div className={style.modal_form_label}>Agency location</div>
+							<div className={style.modal_form_data}>{`${agencyInfo.city}, ${agencyInfo.state}`}</div>
+							<div className={style.modal_form_label}>Agency admin user</div>
+							<div className={style.modal_form_data}>
+								{agencyInfo['agencyUsers']}
 							</div>
-						</form>
-					</div>
+							{/* TODO: user should be able to add an admin user */}
+							{/* <input onChange={onAdminChange} defaultValue='this' placeholder="Admin user email" className={style.modal_form_data}/> */} 
+							<div>
+								{agencyInfo['logo'] && agencyInfo['logo'][0] ?
+									<div className="flex w-full overflow-y-auto">
+										{agencyInfo['logo'].map((image, i) => {
+											return (
+												<div className="flex mr-2" key={i}>
+													<Image src={image} width={100} height={100} alt="image"/>
+												</div>
+											)
+										})}
+									</div> :
+									<div className="italic font-light">No agency logo uploaded.</div>
+								}	
+								<label className="block">
+									<span className="sr-only">Choose files</span>
+									<input className={style.modal_form_upload_image} 
+									id="agency_logo_file" 
+									type="file" 
+									accept="image/*" 
+									onChange={handleImageChange}
+									ref={imgPicker}
+									/>
+								</label>
+							</div>
+						<button onClick={handleSubmitClick} className={style.modal_form_button} type="submit">Update Agency</button> 
+							{/* TODO: finish update agency */}
+						</div>
+					</form>
 				</div>
 			</div>
 		</div>

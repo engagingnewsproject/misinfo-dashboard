@@ -105,7 +105,6 @@ export const AuthContextProvider = ({children}) => {
     }
     
     const sendSignIn = async (email) => {
-    console.log(email);
         var actionCodeSettings = {
             // URL you want to redirect back to. The domain (www.example.com) for this URL
             // must be whitelisted in the Firebase Console.
@@ -113,30 +112,18 @@ export const AuthContextProvider = ({children}) => {
             'handleCodeInApp': true // This must be true.
         };
         await sendSignInLinkToEmail(auth, email, actionCodeSettings)
-        // Obtain emailLink from the user.
-        if(isSignInWithEmailLink(auth, window.location.href)) {
-            let email = window.localStorage.getItem('emailForSignIn');
-            if (!email) {
-                // User opened the link on a different device. To prevent session fixation
-                // attacks, ask the user to provide the associated email again. For example:
-                email = window.prompt('Please provide your email for confirmation');
-            }
-            await signInWithEmailLink(auth, email, window.location.href)
-            .then((result) => {
-                // The link was successfully sent. Inform the user.
-                // Save the email locally so you don't need to ask the user for it again
-                // if they open the link on the same device.
-                window.localStorage.removeItem('emailForSignIn');
-                // window.localStorage.setItem('emailForSignIn', email);
-                console.log(localStorage);
-                console.log(result);
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                console.log(errorMessage);
-            });
-        }
+        .then(() => {
+            // The link was successfully sent. Inform the user.
+            // Save the email locally so you don't need to ask the user for it again
+            // if they open the link on the same device.
+            window.localStorage.setItem('emailForSignIn', email);
+            // ...
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            console.log(errorMessage)
+        });
     }
  
     return (
