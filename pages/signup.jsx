@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext'
 const SignUp = () => {
     const router = useRouter()
     const [signUpError, setSignUpError] = useState("")
-    const { user, signup } = useAuth()
+    const { user, signup, verifyEmail } = useAuth()
 
     const [data, setData] = useState({
        teamName: '',
@@ -23,9 +23,16 @@ const SignUp = () => {
         }
 
         try {
-            await signup(data.teamName, data.email, data.password)
-            setSignUpError("")
-            router.push('/dashboard')
+            const userVerified = await signup(data.teamName, data.email, data.password)
+            if (userVerified) {
+              setSignUpError("")
+              console.log("in try")
+              router.push('/dashboard')
+            } else {
+              console.log("here")
+              router.push('/verifyEmail')
+            }
+            
         } catch (err) {
             if (err.message == "Firebase: Error (auth/email-already-in-use).") {
                 setSignUpError("Email already in use. Please log in.")

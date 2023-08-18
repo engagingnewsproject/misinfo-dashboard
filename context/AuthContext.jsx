@@ -7,7 +7,10 @@ import {
     updatePassword,
     updateProfile,
     signOut,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    sendEmailVerification,
+    EmailAuthProvider
+
 } from 'firebase/auth'
 import { auth, app, db } from '../config/firebase'
 import { getDoc, doc } from "firebase/firestore";
@@ -43,11 +46,28 @@ export const AuthContextProvider = ({children}) => {
     }, [])
 
     const signup = (teamName, email, password) => {
-        return createUserWithEmailAndPassword(auth, email, password)
+        createUserWithEmailAndPassword(auth, email, password).then((userCredential)=> {
+          
+          return verifyEmail(userCredential.user)
+        }).catch((error) => {
+          return error
+        })
     }
 
+    const verifyEmail = (user) => {
+  
+      sendEmailVerification(user).then((task)=> {
+        if (task.isSuccessful()) {
+          return true;
+        } else {
+          return false;
+        }
+    }).catch((error) => {
+      return error
+      })
+    }
     const login = (email, password) => {
-        return signInWithEmailAndPassword(auth, email, password)
+      return signInWithEmailAndPassword(auth, email, password);
     }
 
     const logout = async () => {
@@ -68,7 +88,7 @@ export const AuthContextProvider = ({children}) => {
     }
  
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, resetPassword, updatePassword, verifyEmail }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )
