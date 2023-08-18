@@ -8,6 +8,7 @@ import Users from '../components/Users'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
 import Agencies from '../components/Agencies'
+import { auth } from "../config/firebase"
 
 import { auth } from "../config/firebase"
 
@@ -31,6 +32,14 @@ const Dashboard = () => {
     // JUST ADDED
     const [newReportSubmitted, setNewReportSubmitted] = useState(0);
     const [agencyUpdateSubmitted, setAgencyUpdateSubmitted] = useState(0);
+
+
+    
+
+    // stores the admin/agency privilege of current user
+    const [customClaims, setCustomClaims] = useState({admin: false, agency: false})    
+
+
 
     const handleNewReportSubmit = () => {
         // increment the newReportSubmitted
@@ -61,19 +70,37 @@ const Dashboard = () => {
       
     }, [])
 
+    useEffect(()=> {
+      // TODO: debugging callback function to verify user role before displaying dashboard view
+      auth.currentUser.getIdTokenResult()
+      .then((idTokenResult) => {
+         // Confirm the user is an Admin.
+         if (!!idTokenResult.claims.admin) {
+           // Show admin UI.
+           setCustomClaims({admin: true})
+         } else if (!!idTokenResult.claims.agency) {
+           // Show regular user UI.
+           setCustomClaims({agency: true})
+         } else {
+          setTab(1)
+         }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+      
+    }, [])
+
+
     return (
         <div className="h-full w-full">
-            <Navbar tab={tab} setTab={setTab} handleNewReportSubmit={handleNewReportSubmit} customClaims={customClaims} setCustomClaims={setCustomClaims} />
-            <div className="pl-2 sm:pl-12 h-full">
-            { tab == 0 && <Home newReportSubmitted={newReportSubmitted} handleNewReportSubmit={handleNewReportSubmit} />}
+            <Navbar tab={tab} setTab={setTab} handleNewReportSubmit={handleNewReportSubmit} customClaims={customClaims} setCustomClaims={setCustomClaims}/>
+            <div className="pl-2 sm:pl-12">
+            { tab == 0 && (customClaims.admin || customClaims.agency) && <Home newReportSubmitted={newReportSubmitted} handleNewReportSubmit={handleNewReportSubmit} />}
             { tab == 1 && <Profile />}
-            { tab == 2 && <Settings customClaims={customClaims} />}
-
-            {/* If the user is an agency or a superadmin, will display tab of list of users for agency or list of users for app */}
-            { tab == 3 && <Users customClaims={customClaims} />}
-
-            {/* If the user is a superadmin, will display list of agencies */}
-            { tab == 4 && <Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />}
+            { tab == 2 && (customClaims.admin || customClaims.agency) && <Settings customClaims={customClaims} />}
+            { tab == 3 && (customClaims.admin || customClaims.agency) && <Users customClaims={customClaims}}
+            { tab == 4 && (customClaims.admin) && <Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />}
             </div>
         </div>
     )
