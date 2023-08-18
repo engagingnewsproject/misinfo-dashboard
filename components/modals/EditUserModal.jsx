@@ -1,8 +1,8 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { IoClose } from "react-icons/io5"
 import { Switch } from "@headlessui/react"
 
-const EditUserModal = ({customClaims, selectedOption, onOptionChange, onNameChange, name, onEmailChange, email, onBannedChange, banned, setBanned, onFormSubmit, onFormUpdate, setEditUser }) => {
+const EditUserModal = ({customClaims, userRole, onOptionChange, onNameChange, name, onEmailChange, email, onBannedChange, banned, setBanned, onFormSubmit, onFormUpdate, setEditUser }) => {
 
 	// //
 	// Styles
@@ -21,7 +21,9 @@ const EditUserModal = ({customClaims, selectedOption, onOptionChange, onNameChan
 		modal_form_radio: 'mr-1',
 		modal_form_button: 'bg-blue-500 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
 	}
-
+	useEffect(() => {
+		// console.log(userRole);
+	}, [])
 	return (
 		<div className={style.modal_background} onClick={() => setEditUser(false)}>
 			<div className={style.modal_container}>
@@ -82,7 +84,7 @@ const EditUserModal = ({customClaims, selectedOption, onOptionChange, onNameChan
 												<input
 													type="radio"
 													value="Admin"
-													checked={selectedOption === "Admin"}
+													checked={userRole === "Admin"}
 													onChange={onOptionChange}
 													className={style.modal_form_radio}
 												/>
@@ -92,7 +94,7 @@ const EditUserModal = ({customClaims, selectedOption, onOptionChange, onNameChan
 												<input
 													type="radio"
 													value="Agency"
-													checked={selectedOption === "Agency"}
+													checked={userRole === "Agency"}
 													onChange={onOptionChange}
 													className={style.modal_form_radio}
 												/>
@@ -102,7 +104,7 @@ const EditUserModal = ({customClaims, selectedOption, onOptionChange, onNameChan
 												<input
 													type="radio"
 													value="User"
-													checked={selectedOption === "User"}
+													checked={userRole === "User"}
 													onChange={onOptionChange}
 													className={style.modal_form_radio}
 												/>
