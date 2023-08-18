@@ -21,7 +21,8 @@ import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
 import { auth } from "../config/firebase"
 
-const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, onReportTabClick}) => {
+
+const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClaims,  onReportTabClick}) => {
 
   const [windowSize, setWindowSize] = useState([
     window.innerWidth,
@@ -214,7 +215,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, onReportTabCl
                         <IoPersonOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
-                    <button
+                    {(customClaims.admin || customClaims.agency) && <button
                         onClick={()=>setHelpModal(true)}
                         data-tip="Help"
                         className={helpModal ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
@@ -222,7 +223,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, onReportTabCl
                         <IoHelpCircleOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
 
-                    </button>
+                    </button>}
                 </div>
             </div>
  
