@@ -6,7 +6,12 @@ import { db } from "../../config/firebase"
 import { doc, updateDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
-const AgencyModal = ({setAgencyModal, handleAgencyUpdateSubmit, agencyInfo, agencyId, onAdminChange}) => {
+const AgencyModal = ({
+	setAgencyModal, 
+	handleAgencyUpdateSubmit, 
+	agencyInfo, 
+	agencyId,
+	onFormSubmit }) => {
 	const router = useRouter()
 	const imgPicker = useRef(null)
 	const storage = getStorage();
@@ -58,18 +63,7 @@ const AgencyModal = ({setAgencyModal, handleAgencyUpdateSubmit, agencyInfo, agen
 			Promise.all(promises)
 			.catch((err) => console.log(err));
 	}
-	// Handler: Agency update
-	const handleAgencyUpdate = async (e) => {
-		e.preventDefault()
-		// TODO: Check for any errors
-		const allErrors = {}
-		setErrors(allErrors)
-		console.log(allErrors.length + "Error array length")
-			
-		if (Object.keys(allErrors).length == 0) {
-			handleSubmitClick(e)
-		}
-	}
+
 		
 	// Form button click handler
 	const handleSubmitClick = (e) => {
@@ -127,7 +121,7 @@ const AgencyModal = ({setAgencyModal, handleAgencyUpdateSubmit, agencyInfo, agen
 						</div>
 					</div>
 					<div>
-						<form onSubmit={handleAgencyUpdate}>
+						<form onSubmit={onFormSubmit} id='agencyModal'>
 							<div className={style.modal_form_container}>
 								<div className={style.modal_form_label}>Agency name</div>
 								<div className={style.modal_form_data}>{agencyInfo.name}</div>
