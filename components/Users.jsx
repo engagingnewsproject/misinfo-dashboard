@@ -141,11 +141,9 @@ const Users = ({customClaims}) => {
 					[doc.id]: doc.data(),
 				})
 			})
-			
 			setMobileUsers(arr)
 			setLoadedMobileUsers(arr)
 			setEndIndex(endIndex + 14)
-			
 		} catch (error) {
 			console.log(error)
 		}
@@ -181,13 +179,12 @@ const Users = ({customClaims}) => {
   return (
 		<div className="w-full h-full flex flex-col py-5">
 			<div className="w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto" id="scrollableDiv">
-				<div className="flex flex-col md:flex-row py-5 md:justify-between">
+				<div className="flex flex-col md:flex-row pb-5 md:justify-between">
 					<div className="text-center md:text-left text-lg font-bold text-blue-600 tracking-wider pb-2 md:pb-0">
 						Users
 					</div>
 				</div>
 				<div className="flex flex-col h-full">
-
 					<InfiniteScroll
 						className="overflow-x-auto"
 						dataLength={endIndex}
@@ -211,6 +208,8 @@ const Users = ({customClaims}) => {
 										const user = Object.values(userObj)[0]
 										const userId = Object.keys(userObj)[0]
 										let posted = user["joiningDate"]
+										const numUsers = endIndex;
+										// console.log(numUsers);
 										posted = posted * 1000 
 										posted = new Date(posted)
 										posted = posted.toLocaleString("en-US", dateOptions)
@@ -256,6 +255,7 @@ const Users = ({customClaims}) => {
 							</tbody>
 						</table>
 					</InfiniteScroll>
+					<div className='mt-2 self-end text-xs'>Total users: {mobileUsers.length}</div>
 				</div>
 			</div>
 			{deleteModal && <ConfirmModal
