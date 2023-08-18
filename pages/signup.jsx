@@ -2,22 +2,44 @@ import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
+import { doc, setDoc } from '@firebase/firestore'
+import { db, auth } from '../config/firebase'
+import moment from 'moment'
 
 const SignUp = () => {
     const router = useRouter()
     const [signUpError, setSignUpError] = useState("")
-    const { user, signup, verifyEmail } = useAuth()
+
+    const { user, signup, sendSignIn, verifyEmail } = useAuth()
 
     const [data, setData] = useState({
-       teamName: '',
+       name: '',
        email: '',
        password: '',
        confirmPW: ''
     })
+    
+    const addMobileUser = () => {
+        // Get user object
+        const user = auth.currentUser;
+        if (user) {
+            // Set user uid
+            const uid = user.uid;
+            // create a new mobileUsers doc with signed in user's uid
+            setDoc(doc(db, "mobileUsers", uid), {
+                name: data.name,
+                email: data.email,
+                joiningDate: moment().utc().unix(),
+                isBanned: false
+            });
+        } else {
+            console.log('no user');
+        }
+    }
 
     const handleSignUp = async (e) => {
         e.preventDefault()
-        
+
         if (data.password.length < 8) {
             return
         }
@@ -39,13 +61,18 @@ const SignUp = () => {
             } else {
                 setSignUpError(err.message)
             }
+        } finally {
+            // Send the user a validation email
+            console.log(user)
+            console.log(data.email)
+            await sendSignIn(user, data.email)
+            addMobileUser()
         }
     }
 
     const handleChange = (e) => {
         setData({ ...data, [e.target.id]: e.target.value})
     }
-
 
     return (
         <div className="w-screen h-screen flex justify-center items-center">
@@ -57,12 +84,13 @@ const SignUp = () => {
                     <div className="mb-4">
                         <input
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="teamName"
+                            id="name"
                             type="text"
                             placeholder="Name of your team"
                             required
-                            value={data.teamName}
+                            value={data.name}
                             onChange={handleChange}
+                            autoComplete=''
                             />
                     </div>
                     <div className="mb-4">
@@ -74,6 +102,7 @@ const SignUp = () => {
                             required
                             value={data.email}
                             onChange={handleChange}
+                            autoComplete='email'
                             />
                     </div>
                     <div className="mb-1">
@@ -85,6 +114,7 @@ const SignUp = () => {
                             required 
                             value={data.password}
                             onChange={handleChange}
+                            autoComplete='new-password'
                             />
                     </div>
                     {data.password.length > 0 && data.password.length < 8 && <span className="text-red-500 text-sm font-light">Password must be atleast 8 characters</span>}
@@ -97,12 +127,16 @@ const SignUp = () => {
                             required 
                             value={data.confirmPW}
                             onChange={handleChange}
+                            autoComplete='new-password'
                             />
                     </div>
                     {data.password !== data.confirmPW && <span className="text-red-500 text-sm font-light">Passwords don't match</span>}
                     {signUpError && <div className="text-red-500 text-sm font-normal pt-3">{signUpError}</div>}
                     <div className="flex-col items-center content-center mt-7">
-                        <button disabled={data.password !== data.confirmPW} className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" type="submit">
+                        <button 
+                        disabled={data.password !== data.confirmPW} 
+                        className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" 
+                        type="submit">
                             Sign Up
                         </button>
                     </div>
