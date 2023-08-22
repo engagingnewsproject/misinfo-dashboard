@@ -51,7 +51,7 @@ exports.addAgencyRole = functions.https.onCall((data, context)=> {
   // get user and add custom claim to user
 
 
-  return admin.auth().getUserByEmail(data.email).then(user => {
+  return admin.auth().getUserByEmail(data.email).then((user) => {
     
     // Once user object is retrieved, updates custom claim
     return admin.auth().setCustomUserClaims(user.uid, {agency: true});
