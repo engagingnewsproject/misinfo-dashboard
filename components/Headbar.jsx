@@ -4,22 +4,22 @@ import { collection, getDocs } from '@firebase/firestore'
 import { useAuth } from '../context/AuthContext'
 import { db, auth } from "../config/firebase"
 
-const Headbar = ({ search, setSearch, customClaims}) => {
-    const { user, verifyRole } = useAuth()
+const Headbar = ({ search, setSearch}) => {
+    const { user, verifyRole, customClaims, setCustomClaims } = useAuth()
     const [userRole, setUserRole] = useState('')
     
     // Verify user role
-    useEffect(() => {
-        verifyRole().then((result) => {
-            if (result.admin) {
-                setUserRole('admin')
-            } else if (result.agency) {
-                setUserRole('agency')
-            } else {
-                setUserRole('user')
-            }
-        })
-    }, [])
+    // useEffect(() => {
+    //     verifyRole().then((result) => {
+    //         if (result.admin) {
+    //             setUserRole('admin')
+    //         } else if (result.agency) {
+    //             setUserRole('agency')
+    //         } else {
+    //             setUserRole('user')
+    //         }
+    //     })
+    // }, [])
 
 	// //
 	// Data
@@ -74,7 +74,7 @@ const Headbar = ({ search, setSearch, customClaims}) => {
                         }
                     </div>
                 </div>
-                {(userRole == 'admin' || userRole == 'agency') &&
+                {(customClaims.admin || customClaims.agency) &&
                 <form className="flex relative w-1/4" onChange={handleChange} onSubmit={handleSearch}>
                    
                     <input
