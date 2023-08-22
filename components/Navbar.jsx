@@ -19,10 +19,11 @@ import ReactTooltip from "react-tooltip";
 import Link from "next/link"
 import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
+import { useAuth } from '../context/AuthContext'
 import { auth } from "../config/firebase"
 
 
-const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClaims,  onReportTabClick}) => {
+const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
 
   const [windowSize, setWindowSize] = useState([
     window.innerWidth,
@@ -35,7 +36,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
   const router = useRouter()
   const [newReportModal, setNewReportModal] = useState(false)
   const [update, setUpdate] = useState(false)
-
+  const {customClaims, setCustomClaims} = useAuth()
   // Stores privilege role of the current user, and displays dashboard
   
   useEffect(() => {

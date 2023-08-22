@@ -15,32 +15,30 @@ const Login = () => {
   const [error, setError] = useState()
 
 //   Get user custom token
-  if (user && auth.currentUser?.emailVerified) {
-    auth.currentUser.getIdTokenResult()
-    .then((idTokenResult) => {
-        // if admin load the dashboard
-        if (!!idTokenResult.claims.admin || !!idTokenResult.claims.agency) {
-            router.push('/dashboard')
-        // otherwise load the report page
-        } else {
-            router.push('/report')
-        }
-    })
-  }
+ 
 
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault()
     try {
       //console.log(user)
-      await login(data.email, data.password)
-      setError(null)
-
-      if (auth.currentUser?.emailVerified) {
-        router.push('/dashboard')
-      } else if (!auth.currentUser?.emailVerified) {
-        verifyEmail(auth.currentUser)
-        router.push('/verifyEmail')
-      }
+      login(data.email, data.password).then(()=> {
+        setError(null)
+        if (auth.currentUser?.emailVerified) {
+          auth.currentUser.getIdTokenResult()
+          .then((idTokenResult) => {
+              // if admin load the dashboard
+              if (!!idTokenResult.claims.admin || !!idTokenResult.claims.agency) {
+                  router.push('/dashboard')
+              // otherwise load the report page
+              } else {
+                  router.push('/report')
+              }
+          })
+        } else if (!auth.currentUser?.emailVerified) {
+          verifyEmail(auth.currentUser)
+          router.push('/verifyEmail')
+        }
+      })
     } catch (err) {
       setError(err)
       console.log(err.message)

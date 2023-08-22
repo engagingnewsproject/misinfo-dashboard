@@ -14,7 +14,7 @@ import { db, auth } from '../config/firebase'
 const tabList = ['Home', 'Profile', 'Settings', 'Users', 'Agencies', 'ReportSettings'];
 
 const Dashboard = () => {
-    const { user, logout, verifyPrivilege, changeRole, addAdminRole, addAgencyRole, viewRole } = useAuth()
+    const { user, logout, customClaims, setCustomClaims, verifyPrivilege, changeRole, addAdminRole, addAgencyRole, viewRole } = useAuth()
     const [tab, setTab] = useState(0)
     const router = useRouter()
 
@@ -24,7 +24,7 @@ const Dashboard = () => {
 
 
     // stores the admin/agency privilege of current user
-    const [customClaims, setCustomClaims] = useState({admin: false, agency: false})    
+    // const [customClaims, setCustomClaims] = useState({admin: false, agency: false})    
 
 
 
@@ -89,8 +89,8 @@ const Dashboard = () => {
             <div className="pl-2 sm:pl-12">
             { tab == 0 && (customClaims.admin || customClaims.agency) && <Home newReportSubmitted={newReportSubmitted} handleNewReportSubmit={handleNewReportSubmit} />}
             { tab == 1 && <Profile />}
-            { tab == 2 && (customClaims.admin || customClaims.agency) && <Settings customClaims={customClaims} />}
-            { tab == 3 && (customClaims.admin || customClaims.agency) && <Users customClaims={customClaims}/>}
+            { tab == 2 && (customClaims.admin || customClaims.agency) && <Settings customClaims={customClaims} setCustomClaims = {setCustomClaims} />}
+            { tab == 3 && (customClaims.admin || customClaims.agency) && <Users customClaims={customClaims} setCustomClaims = {setCustomClaims}/>}
             { tab == 4 && (customClaims.admin) && <Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />}
             </div>
         </div>

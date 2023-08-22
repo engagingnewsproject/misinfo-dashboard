@@ -16,8 +16,8 @@ import ConfirmModal from './modals/ConfirmModal'
 import EditUserModal from './modals/EditUserModal'
 
 // Profile page that allows user to edit password or logout of their account
-const Users = ({customClaims}) => {
-	const {addAdminRole, addAgencyRole, addUserRole} = useAuth()
+const Users = () => {
+	const {addAdminRole, addAgencyRole, addUserRole, customClaims, setCustomClaims} = useAuth()
 	const [userRole, setUserRole] = useState('')
 	const [mobileUsers, setMobileUsers] = useState([])
 	const [loadedMobileUsers, setLoadedMobileUsers] = useState([])
