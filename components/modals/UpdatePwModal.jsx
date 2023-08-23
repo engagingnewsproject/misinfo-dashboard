@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 
 const UpdatePwModal = ({ setOpenModal }) => {
 
-    const { user, updatePassword } = useAuth()
+    const { user, updateUserPassword } = useAuth()
     const [updateSuccess, setUpdateSuccess] = useState(false)
     const [data, setData] = useState({
         currentPassword: '',
@@ -18,7 +18,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
 
     const handleUpdatePW = async (e) => {
         e.preventDefault()
-        const result = await updatePassword(user, data.currentPassword, data.newPassword)
+        const result = await updateUserPassword(user, data.currentPassword, data.newPassword)
         setUpdateSuccess(true)
     }
 

@@ -6,26 +6,26 @@ import { db, auth } from "../config/firebase"
 import { getStorage,ref,getDownloadURL } from "firebase/storage";
 import Image from 'next/image'
 
-const Headbar = ({ search, setSearch, customClaims}) => {
-
-    const { user, verifyRole } = useAuth()
+const Headbar = ({ search, setSearch}) => {
+    const { user, verifyRole, customClaims, setCustomClaims } = useAuth()
     const [userRole, setUserRole] = useState('')
     const [agency,setAgency] = useState('')
     const [agencyLogo, setAgencyLogo] = useState('')
     const [title,setTitle] = useState('')
     const [userId, setUserId] = useState('')
     
-    useEffect(() => {
-        verifyRole().then((result) => {
-            if (result.admin) {
-                setUserRole('admin')
-            } else if (result.agency) {
-                setUserRole('agency')
-            } else {
-                setUserRole('user')
-            }
-        })
-    }, [])
+    // Verify user role
+    // useEffect(() => {
+    //     verifyRole().then((result) => {
+    //         if (result.admin) {
+    //             setUserRole('admin')
+    //         } else if (result.agency) {
+    //             setUserRole('agency')
+    //         } else {
+    //             setUserRole('user')
+    //         }
+    //     })
+    // }, [])
 
     const getData = async () => {
         const agencyCollection = collection(db, 'agency')
@@ -125,8 +125,8 @@ const Headbar = ({ search, setSearch, customClaims}) => {
                         }
                     </div>
                 </div>
-                {(userRole == 'admin' || userRole == 'agency') &&
-                <form className="inline relative self-center" onChange={handleChange} onSubmit={handleSearch}>
+                {(customClaims.admin || customClaims.agency) &&
+                <form className="flex relative w-1/4" onChange={handleChange} onSubmit={handleSearch}>
                    
                     <input
                         className="shadow border-none rounded-xl w-full p-3 pr-11 text-xs text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
