@@ -71,30 +71,29 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	}
 
 	// Handler: new agency SAVE & send confirmation email to user
-	const saveAgency = async () => {
-	 // send email to agency admin emails
-   const dbInstance = collection(db, 'agency');
-   addDoc(dbInstance, {
-     name: newAgencyName,
-     agencyUsers: arrayUnion(...newAgencyEmails),
-     state: data.state.name,
-     city: data.city == null ? "N/A" : data.city.name,
-     logo: []
-   }).then(async() => { // send email to agency admin emails
-     try {
-       await sendSignIn(...newAgencyEmails)
-       // When user signs in from the email they recieved,
-       // they will added to the mobileUsers database collection
-       setEmailSent(true)
-     } catch (err) {
-       console.log(err)
-     } finally {
-       // Reset add agency form fields
-       setNewAgencyName('')
-       setNewAgencyEmails('')
-       // setData('') // reset State & City?
-     }
-   })
+	const saveAgency = () => {
+		const dbInstance = collection(db, 'agency');
+		addDoc(dbInstance, {
+			name: newAgencyName,
+			agencyUsers: arrayUnion(...newAgencyEmails),
+			state: data.state.name,
+			city: data.city == null ? "N/A" : data.city.name,
+			logo: []
+		}).then(async() => { // send email to agency admin emails
+			try {
+				await sendSignIn(...newAgencyEmails)
+				// When user signs in from the email they recieved,
+				// they will added to the mobileUsers database collection
+				setEmailSent(true)
+			} catch (err) {
+				console.log(err)
+			} finally {
+				// Reset add agency form fields
+				setNewAgencyName('')
+				setNewAgencyEmails('')
+				// setData('') // reset State & City?
+			}
+		})
 	}
 	// Handler: Form submit NEW & EXISTING AGENCY
 	const handleFormSubmit = async (e) => {

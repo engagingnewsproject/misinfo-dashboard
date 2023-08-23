@@ -100,11 +100,12 @@ const Headbar = ({ search, setSearch}) => {
         setSearch(e.target.value)
     }
     
+    // //
+	// Effects
+	// //
+    // Effect: get data
 	useEffect(() => {
 		getData()
-    })
-    useEffect(() => {
-		// console.log(agency)
 	})
     return (
         <div className="w-full">
