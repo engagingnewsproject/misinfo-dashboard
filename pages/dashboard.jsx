@@ -14,7 +14,7 @@ import { db, auth } from '../config/firebase'
 const tabList = ['Home', 'Profile', 'Settings', 'Users', 'Agencies', 'ReportSettings'];
 
 const Dashboard = () => {
-    const { user, logout, verifyPrivilege, changeRole, addAdminRole, addAgencyRole, viewRole } = useAuth()
+    const { user, logout, customClaims, setCustomClaims, verifyPrivilege, changeRole, addAdminRole, addAgencyRole, viewRole } = useAuth()
     const [tab, setTab] = useState(0)
     const router = useRouter()
 
@@ -24,7 +24,7 @@ const Dashboard = () => {
 
 
     // stores the admin/agency privilege of current user
-    const [customClaims, setCustomClaims] = useState({admin: false, agency: false})    
+    // const [customClaims, setCustomClaims] = useState({admin: false, agency: false})    
 
 
 
