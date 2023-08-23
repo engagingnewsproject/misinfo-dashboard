@@ -2,16 +2,22 @@ import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
-import { doc, setDoc } from '@firebase/firestore'
+import {isSignInWithEmailLink, signInWithEmailLink, signOut } from 'firebase/auth'
+import { doc, setDoc, collection, addDoc, arrayUnion} from '@firebase/firestore'
 import { db, auth } from '../config/firebase'
+import Select from "react-select";
+import { Country, State, City }  from 'country-state-city';
+
 import moment from 'moment'
 
 const SignUp = () => {
     const router = useRouter()
     const [signUpError, setSignUpError] = useState("")
 
-    const { user, signup, sendSignIn, verifyEmail } = useAuth()
+    const { user, signup, verifyEmail, addAgencyRole, setPassword } = useAuth()
 
+    // Determines if current user has the privilege to sign up as an agency
+    const isAgency =  isSignInWithEmailLink(auth, window.location.href)
     const [data, setData] = useState({
        name: '',
        email: '',
@@ -38,31 +44,86 @@ const SignUp = () => {
         }
     }
 
+
     const handleSignUp = async (e) => {
         e.preventDefault()
+        console.log("signing up")
 
         if (data.password.length < 8) {
-            return
-        }
+          return
+      }
 
-        try {
-            const userVerified = await signup(data.teamName, data.email, data.password)
-            if (userVerified) {
-              setSignUpError("")
-              console.log("in try")
-              router.push('/dashboard')
-            } else {
-              console.log("here")
-              router.push('/verifyEmail')
-            }
-            
-        } catch (err) {
-            if (err.message == "Firebase: Error (auth/email-already-in-use).") {
-                setSignUpError("Email already in use. Please log in.")
-            } else {
-                setSignUpError(err.message)
-            }
-        }
+
+        console.log("should be given agency privilege " + isAgency)
+
+          try {
+              if (isAgency) {
+
+                
+                
+
+
+                // Sees if agency already exists -if it does, adds user to the agency's user list
+                  signInWithEmailLink(auth, data.email, window.location.href).then((result) =>{
+                    const promise2 = addAgencyRole({email: data.email});
+                  
+                    console.log(result.user.email)
+                    console.log("current user " + auth.currentUser)
+                    const promise1 = auth.updateCurrentUser(result.user)
+                    auth.currentUser.reload().then(() => {
+
+                    const promise3 = setPassword(data.password)
+
+                    Promise.all([promise1, promise2, promise3]).then((values) => {
+                      
+                      console.log(auth.currentUser.email)
+
+                      if (verifyEmail(auth.currentUser)) {
+
+                        setSignUpError("")
+                        console.log("in try")
+                        window.location.replace('/dashboard')
+                      } else {
+                        console.log("here = for agency")
+                        window.location.replace('/verifyEmail')
+                      }
+                    })
+
+                  })}).catch((err)=> {
+                    if (err.message == "Firebase: Error (auth/invalid-action-code).") {
+                      setSignUpError("Sign in link had expired. Please ask admin to send a new link to sign up.")
+                    } else if (err.message == "Firebase: The email provided does not match the sign-in email address. (auth/invalid-email).") {
+                      // An error happened.
+                      setSignUpError("Your email does not match up with the email address that the sign-in link was sent to.")
+                    } else {
+                      console.log(error)
+                    }
+                  })
+
+                
+                
+              } else {
+
+                const userVerified = await signup(data.teamName, data.email, data.password)
+
+                if (userVerified) {
+                  setSignUpError("")
+                  console.log("in try")
+                  router.push('/dashboard')
+                } else {
+                  console.log("here")
+                  router.push('/verifyEmail')
+                }
+              }
+              
+          } catch (err) {
+          
+              if (err.message == "Firebase: Error (auth/email-already-in-use).") {
+                  setSignUpError("Email already in use. Please log in.")
+              } else {
+                  setSignUpError(err.message)
+              }
+          }
     }
 
     const handleChange = (e) => {
@@ -77,7 +138,10 @@ const SignUp = () => {
                 </div>
                 <form className="px-8 pt-6 pb-4 mb-4" onChange={handleChange} onSubmit={handleSignUp}>
                     <div className="mb-4">
-                        <input
+
+                        {/* Only allows user to select team name. Agencies had already had their name selected. */}  
+                        {!isAgency &&       
+                          <input
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="name"
                             type="text"
@@ -87,9 +151,11 @@ const SignUp = () => {
                             onChange={handleChange}
                             autoComplete=''
                             />
+                        }
                     </div>
                     <div className="mb-4">
-                        <input
+                    {isAgency && <p className="text-center text-gray-500 text-sm">Enter email that the sign-up link was sent to.</p>}
+                    <input
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="email"
                             type="text"
