@@ -38,8 +38,8 @@ const ReportModal = ({
 			"flex overflow-y- justify-center items-center z-[1300] absolute sm:top-0 md:top-4 left-0 w-full sm:w-full sm:h-full",
 		wrap: "flex-col justify-center items-center lg:w-8/12 h-auto rounded-2xl py-10 px-10 bg-sky-100",
 		textarea:
-			"border transition ease-in-out w-full text-md font-light bg-white rounded-xl p-4 border-none focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none",
-		icon: "flex p-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
+			"border transition ease-in-out w-full text-md font-light bg-white dark:bg-slate-600 rounded-xl p-4 border-none focus:text-gray-700 focus:bg-white dark:bg-slate-600 focus:border-blue-400 focus:outline-none resize-none",
+		icon: "flex p-2 justify-center text-gray-500 dark:text-gray-300 hover:bg-indigo-100 dark:hover:bg-slate-700 dark:bg-slate-600 hover:dark:bg-indigo-400 rounded-lg"
 	}
 	const label = {
 		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
@@ -67,7 +67,7 @@ const ReportModal = ({
 					onClick={(e) => { e.stopPropagation() }}>
 					<div className="flex justify-between w-full mb-6">
 						<div className="flex w-full items-baseline">
-							<div className="text-2xl font-bold text-blue-600 tracking-wider">
+							<div className="text-2xl font-bold text-blue-600 dark:text-white-100 tracking-wider">
 								Report Information
 							</div>
 							<Link href={`dashboard${reportURI}`} target="_blank">
@@ -86,7 +86,7 @@ const ReportModal = ({
 							<div className="left-side">
 								<div>
 									<div className={style.header}>Title</div>
-									<div className="text-sm bg-white rounded-xl p-4 mb-5">{reportTitle || <span className="italic text-gray-400">No Title</span>}</div>
+									<div className="text-sm bg-white dark:bg-slate-600 rounded-xl p-4 mb-5">{reportTitle || <span className="italic text-gray-400">No Title</span>}</div>
 
 									{/* Detail/Description */}
 									<div className="mb-5">
@@ -178,7 +178,7 @@ const ReportModal = ({
 												<a
 													target="_blank"
 													rel="noopener noreferrer"
-													className="text-blue-600 hover:underline"
+													className="text-blue-600 dark:text-white-100 hover:underline"
 													href={"mailto:" + reporterInfo["email"]}>
 													{reporterInfo["email"]}
 												</a>
@@ -254,7 +254,7 @@ const ReportModal = ({
 								</div>
 								{/* Share */}
 								<button
-									className="flex flex-row text-sm bg-white px-4 mb-4 border-none text-black py-1 rounded-md shadow hover:shadow-none"
+									className="flex flex-row text-sm bg-white dark:bg-slate-600 px-4 mb-4 border-none text-black py-1 rounded-md shadow hover:shadow-none"
 									onClick={SendLinkByMail}
 									type="button">
 									<BsShareFill className="my-1" size={15} />

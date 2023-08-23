@@ -469,7 +469,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	return (
 		<div className="flex flex-col h-full">
 			<div className="flex flex-col md:flex-row py-5 md:justify-between">
-				<div className="text-center md:text-left text-lg font-bold text-blue-600 tracking-wider pb-2 md:pb-0">
+				<div className="text-center md:text-left text-lg font-bold text-blue-600 dark:text-white-100 tracking-wider pb-2 md:pb-0">
 					List of Reports
 				</div>
 				<div className="flex flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-evenly">
@@ -516,7 +516,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
               />
             <button
               onClick={() => setNewReportModal(true)}
-              className="flex items-center text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+              className="flex items-center text-sm bg-white dark:bg-slate-600 px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white dark:bg-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
 							data-tip="Create a new report"
 							data-for="newReportTooltip">
               <IoAdd className="mr-1" size={15} />
@@ -538,7 +538,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
               defaultValue="All"
 							data-tip="Filter reports"
 							data-for="filterTooltip"
-              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md mr-1 md:mx-2 hover:shadow-none">
+              className="text-sm font-semibold shadow bg-white dark:bg-slate-600 inline-block px-8 border-none text-black py-1 rounded-md mr-1 md:mx-2 hover:shadow-none">
               <option value="false">Unread</option>
               <option value="true">Read</option>
               <option value="All">All reports</option>
@@ -559,7 +559,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
               defaultValue="4"
 							data-tip="Select timeframe"
 							data-for="timeframeTooltip"
-              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none">
+              className="text-sm font-semibold shadow bg-white dark:bg-slate-600 inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none">
               <option value="4">Last four weeks</option>
               <option value="3">Last three weeks</option>
               <option value="2">Last two weeks</option>
@@ -579,7 +579,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				scrollableTarget="scrollableDiv"
 				reportTitle={reportTitle}>
 				{/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
-				<table className="min-w-full bg-white rounded-xl p-1">
+				<table className="min-w-full bg-white dark:bg-slate-600 rounded-xl p-1">
 					<thead className="border-b dark:border-indigo-100 bg-slate-100">
 						<tr>
 							<th scope="col" className={tableHeading.default}>Title</th>
@@ -604,7 +604,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 								return (
 									<tr
 										onClick={() => handleModalShow(Object.keys(reportObj)[0])}
-										className="border-b transition duration-300 ease-in-out hover:bg-indigo-100 dark:border-indigo-100 dark:hover:bg-indigo-100"
+										className="border-b transition duration-300 ease-in-out hover:bg-indigo-100 dark:hover:bg-slate-700 dark:bg-slate-600 hover:dark:bg-indigo-400 dark:border-indigo-100 dark:hover:bg-indigo-100 dark:hover:bg-slate-700 dark:bg-slate-600 hover:dark:bg-indigo-400"
 										key={key}>
 										<td scope="row" className={column.data}>{report.title}</td>
 										<td className={column.data_center}>{posted}</td>
@@ -646,7 +646,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 													aria-hidden="true"
 													className={`${
 														report.read ? "translate-x-6" : "translate-x-1"
-													} inline-block h-4 w-4 transform rounded-full bg-white transition`}
+													} inline-block h-4 w-4 transform rounded-full bg-white dark:bg-slate-600 transition`}
 												/>
 											</Switch>
 											<button

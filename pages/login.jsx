@@ -101,7 +101,7 @@ const Login = () => {
                     </div>
                 </div>
             </form>
-            <p className="text-center text-gray-500 text-sm">
+            <p className="text-center text-gray-500 dark:text-gray-300 text-sm">
                 Don't have an account?
                 <Link href="/signup" className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
                     Sign Up

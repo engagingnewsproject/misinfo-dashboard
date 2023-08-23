@@ -11,12 +11,12 @@ const Settings = ({customClaims}) => {
     <div>
       {tagSystem == 0 ?
       <div className="z-0 flex-col p-16">
-        <div className="text-xl font-extrabold text-blue-600 tracking-wider">Tagging Systems</div>
+        <div className="text-xl font-extrabold text-blue-600 dark:text-white-100 tracking-wider">Tagging Systems</div>
         <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">Topic Tags</div>
             <button
                 onClick={() => setTagSystem(1)}
-                className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                className="bg-sky-100 hover:bg-blue-200 text-blue-600 dark:text-white-100 font-normal py-2 px-6 border border-blue-600 rounded-xl">
                 {customClaims.admin ? `View ` : `Edit `}Topics
             </button>
         </div>
@@ -24,7 +24,7 @@ const Settings = ({customClaims}) => {
             <div className="font-light">Source Tags</div>
             <button
                 onClick={() => setTagSystem(2)}
-                className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                className="bg-sky-100 hover:bg-blue-200 text-blue-600 dark:text-white-100 font-normal py-2 px-6 border border-blue-600 rounded-xl">
                 {customClaims.admin ? `View ` : `Edit `}Sources
             </button>
         </div>
@@ -32,7 +32,7 @@ const Settings = ({customClaims}) => {
             <div className="font-light">Customized Labels</div>
             <button
                 onClick={() => setTagSystem(3)}
-                className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                className="bg-sky-100 hover:bg-blue-200 text-blue-600 dark:text-white-100 font-normal py-2 px-6 border border-blue-600 rounded-xl">
                 {customClaims.admin ? `View ` : `Edit `}Labels
             </button>
         </div>

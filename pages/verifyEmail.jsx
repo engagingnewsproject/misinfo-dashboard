@@ -41,7 +41,7 @@ const VerifyEmail = () => {
 
                 </div>
              
-                <p className="text-center text-gray-500 text-sm">
+                <p className="text-center text-gray-500 dark:text-gray-300 text-sm">
                 <button className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" onClick={handleVerifyEmail}>
                         Resend email
                     </button>

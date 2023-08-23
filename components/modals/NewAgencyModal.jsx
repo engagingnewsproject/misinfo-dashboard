@@ -25,12 +25,12 @@ const NewAgencyModal = ({
 		modal_wrapper: 'flex-col justify-center items-center lg:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible',
 		modal_header_container: 'flex justify-between w-full mb-6',
 		modal_header_wrapper: 'flex w-full justify-between items-center',
-		modal_header: 'text-lg font-bold text-blue-600 tracking-wider',
+		modal_header: 'text-lg font-bold text-blue-600 dark:text-white-100 tracking-wider',
 		modal_close: 'text-gray-800',
 		modal_form_container: 'grid md:grid-cols-3 md:gap-10 lg:gap-15',
 		modal_form: 'flex flex-col gap-4',
 		modal_form_label: 'text-black tracking-wider mb-4',
-		modal_form_data: 'col-span-2 text-sm bg-white rounded-xl p-4 mb-5',
+		modal_form_data: 'col-span-2 text-sm bg-white dark:bg-slate-600 rounded-xl p-4 mb-5',
 		modal_form_upload_image: 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
 		modal_form_input: 'shadow border-none rounded-md min-w-full col-span-2 p-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
 		modal_form_select: 'border-none rounded-xl min-w-full col-span-2 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
@@ -75,7 +75,7 @@ const NewAgencyModal = ({
 								Email should be at least 15 characters long
 								</p>
 								) : null}
-						<label className='text-blue-600'>Location</label>
+						<label className='text-blue-600 dark:text-white-100'>Location</label>
 						<Select // Agency State
 							className={style.modal_form_select}
 							id="agencyState"

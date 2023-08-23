@@ -266,9 +266,9 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                 onClick={handleNewReportModalClose} 
                 className={`flex overflow-y-auto justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full`}>
                 {/* <div onClick={handleNewReportModalClose} className="flex overflow-y-auto justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full"> */}
-                    <div onClick={(e) => {e.stopPropagation()}} className={`flex-col justify-center items-center bg-white md:w-8/12 lg:w-6/12 h-auto rounded-2xl py-10 px-10 z-50`}>
+                    <div onClick={(e) => {e.stopPropagation()}} className={`flex-col justify-center items-center bg-white dark:bg-slate-600 md:w-8/12 lg:w-6/12 h-auto rounded-2xl py-10 px-10 z-50`}>
                         <div className="flex justify-between w-full mb-5">
-                            <div className="text-md font-bold text-blue-600 tracking-wide">Add New Report</div>
+                            <div className="text-md font-bold text-blue-600 dark:text-white-100 tracking-wide">Add New Report</div>
                             <button onClick={handleNewReportModalClose} className="text-gray-800">
                                 <IoClose size={25}/>
                             </button>

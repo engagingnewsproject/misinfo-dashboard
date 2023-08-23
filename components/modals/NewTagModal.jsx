@@ -26,12 +26,12 @@ const NewTagModal = ({ tagSystems, tagSystem, list, setNewTagModal, addNewTag })
             <div className="flex justify-center items-center z-10 absolute top-0 left-0 w-full h-full bg-black opacity-60">
             </div>
             <div onClick={() => setNewTagModal(false)} className="flex justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
-                <div className="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10"
+                <div className="flex-col justify-center items-center bg-white dark:bg-slate-600 w-80 h-auto rounded-2xl py-10 px-10"
                     onClick={(e) => {
                         e.stopPropagation()
                     }}>
                     <div className="flex justify-between w-full mb-5">
-                        <div className="text-md font-bold text-blue-600 tracking-wide">{"Add New " + tagSystems[tagSystem]}</div>
+                        <div className="text-md font-bold text-blue-600 dark:text-white-100 tracking-wide">{"Add New " + tagSystems[tagSystem]}</div>
                         <button onClick={() => setNewTagModal(false)} className="text-gray-800">
                             <IoClose size={25}/>
                         </button>
@@ -53,12 +53,12 @@ const NewTagModal = ({ tagSystems, tagSystem, list, setNewTagModal, addNewTag })
                         <div className="mt-6 flex justify-between">
                             <button
                                 onClick={() => setNewTagModal(false)}
-                                className="bg-white hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                                className="bg-white dark:bg-slate-600 hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
                                 type='button'>
                                 Cancel
                             </button>
                             <button
-                                className="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                                className="bg-white dark:bg-slate-600 hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
                                 type="submit">
                                 Add
                             </button>

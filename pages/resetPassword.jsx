@@ -85,7 +85,7 @@ const ResetPassword = () => {
 							The reset email has been sent
 						</div>
 					)}
-					<p className="text-center text-gray-500 text-sm mt-2">
+					<p className="text-center text-gray-500 dark:text-gray-300 text-sm mt-2">
 						Already have an account?
 						<Link href="/login" className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
 							Log In

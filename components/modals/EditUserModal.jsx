@@ -13,7 +13,7 @@ const EditUserModal = ({customClaims, userRole, onOptionChange, onNameChange, na
 		modal_wrapper: 'flex-col justify-center items-center lg:w-6/12 md:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible',
 		modal_header_container: 'grid md:gap-5 lg:gap-5 auto-cols-auto mb-6',
 		modal_header_wrapper: 'flex w-full items-baseline justify-between',
-		modal_header: 'text-lg font-bold text-blue-600 tracking-wider',
+		modal_header: 'text-lg font-bold text-blue-600 dark:text-white-100 tracking-wider',
 		modal_close: 'text-gray-800',
 		modal_form_container: 'grid justify-center md:gap-5 lg:gap-5 grid-cols-3 auto-cols-auto',
 		modal_form_label: 'text-lg font-bold text-black tracking-wider mb-4',
@@ -74,7 +74,7 @@ const EditUserModal = ({customClaims, userRole, onOptionChange, onNameChange, na
 										aria-hidden="true"
 										className={`${
 											banned ? "translate-x-6" : "translate-x-1"
-										} inline-block h-4 w-4 transform rounded-full bg-white transition`}
+										} inline-block h-4 w-4 transform rounded-full bg-white dark:bg-slate-600 transition`}
 									/>
 								</Switch>
 								{banned == true ? <div className="text-sm">Banned</div> : <div className="text-sm">Not banned</div>}

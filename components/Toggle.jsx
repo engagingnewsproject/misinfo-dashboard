@@ -14,7 +14,7 @@ const Toggle = ({ viewVal, setViewVal }) => {
     const active = "bg-blue-600 text-white py-2 px-5 drop-shadow-lg text-sm font-light tracking-wide"
     const rounded_right = " rounded-tr-lg rounded-br-lg"
     const rounded_left = " rounded-tl-lg rounded-bl-lg"
-    const nonactive = "bg-white py-2 px-5 drop-shadow-lg text-sm font-light tracking-wide"
+    const nonactive = "bg-white dark:bg-slate-600 py-2 px-5 drop-shadow-lg text-sm font-light tracking-wide"
     return (
     <div>
         <button id="overview"

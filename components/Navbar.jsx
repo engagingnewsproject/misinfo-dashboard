@@ -20,7 +20,7 @@ import Link from "next/link"
 import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
 import { auth } from "../config/firebase"
-
+import DarkMode from './DarkMode'
 
 const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClaims,  onReportTabClick}) => {
 
@@ -122,7 +122,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
 		setNewReportModal(true)
 	}
 
-  const basicStyle = "flex p-2 my-6 mx-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
+  const basicStyle = "flex p-2 my-6 mx-2 justify-center text-gray-500 dark:text-gray-300 hover:bg-indigo-100 dark:hover:bg-slate-700 dark:bg-slate-600 hover:dark:bg-indigo-400 rounded-lg"
 
     return (
       <>
@@ -142,7 +142,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
         customBurgerIcon={ false }
         isOpen={(windowSize[0] > 640 ? true : showNav)} onOpen={ ()=>handleOpenMenu()} onClose={() => shouldCloseMenu()}>
       <div className="fixed top-0 left-0 w-16 h-screen">
-        <div className="flex-col bg-white h-full">
+        <div className="flex-col bg-white dark:bg-slate-600 h-full">
             <div className="grid content-between w-full h-full">
                 <div>
                   <button 
@@ -156,7 +156,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                       <button // Home/Reports view
                         onClick={() => setTab(0)}
                         data-tip="Home"
-                        className={tab == 0 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
+                        className={tab == 0 ? basicStyle + " text-indigo-500 bg-indigo-100 dark:bg-slate-600" : basicStyle}>
                         <IoHomeOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
@@ -165,7 +165,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                       <button // Agencies
                           onClick={() => setTab(4)}
                           data-tip="Agencies"
-                          className={tab == 4 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
+                          className={tab == 4 ? basicStyle + " text-indigo-500 bg-indigo-100 dark:bg-slate-600" : basicStyle}>
                           <IoBusinessOutline size={30}/>
                           <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
@@ -174,7 +174,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                       <button // Tags
                           onClick={() => setTab(2)}
                           data-tip="Tagging Systems"
-                          className={tab == 2 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
+                          className={tab == 2 ? basicStyle + " text-indigo-500 bg-indigo-100 dark:bg-slate-600" : basicStyle}>
                           <IoPricetagsOutline size={30}/>
                           <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
@@ -211,19 +211,20 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, customClaims, setCustomClai
                     <button
                         onClick={() => setTab(1)}
                         data-tip="Profile"
-                        className={tab == 1 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
+                        className={tab == 1 ? basicStyle + " text-indigo-500 bg-indigo-100 dark:bg-slate-600" : basicStyle}>
                         <IoPersonOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                     </button>
                     {(customClaims.admin || customClaims.agency) && <button
                         onClick={()=>setHelpModal(true)}
                         data-tip="Help"
-                        className={helpModal ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
+                        className={helpModal ? basicStyle + " text-indigo-500 bg-indigo-100 dark:bg-slate-600" : basicStyle}>
 
                         <IoHelpCircleOutline size={30}/>
                         <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
 
-                    </button>}
+                  </button>}
+                  <DarkMode/>
                 </div>
             </div>
  

@@ -11,7 +11,7 @@ function MyApp({ Component, pageProps }) {
 
   return (
     <AuthContextProvider>
-      <div className="bg-sky-100 w-full h-full overflow-y-auto">
+      <div className="bg-sky-100 dark:bg-slate-900 w-full h-full overflow-y-auto">
         <div className='w-screen h-screen content-center'>
           { noAuthRequired.includes(router.pathname) ? (
             <Component {...pageProps} />

@@ -4,14 +4,14 @@ import { IoClose } from "react-icons/io5"
 const HelpModal = ({ setHelpModal}) => {
 
 
-    const header = "text-lg font-bold text-blue-600 tracking-wider pt-2"
+    const header = "text-lg font-bold text-blue-600 dark:text-white-100 tracking-wider pt-2"
     const section = "rounded-lg py-2 my-1"
     return (
         <div>
             <div onClick={() => setHelpModal(false)} className="z-[1200] fixed top-0 left-0 w-full h-full bg-black opacity-60">
             </div>
             <div className="flex overflow-y-auto justify-center items-center absolute top-0 left-0 w-full h-auto">
-                <div className="z-[1300] flex-col justify-center items-center bg-white w-10/12 lg:w-6/12 h-auto rounded-2xl mt-4 lg:mt-autopy-10 px-10"
+                <div className="z-[1300] flex-col justify-center items-center bg-white dark:bg-slate-600 w-10/12 lg:w-6/12 h-auto rounded-2xl mt-4 lg:mt-autopy-10 px-10"
                     onClick={(e) => {e.stopPropagation()}}>
                     <div className="flex justify-between w-full mb-5">
                         <button onClick={() => setHelpModal(false)} className="text-gray-800">

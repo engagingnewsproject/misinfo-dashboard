@@ -99,7 +99,7 @@ const ReportSystem = ({
         sectionContainer: 'w-full h-full flex flex-col mb-5 overflow-visible',
         sectionWrapper: 'flex items-center',
         sectionH1: 'text-2xl font-bold',
-        sectionH2: 'text-blue-600',
+        sectionH2: 'text-blue-600 dark:text-white-100',
         sectionSub: 'text-sm',
         sectionIconButtonWrap: 'self-end',
         sectionIconButton: 'fill-blue-600',
@@ -107,7 +107,7 @@ const ReportSystem = ({
         viewWrapper: 'flex flex-col gap-2 mt-4 overflow-visible',
         viewWrapperCenter: 'flex flex-col gap-2 mt-8 items-center',
         inputSelect: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
-        inputSingle: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 bg-white leading-tight focus:outline-none focus:shadow-outline',
+        inputSingle: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 bg-white dark:bg-slate-600 leading-tight focus:outline-none focus:shadow-outline',
         inputCheckboxWrap: 'flex',
         inputRadio: 'bg-blue-600 flex rounded-lg p-2 text-white justify-center checked:bg-blue-500',
         inputRadioChecked: 'bg-blue-800 flex rounded-lg p-2 text-white justify-center checked:bg-blue-500',
@@ -312,7 +312,7 @@ const ReportSystem = ({
             {reminderShow != false && reportSystem == 1 &&
                 <div className={style.viewWrapperCenter}>
                     <Image src="/img/reminder.png" width={156} height={120} alt="reminderShow"/>
-                    <div className="text-xl px-5 font-extrabold text-blue-600 tracking-wider">
+                    <div className="text-xl px-5 font-extrabold text-blue-600 dark:text-white-100 tracking-wider">
                         {reportSystem == 1 ? t.reminderTitle : reportSystems[reportSystem]}
                     </div>
                     <div>{t.reminderDescription}</div>

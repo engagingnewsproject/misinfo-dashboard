@@ -29,12 +29,12 @@ const UpdatePwModal = ({ setOpenModal }) => {
             <div 
             className="flex justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full"
             onClick={() => setOpenModal(false)}>
-                <div className="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10"
+                <div className="flex-col justify-center items-center bg-white dark:bg-slate-600 w-80 h-auto rounded-2xl py-10 px-10"
                 onClick={(e) => {
                     e.stopPropagation()
                 }}>
                     <div className="flex justify-between w-full mb-5">
-                        <div className="text-md font-bold text-blue-600 tracking-wide">{updateSuccess ? "PW updated" : "Reset Password"}</div>
+                        <div className="text-md font-bold text-blue-600 dark:text-white-100 tracking-wide">{updateSuccess ? "PW updated" : "Reset Password"}</div>
                         <button onClick={() => setOpenModal(false)} className="text-gray-800">
                             <IoClose size={25}/>
                         </button>

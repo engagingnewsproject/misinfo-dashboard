@@ -158,7 +158,7 @@ const TagSystem = ({ tagSystem, setTagSystem, customClaims }) => {
                     <button onClick={() => setTagSystem(0)}>
                         <IoMdArrowRoundBack size={25} />
                     </button>
-                    <div className="text-xl px-5 font-extrabold text-blue-600 tracking-wider">
+                    <div className="text-xl px-5 font-extrabold text-blue-600 dark:text-white-100 tracking-wider">
                         {tagSystem == 3 ? "Customized " + tagSystems[tagSystem] : tagSystems[tagSystem] + " Tags"}
                     </div>
                     <div className="text-sm font-light">
@@ -166,31 +166,31 @@ const TagSystem = ({ tagSystem, setTagSystem, customClaims }) => {
                     </div>
                     {selected.length == 0 && !customClaims.admin ? 
                     <button
-                        className={`flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline`}
+                        className={`flex items-center shadow ml-auto mr-6 bg-white dark:bg-slate-600 hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline`}
                         type="submit"
                         onClick={handleAddNew}>
-                        <FaPlus className="text-blue-600" size={12}/>
+                        <FaPlus className="text-blue-600 dark:text-white-100" size={12}/>
                         <div className="px-2 font-normal tracking-wide">{"New " + tagSystems[tagSystem]}</div>
                     </button> :
                     <div className="flex items-center ml-auto mr-6">
                         {!customClaims.admin &&
                         <>
                             <button
-                                className="flex items-center shadow mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
+                                className="flex items-center shadow mr-6 bg-white dark:bg-slate-600 hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
                                 type="submit"
                                 onClick={(e) => updateTag(e, "delete")}>
                                 <TiDelete className="text-red-600" size={20}/>
                                 <div className="px-2 font-normal tracking-wide">Delete</div>
                             </button>
                             <button
-                                className="flex items-center shadow mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
+                                className="flex items-center shadow mr-6 bg-white dark:bg-slate-600 hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
                                 type="submit"
                                 onClick={(e) => updateTag(e, "rename")}>
-                                <MdModeEditOutline className="text-blue-600" size={18}/>
+                                <MdModeEditOutline className="text-blue-600 dark:text-white-100" size={18}/>
                                 <div className="px-2 font-normal tracking-wide">Rename</div>
                             </button>
                             <button
-                                className="flex items-center shadow bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
+                                className="flex items-center shadow bg-white dark:bg-slate-600 hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
                                 type="submit"
                                 onClick={(e) => active.includes(search) ? updateTag(e, "deactivate") : updateTag(e, "activate")}>
                                 <IoIosRadioButtonOn className={active.includes(search) ? "text-red-600" : "text-green-600"} size={18}/>
@@ -218,14 +218,14 @@ const TagSystem = ({ tagSystem, setTagSystem, customClaims }) => {
                
                 {search.length > 0 &&
                 <div className="shadow-lg absolute rounded-lg z-20 mt-2 w-1/2">
-                    <div className="bg-white w-full rounded-lg">
+                    <div className="bg-white dark:bg-slate-600 w-full rounded-lg">
                         {searchResult.map((item) => {
                             return (
                                 !item.includes('Other') &&
                                 <div onClick={() => {
                                 setSelected(item)
                                 setSearchResult([])
-                            }} className="text-light text-sm rounded-lg leading-tight py-2 pl-4 hover:bg-indigo-100 cursor-pointer" key={item}>{item}</div>
+                            }} className="text-light text-sm rounded-lg leading-tight py-2 pl-4 hover:bg-indigo-100 dark:hover:bg-slate-700 dark:bg-slate-600 hover:dark:bg-indigo-400 cursor-pointer" key={item}>{item}</div>
                             )
                         })}
                     </div>
@@ -233,7 +233,7 @@ const TagSystem = ({ tagSystem, setTagSystem, customClaims }) => {
                 </div>
                 <div className="z-10 mt-12 pr-6">
                     {list.length == 0 ? 
-                    <div className="grid bg-white w-full py-6 px-4 rounded-xl text-center items-center">
+                    <div className="grid bg-white dark:bg-slate-600 w-full py-6 px-4 rounded-xl text-center items-center">
                         <Image src="svgs/warning.svg" width={156} height={120} alt="warning"/>
                         <div className="py-3 text-sm">You have no tags right now</div>
                     </div>
@@ -262,7 +262,7 @@ const TagSystem = ({ tagSystem, setTagSystem, customClaims }) => {
                             })}
                         </div>}
                         { maxTagsError && <span className="pl-12 text-red-500 text-sm font-light">{"You may only enable " + maxTags[tagSystem] + " live tags"}</span>}
-                        <div className="grid bg-white w-full p-4 mt-10 rounded-xl grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                        <div className="grid bg-white dark:bg-slate-600 w-full p-4 mt-10 rounded-xl grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                         {list.map((item) => {
                             const normStyles = "text-md font-light p-2 my-3 md:mx-2 cursor-pointer leading-normal flex items-center justify-center"
                             const selectedStyles = normStyles + " bg-blue-600 text-white rounded-lg"

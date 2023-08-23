@@ -11,7 +11,7 @@ const ConfirmModal = ({ func, title, subtitle, CTA, closeModal }) => {
             className="flex justify-center items-center z-[1900] absolute top-0 left-0 w-full h-full"
             onClick={() => closeModal(false)}>
                 <div 
-                className="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10"
+                className="flex-col justify-center items-center bg-white dark:bg-slate-600 w-80 h-auto rounded-2xl py-10 px-10"
                 onClick={(e) => {
                     e.stopPropagation()
                 }}>
@@ -27,11 +27,11 @@ const ConfirmModal = ({ func, title, subtitle, CTA, closeModal }) => {
                         <div className="mt-6 flex justify-between">
                             <button
                                 onClick={() => closeModal(false)}
-                                className="bg-white hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline">
+                                className="bg-white dark:bg-slate-600 hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline">
                                 Cancel
                             </button>
                             <button
-                                className="bg-blue-500 hover:bg-white text-white text-sm hover:text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit" autoFocus>
+                                className="bg-blue-500 hover:bg-white dark:bg-slate-600 text-white text-sm hover:text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit" autoFocus>
                                 {CTA}
                             </button>
                         </div>

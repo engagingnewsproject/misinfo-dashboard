@@ -25,8 +25,8 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
   const [showCalendar, setShowCalendar] = useState(0)
 
   // Styling for graph setting buttons.
-  const basicStyle = "flex p-2 my-6 mx-2 text-gray-500 hover:bg-blue-100 rounded-lg"
-  const errorStyle = "flex p-2 my-6 mx-2 text-gray-500 hover:bg-red-100 rounded-lg bg-red-100 border-2 border-rose-600"                           
+  const basicStyle = "flex p-2 my-6 mx-2 text-gray-500 dark:text-gray-300 hover:bg-blue-100 rounded-lg"
+  const errorStyle = "flex p-2 my-6 mx-2 text-gray-500 dark:text-gray-300 hover:bg-red-100 rounded-lg bg-red-100 border-2 border-rose-600"                           
   
   // Border style used for the topic select dropdown for error handling.
   const borderStyle = {

@@ -195,7 +195,7 @@ const Users = ({customClaims}) => {
 		<div className="w-full h-full flex flex-col py-5">
 			<div className="w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto" id="scrollableDiv">
 				<div className="flex flex-col md:flex-row pb-5 md:justify-between">
-					<div className="text-center md:text-left text-lg font-bold text-blue-600 tracking-wider pb-2 md:pb-0">
+					<div className="text-center md:text-left text-lg font-bold text-blue-600 dark:text-white-100 tracking-wider pb-2 md:pb-0">
 						Users
 					</div>
 				</div>
@@ -206,7 +206,7 @@ const Users = ({customClaims}) => {
 						inverse={false} //
 						loader={<h4>Loading...</h4>}
 						scrollableTarget="scrollableDiv">
-						<table className="min-w-full bg-white rounded-xl p-1">
+						<table className="min-w-full bg-white dark:bg-slate-600 rounded-xl p-1">
 							<thead className="border-b dark:border-indigo-100 bg-slate-100">
 								<tr>
 									<th scope="col" className={tableHeading.default}>Name</th>

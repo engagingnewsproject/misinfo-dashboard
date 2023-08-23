@@ -99,11 +99,11 @@ const AgencyModal = ({
 		modal_wrapper: 'flex-col justify-center items-center lg:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible',
 		modal_header_container: 'flex justify-between w-full mb-6',
 		modal_header_wrapper: 'flex w-full justify-between items-baseline',
-		modal_header: 'text-lg font-bold text-blue-600 tracking-wider',
+		modal_header: 'text-lg font-bold text-blue-600 dark:text-white-100 tracking-wider',
 		modal_close: 'text-gray-800',
 		modal_form_container: 'grid md:grid-cols-3 md:gap-10 lg:gap-15',
 		modal_form_label: 'text-black tracking-wider mb-4',
-		modal_form_data: 'col-span-2 text-sm bg-white rounded-xl p-4 mb-5',
+		modal_form_data: 'col-span-2 text-sm bg-white dark:bg-slate-600 rounded-xl p-4 mb-5',
 		modal_form_upload_image: 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
 		modal_form_button: 'bg-blue-500 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
 	}

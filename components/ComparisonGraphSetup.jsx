@@ -44,7 +44,7 @@ const ComparisonGraphSetup = () => {
   const [dateError, setDateError] = useState(false)
 
   // Styling for graph setting buttons.
-  const basicStyle = "flex p-2 my-6 mx-2 text-gray-500 hover:bg-blue-100 rounded-lg"
+  const basicStyle = "flex p-2 my-6 mx-2 text-gray-500 dark:text-gray-300 hover:bg-blue-100 rounded-lg"
 
   // Handles the selection of a new date range.
   const handleDateSelection = (item) =>  {
@@ -104,12 +104,12 @@ const ComparisonGraphSetup = () => {
 
   return (
     <div className="relative h-full lg:h-1/2">
-      <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Compare Topic Reports</h1>
+      <h1 className="text-2xl font-bold text-blue-600 dark:text-white-100 pt-6 tracking-wider text-center ">Compare Topic Reports</h1>
               {/* Initial screen that appears when user selects the comparison view. Allows user to select three topics. */}
             {tab == 0 && 
               <div className="flex items-center justify-center">
-              <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 h-auto">
-                <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select topics to compare. </h1>
+              <div className="bg-white dark:bg-slate-600 rounded-xl mt-6 py-5 pl-3 pr-3 h-auto">
+                <h1 className="text-2xl font-bold text-blue-600 dark:text-white-100 pt-6 tracking-wider text-center ">Select topics to compare. </h1>
                 <h1 className="pl-3 pb-4 text-center">Choose at least one topic to view the number of reports.</h1>
                 {topicError && <h1 className="pl-3 pb-4 text-center text-red-500">You must choose at least one topic to compare.</h1>}
                 <Select options={listTopicChoices} components={animatedComponents}
@@ -139,8 +139,8 @@ const ComparisonGraphSetup = () => {
                   <IoIosArrowBack size={25} />
                   <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
                 </button>
-                <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-full lg:w-1/3 overflow-x-auto order-first lg:order-none">
-                  <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select dates</h1>
+                <div className="bg-white dark:bg-slate-600 rounded-xl mt-6 py-5 pl-3 pr-3 w-full lg:w-1/3 overflow-x-auto order-first lg:order-none">
+                  <h1 className="text-2xl font-bold text-blue-600 dark:text-white-100 pt-6 tracking-wider text-center ">Select dates</h1>
                   <h1 className="pl-3 text-center">Select a date range to collect the number of reports for the selected topics. </h1>
                   {dateError && <h1 className="pl-3 pb-4 text-center text-red-500">You must select a date range of at least three days and no more than three weeks.</h1>}
                   
@@ -177,7 +177,7 @@ const ComparisonGraphSetup = () => {
           
         {/* Once user selects the topics and date range, graph of topic reports will be plotted. */}
         {tab == 4 && dateRange && selectedTopics && 
-          <div className="bg-white rounded-xl mt-6 py-5">
+          <div className="bg-white dark:bg-slate-600 rounded-xl mt-6 py-5">
             <ComparisonGraphPlotted 
               dateRange={dateRange} setDateRange={setDateRange} 
               selectedTopics={selectedTopics} setSelectedTopics={setSelectedTopics}

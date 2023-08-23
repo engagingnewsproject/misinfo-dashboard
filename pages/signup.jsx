@@ -136,7 +136,7 @@ const SignUp = () => {
                         </button>
                     </div>
                 </form>
-                <p className="text-center text-gray-500 text-sm">
+                <p className="text-center text-gray-500 dark:text-gray-300 text-sm">
                     Already have an account?
                     <Link href="/login" className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
                         Log In

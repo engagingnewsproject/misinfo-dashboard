@@ -77,7 +77,7 @@ export default function SwitchRead({ setReportModalId }) {
 						aria-hidden="true"
 						className={`${
 							reportRead ? "translate-x-6" : "translate-x-1"
-						} inline-block h-4 w-4 transform rounded-full bg-white transition`}
+						} inline-block h-4 w-4 transform rounded-full bg-white dark:bg-slate-600 transition`}
 					/>
 				</Switch>
 				{/* Toggle read/unread text on switch change */}

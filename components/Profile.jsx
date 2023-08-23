@@ -267,7 +267,7 @@ const Profile = ({customClaims}) => {
   
 	const style = {
 		button: 'bg-blue-500 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline',
-		input: 'text-md font-light bg-white rounded-xl p-4 border-none w-full focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none',
+		input: 'text-md font-light bg-white dark:bg-slate-600 rounded-xl p-4 border-none w-full focus:text-gray-700 focus:bg-white dark:bg-slate-600 focus:border-blue-400 focus:outline-none resize-none',
 		inputSelect: 'border-gray-300 col-span-1 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
 		buttonCancel: ' col-start-3 border-solid border-red-500 self-end hover:bg-blue-700 text-sm text-red-500 font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline',
 		fileUploadButton: 'block flex flex-col text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer'
@@ -275,7 +275,7 @@ const Profile = ({customClaims}) => {
   return (
     <div className="w-full h-auto">
       <div className="z-0 flex-col p-16 pt-10">
-        <div className="text-xl font-extrabold text-blue-600 tracking-wider">Account</div>
+        <div className="text-xl font-extrabold text-blue-600 dark:text-white-100 tracking-wider">Account</div>
           {isAgency && // agency user will see the agency row
           <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">
@@ -294,7 +294,7 @@ const Profile = ({customClaims}) => {
                 <div className="font-light">{user.email}</div>
                 <button
                     onClick={() => setEmailModal(true)}
-                    className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                    className="bg-sky-100 hover:bg-blue-200 text-blue-600 dark:text-white-100 font-normal py-2 px-6 border border-blue-600 rounded-xl">
                     Edit Email
                 </button>
               </div>
@@ -303,7 +303,7 @@ const Profile = ({customClaims}) => {
             <div className="font-light">Reset Password</div>
             <button
                 onClick={() => setOpenModal(true)}
-                className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                className="bg-sky-100 hover:bg-blue-200 text-blue-600 dark:text-white-100 font-normal py-2 px-6 border border-blue-600 rounded-xl">
                 Edit Password
             </button>
         </div>
@@ -311,14 +311,14 @@ const Profile = ({customClaims}) => {
             <div className="font-light">Logout</div>
             <button
                 onClick={() => setLogoutModal(true)}
-                className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                className="bg-sky-100 hover:bg-blue-200 text-blue-600 dark:text-white-100 font-normal py-2 px-6 border border-blue-600 rounded-xl">
                 Logout
             </button>
         </div>
       </div>
       {customClaims.agency && // agency settings
         <div className='z-0 flex-col p-16 pt-10 bg-slate-100'>
-          <div className="text-xl font-extrabold text-blue-600 tracking-wider">Agency Settings</div>
+          <div className="text-xl font-extrabold text-blue-600 dark:text-white-100 tracking-wider">Agency Settings</div>
           <div className='w-full h-auto'>
             <form onSubmit={handleFormSubmit} id='agencyDesign' className='flex flex-col'>
             <div className="mt-4 mb-4 grid gap-4">
@@ -338,7 +338,7 @@ const Profile = ({customClaims}) => {
               <div className="grid grid-cols-4 items-center">
                   <div className='col-span-1'>Agency Location</div>
                   
-                  <div className='col-span-3 grid grid-cols-8 items-center bg-white rounded-md px-3'>
+                  <div className='col-span-3 grid grid-cols-8 items-center bg-white dark:bg-slate-600 rounded-md px-3'>
                     <div className={`col-span-8 ${ editLocation === false ? ' visible relative' : ' hidden absolute'  }`} onClick={handleLocationChange}>
                       <div className={style.input}>{`${ agency['city'] }, ${ agency['state'] }`}</div>
                     </div>
@@ -389,7 +389,7 @@ const Profile = ({customClaims}) => {
               <div className="grid grid-cols-4 items-center">
                   <div className='col-span-1'>Agency Logo</div>
                   {editLogo ?
-                  <div className={`${ style.inputSelect } bg-white col-span-3 flex items-center`}>
+                  <div className={`${ style.inputSelect } bg-white dark:bg-slate-600 col-span-3 flex items-center`}>
                       <label>
                         <span className="sr-only">Choose agency logo</span>
                         <input className={`${style.fileUploadButton}`}
@@ -409,7 +409,7 @@ const Profile = ({customClaims}) => {
                     <div className='text-red-500 cursor-pointer' onClick={handleLogoEdit}>Cancel</div>
                   </div>
                   :
-                  <div className={`${ style.inputSelect } bg-white col-span-3`} onClick={handleLogoEdit}>
+                  <div className={`${ style.inputSelect } bg-white dark:bg-slate-600 col-span-3`} onClick={handleLogoEdit}>
                       {agencyLogo.map((image,i) => {
                         return (
                           <div className="flex mr-2" key={i}>
