@@ -189,7 +189,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		section_container: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
 		section_wrapper: 'flex flex-col h-full',
 		section_header: 'flex flex-col md:flex-row py-5 md:justify-between',
-		section_title: 'text-center md:text-left text-lg font-bold text-blue-600 tracking-wider pb-2 md:pb-0',
+		section_title: 'text-xl font-extrabold text-blue-600 tracking-wider',
 		section_filters: 'flex flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-evenly',
 		section_filtersWrap: 'p-0 px-4 md:p-4 md:py-0 md:px-4 flex items-center',
 		table_main: 'min-w-full bg-white rounded-xl p-1',

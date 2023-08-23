@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import { db, auth } from '../config/firebase'
@@ -15,32 +15,35 @@ const Login = () => {
   const [error, setError] = useState()
 
 //   Get user custom token
-  if (user && auth.currentUser?.emailVerified) {
-    auth.currentUser.getIdTokenResult()
-    .then((idTokenResult) => {
-        // if admin load the dashboard
-        if (!!idTokenResult.claims.admin || !!idTokenResult.claims.agency) {
-            router.push('/dashboard')
-        // otherwise load the report page
-        } else {
-            router.push('/report')
-        }
-    })
-  }
+ 
+useEffect(() => {     
+  if (user) {
+    handleLogin()
+  }}, [user])
 
-  const handleLogin = async (e) => {
-    e.preventDefault()
+
+  const handleLogin = () => {
+  
     try {
       //console.log(user)
-      await login(data.email, data.password)
-      setError(null)
-
-      if (auth.currentUser?.emailVerified) {
-        router.push('/dashboard')
-      } else if (!auth.currentUser?.emailVerified) {
-        verifyEmail(auth.currentUser)
-        router.push('/verifyEmail')
-      }
+      login(data.email, data.password).then(()=> {
+        setError(null)
+        if (auth.currentUser?.emailVerified) {
+          auth.currentUser.getIdTokenResult()
+          .then((idTokenResult) => {
+              // if admin load the dashboard
+              if (!!idTokenResult.claims.admin || !!idTokenResult.claims.agency) {
+                  router.push('/dashboard')
+              // otherwise load the report page
+              } else {
+                  router.push('/report')
+              }
+          })
+        } else if (!auth.currentUser?.emailVerified) {
+          verifyEmail(auth.currentUser)
+          router.push('/verifyEmail')
+        }
+      })
     } catch (err) {
       setError(err)
       console.log(err.message)
@@ -58,7 +61,7 @@ const Login = () => {
             <div className="flex justify-center mb-4">
                 <div className="w-24 h-24 font-extralight rounded-full tracking-widest flex justify-center items-center text-white bg-blue-500">MOODY</div>
             </div>
-            <form className="px-8 pt-6 pb-4 mb-4" onChange={handleChange} onSubmit={handleLogin}>
+            <form className="px-8 pt-6 pb-4 mb-4" onChange={handleChange}>
                 <div className="mb-4">
                     <input
                         className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -87,7 +90,7 @@ const Login = () => {
                 <div className="mt-5 flex-col items-center content-center">
                     <button 
                     className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-4 px-6 rounded focus:outline-none focus:shadow-outline"
-                    type="submit">
+                    type="button" onClick={()=>handleLogin()}>
                         Log In
                     </button>
                     <div className="flex items-center justify-between">

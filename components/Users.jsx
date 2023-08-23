@@ -7,6 +7,8 @@ import {
 	doc,
 	deleteDoc,
 	updateDoc,
+	query,
+	where
 } from "firebase/firestore"
 import { db, auth } from "../config/firebase"
 import ReactTooltip from "react-tooltip"
@@ -16,8 +18,8 @@ import ConfirmModal from './modals/ConfirmModal'
 import EditUserModal from './modals/EditUserModal'
 
 // Profile page that allows user to edit password or logout of their account
-const Users = ({customClaims}) => {
-	const {addAdminRole, addAgencyRole, addUserRole} = useAuth()
+const Users = () => {
+	const {addAdminRole, addAgencyRole, addUserRole, customClaims, setCustomClaims} = useAuth()
 	const [userRole, setUserRole] = useState('')
 	const [mobileUsers, setMobileUsers] = useState([])
 	const [loadedMobileUsers, setLoadedMobileUsers] = useState([])
@@ -26,10 +28,23 @@ const Users = ({customClaims}) => {
 	const [user, setUser] = useState('')
 	const [name, setName] = useState('')
 	const [email, setEmail] = useState('')
-	const [banned, setBanned] = useState('')
+	const [banned,setBanned] = useState('')
+	const [userAgency, setUserAgency] = useState('')
   const [editUser, setEditUser] = useState(null)
 	const [userId, setUserId] = useState(null)
-	const [update, setUpdate] = useState(false)
+	const [update,setUpdate] = useState(false)
+	// Get list user agency uid & display agency name
+	const getUserAgency = async (agencyUid) => {
+		const docRef = doc(db, "agency", agencyUid);
+		const docSnap = getDoc(docRef).then(docSnap => {
+				if(docSnap.exists()) {
+						setUserAgency(docSnap.data()['name'])
+				} else {
+						console.log("Document does not exist")
+				}
+		})
+	}
+	
 	// Delete report
 	const handleMobileUserDelete = async (userId) => {
 		setDeleteModal(true)
@@ -131,7 +146,7 @@ const Users = ({customClaims}) => {
 	}
 	// Handle getting data
 	const getData = async () => {
-		const usersCollection = collection(db, 'mobileUsers')
+		const usersCollection = collection(db,'mobileUsers')
 		const snapshot = await getDocs(usersCollection)
 		
 		try {
@@ -196,20 +211,29 @@ const Users = ({customClaims}) => {
 								<tr>
 									<th scope="col" className={tableHeading.default}>Name</th>
 									<th scope="col" className={tableHeading.default_center}>Email</th>
+									{customClaims.admin &&
+										<th scope="col" className={tableHeading.default_center}>Agency</th>
+									}
 									<th scope="col" className={tableHeading.default_center}>Join Date</th>
 									{customClaims.admin && <th scope="col" className={tableHeading.default_center}>Role</th>}
 									<th scope="col" className={tableHeading.default_center}>Banned</th>
-									<th scope="col" colSpan={2} className={tableHeading.default_center}>Delete</th>
+									{customClaims.admin &&
+										<th scope="col" colSpan={2} className={tableHeading.default_center}>Delete</th>
+									}
 								</tr>
 							</thead>
 							<tbody>
 								{/*Infinite scroll for the mobileUsers to load more mobileUsers when user scrolls to bottom*/}
 									{loadedMobileUsers.slice(0, endIndex).map((userObj, key) => {
-										const user = Object.values(userObj)[0]
+										const listUser = Object.values(userObj)[0]
 										const userId = Object.keys(userObj)[0]
-										let posted = user["joiningDate"]
+										let posted = listUser["joiningDate"]
 										const numUsers = endIndex;
 										// console.log(numUsers);
+										// Get list user agency uid & display agency name
+										if (listUser['agency'] !== undefined) {
+											getUserAgency(listUser['agency'])
+										}
 										posted = posted * 1000 
 										posted = new Date(posted)
 										posted = posted.toLocaleString("en-US", dateOptions)
@@ -218,37 +242,35 @@ const Users = ({customClaims}) => {
 												className="border-b transition duration-300 ease-in-out dark:border-indigo-100"
 												key={key} 
 												onClick={()=>handleEditUser(userId)}>
-												<td scope="row" className={column.data}>{user.name}
+												<td scope="row" className={column.data}>{listUser.name}
                         </td>
 												{/* 
 												TODO:
 												- add geopoint fields as a column in table.
 												*/}
-												<td className={column.data_center}>{user.email}</td>
-												{/* TODO
-												- format joined date
-												 */}
+												<td className={column.data_center}>{listUser.email}</td>
+												{customClaims.admin &&
+													<td className={column.data_center}>{listUser['agency'] !== undefined && userAgency}</td>
+												}
 												<td className={column.data_center}>{posted}</td>
 												{customClaims.admin && 
-													<td className={column.data_center}>{user.userRole}</td>
+													<td className={column.data_center}>{listUser.userRole}</td>
 												} 
 												{/* TODO:
 												- finish banned feature (with confirm modal)
 												 */}
-												<td className={column.data_center}>{user.isBanned && 'yes' || 'no'}</td>
-												{/* TODO:
-												- make sure the user is deleted, or the name is removed 
-												- dont want to tie the user after deletion to their prior data.
-												 */}
-												<td className={column.data_center} onClick={(e) => e.stopPropagation()}>
-													<button
-														onClick={() => handleMobileUserDelete(userId) }
-														data-tip="Delete user"
-														className={style.icon}>
-														<IoTrash size={20} className="ml-4 fill-gray-400 hover:fill-red-600" />
-														<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
-													</button>
-												</td>
+												<td className={column.data_center}>{listUser.isBanned && 'yes' || 'no'}</td>
+												{customClaims.admin &&
+													<td className={column.data_center} onClick={(e) => e.stopPropagation()}>
+														<button
+															onClick={() => handleMobileUserDelete(userId)}
+															data-tip="Delete user"
+															className={style.icon}>
+															<IoTrash size={20} className="ml-4 fill-gray-400 hover:fill-red-600" />
+															<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+														</button>
+													</td>
+												}
 											</tr>
 										)
 									})}
