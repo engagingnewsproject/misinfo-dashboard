@@ -4,7 +4,7 @@ import { IoClose } from "react-icons/io5"
 import Image from "next/image"
 import { db } from "../../config/firebase"
 import { doc, updateDoc } from "firebase/firestore";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL, getMetadata, updateMetadata } from 'firebase/storage';
 
 const AgencyModal = ({
 	setAgencyModal, 
@@ -25,11 +25,12 @@ const AgencyModal = ({
 	const [agencyUsers, setAgencyUsers] = useState([])
 	
 	// Handlers //
-	
+	// TODO: Need to figure out why Apple's HEIC filetypes are not showing on the dashboard.
 	// Image upload
 	const handleImageChange = (e) => {
 			for (let i = 0; i < e.target.files.length; i++) {
-					const newImage = e.target.files[i];
+				const newImage = e.target.files[i];
+				console.log(newImage)
 					setImages((prevState) => [...prevState, newImage]);
 					setUpdate(!update)
 			}
