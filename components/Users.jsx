@@ -155,7 +155,6 @@ const Users = ({customClaims}) => {
 				arr.push({
 					[doc.id]: doc.data(),
 				})
-				// console.log(doc.data()['agency'])
 			})
 			setMobileUsers(arr)
 			setLoadedMobileUsers(arr)
@@ -212,11 +211,15 @@ const Users = ({customClaims}) => {
 								<tr>
 									<th scope="col" className={tableHeading.default}>Name</th>
 									<th scope="col" className={tableHeading.default_center}>Email</th>
-									<th scope="col" className={tableHeading.default_center}>Agency</th>
+									{customClaims.admin &&
+										<th scope="col" className={tableHeading.default_center}>Agency</th>
+									}
 									<th scope="col" className={tableHeading.default_center}>Join Date</th>
 									{customClaims.admin && <th scope="col" className={tableHeading.default_center}>Role</th>}
 									<th scope="col" className={tableHeading.default_center}>Banned</th>
-									<th scope="col" colSpan={2} className={tableHeading.default_center}>Delete</th>
+									{customClaims.admin &&
+										<th scope="col" colSpan={2} className={tableHeading.default_center}>Delete</th>
+									}
 								</tr>
 							</thead>
 							<tbody>
@@ -246,7 +249,9 @@ const Users = ({customClaims}) => {
 												- add geopoint fields as a column in table.
 												*/}
 												<td className={column.data_center}>{listUser.email}</td>
-												<td className={column.data_center}>{listUser['agency'] !== undefined && userAgency}</td>
+												{customClaims.admin &&
+													<td className={column.data_center}>{listUser['agency'] !== undefined && userAgency}</td>
+												}
 												<td className={column.data_center}>{posted}</td>
 												{customClaims.admin && 
 													<td className={column.data_center}>{listUser.userRole}</td>
@@ -255,19 +260,17 @@ const Users = ({customClaims}) => {
 												- finish banned feature (with confirm modal)
 												 */}
 												<td className={column.data_center}>{listUser.isBanned && 'yes' || 'no'}</td>
-												{/* TODO:
-												- make sure the user is deleted, or the name is removed 
-												- dont want to tie the user after deletion to their prior data.
-												 */}
-												<td className={column.data_center} onClick={(e) => e.stopPropagation()}>
-													<button
-														onClick={() => handleMobileUserDelete(userId) }
-														data-tip="Delete user"
-														className={style.icon}>
-														<IoTrash size={20} className="ml-4 fill-gray-400 hover:fill-red-600" />
-														<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
-													</button>
-												</td>
+												{customClaims.admin &&
+													<td className={column.data_center} onClick={(e) => e.stopPropagation()}>
+														<button
+															onClick={() => handleMobileUserDelete(userId)}
+															data-tip="Delete user"
+															className={style.icon}>
+															<IoTrash size={20} className="ml-4 fill-gray-400 hover:fill-red-600" />
+															<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+														</button>
+													</td>
+												}
 											</tr>
 										)
 									})}

@@ -88,7 +88,7 @@ const Dashboard = () => {
             <Navbar tab={tab} setTab={setTab} handleNewReportSubmit={handleNewReportSubmit} customClaims={customClaims} setCustomClaims={setCustomClaims}/>
             <div className="pl-2 sm:pl-12">
             { tab == 0 && (customClaims.admin || customClaims.agency) && <Home newReportSubmitted={newReportSubmitted} handleNewReportSubmit={handleNewReportSubmit} />}
-            { tab == 1 && <Profile />}
+            { tab == 1 && <Profile customClaims={customClaims}/>}
             { tab == 2 && (customClaims.admin || customClaims.agency) && <Settings customClaims={customClaims} />}
             { tab == 3 && (customClaims.admin || customClaims.agency) && <Users customClaims={customClaims}/>}
             { tab == 4 && (customClaims.admin) && <Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />}
