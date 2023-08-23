@@ -14,9 +14,8 @@ const tabList = ['Report', 'Profile'];
 export const reportSystems = ['Report History', 'Reminder', 'Location', 'What', 'Where', 'Detail', 'Thank You'];
 
 const Report = () => {
-	const { user } = useAuth()
+	const { user, customClaims, setCustomClaims } = useAuth()
 	const router = useRouter()
-	const [customClaims, setCustomClaims] = useState({admin: false, agency: false})
 	const [reportSystem, setReportSystem] = useState(0)
 	const [reportView, setReportView] = useState(0)
 	const [tab, setTab] = useState(0)
@@ -78,7 +77,7 @@ const Report = () => {
 
   return (
 		<div className={style.pageContainer}>
-			<Navbar customClaims={customClaims} setCustomClaims={setCustomClaims} tab={tab} setTab={setTab} onReportTabClick={handleReportTabClick}/>
+			<Navbar tab={tab} setTab={setTab} onReportTabClick={handleReportTabClick}/>
 			<div className={style.container}>
 				<Headbar />
 				<div className={style.wrapper}>

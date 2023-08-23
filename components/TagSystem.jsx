@@ -31,11 +31,11 @@ const setData = async(tagSystem, list, active, user) => {
     
 }
 
-const TagSystem = ({ tagSystem, setTagSystem, customClaims }) => {
+const TagSystem = ({ tagSystem, setTagSystem}) => {
     const [list, setList] = useState([])
     const [active, setActive] = useState([])
     //const docRef = getDoc(db, "tags", tagSystem)
-    const { user } = useAuth()
+    const { user, customClaims, setCustomClaims} = useAuth()
     const [selected, setSelected] = useState("")
     const [search, setSearch] = useState("")
     const [searchResult, setSearchResult] = useState(list)

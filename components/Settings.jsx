@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import TagSystem from './TagSystem';
+import { useAuth } from '../context/AuthContext'
 
 export const tagSystems = ['default', 'Topic', 'Source', 'Labels'];
 
-const Settings = ({customClaims}) => {
+const Settings = () => {
   const [openModal, setOpenModal] = useState(false)
   const [tagSystem, setTagSystem] = useState(0)
+  const {customClaims} = useAuth()
 
   return (
     <div>
@@ -37,7 +39,7 @@ const Settings = ({customClaims}) => {
             </button>
         </div>
       </div> :
-      <TagSystem tagSystem={tagSystem} setTagSystem={setTagSystem} customClaims={customClaims} />}
+      <TagSystem tagSystem={tagSystem} setTagSystem={setTagSystem}/>}
     </div>
 
   )
