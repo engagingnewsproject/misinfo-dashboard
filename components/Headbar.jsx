@@ -126,7 +126,7 @@ const Headbar = ({ search, setSearch, customClaims}) => {
                     </div>
                 </div>
                 {(userRole == 'admin' || userRole == 'agency') &&
-                <form className="inline self-center" onChange={handleChange} onSubmit={handleSearch}>
+                <form className="inline relative self-center" onChange={handleChange} onSubmit={handleSearch}>
                    
                     <input
                         className="shadow border-none rounded-xl w-full p-3 pr-11 text-xs text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -136,7 +136,7 @@ const Headbar = ({ search, setSearch, customClaims}) => {
                         onChange={handleChange}
                         value={search} />
                     <button 
-                    className="py-1 px-1 mt-1.5 mr-1 absolute right-0 top-0 bg-blue-500 text-white rounded-xl" 
+                    className="py-1 px-1 mt-1 mr-1 absolute right-0 top-0 bg-blue-500 text-white rounded-xl" 
                     type='submit'>
                         <AiOutlineSearch size={25}/>
                     </button>
