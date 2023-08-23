@@ -28,13 +28,14 @@ const Profile = ({customClaims}) => {
   const [agency,setAgency] = useState([])
   const [agencyName, setAgencyName] = useState('')
   const [agencyId,setAgencyId] = useState('')
-  const [agencyState,setAgencyState] = useState(null)
-  const [agencyCity, setAgencyCity] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
   const [isAgency,setIsAgency] = useState(false)
   const router = useRouter()
 
 	// LOCATION
+  const [agencyState,setAgencyState] = useState(null)
+  const [agencyCity,setAgencyCity] = useState(null)
+  
   const [editLocation, setEditLocation] = useState(false)
   const [location, setLocation] = useState([])
 	const [data, setData] = useState({ country: "US", state: null, city: null })
@@ -124,7 +125,7 @@ const Profile = ({customClaims}) => {
     updateDoc(docRef, {
       name: agencyName,
       logo: imageURLs,
-      state: data.state.name,
+      state: agencyState,
       city: data.city == null ? "N/A" : data.city.name,
     }).then(() => {
       console.log('Success: agency saved: ' + agencyId);
@@ -159,11 +160,14 @@ const Profile = ({customClaims}) => {
       console.log("No agency name error")
       allErrors.name = "Please enter an agency name."
     }
-    if (data.state == null) {
+    
+    if (data.state == null && agency['state'] === '') {
       console.log("state error")
       allErrors.state = "Please enter a state."
+    } else {
+      setAgencyState(agency['state'])
     }
-    if (data.city == null) {
+    if (data.city == null && agency['city'] === '') {
       // Don't display the report, show an error message
       console.log("city error")
       allErrors.city = "Please enter a city."
@@ -174,18 +178,16 @@ const Profile = ({customClaims}) => {
           console.log("No cities here")
           delete allErrors.city
         }
+    } else {
+      data.city == agency['city']
     }
-    if (images == '') {
-      console.log('no images');
-      allErrors.images = "Please enter an agency image."
-    }
+    // if (agencyLogo == '') {
+    //   console.log('no images');
+    //   allErrors.images = "Please enter an agency image."
+    // }
     setErrors(allErrors)
     console.log(allErrors.length + "Error array length")
-    if (!agencyName) {
-      console.log('Agency name is required')
-    } else if (images == '') {
-      console.log('Agency logo is required')
-    } else {
+    
       if (images.length > 0) {
         setUpdate(!update)
       }
@@ -195,7 +197,7 @@ const Profile = ({customClaims}) => {
       }
       
     }
-  }
+  
   useEffect(() => {
     console.log(Object.values(errors))
   },[errors])
@@ -234,6 +236,9 @@ const Profile = ({customClaims}) => {
 		}
 	}, [update]);
   
+  useEffect(() => {
+    // console.log(agencyState)
+  })
 
   // Had to remove it for a sec. Wasn't allowing me to view the profile page.
 	// useEffect(() => {
@@ -263,7 +268,7 @@ const Profile = ({customClaims}) => {
 	const style = {
 		button: 'bg-blue-500 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline',
 		input: 'text-md font-light bg-white rounded-xl p-4 border-none w-full focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none',
-		inputSelect: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
+		inputSelect: 'border-gray-300 col-span-1 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
 		buttonCancel: ' col-start-3 border-solid border-red-500 self-end hover:bg-blue-700 text-sm text-red-500 font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline',
 		fileUploadButton: 'block flex flex-col text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer'
 	}
@@ -316,7 +321,7 @@ const Profile = ({customClaims}) => {
           <div className="text-xl font-extrabold text-blue-600 tracking-wider">Agency Settings</div>
           <div className='w-full h-auto'>
             <form onSubmit={handleFormSubmit} id='agencyDesign' className='flex flex-col'>
-            <div className="mt-4 mb-0.5 grid gap-4">
+            <div className="mt-4 mb-4 grid gap-4">
               <div className="grid grid-cols-4 items-center"> 
                 <div className='col-span-1'>Agency Name</div>
                   <div className='col-span-3'>
@@ -327,15 +332,19 @@ const Profile = ({customClaims}) => {
                       type='text'
                       className={style.input}
                       defaultValue={agencyName} />
-                    {agencyName === '' && (<span className="text-red-500">{errors.name}</span>)}
+                    {agencyName === '' && (<span className="text-red-500 text-xs">{errors.name}</span>)}
                   </div>
               </div>
               <div className="grid grid-cols-4 items-center">
                   <div className='col-span-1'>Agency Location</div>
-                  {editLocation ?
-                  <div className='col-span-3 flex items-center'>
+                  
+                  <div className='col-span-3 grid grid-cols-8 items-center bg-white rounded-md px-3'>
+                    <div className={`col-span-8 ${ editLocation === false ? ' visible relative' : ' hidden absolute'  }`} onClick={handleLocationChange}>
+                      <div className={style.input}>{`${ agency['city'] }, ${ agency['state'] }`}</div>
+                    </div>
                     <Select
-                      className={style.inputSelect}
+                      className={` col-start-1 row-start-1 col-span-3 ${style.inputSelect, editLocation === true ? ' visible relative' : ' hidden absolute '}`}
+                      
                       id="state"
                       type="text"
                       placeholder="State"
@@ -345,15 +354,16 @@ const Profile = ({customClaims}) => {
                       getOptionLabel={(options) => {
                         return options["name"]
                       }}
+                      // isDisabled={editLocation === true ? `false` : `true`}
                       getOptionValue={(options) => {
                         return options["name"]
                       }}
                         label="state"
                         onChange={handleStateChange}
                     />
-                    {errors.state && data.state === null && (<span className="text-red-500">{errors.state}</span>)}
+                    {errors.state && data.state === null && (<span className="text-red-500 text-xs col-start-1 col-span-3">{errors.state}</span>)}
                     <Select
-                      className={style.inputSelect}
+                      className={`${style.inputSelect,  editLocation === true ? ' visible relative' : ' hidden absolute'} ml-4 p-3 col-start-4 col-span-3 row-start-1`}
                       id="city"
                       type="text"
                       placeholder="City"
@@ -362,6 +372,7 @@ const Profile = ({customClaims}) => {
                         data.state?.countryCode,
                         data.state?.isoCode
                       )}
+                      // isDisabled={editLocation === true ? `false` : `true`}
                       getOptionLabel={(options) => {
                         return options["name"]
                       }}
@@ -370,14 +381,10 @@ const Profile = ({customClaims}) => {
                       }}
                       onChange={handleCityChange}
                     />
-                      {errors.city && data.city === null && (<span className="text-red-500">{errors.city}</span>)}
-                      <div className='text-red-500 cursor-pointer' onClick={handleLocationChange}>Cancel</div>
+                      {errors.city && data.city === null && (<span className="text-red-500 text-xs col-span-3 col-start-4">{errors.city}</span>)}
+                    <div className={`text-red-500 cursor-pointer col-start-7 row-start-1 col-auto${ editLocation === true ? ' visible block' : ' hidden absolute' }`} onClick={handleLocationChange}>Cancel</div>
                   </div>
-                    :
-                  <div className='col-span-3' onClick={handleLocationChange}>
-                    <div className={style.input}>{`${ agency['city'] }, ${ agency['state'] }`}</div>
-                  </div>
-                  }
+                  
               </div>
               <div className="grid grid-cols-4 items-center">
                   <div className='col-span-1'>Agency Logo</div>
