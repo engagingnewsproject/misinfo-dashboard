@@ -186,7 +186,13 @@ const ReportSystem = ({
         const sourceDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
         const sourceRef = await getDoc(sourceDoc);
         const sources = sourceRef.get("Source")['active']
-        setSources(sources)
+        let sourcesSorted = sources
+        sourcesSorted.sort((a, b) => {
+            if (a === "Other") return 1; // Move "Other" to the end
+            if (b === "Other") return -1; // Move "Other" to the end
+            return a.localeCompare(b); // Default sorting for other elements
+        });
+        setSources(sourcesSorted)
     }
     
     // //
