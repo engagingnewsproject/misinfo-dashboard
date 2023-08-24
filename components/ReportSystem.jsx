@@ -171,8 +171,14 @@ const ReportSystem = ({
     async function getAllTopics() {
         const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
         const topicRef = await getDoc(topicDoc);
-        const topics = topicRef.get("Topic")['active']
-        setAllTopicsArr(topics);
+        let topics = topicRef.get("Topic")['active']
+        let topicsSorted = topics
+        topicsSorted.sort((a, b) => {
+            if (a === "Other") return 1; // Move "Other" to the end
+            if (b === "Other") return -1; // Move "Other" to the end
+            return a.localeCompare(b); // Default sorting for other elements
+        });
+        setAllTopicsArr(topicsSorted);
     }
     
     // Get sources
@@ -435,7 +441,7 @@ const ReportSystem = ({
                     {/* Topic tag */}
                     {reportSystem == 4 &&
                     <div className={style.viewWrapper}>
-                        <div className={style.sectionH1}>{t.topicTitle}</div>
+                            <div className={style.sectionH1}>{t.topicTitle}</div>
                         {allTopicsArr.map((topic, i) => (
                             <>
                             <label key={i+'-'+topic} className={topic === selectedTopic ? style.inputRadioChecked : style.inputRadio}>
