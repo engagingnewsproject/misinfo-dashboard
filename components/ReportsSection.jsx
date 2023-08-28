@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
-
+import heicConvert from 'heic-convert'
 import {
 	collection,
 	getDoc,
@@ -666,6 +666,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				</table>
 				{reportModal && (
 					<ReportModal
+						reportModal={reportModal}
 						report={report}
 						reportTitle={reportTitle}
 						key={reportModalId}
