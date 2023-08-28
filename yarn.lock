@@ -2797,6 +2797,11 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
+heic2any@^0.0.4:
+  version "0.0.4"
+  resolved "https://registry.npmjs.org/heic2any/-/heic2any-0.0.4.tgz"
+  integrity sha512-3lLnZiDELfabVH87htnRolZ2iehX9zwpRyGNz22GKXIu0fznlblf0/ftppXKNqS26dqFSeqfIBhAmAj/uSp0cA==
+
 hoist-non-react-statics@^3.3.0, hoist-non-react-statics@^3.3.1:
   version "3.3.2"
   resolved "https://registry.npmjs.org/hoist-non-react-statics/-/hoist-non-react-statics-3.3.2.tgz"
