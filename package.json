@@ -21,6 +21,7 @@
     "firebase-admin": "^11.10.1",
     "firebase-functions": "^4.4.1",
     "formik": "^2.2.9",
+    "heic2any": "^0.0.4",
     "luxon": "^3.2.1",
     "moment": "^2.29.4",
     "next": "^13.4.12",
