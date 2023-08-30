@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
-import heicConvert from 'heic-convert'
 import {
 	collection,
 	getDoc,
