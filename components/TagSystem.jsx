@@ -55,6 +55,11 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
         try {
             const { [tagSystems[tagSystem]]: tagsData } = docRef.data()
             setList(tagsData.list)
+            tagsData.active.sort((a, b) => {
+                if (a === "Other") return 1; // Move "Other" to the end
+                if (b === "Other") return -1; // Move "Other" to the end
+                return a.localeCompare(b); // Default sorting for other elements
+            });
             setActive(tagsData.active)
         } catch (error) {
             setData(tagSystem, list, active, user)
@@ -65,7 +70,6 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
     const updateTag = (e, updateType) => {
         switch (updateType) {
             case "activate":
-                // console.log(active.length)
                 if (active.length == maxTags[tagSystem]) {
                     setMaxTagsError(true)
                 } else {
@@ -129,8 +133,6 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
     const handleSearch = (e) => {
         e.preventDefault()
         if (search.length == 0) return
-
-        // console.log(search)
     }
 
     const handleChange = (e) => {
@@ -148,7 +150,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
     }, [selected])
 
     return (
-        <div className="z-0 flex-col p-4 sm:p-16 h-full" onClick={(e) => {
+        <div className="z-0 flex flex-col p-4 sm:p-16 h-full" onClick={(e) => {
             if (e.target == e.currentTarget) {
                 setSearchResult([])
                 setSelected("")
@@ -162,7 +164,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                         {tagSystem == 3 ? "Customized " + tagSystems[tagSystem] : tagSystems[tagSystem] + " Tags"}
                     </div>
                     <div className="text-sm font-light">
-                        {"Maximum: " + (maxTags[tagSystem] - 1) + " + 1 Others Tags"}
+                        {"Maximum: " + (maxTags[tagSystem] - 1) + " Tags (+Other)"}
                     </div>
                     {selected.length == 0 && !customClaims.admin ? 
                     <button
@@ -172,7 +174,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                         <FaPlus className="text-blue-600" size={12}/>
                         <div className="px-2 font-normal tracking-wide">{"New " + tagSystems[tagSystem]}</div>
                     </button> :
-                    <div className="flex items-center ml-auto mr-6">
+                    <div className="flex items-center ml-auto">
                         {!customClaims.admin &&
                         <>
                             <button
@@ -201,9 +203,9 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                     </div>}
                 </div>
                 <div className="relative">
-                <form className="w-full mt-7 pr-6 ml-2" onChange={handleChange} onSubmit={handleSearch}>
+                <form className="w-full mt-7 ml-2 relative" onChange={handleChange} onSubmit={handleSearch}>
                     <button 
-                    className="p-1 absolute right-[5.75rem] top-[8.2rem] bg-blue-500 text-white rounded-xl" 
+                    className="p-1 absolute right-1 top-1 bg-blue-500 text-white rounded-xl" 
                     type='submit'>
                         <AiOutlineSearch size={25}/>
                     </button>
@@ -240,7 +242,12 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                     : 
                     <div>
                         {active.length != 0 && 
-                        <div className="grid w-full p-4 mb-2 rounded-xl grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                        <div className="grid w-full p-4 mb-2 rounded-xl grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5" onClick={(e) => {
+                        if (e.target == e.currentTarget) {
+                            setSearchResult([])
+                            setSelected("")
+                        }
+                        }}>
                             {active.map((item) => {
                                 return (
                                 !customClaims.admin ?
@@ -249,8 +256,8 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                                             <GoPrimitiveDot size={25} className="text-green-600"/>
                                             <div className="pl-2">{item}</div>
                                         </div> :
-                                        <div className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center" key={`other`}>
-                                            <GoPrimitiveDot size={25} className="text-green-600"/>
+                                        <div className="text-md font-light my-5 leading-normal flex items-center justify-center" key={`other`}>
+                                            <GoPrimitiveDot size={25} className="text-gray-400"/>
                                             <div className="pl-2">{`Other*`}</div>
                                         </div>
                                     :
@@ -262,7 +269,12 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                             })}
                         </div>}
                         { maxTagsError && <span className="pl-12 text-red-500 text-sm font-light">{"You may only enable " + maxTags[tagSystem] + " live tags"}</span>}
-                        <div className="grid bg-white w-full p-4 mt-10 rounded-xl grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                        <div className="grid bg-white w-full p-4 mt-10 rounded-xl grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5" onClick={(e) => {
+                        if (e.target == e.currentTarget) {
+                            setSearchResult([])
+                            setSelected("")
+                        }
+                        }}>
                         {list.map((item) => {
                             const normStyles = "text-md font-light p-2 my-3 md:mx-2 cursor-pointer leading-normal flex items-center justify-center"
                             const selectedStyles = normStyles + " bg-blue-600 text-white rounded-lg"
@@ -307,7 +319,8 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                     subtitle="You will permanently remove this tag. You can not undo this action."
                     CTA="Delete"
                     closeModal={setDeleteModal}
-                    />}
+                />}
+            <div className='text-xs flex justify-center text-gray-500 mt-2'><p>* "Other" is a default that cannot be edited or removed.</p></div>
         </div>
     )
 }
