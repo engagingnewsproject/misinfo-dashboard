@@ -40,6 +40,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
   // Stores privilege role of the current user, and displays dashboard
   
   useEffect(() => {
+    console.log(customClaims)
     const handleWindowResize = () => {
       setWindowSize([window.innerWidth, window.innerHeight]);
     };
