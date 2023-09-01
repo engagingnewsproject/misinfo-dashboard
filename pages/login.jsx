@@ -12,42 +12,45 @@ const Login = () => {
     email: '',
     password: '',
   })
-  const [error, setError] = useState()
-
+  const [error, setError] = useState(null)
+  const [errorMessage, setErrorMessage] = useState()
+  const [loading, setLoading] = useState(false)
 //   Get user custom token
  
-useEffect(() => {     
-  if (user) {
-    handleLogin()
-  }}, [user])
-
 
   const handleLogin = () => {
-  
-    try {
       //console.log(user)
       login(data.email, data.password).then(()=> {
         setError(null)
+        console.log(auth.currentUser.uid)
         if (auth.currentUser?.emailVerified) {
           auth.currentUser.getIdTokenResult()
           .then((idTokenResult) => {
               // if admin load the dashboard
               if (!!idTokenResult.claims.admin || !!idTokenResult.claims.agency) {
-                  router.push('/dashboard')
+                window.location.replace('/dashboard')
               // otherwise load the report page
               } else {
-                  router.push('/report')
+                window.location.replace('/report')
               }
           })
         } else if (!auth.currentUser?.emailVerified) {
           verifyEmail(auth.currentUser)
           router.push('/verifyEmail')
         }
+      }).catch((err)=> {
+        if (err == "FirebaseError: Firebase: Error (auth/user-not-found).") {
+          setError("An account was not found with the provided email. ")
+        } else if (err == "FirebaseError: Firebase: Error (auth/wrong-password).") {
+          setError("The password is incorrect. ")
+        } else {
+          setError("An error occurred when logging in.")
+          console.log(err)
+        }
+        
       })
-    } catch (err) {
-      setError(err)
-      console.log(err.message)
-    }
+  
+   
   }
 
   const handleChange = (e) => {
@@ -86,7 +89,7 @@ useEffect(() => {
                         autoComplete='current-password'
                         />
                 </div>
-                {error && <span className="text-red-500 text-sm font-light">Incorrect password or username</span>}
+                {error && <span className="text-red-500 text-sm font-light">{error}</span>}
                 <div className="mt-5 flex-col items-center content-center">
                     <button 
                     className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-4 px-6 rounded focus:outline-none focus:shadow-outline"
