@@ -79,19 +79,15 @@ export const AuthContextProvider = ({children}) => {
     const addUserRole = httpsCallable(functions, 'addUserRole')
 
     const signup = (teamName, email, password) => {
-        createUserWithEmailAndPassword(auth, email, password).then((userCredential)=> {
-          
-          return verifyEmail(userCredential.user)
-        }).catch((error) => {
-          return error
-        })
+        return createUserWithEmailAndPassword(auth, email, password);
     }
 
     const verifyEmail = (user) => {
       var actionCodeSettings = {
         // URL you want to redirect back to. The domain (www.example.com) for this URL
         // must be whitelisted in the Firebase Console.
-        'url': 'http://localhost:3000/login',
+        //'url': 'http://localhost:3000/login',
+        'url': 'https://misinfo-dashboard.netlify.app/login',
         // 'url': 'https://misinfo-dashboard.netlify.app/signup', // Here we redirect back to this same page.
         'handleCodeInApp': true, // This must be true.
     };
@@ -159,7 +155,9 @@ export const AuthContextProvider = ({children}) => {
         var actionCodeSettings = {
             // URL you want to redirect back to. The domain (www.example.com) for this URL
             // must be whitelisted in the Firebase Console.
-            'url': 'http://localhost:3000/signup',
+            // 'url': 'http://localhost:3000/signup',
+
+            'url': 'https://misinfo-dashboard.netlify.app/signup',
             // 'url': 'https://misinfo-dashboard.netlify.app/signup', // Here we redirect back to this same page.
             'handleCodeInApp': true, // This must be true.
         };
