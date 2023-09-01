@@ -216,7 +216,7 @@ const Profile = ({customClaims}) => {
     if (user) {
 		  getData()
     }
-  });
+  }, []);
   
   useEffect(() => {
     console.log(agency['name'])
@@ -263,8 +263,9 @@ const Profile = ({customClaims}) => {
   
   // LOGOUT
   const handleLogout = () => {
-    logout()
-    router.push('/login')
+    logout().then(()=> {
+      router.push('/login')
+    })
   }
   
 	const style = {
