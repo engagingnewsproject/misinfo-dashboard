@@ -213,7 +213,9 @@ const Profile = ({customClaims}) => {
 
 
 	useEffect(() => { // Get data
-		getData()
+    if (user) {
+		  getData()
+    }
   });
   
   useEffect(() => {
