@@ -54,6 +54,9 @@ export const AuthContextProvider = ({children}) => {
                   } else if (!!idTokenResult.claims.agency) {
                     // Show regular user UI.
                     setCustomClaims({agency: true})
+                  } else {
+                    console.log("not admiin or agency")
+                    setCustomClaims({agency: false, admin: false})
                   }
                 })
                 .catch((error) => {
@@ -62,6 +65,8 @@ export const AuthContextProvider = ({children}) => {
               
             } else {
               setUser(null)
+              setCustomClaims({agency: false, admin: false})
+
             }
             setLoading(false)
         })
@@ -108,7 +113,7 @@ export const AuthContextProvider = ({children}) => {
 
     const logout = async () => {
         setUser(null)
-        await signOut(auth)
+        return signOut(auth);
     }
 
     const verifyRole = async () => {
