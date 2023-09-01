@@ -28,8 +28,10 @@ const SignUp = () => {
     const addMobileUser = () => {
         // Get user object
         const user = auth.currentUser;
+        
         if (user) {
             // Set user uid
+            console.log("adding mobile user")
             const uid = user.uid;
             // create a new mobileUsers doc with signed in user's uid
             setDoc(doc(db, "mobileUsers", uid), {
@@ -37,8 +39,8 @@ const SignUp = () => {
                 email: data.email,
                 joiningDate: moment().utc().unix(),
                 isBanned: false,
-                userRole: 'User'
             });
+            console.log("user was added with uid" + uid)
         } else {
             console.log('no user');
         }
@@ -79,12 +81,12 @@ const SignUp = () => {
                       console.log(auth.currentUser.email)
 
                       if (verifyEmail(auth.currentUser)) {
-
                         setSignUpError("")
                         console.log("in try")
                         window.location.replace('/dashboard')
                       } else {
                         console.log("here = for agency")
+                        addMobileUser()
                         window.location.replace('/verifyEmail')
                       }
                     })
@@ -104,20 +106,30 @@ const SignUp = () => {
                 
               } else {
 
-                const userVerified = await signup(data.teamName, data.email, data.password)
+                signup(data.teamName, data.email, data.password).then((userCredential)=> {
+                  createUserWithEmailAndPassword(auth, email, password).then((userCredential)=> {
+                     verifyEmail(userCredential.user).then((verified)=> {
+                      if (verified) {
+                        setSignUpError("")
+                        console.log("in try")
+                        router.push('/dashboard')
+                      } else {
+                        console.log("here")
+                        console.log(userVerified)
+                        router.push('/verifyEmail')
+                      }
+                     })
+                  })}).catch((error) => {
+                    if (error == "FirebaseError: Firebase: Error (auth/email-already-in-use).") {
+                      setSignUpError("The entered email is already in use.")
+                    }
+                    console.log(error)
+                  })
 
-                if (userVerified) {
-                  setSignUpError("")
-                  console.log("in try")
-                  router.push('/dashboard')
-                } else {
-                  console.log("here")
-                  router.push('/verifyEmail')
-                }
               }
               
           } catch (err) {
-          
+              
               if (err.message == "Firebase: Error (auth/email-already-in-use).") {
                   setSignUpError("Email already in use. Please log in.")
               } else {
