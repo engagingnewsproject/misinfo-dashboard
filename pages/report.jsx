@@ -58,7 +58,7 @@ const Report = () => {
 					setCustomClaims({admin: true})
 				} else if (!!idTokenResult.claims.agency) {
 					setCustomClaims({agency: true})
-				}
+				} 
 			})
 			.catch((error) => {
 				console.log(error);

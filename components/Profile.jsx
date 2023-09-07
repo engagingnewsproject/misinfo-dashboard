@@ -98,6 +98,9 @@ const Profile = ({customClaims}) => {
         setIsAdmin(true)
       } else if (result.agency) {
         setIsAgency(true)
+      } else {
+        setIsAgency(false)
+        setIsAdmin(false)
       }
     })
   }, [])
@@ -105,31 +108,35 @@ const Profile = ({customClaims}) => {
   
   // GET DATA
   const getData = async () => { // Get data
-		const agencyCollection = collection(db, 'agency')
-		const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
-    const querySnapshot = await getDocs(q)
-    querySnapshot.forEach((doc) => { // Set initial values
-      setAgency(doc.data())
-      setAgencyId(doc.id)
-      setAgencyName(doc.data()['name'])
-      setAgencyState(doc.data()['state'])
-      setAgencyCity(doc.data()['city'])
-      setAgencyLogo(doc.data()['logo'])
-    });
+    if (isAgency) {
+      const agencyCollection = collection(db, 'agency')
+      const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
+      const querySnapshot = await getDocs(q)
+      querySnapshot.forEach((doc) => { // Set initial values
+        setAgency(doc.data())
+        setAgencyId(doc.id)
+        setAgencyName(doc.data()['name'])
+        setAgencyState(doc.data()['state'])
+        setAgencyCity(doc.data()['city'])
+        setAgencyLogo(doc.data()['logo'])
+      });
+    }
   }
 
   
   // SAVE AGENCY
   const saveAgency = (imageURLs) => {
-    const docRef = doc(db, "agency", agencyId);
-    updateDoc(docRef, {
-      name: agencyName,
-      logo: imageURLs,
-      state: agencyState,
-      city: data.city == null ? "N/A" : data.city.name,
-    }).then(() => {
-      console.log('Success: agency saved: ' + agencyId);
-    })
+    if (isAgency) {
+      const docRef = doc(db, "agency", agencyId);
+      updateDoc(docRef, {
+        name: agencyName,
+        logo: imageURLs,
+        state: agencyState,
+        city: data.city == null ? "N/A" : data.city.name,
+      }).then(() => {
+        console.log('Success: agency saved: ' + agencyId);
+      })
+    }
   }
   
 
@@ -319,7 +326,7 @@ const Profile = ({customClaims}) => {
             </button>
         </div>
       </div>
-      {customClaims.agency && // agency settings
+      {isAgency && // agency settings
         <div className='z-0 flex-col p-16 pt-10 bg-slate-100'>
           <div className="text-xl font-extrabold text-blue-600 tracking-wider">Agency Settings</div>
           <div className='w-full h-auto'>
