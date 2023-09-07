@@ -106,7 +106,7 @@ const Headbar = ({ search, setSearch}) => {
     // Effect: get data
 	useEffect(() => {
 		getData()
-	})
+	}, [])
     return (
         <div className="w-full">
             <div className="flex py-4 px-12 sm:px-10 justify-between items-center">
