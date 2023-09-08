@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import SwitchRead from "../SwitchRead"
 import Link from "next/link"
 import Image from "next/image"
@@ -12,6 +12,7 @@ import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
 import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
 
 const ReportModal = ({
+	reportModal,
 	report,
 	reportTitle,
 	note,
@@ -46,7 +47,11 @@ const ReportModal = ({
 		special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl",
 	}
 	const reportURI = "/reports/" + setReportModalId
-	
+	const [images,setImages] = useState([])
+	useEffect(() => {
+		setImages(report['images'])
+		console.log(images)
+	}, [reportModal])
 	function SendLinkByMail(href) {
 		var subject = "Misinformation Report"
 		var body = "Link to report:\r\n"
@@ -58,6 +63,9 @@ const ReportModal = ({
 		uri += reportURI
 		window.open(uri)
 	}
+
+	
+	
 	return (
 		<div className="fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto" // {style.overlay} 
 			onClick={() => setReportModal(false)}>
