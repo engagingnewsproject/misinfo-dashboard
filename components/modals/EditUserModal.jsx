@@ -7,8 +7,8 @@ const EditUserModal = ({customClaims, userRole, onOptionChange, onNameChange, na
 	// Styles
 	const style = {
 		modal_background: "fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto",
-		modal_container: "absolute top-4 md:top-6 md:right-6 md:left-6 flex justify-center items-center z-[1300] sm:overflow-y-scroll",
-		modal_wrapper: "flex-col justify-center items-center lg:w-6/12 md:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible",
+		modal_container: "absolute inset-0 flex justify-center items-center z-[1300] sm:overflow-y-scroll",
+		modal_wrapper: "flex-col justify-center items-center w-10/12 md:w-8/12 lg:w-5/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible",
 		modal_header_container: "grid md:gap-5 lg:gap-5 auto-cols-auto mb-6",
 		modal_header_wrapper: "flex w-full items-baseline justify-between",
 		modal_header: "text-lg font-bold text-blue-600 tracking-wider",
