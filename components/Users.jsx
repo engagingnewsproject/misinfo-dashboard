@@ -7,8 +7,7 @@ import {
 	doc,
 	deleteDoc,
 	updateDoc,
-	query,
-	where
+	onSnapshot
 } from "firebase/firestore"
 import { db, auth } from "../config/firebase"
 import ReactTooltip from "react-tooltip"
@@ -17,74 +16,84 @@ import InfiniteScroll from "react-infinite-scroll-component"
 import ConfirmModal from './modals/ConfirmModal'
 import EditUserModal from './modals/EditUserModal'
 
-// Profile page that allows user to edit password or logout of their account
+// Profile page that allows the user to edit password or logout of their account
 const Users = () => {
-	const {addAdminRole, addAgencyRole, addUserRole, customClaims, setCustomClaims} = useAuth()
+	// Initialize authentication context
+	const { addAdminRole, addAgencyRole, addUserRole, customClaims, setCustomClaims } = useAuth()
+	
+	// State variables for managing user data
 	const [userRole, setUserRole] = useState('')
 	const [mobileUsers, setMobileUsers] = useState([])
 	const [loadedMobileUsers, setLoadedMobileUsers] = useState([])
 	const [endIndex, setEndIndex] = useState(0)
 	const [deleteModal, setDeleteModal] = useState(false)
-	const [user, setUser] = useState('')
+	const [user, setUser] = useState([])
 	const [name, setName] = useState('')
 	const [email, setEmail] = useState('')
-	const [banned,setBanned] = useState('')
-	const [userAgency, setUserAgency] = useState('')
-  const [editUser, setEditUser] = useState(null)
+	const [agency, setAgency] = useState('')
+	const [banned, setBanned] = useState('')
+	const [editUser, setEditUser] = useState(null)
 	const [userId, setUserId] = useState(null)
-	const [update,setUpdate] = useState(false)
-	// Get list user agency uid & display agency name
-	const getUserAgency = async (agencyUid) => {
-		const docRef = doc(db, "agency", agencyUid);
-		const docSnap = getDoc(docRef).then(docSnap => {
-				if(docSnap.exists()) {
-						setUserAgency(docSnap.data()['name'])
-				} else {
-						console.log("Document does not exist")
-				}
-		})
-	}
+	const [update, setUpdate] = useState(false)
 	
-	// Delete report
+	// Function to trigger delete user modal
 	const handleMobileUserDelete = async (userId) => {
 		setDeleteModal(true)
 		setUserId(userId)
 	}
-	// Handle user delete
+	
+	// Function to handle user deletion
 	const handleDelete = async (e) => {
 		e.preventDefault()
-		auth.onAuthStateChanged((user) => {
-			if (user) {
-				setUserId(user.uid)
-				const uid = user.uid;
-			}
-		});
 		const docRef = doc(db, "mobileUsers", userId)
 		deleteDoc(docRef)
 		.then(() => {
 			getData()
 			setDeleteModal(false)
-			// to do: delete user from firebase authentification console
+			// TODO: Delete user from Firebase authentication console
 		})
 		.catch((error) => {
 			console.log('The write failed' + error);
 		})
 	}
-	// Handle EditUserModal open/close & set values
-	const handleEditUser = async (userId) => {
-		// On user click set user id
+	
+	// Function to handle opening and setting values in the EditUserModal
+	const handleEditUser = async (listUser, userId) => {
 		setUserId(userId)
-		// with userId get mobileUsers doc ref
 		const userRef = await getDoc(doc(db, "mobileUsers", userId));
 		setUser(userRef.data()) 
 		setName(userRef.data()['name'])
 		setEmail(userRef.data()['email'])
+		setAgency(listUser['agency'])
 		setBanned(userRef.data()['isBanned'])
 		setUserRole(userRef.data()['userRole'])
-    setEditUser(true)
+		setEditUser(true)
 	}
-	// Handle form submit
-	const handleFormSubmit = (e) => {
+	
+	// Function to handle name change
+	const handleNameChange = (e) => {
+		e.preventDefault()
+		setName(e.target.value)
+	}
+	
+	// Function to handle email change
+	const handleEmailChange = (e) => {
+		e.preventDefault()
+		setEmail(e.target.value)
+	}
+	
+	// Function to handle user role change
+	const handleOptionChange = (e) => {
+		setUserRole(e.target.value)
+	}
+	
+	// Function to handle banned status change
+	const handleBannedChange = (e) => {
+		setBanned(!banned)
+	}
+	
+	// Function to handle form submission (updating user data)
+	const handleFormSubmit = async (e) => {
 		e.preventDefault()
 		// User Role change
 		auth.currentUser.getIdTokenResult()
@@ -93,11 +102,11 @@ const Users = () => {
 			if (!!idTokenResult.claims.admin) {
 				// Change the selected user's privileges as requested
 				if (userRole === "Admin") {
-					console.log(addAdminRole({email: user.email}))
+					console.log(addAdminRole({ email: user.email }))
 				} else if (userRole === "Agency") {
-					console.log(addAgencyRole({email: user.email}))
+					console.log(addAgencyRole({ email: user.email }))
 				} else if (userRole === "User") {
-					console.log(addUserRole({email: user.email}))
+					console.log(addUserRole({ email: user.email }))
 				}
 				setUserRole(userRole)
 			}
@@ -106,79 +115,75 @@ const Users = () => {
 			console.log(error);
 		});
 		// Name change
-		const docRef = doc(db, "mobileUsers", userId)
-		if (name != user.name) {
-			updateDoc(docRef, { name: name })
-			setName(name)
-		}
-		// Email change
-		if (email != user.email) {
-			updateDoc(docRef, { email: email })
-			setEmail(email)
-		}
-		// Banned change
-		if (banned != user.isBanned) {
-			updateDoc(docRef, { isBanned: banned })
-			setBanned(banned)
-		}
-		if (userRole != user.userRole) {
-			updateDoc(docRef, { userRole: userRole })
-		}
-		setEditUser(false)
-	}
-	// Handle user permissions
-	const handleOptionChange = (e) => {
-		setUserRole(e.target.value)
-  }
-	// Handle name change
-	const handleNameChange = (e) => {
-		e.preventDefault()
-		setName(e.target.value)
-	}
-	// Handle email change
-	const handleEmailChange = (e) => {
-		e.preventDefault()
-		setEmail(e.target.value)
-	}
-	// Handle banned change
-	const handleBannedChange = (e) => {
-		setBanned(!banned)
-	}
-	// Handle getting data
-	const getData = async () => {
-		const usersCollection = collection(db,'mobileUsers')
-		const snapshot = await getDocs(usersCollection)
+		const docRef = doc(db,"mobileUsers",userId)
+		await updateDoc(docRef, {
+			name: name,
+			email: email,
+			isBanned: banned,
+			userRole: userRole
+		});
 		
+		setEditUser(false)
+	}	
+	
+	// Function to fetch user data from Firebase
+	const getData = async () => {
 		try {
-			var arr = []
-			snapshot.forEach((doc) => {
-				arr.push({
-					[doc.id]: doc.data(),
-				})
-			})
-			setMobileUsers(arr)
-			setLoadedMobileUsers(arr)
-			setEndIndex(endIndex + 14)
+			const usersCollection = collection(db, 'mobileUsers');
+			const snapshot = await getDocs(usersCollection);
+			const promises = []; // An array to store promises for each user
+			var arr = []; // An array to store user data
+			
+			snapshot.forEach((user) => {
+				const userData = user.data();
+				const userObject = {
+					[user.id]: userData,
+				};
+				
+				if (user.data()['agency']) {
+					const agencyDocRef = doc(db, "agency", user.data()['agency']);
+					const promise = new Promise((resolve, reject) => {
+						const unsub = onSnapshot(agencyDocRef, (docSnap) => {
+							const agencyName = docSnap.data()['name'];
+							userObject[user.id]['agency'] = agencyName;
+							unsub(); // Unsubscribe after getting agency data
+							resolve(); // Resolve the promise
+						});
+					});
+					promises.push(promise);
+				}
+				
+				arr.push(userObject);
+			});
+			
+			await Promise.all(promises);
+			
+			setMobileUsers(arr);
+			setLoadedMobileUsers(arr);
+			setEndIndex(endIndex + 14);
+			
 		} catch (error) {
-			console.log(error)
+			console.log(error);
 		}
-	}
-	// Get data
+	};
+	
+	// Initial data fetch
 	useEffect(() => {
 		getData()
 	})
 	
-	// Handle updates
+	// Data fetch on update
 	useEffect(() => {
 		getData()
 	}, [update])
-
+	
 	const dateOptions = {
 		day: "2-digit",
 		year: "numeric",
 		month: "short",
 	}
-	// Styles
+	
+	// CSS style definitions
 	const tableHeading = {
 		default: "px-3 py-1 text-sm font-semibold text-left tracking-wide",
 		default_center: "text-center p-2 text-sm font-semibold tracking-wide",
@@ -188,9 +193,10 @@ const Users = () => {
 		data: "whitespace-normal text-sm px-3 py-1",
 		data_center: "whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 text-center"
 	}
- 	const style = {
+	const style = {
 		icon: "hover:fill-cyan-700"
 	}
+	
   return (
 		<div className="w-full h-full flex flex-col py-5">
 			<div className="w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto" id="scrollableDiv">
@@ -224,24 +230,20 @@ const Users = () => {
 							</thead>
 							<tbody>
 								{/*Infinite scroll for the mobileUsers to load more mobileUsers when user scrolls to bottom*/}
-									{loadedMobileUsers.slice(0, endIndex).map((userObj, key) => {
-										const listUser = Object.values(userObj)[0]
-										const userId = Object.keys(userObj)[0]
-										let posted = listUser["joiningDate"]
-										const numUsers = endIndex;
-										// console.log(numUsers);
-										// Get list user agency uid & display agency name
-										if (listUser['agency'] !== undefined) {
-											getUserAgency(listUser['agency'])
-										}
-										posted = posted * 1000 
-										posted = new Date(posted)
-										posted = posted.toLocaleString("en-US", dateOptions)
+								{loadedMobileUsers.slice(0,endIndex).map((userObj,key) => {
+									const listUser = Object.values(userObj)[0]
+									const userId = Object.keys(userObj)[0]
+									let posted = listUser["joiningDate"]
+									const numUsers = endIndex;
+									// Get list user agency uid & display agency name
+									posted = posted * 1000 
+									posted = new Date(posted)
+									posted = posted.toLocaleString("en-US", dateOptions)
 										return (
 											<tr
 												className="border-b transition duration-300 ease-in-out dark:border-indigo-100"
 												key={key} 
-												onClick={()=>handleEditUser(userId)}>
+												onClick={()=>handleEditUser(listUser, userId)}>
 												<td scope="row" className={column.data}>{listUser.name}
                         </td>
 												{/* 
@@ -250,7 +252,7 @@ const Users = () => {
 												*/}
 												<td className={column.data_center}>{listUser.email}</td>
 												{customClaims.admin &&
-													<td className={column.data_center}>{listUser['agency'] !== undefined && userAgency}</td>
+													<td className={column.data_center}>{listUser['agency']}</td>
 												}
 												<td className={column.data_center}>{posted}</td>
 												{customClaims.admin && 
@@ -288,23 +290,25 @@ const Users = () => {
 				closeModal={setDeleteModal}
 			/>}
       {editUser && <EditUserModal 
-			customClaims={customClaims} 
-			userRole={userRole}
-			setUserRole={setUserRole}
-			setEditUser={setEditUser} 
-			editUser={editUser} 
-			user={user}
-			userId={userId}
-			name={name}
-			onNameChange={handleNameChange}
-			email={email}
-			onEmailChange={handleEmailChange}
-			banned={banned}
-			setBanned={setBanned}
-			onBannedChange={handleBannedChange}
-			onFormSubmit={handleFormSubmit}
-			onOptionChange={handleOptionChange}
-			setUser={setUser} />}
+				customClaims={customClaims} 
+				userRole={userRole}
+				setUserRole={setUserRole}
+				setEditUser={setEditUser} 
+				editUser={editUser} 
+				user={user}
+				userId={userId}
+				name={name}
+				onNameChange={handleNameChange}
+				agency={agency}
+				// onAgencyChange={handleAgencyChange}
+				email={email}
+				onEmailChange={handleEmailChange}
+				banned={banned}
+				setBanned={setBanned}
+				onBannedChange={handleBannedChange}
+				onFormSubmit={handleFormSubmit}
+				onOptionChange={handleOptionChange}
+				setUser={setUser} />}
 		</div>
   )
 }
