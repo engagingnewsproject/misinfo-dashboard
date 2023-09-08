@@ -12,6 +12,9 @@
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
       ]
     }
   ],
@@ -31,6 +34,13 @@
     "singleProjectMode": true
   },
   "storage": {
-    "rules": "storage.rules"
+    "rules": "storage.rules",
+    "cors": [
+      {
+        "origin": ["https://misinfo-dashboard.netlify.app", "https://dev-misinfo-dashboard.netlify.app", "http://localhost:3000"],
+        "method": ["GET", "PUT", "POST", "DELETE"],
+        "maxAgeSeconds": 3600
+      }
+    ]
   }
 }
