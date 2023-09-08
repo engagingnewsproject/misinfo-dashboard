@@ -20,50 +20,80 @@ const AgencyModal = ({
 	// //
 	const [errors, setErrors] = useState({})
 	const [images, setImages] = useState([])
-	const [imageURLs, setImageURLs] = useState([]);
+	const [uploadedImageURLs, setImageURLs] = useState([]);
 	const [update, setUpdate] = useState(false)
 	const [agencyUsers, setAgencyUsers] = useState([])
 	
-	// Handlers //
-	// TODO: Need to figure out why Apple's HEIC filetypes are not showing on the dashboard.
-	// Image upload
-	const handleImageChange = (e) => {
-			for (let i = 0; i < e.target.files.length; i++) {
-				const newImage = e.target.files[i];
-				console.log(newImage)
-					setImages((prevState) => [...prevState, newImage]);
-					setUpdate(!update)
+// This function handles the change event when the user selects one or more images.
+// It updates the 'images' state and triggers a re-render.
+const handleImageChange = (e) => {
+  // Clear the 'images' state to start with an empty array.
+  setImages([]);
+  
+  // Loop through each selected image in the event.
+  for (let i = 0; i < e.target.files.length; i++) {
+    const newImage = e.target.files[i];
+    console.log(newImage); // Log the new image for debugging.
+    
+    // Update the 'images' state by adding the new image to the previous state.
+    setImages((prevState) => [...prevState, newImage]);
+    
+    // Trigger a re-render by changing the 'update' state (if needed).
+    setUpdate(!update);
+  }
+}
+
+	// This function handles the upload of images to Firebase Storage.
+	const handleUpload = async () => {
+		try {
+			// Check if there are no images to upload.
+			if (images.length === 0) {
+				console.error("No images to upload.");
+				return;
 			}
-	}
-	
-	// Image upload to firebase
-	const handleUpload = () => {
-		const promises = [];
-		images.map((image) => {
-			const storageRef = ref(storage, `agencies/logo_${new Date().getTime().toString()}.png`)
-			const uploadTask = uploadBytesResumable(storageRef, image)
-			promises.push(uploadTask);
-			uploadTask.on( "state_changed",
-			(snapshot) => {
-				console.log(snapshot);
-			},
-			(error) => {
-				console.log(error);
-			},
-			() => {
-				getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-					// console.log('File available at', downloadURL);
-					setImageURLs(
-						(prev) => [...prev, downloadURL]
-						)
-					});
-				}
-				);
+			
+			// Define the list of allowed image types.
+			const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+			
+			// Filter out invalid images based on their types.
+			const invalidImages = images.filter((image) => {
+				// Check if the image's type is not in the list of valid types.
+				return !validImageTypes.includes(image.type);
 			});
 			
-			Promise.all(promises)
-			.catch((err) => console.log(err));
-	}
+			// If there are invalid images, log them and exit.
+			if (invalidImages.length > 0) {
+				console.error("Invalid image(s) detected:", invalidImages);
+				return;
+			}
+			
+			// Create an array of upload promises for each image.
+			const uploadPromises = images.map(async (image) => {
+				// Create a reference to a unique storage location for each image using a timestamp.
+				const storageRef = ref(storage, `agencies/logo_${new Date().getTime().toString()}.png`);
+				
+				// Start the upload task for the current image.
+				const uploadTask = uploadBytesResumable(storageRef, image);
+				
+				// Wait for the upload to complete and get the download URL.
+				await uploadTask;
+				const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+				
+				// Return the download URL for this image.
+				return downloadURL;
+			});
+			
+			// Wait for all upload promises to complete and get an array of image URLs.
+			const imageURLs = await Promise.all(uploadPromises);
+			
+			// Update the 'imageURLs' state with the uploaded image URLs.
+			setImageURLs([...imageURLs]);
+		} catch (error) {
+			console.error("Error uploading images:", error);
+		}
+	};
+
+
 
 		
 	// Form button click handler
@@ -71,16 +101,16 @@ const AgencyModal = ({
 		e.preventDefault()
 		if (images.length > 0) {
 			setUpdate(!update)
-			saveAgency(imageURLs)
+			saveAgency(uploadedImageURLs)
 			setAgencyModal(false)
 		}
 	}
 		
 	// Save Agency
-	const saveAgency = (imageURLs) => {
+	const saveAgency = (uploadedImageURLs) => {
 		const agencyRef = doc(db, "agency", agencyId);
 		updateDoc(agencyRef, {
-			logo: imageURLs,
+			logo: uploadedImageURLs,
 		}).then(() => {
 			handleAgencyUpdateSubmit(); // Send a signal to ReportsSection so that it updates the list 
 		})
@@ -90,6 +120,7 @@ const AgencyModal = ({
 	useEffect(() => {
 		if (update) {
 			handleUpload()
+			console.log(images)
 		}
 	}, [update]);
 	
@@ -133,8 +164,14 @@ const AgencyModal = ({
 							</div>
 							{/* TODO: user should be able to add an admin user */}
 							{/* <input onChange={onAdminChange} defaultValue='this' placeholder="Admin user email" className={style.modal_form_data}/> */} 
-							<div>
-								{agencyInfo['logo'] && agencyInfo['logo'][0] ?
+							<>
+								{images > 0 ?
+									uploadedImageURLs.map((url,i) => (
+									<div className='relative'>
+											<Image src={url} key={i} width={100} height={100} alt={`image-upload-${i}`}/>
+									</div>
+									)) :
+								agencyInfo['logo'] && agencyInfo['logo'][0] ?
 									<div className="flex w-full overflow-y-auto">
 										{agencyInfo['logo'].map((image, i) => {
 											return (
@@ -145,7 +182,19 @@ const AgencyModal = ({
 										})}
 									</div> :
 									<div className="italic font-light">No agency logo uploaded.</div>
-								}	
+								}
+								{/* {agencyInfo['logo'] && agencyInfo['logo'][0] ?
+									<div className="flex w-full overflow-y-auto">
+										{agencyInfo['logo'].map((image, i) => {
+											return (
+												<div className="flex mr-2" key={i}>
+													<Image src={image} width={100} height={100} alt="image"/>
+												</div>
+											)
+										})}
+									</div> :
+									<div className="italic font-light">No agency logo uploaded.</div>
+								}	 */}
 								<label className="block">
 									<span className="sr-only">Choose files</span>
 									<input className={style.modal_form_upload_image} 
@@ -156,7 +205,7 @@ const AgencyModal = ({
 									ref={imgPicker}
 									/>
 								</label>
-							</div>
+							</>
 						<button onClick={handleSubmitClick} className={style.modal_form_button} type="submit">Update Agency</button> 
 							{/* TODO: finish update agency */}
 						</div>

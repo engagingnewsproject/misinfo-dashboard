@@ -69,7 +69,7 @@ const ReportModal = ({
 	return (
 		<div className="fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto" // {style.overlay} 
 			onClick={() => setReportModal(false)}>
-			 <div className="absolute top-4 md:top-6 md:right-6 md:left-6 flex justify-center items-center z-[1300] sm:overflow-y-scroll"> {/* {style.modal} */}
+			 <div className="absolute flex justify-center items-center z-[1300] top-4 left-0 right-0 sm:overflow-y-scroll"> {/* {style.modal} */}
 				<div
 					className="flex-col justify-center items-center lg:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible" // {style.wrap}
 					onClick={(e) => { e.stopPropagation() }}>
@@ -199,20 +199,24 @@ const ReportModal = ({
 									{/* Images */}
 									<div className="images mb-12">
 										<div className={style.header}>Images</div>
-										{info['images'] && info['images'][0] ?
-											<div className="flex w-full overflow-y-auto">
-												{report['images'].map((image, i) => {
+										{/* {info['images'] && info['images'][0] ? */}
+										<div className="flex w-full overflow-y-auto">
+											{console.log(report['images'])}
+											{report['images'] &&
+												report['images'].map((image,i) => {
 													return (
 														<div className="flex mr-2" key={i}>
-															<Link href={image} target="_blank">
-																<Image src={image} width={100} height={100} alt="image"/>
-															</Link>
+															{image ? (
+																<Link href={image} target="_blank">
+																	<Image src={image} width={100} height={100} alt="image"/>
+																</Link>
+															) : (
+																<span className="italic font-light">Image not found</span>
+															)}
 														</div>
 													)
 												})}
-											</div> :
-											<div className="italic font-light">No images for this report</div>
-										}
+											</div>
 									</div>
 								</div>
 							</div> {/* END right side */}
