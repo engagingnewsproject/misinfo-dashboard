@@ -666,6 +666,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				</table>
 				{reportModal && (
 					<ReportModal
+						reportModal={reportModal}
 						report={report}
 						reportTitle={reportTitle}
 						key={reportModalId}

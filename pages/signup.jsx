@@ -25,7 +25,7 @@ const SignUp = () => {
        confirmPW: ''
     })
     
-    const addMobileUser = () => {
+    const addMobileUser = (privilege) => {
         // Get user object
         const user = auth.currentUser;
         
@@ -39,6 +39,7 @@ const SignUp = () => {
                 email: data.email,
                 joiningDate: moment().utc().unix(),
                 isBanned: false,
+                userRole: privilege
             });
             console.log("user was added with uid" + uid)
         } else {
@@ -86,7 +87,7 @@ const SignUp = () => {
                         window.location.replace('/dashboard')
                       } else {
                         console.log("here = for agency")
-                        addMobileUser()
+                        addMobileUser("Agency")
                         window.location.replace('/verifyEmail')
                       }
                     })
