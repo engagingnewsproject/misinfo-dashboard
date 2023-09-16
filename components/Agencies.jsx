@@ -29,7 +29,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [agencyAdminUsers, setAgencyAdminUsers] = useState('')
 	// EXISTING Agency Modal
 	const [agencyModal, setAgencyModal] = useState(false)
-	const [update, setUpdate] = useState('')
+	const [update,setUpdate] = useState('')
+	const [logo, setLogo] = useState('')
 	const [search, setSearch] = useState('')
 	const [endIndex, setEndIndex] = useState(10)
 	const [deleteModal, setDeleteModal] = useState(false)
@@ -138,9 +139,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		const agencyRef = doc(db, "agency", agencyId)
 		deleteDoc(agencyRef)
 		.then(() => {
-			// getData()
 			setDeleteModal(false)
-			// TODO: delete user from firebase authentification console
 		})
 		.catch((error) => {
 			console.log('The write failed', error);
@@ -153,6 +152,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		const docRef = await getDoc(doc(db, 'agency', agencyId))
 		setAgencyInfo(docRef.data())
 		setAgencyId(agencyId)
+		setLogo(docRef.data()['logo'])
 	}
 	// Handler: Agency update
 	const handleAgencyUpdate = async (e) => {
@@ -286,6 +286,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 				agencyId={agencyId}
 				agencyInfo={agencyInfo}
 				setAgencyInfo={setAgencyInfo}
+				logo={logo}
+				setLogo={setLogo}
 				onFormSubmit={handleFormSubmit}
 				onFormUpdate={handleFormUpdate}
 				setAgencyModal={setAgencyModal}
