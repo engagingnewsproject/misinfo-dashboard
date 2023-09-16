@@ -159,7 +159,7 @@ const handleDelete = async (e) => {
         const userData = doc.data();
 
         // Update the agency field for the user
-        const userUpdatePromise = updateDoc(doc.ref, { agency: '' }); // Replace '' with the desired value or logic
+        const userUpdatePromise = updateDoc(doc.ref, { agency: '' });
         updatePromises.push(userUpdatePromise);
       });
     }
