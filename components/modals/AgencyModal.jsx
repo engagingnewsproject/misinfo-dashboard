@@ -10,6 +10,8 @@ const AgencyModal = ({
 	setAgencyModal, 
 	handleAgencyUpdateSubmit, 
 	agencyInfo, 
+	logo,
+	setLogo,
 	agencyId,
 	onFormSubmit }) => {
 	const router = useRouter()
@@ -33,7 +35,7 @@ const handleImageChange = (e) => {
   // Loop through each selected image in the event.
   for (let i = 0; i < e.target.files.length; i++) {
     const newImage = e.target.files[i];
-    console.log(newImage); // Log the new image for debugging.
+    // console.log(newImage); // Log the new image for debugging.
     
     // Update the 'images' state by adding the new image to the previous state.
     setImages((prevState) => [...prevState, newImage]);
@@ -88,6 +90,7 @@ const handleImageChange = (e) => {
 			
 			// Update the 'imageURLs' state with the uploaded image URLs.
 			setImageURLs([...imageURLs]);
+			setLogo(imageURLs)
 		} catch (error) {
 			console.error("Error uploading images:", error);
 		}
@@ -164,16 +167,11 @@ const handleImageChange = (e) => {
 							</div>
 							{/* TODO: user should be able to add an admin user */}
 							{/* <input onChange={onAdminChange} defaultValue='this' placeholder="Admin user email" className={style.modal_form_data}/> */} 
-							<>
-								{images > 0 ?
-									uploadedImageURLs.map((url,i) => (
-									<div className='relative'>
-											<Image src={url} key={i} width={100} height={100} alt={`image-upload-${i}`}/>
-									</div>
-									)) :
-								agencyInfo['logo'] && agencyInfo['logo'][0] ?
+							<div>
+								{
+								logo ?
 									<div className="flex w-full overflow-y-auto">
-										{agencyInfo['logo'].map((image, i) => {
+										{logo.map((image, i) => {
 											return (
 												<div className="flex mr-2" key={i}>
 													<Image src={image} width={100} height={100} alt="image"/>
@@ -183,18 +181,6 @@ const handleImageChange = (e) => {
 									</div> :
 									<div className="italic font-light">No agency logo uploaded.</div>
 								}
-								{/* {agencyInfo['logo'] && agencyInfo['logo'][0] ?
-									<div className="flex w-full overflow-y-auto">
-										{agencyInfo['logo'].map((image, i) => {
-											return (
-												<div className="flex mr-2" key={i}>
-													<Image src={image} width={100} height={100} alt="image"/>
-												</div>
-											)
-										})}
-									</div> :
-									<div className="italic font-light">No agency logo uploaded.</div>
-								}	 */}
 								<label className="block">
 									<span className="sr-only">Choose files</span>
 									<input className={style.modal_form_upload_image} 
@@ -205,7 +191,7 @@ const handleImageChange = (e) => {
 									ref={imgPicker}
 									/>
 								</label>
-							</>
+							</div>
 						<button onClick={handleSubmitClick} className={style.modal_form_button} type="submit">Update Agency</button> 
 							{/* TODO: finish update agency */}
 						</div>
