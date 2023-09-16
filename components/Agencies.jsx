@@ -135,7 +135,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		setDeleteModal(true)
 		setAgencyId(agencyId)
 	}
-	// Handler: delete agency from database
+	// Handler: delete agency from database and remove related user's agency field
 const handleDelete = async (e) => {
   e.preventDefault();
 
