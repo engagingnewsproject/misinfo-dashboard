@@ -7,7 +7,9 @@ import {
 	updateDoc,
 	deleteDoc,
 	addDoc,
-	arrayUnion
+	arrayUnion,
+	query,
+	where
 	} from '@firebase/firestore'
 import { db, auth } from "../config/firebase"
 import { useAuth } from '../context/AuthContext'
@@ -134,17 +136,48 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		setAgencyId(agencyId)
 	}
 	// Handler: delete agency from database
-	const handleDelete = async (e) => {
-		e.preventDefault()
-		const agencyRef = doc(db, "agency", agencyId)
-		deleteDoc(agencyRef)
-		.then(() => {
-			setDeleteModal(false)
-		})
-		.catch((error) => {
-			console.log('The write failed', error);
-		})
-	}
+const handleDelete = async (e) => {
+  e.preventDefault();
+
+  try {
+    // Get agency data
+    const agencyRef = doc(db, 'agency', agencyId);
+    const agencySnapshot = await getDoc(agencyRef);
+    const agencyData = agencySnapshot.data();
+
+    // Get agency users
+    const agencyUsers = agencyData['agencyUsers'];
+
+    // Update agency field for each user
+    const updatePromises = [];
+
+    for (const userEmail of agencyUsers) {
+      const userRef = query(collection(db, 'mobileUsers'), where('email', '==', userEmail));
+      const querySnapshot = await getDocs(userRef);
+
+      querySnapshot.forEach((doc) => {
+        const userData = doc.data();
+
+        // Update the agency field for the user
+        const userUpdatePromise = updateDoc(doc.ref, { agency: '' }); // Replace '' with the desired value or logic
+        updatePromises.push(userUpdatePromise);
+      });
+    }
+
+    // Wait for all user updates to complete
+    await Promise.all(updatePromises);
+
+    // Delete the agency document
+    await deleteDoc(agencyRef);
+
+    console.log('Agency and user updates completed successfully.');
+    setDeleteModal(false);
+  } catch (error) {
+    console.error('Error deleting agency:', error);
+  }
+};
+
+
 	// Handler: Agency modal
 	// Modal for existing agencies. Modals displayed when user click's the list item to view agency details, or delete an agency.
 	const handleAgencyModalShow = async (agencyId) => {
