@@ -38,6 +38,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [agencies, setAgencies] = useState([]);
     const [selectedAgency, setSelectedAgency] = useState('');
     const [selectedTopic, setSelectedTopic] = useState("")
+    const [specifiedOtherTopic, setOtherTopic] = useState("")
     const [sources, setSources] = useState([])
     const [selectedSource, setSelectedSource] = useState("")
     const [reportState, setReportState] = useState(0)
@@ -153,6 +154,10 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const handleTopicChange = (e) => {
         setSelectedTopic(e.value)
         setReportState(5)
+    }
+
+    const handleOtherTopicChange = (e) => {
+        setOtherTopic(e.value)
     }
     
     const handleSourceChange = (e) => {
@@ -357,6 +362,15 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         value={selectedTopic.topic}
                                         />
                                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
+                                        {selectedTopic === "Other" && (
+                                            
+                                                <input
+                                                    type="text"
+                                                    placeholder="Please specify the topic."
+                                                    onChange={handleTopicChange}
+                                                />
+                                            
+                                        )}
                                 </div>
                             } 
                             {reportState >= 5 &&
