@@ -38,7 +38,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [agencies, setAgencies] = useState([]);
     const [selectedAgency, setSelectedAgency] = useState('');
     const [selectedTopic, setSelectedTopic] = useState("")
-    const [specifiedOtherTopic, setOtherTopic] = useState("")
+    const [otherTopic, setOtherTopic] = useState("") // best practice is to use: stateName, setStateName format
     const [sources, setSources] = useState([])
     const [selectedSource, setSelectedSource] = useState("")
     const [reportState, setReportState] = useState(0)
@@ -157,8 +157,17 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     }
 
     const handleOtherTopicChange = (e) => {
-        setOtherTopic(e.value)
+        e.preventDefault()
+        setOtherTopic(e.target.value)
+        setSelectedTopic(otherTopic)
     }
+    
+    useEffect(() => {
+        console.log(selectedTopic)
+        selectedTopic === 'Other' && // if selectedTopic  is 'Other'
+            console.log('other selected so. . ."',otherTopic, '"should be set as the selectedTopic')
+            // handleOtherTopicChange()
+    }, [selectedTopic]) // [selectedTopic] only runs when the selectedTopic value changes
     
     const handleSourceChange = (e) => {
         setSelectedSource(e.value)
@@ -300,7 +309,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                 {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)}    
 
                             </div>
-                            {reportState >= 1 && 
+                            {/* Comment these out temporarily so it's easier to view the whole form while developing */}
+                            {/* {reportState >= 1 &&  */} 
                             <div className="mt-4 mb-0.5">
                                 <Select
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -322,8 +332,9 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     />
                                     {errors.city && data.city === null &&  (<span className="text-red-500">{errors.city}</span>)}
                             </div>
-                            } 
-                            {reportState >= 2 &&
+                            {/* temp comment out */}
+                            {/* }  */}
+                            {/* {reportState >= 2 && */}
                                 <div className="mt-4 mb-0.5">
                                     <Select
                                         className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -336,8 +347,9 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         />
                                         {errors.topic && selectedAgency === '' &&  (<span className="text-red-500">{errors.agency}</span>)}
                                 </div>
-                            } 
-                            {reportState >= 3 && 
+                                {/* temp comment out */}
+                            {/* }  */}
+                            {/* {reportState >= 3 &&  */}
                             <div className="mt-4 mb-0.5">
                                 <input
                                     className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -349,8 +361,9 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     value={title}
                                     />
                             </div>
-                            } 
-                            {reportState >= 4 &&
+                            {/* temp comment out */}
+                            {/* }  */}
+                            {/* {reportState >= 4 && */}
                                 <div className="mt-4 mb-0.5">
                                     <Select
                                         className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -365,15 +378,18 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         {selectedTopic === "Other" && (
                                             
                                                 <input
+                                                    id="topic-other"
                                                     type="text"
                                                     placeholder="Please specify the topic."
-                                                    onChange={handleTopicChange}
+                                                    onChange={handleOtherTopicChange}
+                                                    value={otherTopic}
                                                 />
                                             
                                         )}
                                 </div>
-                            } 
-                            {reportState >= 5 &&
+                                {/* temp comment out */}
+                            {/* }  */}
+                            {/* {reportState >= 5 && */}
                             <div className="mt-4 mb-0.5">
                                 <Select
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -386,8 +402,9 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     />
                                     {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
                             </div>
-                            } 
-                            {reportState >= 6 &&
+                            {/* temp comment out */}
+                            {/* }  */}
+                            {/* {reportState >= 6 && */}
                             <>
                                 <div className="mt-4 mb-0.5">Details</div>
                                 <div className="mt-4 mb-0.5">
@@ -447,8 +464,9 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     </div>
                                 </div>
                             </>
-                            } 
-                            {reportState >= 6 &&
+                            {/* temp comment out */}
+                            {/* }  */}
+                            {/* {reportState >= 6 && */}
                             <div className="mt-3 sm:mt-6">
                                 <button
                                     className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
@@ -457,7 +475,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     Create
                                 </button>
                             </div>
-                            } 
+                            {/* temp comment out */}
+                            {/* }  */}
                         </form>
                     </div>
                 </div>
