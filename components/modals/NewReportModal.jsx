@@ -39,6 +39,9 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [selectedAgency, setSelectedAgency] = useState('');
     const [selectedTopic, setSelectedTopic] = useState("")
     const [otherTopic, setOtherTopic] = useState("") // best practice is to use: stateName, setStateName format
+    const [showOtherTopic, setShowOtherTopic] = useState(false)
+    const [list, setList] = useState([])
+    const [active, setActive] = useState([])
     const [sources, setSources] = useState([])
     const [selectedSource, setSelectedSource] = useState("")
     const [reportState, setReportState] = useState(0)
@@ -62,6 +65,9 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             hearFrom: selectedSource
         }).then(() => {
             handleNewReportSubmit(); // Send a signal to ReportsSection so that it updates the list 
+            // if (showOtherTopic) {
+                addNewTag(selectedTopic)
+            // }
         })
         
     }
@@ -153,7 +159,49 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     
     const handleTopicChange = (e) => {
         setSelectedTopic(e.value)
+        if (e.value === "Other") {
+            setShowOtherTopic(true)
+        } else {
+            setShowOtherTopic(false)
+        }
         setReportState(5)
+    }
+
+    const addNewTag = (tag) => {
+        let arr = list
+        print(arr)
+        arr.push(tag)
+        setList(arr)
+        updateTopicTags(list, user)
+    }
+
+    const getTopicList = async() => {
+        try {
+            const { ['Topic'[tagSystem]]: tagsData } = docRef.data()
+            setList(tagsData.list)
+            tagsData.active.sort((a, b) => {
+                if (a === "Other") return 1; // Move "Other" to the end
+                if (b === "Other") return -1; // Move "Other" to the end
+                return a.localeCompare(b); // Default sorting for other elements
+            });
+            setActive(tagsData.active)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const updateTopicTags = async(list, user) => {
+        console.log(user + "TESTING!!!!!!! ONLY!!!!!")
+        getTopicList()
+        const docRef = await getDoc(doc(db, "tags", user.uid))
+        const updatedDocRef = await setDoc(doc(db, "tags", user.uid), {
+            ...docRef.data(),
+            ['Topic'[tagSystem]]: {
+                list: list,
+                active: active
+            }
+        });
+        return updatedDocRef
     }
 
     const handleOtherTopicChange = (e) => {
@@ -234,6 +282,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         getAllAgencies()
         getAllTopics()
         getAllSources()
+
     }, []);
     
     async function getAllAgencies() {
@@ -375,8 +424,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         value={selectedTopic.topic}
                                         />
                                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
-                                        {selectedTopic === "Other" && (
-                                            
+                                        {showOtherTopic && (
                                                 <input
                                                     id="topic-other"
                                                     type="text"
@@ -384,7 +432,6 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                                     onChange={handleOtherTopicChange}
                                                     value={otherTopic}
                                                 />
-                                            
                                         )}
                                 </div>
                                 {/* temp comment out */}
