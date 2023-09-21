@@ -177,14 +177,17 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
 
     const getTopicList = async() => {
         try {
-            const { ['Topic'[tagSystem]]: tagsData } = docRef.data()
+            const docRef = await getDoc(doc(db, "tags", user.uid))
+            const { ['Topic']: tagsData } = docRef.data()
             setList(tagsData.list)
+            print(list)
             tagsData.active.sort((a, b) => {
                 if (a === "Other") return 1; // Move "Other" to the end
                 if (b === "Other") return -1; // Move "Other" to the end
                 return a.localeCompare(b); // Default sorting for other elements
             });
             setActive(tagsData.active)
+            
         } catch (error) {
             console.log(error)
         }
@@ -192,11 +195,10 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
 
     const updateTopicTags = async(list, user) => {
         console.log(user + "TESTING!!!!!!! ONLY!!!!!")
-        getTopicList()
         const docRef = await getDoc(doc(db, "tags", user.uid))
         const updatedDocRef = await setDoc(doc(db, "tags", user.uid), {
             ...docRef.data(),
-            ['Topic'[tagSystem]]: {
+            ['Topic']: {
                 list: list,
                 active: active
             }
@@ -282,7 +284,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         getAllAgencies()
         getAllTopics()
         getAllSources()
-
+        getTopicList()
+        print(list)
     }, []);
     
     async function getAllAgencies() {
