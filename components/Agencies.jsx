@@ -7,7 +7,9 @@ import {
 	updateDoc,
 	deleteDoc,
 	addDoc,
-	arrayUnion
+	arrayUnion,
+	query,
+	where
 	} from '@firebase/firestore'
 import { db, auth } from "../config/firebase"
 import { useAuth } from '../context/AuthContext'
@@ -29,7 +31,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [agencyAdminUsers, setAgencyAdminUsers] = useState('')
 	// EXISTING Agency Modal
 	const [agencyModal, setAgencyModal] = useState(false)
-	const [update, setUpdate] = useState('')
+	const [update,setUpdate] = useState('')
+	const [logo, setLogo] = useState('')
 	const [search, setSearch] = useState('')
 	const [endIndex, setEndIndex] = useState(10)
 	const [deleteModal, setDeleteModal] = useState(false)
@@ -44,7 +47,27 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	// validation states
 	const [errors, setErrors] = useState({});
 
+	// Data
+	// The getData function retrieves agency data from a Firebase Firestore collection and populates the agencies state variable.
+	const getData = async () => {
+		const agencyCollection = collection(db, 'agency')
+		const reportsCollection = collection(db, 'reports')
+		const snapshot = await getDocs(agencyCollection, reportsCollection)
+		try {
+			var arr = []
+			snapshot.forEach((doc) => {
+				arr.push({
+					[doc.id]: doc.data(),
+				})
+			})
+			setAgencies(arr)
+		} catch (error) {
+			console.log(error)
+		}
+	}
+	
 	// Handler: new agency MODAL
+	// Modal for new agencies. Modal is displayed when users click the button to add a new agency.
 	const handleAddNewAgencyModal = (e) => {
 		e.preventDefault()
 		setNewAgencyModal(true)
@@ -69,7 +92,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const handleNewAgencyCity = (e) => {
 		setData(data=>({...data,city: e !== null ? e : null })) 
 	}
-
 	// Handler: new agency SAVE & send confirmation email to user
 	const saveAgency = () => {
 		const dbInstance = collection(db, 'agency');
@@ -108,52 +130,64 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		}
 	}
 	
-	// //
-	// Data
-	// //
-	const getData = async () => {
-		const agencyCollection = collection(db, 'agency')
-		const reportsCollection = collection(db, 'reports')
-		const snapshot = await getDocs(agencyCollection, reportsCollection)
-		try {
-			var arr = []
-			snapshot.forEach((doc) => {
-				arr.push({
-					[doc.id]: doc.data(),
-				})
-			})
-			setAgencies(arr)
-		} catch (error) {
-			console.log(error)
-		}
-	}
 	// Handler: Delete agency modal
 	const handleAgencyDelete = async (agencyId) => {
 		setDeleteModal(true)
 		setAgencyId(agencyId)
 	}
-	// Handler: delete agency from database
-	const handleDelete = async (e) => {
-		e.preventDefault()
-		const agencyRef = doc(db, "agency", agencyId)
-		deleteDoc(agencyRef)
-		.then(() => {
-			// getData()
-			setDeleteModal(false)
-			// TODO: delete user from firebase authentification console
-		})
-		.catch((error) => {
-			console.log('The write failed', error);
-		})
-	}
+	// Handler: delete agency from database and remove related user's agency field
+const handleDelete = async (e) => {
+  e.preventDefault();
+
+  try {
+    // Get agency data
+    const agencyRef = doc(db, 'agency', agencyId);
+    const agencySnapshot = await getDoc(agencyRef);
+    const agencyData = agencySnapshot.data();
+
+    // Get agency users
+    const agencyUsers = agencyData['agencyUsers'];
+
+    // Update agency field for each user
+    const updatePromises = [];
+
+    for (const userEmail of agencyUsers) {
+      const userRef = query(collection(db, 'mobileUsers'), where('email', '==', userEmail));
+      const querySnapshot = await getDocs(userRef);
+
+      querySnapshot.forEach((doc) => {
+        const userData = doc.data();
+
+        // Update the agency field for the user
+        const userUpdatePromise = updateDoc(doc.ref, { agency: '' });
+        updatePromises.push(userUpdatePromise);
+      });
+    }
+
+    // Wait for all user updates to complete
+    await Promise.all(updatePromises);
+
+    // Delete the agency document
+    await deleteDoc(agencyRef);
+
+    console.log('Agency and user updates completed successfully.');
+    setDeleteModal(false);
+  } catch (error) {
+    console.error('Error deleting agency:', error);
+  }
+};
+
+
 	// Handler: Agency modal
+	// Modal for existing agencies. Modals displayed when user click's the list item to view agency details, or delete an agency.
 	const handleAgencyModalShow = async (agencyId) => {
 		setAgencyModal(true)
 		const docRef = await getDoc(doc(db, 'agency', agencyId))
 		setAgencyInfo(docRef.data())
 		setAgencyId(agencyId)
+		setLogo(docRef.data()['logo'])
 	}
-		// Handler: Agency update
+	// Handler: Agency update
 	const handleAgencyUpdate = async (e) => {
 		e.preventDefault()
 		// TODO: Check for any errors
@@ -179,12 +213,14 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			agencyUsers: e.target.value
 		})
 	}
-	// Effects //
+	// Effects
+	// The useEffect hook is used to trigger the getData function when the component mounts, 
+	// ensuring that agency data is fetched from Firestore.
 	useEffect(() => {
 		getData()
 	})
 
-	// Styles //
+	// Styles
 	const style = {
 		section_container: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
 		section_wrapper: 'flex flex-col h-full',
@@ -201,7 +237,10 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		table_icon: 'ml-4 fill-gray-400 hover:fill-red-600',
 		button: 'flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
 	}
-	
+	// The return statement defines the JSX structure of the component. 
+	// It renders a table with agency information,including logos,names, 
+	// locations,and admin users.Users can interact with this table to view,
+	// edit,or delete agency data.
 	return (
 		<div className={style.section_container}>
 			<div className={style.section_wrapper}>
@@ -280,6 +319,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 				agencyId={agencyId}
 				agencyInfo={agencyInfo}
 				setAgencyInfo={setAgencyInfo}
+				logo={logo}
+				setLogo={setLogo}
 				onFormSubmit={handleFormSubmit}
 				onFormUpdate={handleFormUpdate}
 				setAgencyModal={setAgencyModal}
