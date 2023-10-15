@@ -210,13 +210,6 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         setSelectedTopic(e.target.value)
     }
     
-    // useEffect(() => {
-    //     console.log(selectedTopic)
-    //     selectedTopic === 'Other' && // if selectedTopic  is 'Other'
-    //         console.log('other selected so. . ."',otherTopic, '"should be set as the selectedTopic')
-    //         // handleOtherTopicChange()
-    // }, [selectedTopic]) // [selectedTopic] only runs when the selectedTopic value changes
-    
     const handleSourceChange = (e) => {
         setSelectedSource(e.value)
         setReportState(6)
