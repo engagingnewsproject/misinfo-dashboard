@@ -152,6 +152,11 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     
     const handleTopicChange = (e) => {
         setSelectedTopic(e.value)
+        if (e.value === "Other/Otro") {
+            setShowOtherTopic(true)
+        } else {
+            setShowOtherTopic(false)
+        }
         setReportState(5)
     }
     
@@ -357,6 +362,19 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         value={selectedTopic.topic}
                                         />
                                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
+                                        <div className="mt-4 mb-0.5">
+                                        {showOtherTopic && (
+                                                <input
+                                                    id="topic-other"
+                                                    className="rounded shadow-md border-zinc-400"
+                                                    type="text"
+                                                    placeholder="Please specify the topic."
+                                                    onChange={handleOtherTopicChange}
+                                                    value={otherTopic}
+                                                    style={{ fontSize: '14px' }}
+                                                />
+                                        )}
+                                        </div>
                                 </div>
                             } 
                             {reportState >= 5 &&
