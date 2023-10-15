@@ -38,6 +38,10 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [agencies, setAgencies] = useState([]);
     const [selectedAgency, setSelectedAgency] = useState('');
     const [selectedTopic, setSelectedTopic] = useState("")
+    const [otherTopic, setOtherTopic] = useState("") // best practice is to use: stateName, setStateName format
+    const [showOtherTopic, setShowOtherTopic] = useState(false)
+    const [list, setList] = useState([])
+    const [active, setActive] = useState([])
     const [sources, setSources] = useState([])
     const [selectedSource, setSelectedSource] = useState("")
     const [reportState, setReportState] = useState(0)
@@ -61,6 +65,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             hearFrom: selectedSource
         }).then(() => {
             handleNewReportSubmit(); // Send a signal to ReportsSection so that it updates the list 
+            addNewTag(selectedTopic)
         })
         
     }
@@ -152,7 +157,55 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     
     const handleTopicChange = (e) => {
         setSelectedTopic(e.value)
+        if (e.value === "Other") {
+            setShowOtherTopic(true)
+        } else {
+            setShowOtherTopic(false)
+        }
         setReportState(5)
+    }
+
+    const addNewTag = (tag) => {
+        let arr = list
+        arr.push(tag)
+        setList(arr)
+        updateTopicTags(list, user)
+    }
+
+    const getTopicList = async() => {
+        try {
+            const docRef = await getDoc(doc(db, "tags", user.uid))
+            const { ['Topic']: tagsData } = docRef.data()
+            setList(tagsData.list)
+            tagsData.active.sort((a, b) => {
+                if (a === "Other") return 1; // Move "Other" to the end
+                if (b === "Other") return -1; // Move "Other" to the end
+                return a.localeCompare(b); // Default sorting for other elements
+            });
+            setActive(tagsData.active)
+            
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const updateTopicTags = async(list, user) => {
+        console.log(user + "TESTING!!!!!!! ONLY!!!!!")
+        const docRef = await getDoc(doc(db, "tags", user.uid))
+        const updatedDocRef = await setDoc(doc(db, "tags", user.uid), {
+            ...docRef.data(),
+            ['Topic']: {
+                list: list,
+                active: active
+            }
+        });
+        return updatedDocRef
+    }
+
+    const handleOtherTopicChange = (e) => {
+        // e.preventDefault()
+        setOtherTopic(e.target.value)
+        setSelectedTopic(e.target.value)
     }
     
     const handleSourceChange = (e) => {
@@ -220,6 +273,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         getAllAgencies()
         getAllTopics()
         getAllSources()
+        getTopicList()
     }, []);
     
     async function getAllAgencies() {
@@ -295,7 +349,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                 {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)}    
 
                             </div>
-                            {reportState >= 1 && 
+
+                            {reportState >= 1 &&  
                             <div className="mt-4 mb-0.5">
                                 <Select
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -317,7 +372,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     />
                                     {errors.city && data.city === null &&  (<span className="text-red-500">{errors.city}</span>)}
                             </div>
-                            } 
+                            }
                             {reportState >= 2 &&
                                 <div className="mt-4 mb-0.5">
                                     <Select
@@ -331,8 +386,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         />
                                         {errors.topic && selectedAgency === '' &&  (<span className="text-red-500">{errors.agency}</span>)}
                                 </div>
-                            } 
-                            {reportState >= 3 && 
+                            }
+                            {reportState >= 3 &&  
                             <div className="mt-4 mb-0.5">
                                 <input
                                     className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -344,7 +399,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     value={title}
                                     />
                             </div>
-                            } 
+                            }
                             {reportState >= 4 &&
                                 <div className="mt-4 mb-0.5">
                                     <Select
@@ -357,9 +412,18 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         value={selectedTopic.topic}
                                         />
                                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
+                                        {showOtherTopic && (
+                                                <input
+                                                    id="topic-other"
+                                                    type="text"
+                                                    placeholder="Please specify the topic."
+                                                    onChange={handleOtherTopicChange}
+                                                    value={otherTopic}
+                                                />
+                                        )}
                                 </div>
-                            } 
-                            {reportState >= 5 &&
+                            }
+                            {reportState >= 5 && 
                             <div className="mt-4 mb-0.5">
                                 <Select
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -372,8 +436,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     />
                                     {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
                             </div>
-                            } 
-                            {reportState >= 6 &&
+                            }
+                            {reportState >= 6 && 
                             <>
                                 <div className="mt-4 mb-0.5">Details</div>
                                 <div className="mt-4 mb-0.5">
@@ -433,7 +497,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     </div>
                                 </div>
                             </>
-                            } 
+                            }
                             {reportState >= 6 &&
                             <div className="mt-3 sm:mt-6">
                                 <button
@@ -443,14 +507,14 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     Create
                                 </button>
                             </div>
-                            } 
+                            }
                         </form>
                     </div>
                 </div>
             </div>
         </div>
     )
+                        }
 
-}
 
 export default NewReport
