@@ -417,7 +417,6 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                                     id="topic-other"
                                                     type="text"
                                                     placeholder="Please specify the topic."
-                                                    // onChange={(e) => setSelectedTopic(e.target.value)}
                                                     onChange={handleOtherTopicChange}
                                                     value={otherTopic}
                                                 />
