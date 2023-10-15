@@ -63,8 +63,8 @@ const Users = () => {
 		const userRef = await getDoc(doc(db, "mobileUsers", userId));
 		setUser(userRef.data()) 
 		setName(userRef.data()['name'])
-		setEmail(userRef.data()['email'])
-		setAgency(listUser['agency'])
+		setEmail(userRef.data()['email']) 
+		setAgency(listUser['agency']) // agency name is derived from the getData call where the mobileUser's 'agency' field has the agency uid
 		setBanned(userRef.data()['isBanned'])
 		setUserRole(userRef.data()['userRole'])
 		setEditUser(true)

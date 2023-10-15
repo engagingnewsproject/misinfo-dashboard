@@ -43,8 +43,18 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 - [VS Code ES7+ React/Redux/React-Native snippets](https://marketplace.visualstudio.com/items?itemName=dsznajder.es7-react-js-snippets)
 - [VS Code Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
 
+## Firebase
 
-## Firebase CLI Tools
+With proper permissions access [Firebase Console](https://console.firebase.google.com/) or [Firebase Cloud Console](https://console.cloud.google.com/welcome?project=misinfo-5d004).
+
+- Firebase project name: Misinfo
+- Firebase project ID: misinfo-5d004
+- Firebase project #: 2581605663
+
+### Firebase Storage
+
+- Firebase storage name: misinfo-5d004.appspot.com
+### Firebase CLI Tools
 
 [Guide on how to push rules using the CLI](https://firebase.google.com/docs/firestore/security/get-started#use_the_firebase_cli)
 
