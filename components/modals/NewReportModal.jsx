@@ -65,9 +65,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             hearFrom: selectedSource
         }).then(() => {
             handleNewReportSubmit(); // Send a signal to ReportsSection so that it updates the list 
-            // if (showOtherTopic) {
-                addNewTag(selectedTopic)
-            // }
+            addNewTag(selectedTopic)
         })
         
     }
