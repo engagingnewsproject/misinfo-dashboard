@@ -38,7 +38,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [agencies, setAgencies] = useState([]);
     const [selectedAgency, setSelectedAgency] = useState('');
     const [selectedTopic, setSelectedTopic] = useState("")
-    const [otherTopic, setOtherTopic] = useState("") // best practice is to use: stateName, setStateName format
+    const [otherTopic, setOtherTopic] = useState("")
     const [showOtherTopic, setShowOtherTopic] = useState(false)
     const [list, setList] = useState([])
     const [active, setActive] = useState([])
@@ -190,7 +190,6 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     }
 
     const updateTopicTags = async(list, user) => {
-        console.log(user + "TESTING!!!!!!! ONLY!!!!!")
         const docRef = await getDoc(doc(db, "tags", user.uid))
         const updatedDocRef = await setDoc(doc(db, "tags", user.uid), {
             ...docRef.data(),
