@@ -223,7 +223,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                     <div className="bg-white w-full rounded-lg">
                         {searchResult.map((item) => {
                             return (
-                                !item.includes('Other') &&
+                                !item.includes('Other/Otro') &&
                                 <div onClick={() => {
                                 setSelected(item)
                                 setSearchResult([])
@@ -251,7 +251,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                             {active.map((item) => {
                                 return (
                                 !customClaims.admin ?
-                                    !item.includes('Other') ?
+                                    !item.includes('Other/Otro') ?
                                         <div onClick={() => setSelected(item)} className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center" key={item}>
                                             <GoPrimitiveDot size={25} className="text-green-600"/>
                                             <div className="pl-2">{item}</div>
@@ -280,7 +280,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                             const selectedStyles = normStyles + " bg-blue-600 text-white rounded-lg"
                             return (
                                 !customClaims.admin ?
-                                    !item.includes('Other') &&
+                                    !item.includes('Other/Otro') &&
                                     <div onClick={() => setSelected(item)} className={selected == item ? selectedStyles : normStyles} key={item}>
                                         { active.includes(item) && <GoPrimitiveDot size={25} className="text-green-600"/> }
                                         <div className="pl-2">{item}</div>
