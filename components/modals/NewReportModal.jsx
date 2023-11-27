@@ -177,11 +177,11 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             const docRef = await getDoc(doc(db, "tags", user.uid))
             const { ['Topic']: tagsData } = docRef.data()
             setList(tagsData.list)
-            // tagsData.active.sort((a, b) => {
-            //     if (a === "Other") return 1; // Move "Other" to the end
-            //     if (b === "Other") return -1; // Move "Other" to the end
-            //     return a.localeCompare(b); // Default sorting for other elements
-            // });
+            tagsData.active.sort((a, b) => {
+                if (a === "Other") return 1; // Move "Other" to the end
+                if (b === "Other") return -1; // Move "Other" to the end
+                return a.localeCompare(b); // Default sorting for other elements
+            });
             setActive(tagsData.active)
             
         } catch (error) {
