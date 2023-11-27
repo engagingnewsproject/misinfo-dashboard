@@ -177,11 +177,11 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             const docRef = await getDoc(doc(db, "tags", user.uid))
             const { ['Topic']: tagsData } = docRef.data()
             setList(tagsData.list)
-            tagsData.active.sort((a, b) => {
-                if (a === "Other") return 1; // Move "Other" to the end
-                if (b === "Other") return -1; // Move "Other" to the end
-                return a.localeCompare(b); // Default sorting for other elements
-            });
+            // tagsData.active.sort((a, b) => {
+            //     if (a === "Other") return 1; // Move "Other" to the end
+            //     if (b === "Other") return -1; // Move "Other" to the end
+            //     return a.localeCompare(b); // Default sorting for other elements
+            // });
             setActive(tagsData.active)
             
         } catch (error) {
@@ -413,6 +413,10 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
                                         <div className="mt-4 mb-0.5">
                                         {showOtherTopic && (
+                                            <div className="flex">
+                                            <div className="mt-4 mb-0.5 text-zinc-500 pr-3">
+                                                Custom topic
+                                                </div>
                                                 <input
                                                     id="topic-other"
                                                     className="rounded shadow-md border-zinc-400"
@@ -422,6 +426,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                                     value={otherTopic}
                                                     style={{ fontSize: '14px' }}
                                                 />
+                                                </div>
                                         )}
                                         </div>
                                 </div>
