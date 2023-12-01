@@ -43,7 +43,9 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [list, setList] = useState([])
     const [active, setActive] = useState([])
     const [sources, setSources] = useState([])
-    const [selectedSource, setSelectedSource] = useState("")
+    const [selectedSource,setSelectedSource] = useState("")
+    const [otherSource, setOtherSource] = useState("")
+    const [showOtherSource, setShowOtherSource] = useState(false)
     const [reportState, setReportState] = useState(0)
     const [errors, setErrors] = useState({})
 
@@ -209,7 +211,18 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     
     const handleSourceChange = (e) => {
         setSelectedSource(e.value)
+        if (e.value === "Other/Otro") {
+            setShowOtherSource(true)
+        } else {
+            setShowOtherSource(false)
+        }
         setReportState(6)
+    }
+    
+    const handleOtherSourceChange = (e) => {
+        // e.preventDefault()
+        setOtherSource(e.target.value)
+        setSelectedSource(e.target.value)
     }
     
     const handleSubmitClick = (e) => {
@@ -412,22 +425,20 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         />
                                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
                                         <div className="mt-4 mb-0.5">
-                                        {showOtherTopic && (
-                                            <div className="flex">
-                                            <div className="mt-4 mb-0.5 text-zinc-500 pr-3">
-                                                Custom topic
+                                            {showOtherTopic && (
+                                                <div className="flex">
+                                                    <div className="mt-4 mb-0.5 text-zinc-500 pr-3">Custom topic</div>
+                                                    <input
+                                                        id="topic-other"
+                                                        className="rounded shadow-md border-zinc-400"
+                                                        type="text"
+                                                        placeholder="Please specify the topic."
+                                                        onChange={handleOtherTopicChange}
+                                                        value={otherTopic}
+                                                        style={{ fontSize: '14px' }}
+                                                    />
                                                 </div>
-                                                <input
-                                                    id="topic-other"
-                                                    className="rounded shadow-md border-zinc-400"
-                                                    type="text"
-                                                    placeholder="Please specify the topic."
-                                                    onChange={handleOtherTopicChange}
-                                                    value={otherTopic}
-                                                    style={{ fontSize: '14px' }}
-                                                />
-                                                </div>
-                                        )}
+                                            )}
                                         </div>
                                 </div>
                             }
@@ -442,7 +453,21 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     onChange={handleSourceChange}
                                     value={selectedSource.source}
                                     />
-                                    {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
+                                    {errors.source && selectedSource === '' && (<span className="text-red-500">{errors.source}</span>)}
+                                    {showOtherSource && (
+                                        <div className="flex">
+                                            <div className="mt-4 mb-0.5 text-zinc-500 pr-3">Custom source</div>
+                                            <input
+                                                id="source-other"
+                                                className="rounded shadow-md border-zinc-400"
+                                                type="text"
+                                                placeholder="Please specify the source."
+                                                onChange={handleOtherSourceChange}
+                                                value={otherSource}
+                                                style={{ fontSize: '14px' }}
+                                            />
+                                        </div>
+                                    )}
                             </div>
                             }
                             {reportState >= 6 && 
