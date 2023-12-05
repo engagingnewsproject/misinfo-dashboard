@@ -144,8 +144,8 @@ const Users = () => {
 					const agencyDocRef = doc(db, "agency", user.data()['agency']);
 					const promise = new Promise((resolve, reject) => {
 						const unsub = onSnapshot(agencyDocRef, (docSnap) => {
-							const agencyName = docSnap.data()['name'];
-							userObject[user.id]['agency'] = agencyName;
+							// const agencyName = docSnap.data()['name'];
+							// userObject[user.id]['agency'] = agencyName;
 							unsub(); // Unsubscribe after getting agency data
 							resolve(); // Resolve the promise
 						});
