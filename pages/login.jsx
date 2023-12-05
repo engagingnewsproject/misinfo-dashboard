@@ -30,12 +30,12 @@ const Login = () => {
       //console.log(user)
       login(data.email, data.password).then(()=> {
         setError(null)
-        console.log(auth.currentUser.uid)
+        // console.log(auth.currentUser.uid)
         if (auth.currentUser?.emailVerified) {
           auth.currentUser.getIdTokenResult()
           .then((idTokenResult) => {
               // if admin load the dashboard
-              console.log("here")
+              // console.log("here")
               if (!!idTokenResult.claims.admin || !!idTokenResult.claims.agency) {
                 setLoading(true)
                 void router.push('/dashboard')
