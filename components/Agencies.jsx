@@ -7,7 +7,9 @@ import {
 	updateDoc,
 	deleteDoc,
 	addDoc,
-	arrayUnion
+	arrayUnion,
+	query,
+	where
 	} from '@firebase/firestore'
 import { db, auth } from "../config/firebase"
 import { useAuth } from '../context/AuthContext'
@@ -29,7 +31,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [agencyAdminUsers, setAgencyAdminUsers] = useState('')
 	// EXISTING Agency Modal
 	const [agencyModal, setAgencyModal] = useState(false)
-	const [update, setUpdate] = useState('')
+	const [update,setUpdate] = useState('')
+	const [logo, setLogo] = useState('')
 	const [search, setSearch] = useState('')
 	const [endIndex, setEndIndex] = useState(10)
 	const [deleteModal, setDeleteModal] = useState(false)
@@ -132,20 +135,49 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		setDeleteModal(true)
 		setAgencyId(agencyId)
 	}
-	// Handler: delete agency from database
-	const handleDelete = async (e) => {
-		e.preventDefault()
-		const agencyRef = doc(db, "agency", agencyId)
-		deleteDoc(agencyRef)
-		.then(() => {
-			// getData()
-			setDeleteModal(false)
-			// TODO: delete user from firebase authentification console
-		})
-		.catch((error) => {
-			console.log('The write failed', error);
-		})
-	}
+	// Handler: delete agency from database and remove related user's agency field
+const handleDelete = async (e) => {
+  e.preventDefault();
+
+  try {
+    // Get agency data
+    const agencyRef = doc(db, 'agency', agencyId);
+    const agencySnapshot = await getDoc(agencyRef);
+    const agencyData = agencySnapshot.data();
+
+    // Get agency users
+    const agencyUsers = agencyData['agencyUsers'];
+
+    // Update agency field for each user
+    const updatePromises = [];
+
+    for (const userEmail of agencyUsers) {
+      const userRef = query(collection(db, 'mobileUsers'), where('email', '==', userEmail));
+      const querySnapshot = await getDocs(userRef);
+
+      querySnapshot.forEach((doc) => {
+        const userData = doc.data();
+
+        // Update the agency field for the user
+        const userUpdatePromise = updateDoc(doc.ref, { agency: '' });
+        updatePromises.push(userUpdatePromise);
+      });
+    }
+
+    // Wait for all user updates to complete
+    await Promise.all(updatePromises);
+
+    // Delete the agency document
+    await deleteDoc(agencyRef);
+
+    console.log('Agency and user updates completed successfully.');
+    setDeleteModal(false);
+  } catch (error) {
+    console.error('Error deleting agency:', error);
+  }
+};
+
+
 	// Handler: Agency modal
 	// Modal for existing agencies. Modals displayed when user click's the list item to view agency details, or delete an agency.
 	const handleAgencyModalShow = async (agencyId) => {
@@ -153,6 +185,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		const docRef = await getDoc(doc(db, 'agency', agencyId))
 		setAgencyInfo(docRef.data())
 		setAgencyId(agencyId)
+		setLogo(docRef.data()['logo'])
 	}
 	// Handler: Agency update
 	const handleAgencyUpdate = async (e) => {
@@ -286,6 +319,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 				agencyId={agencyId}
 				agencyInfo={agencyInfo}
 				setAgencyInfo={setAgencyInfo}
+				logo={logo}
+				setLogo={setLogo}
 				onFormSubmit={handleFormSubmit}
 				onFormUpdate={handleFormUpdate}
 				setAgencyModal={setAgencyModal}
