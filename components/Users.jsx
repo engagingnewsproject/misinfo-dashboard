@@ -101,14 +101,15 @@ const Users = () => {
 			// Confirm the user is an Admin.
 			if (!!idTokenResult.claims.admin) {
 				// Change the selected user's privileges as requested
-				if (userRole === "Admin") {
-					console.log(addAdminRole({ email: user.email }))
-				} else if (userRole === "Agency") {
-					console.log(addAgencyRole({ email: user.email }))
-				} else if (userRole === "User") {
-					console.log(addUserRole({ email: user.email }))
-				}
-				setUserRole(userRole)
+        console.log(user)
+				// if (userRole === "Admin") {
+				// 	console.log(addAdminRole({ email: user.email }))
+				// } else if (userRole === "Agency") {
+				// 	console.log(addAgencyRole({ email: user.email }))
+				// } else if (userRole === "User") {
+				// 	console.log(addUserRole({ email: user.email }))
+				// }
+				// setUserRole(userRole)
 			}
 		})
 		.catch((error) => {
@@ -144,8 +145,8 @@ const Users = () => {
 					const agencyDocRef = doc(db, "agency", user.data()['agency']);
 					const promise = new Promise((resolve, reject) => {
 						const unsub = onSnapshot(agencyDocRef, (docSnap) => {
-							const agencyName = docSnap.data()['name'];
-							userObject[user.id]['agency'] = agencyName;
+							// const agencyName = docSnap.data()['name'];
+							// userObject[user.id]['agency'] = agencyName;
 							unsub(); // Unsubscribe after getting agency data
 							resolve(); // Resolve the promise
 						});
