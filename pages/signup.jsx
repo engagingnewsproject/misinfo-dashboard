@@ -167,7 +167,25 @@ const SignUp = () => {
                         }
                     </div>
                     <div className="mb-4">
-                    {isAgency && <p className="text-center text-gray-500 text-sm">Enter email that the sign-up link was sent to.</p>}
+              
+                          {/* TODO: {agency && Instructions for an agency to sign up */}
+                          
+                    <div>
+                      <p className="text-lg font-bold text-blue-600 tracking-wider pt-2">Sign up instructions</p>
+                      <div>To make an account, enter the email that the sign in link was sent to.</div>
+                      <ol className="list-disc pl-4 py-2">
+                          <li>Make sure to add your agency name and location.</li>
+                          <li>Create a secure password for your account.</li>
+                      </ol>
+                      <div>Upon creating an account, you will be asked to verify your email.</div>
+                      <ol className="list-disc pl-4">
+                        <li>Go to your inbox and click the link that in the verification email.</li>
+                        <li>Now, you can login to the dashboard using the account you just created.</li>
+                      </ol>
+                      
+                      
+
+                    </div>
                     <input
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="email"
