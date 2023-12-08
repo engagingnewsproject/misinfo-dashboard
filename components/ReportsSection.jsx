@@ -94,7 +94,19 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
   }
 
 	const getData = async () => {
-		const reportsCollection = collection(db, "reports")
+		// // Long (difficult) way
+		// Get the collection of agencies
+		// filter out the agency
+		// Get the current (agency)user's agency name
+		// Filter reports shown in "loadedReports" state to only reports submitted to the user's agency name
+	
+		// // Short way
+		// Get user's 'agency' name 
+		// & only show reports with the 'agency' key that matches
+		console.log(user)
+		const agencyCollection = collection(db,"agency")
+		console.log(agencyCollection)
+		const reportsCollection = collection(db,"reports")
 		const snapshot = await getDocs(reportsCollection)
 
 		try {
