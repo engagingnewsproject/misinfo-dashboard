@@ -113,11 +113,11 @@ const Headbar = ({ search, setSearch}) => {
                 <div className="flex">
                 {/* TODO: - agency can swap out their logo */}
                     <div className="flex justify-center">
-                        {customClaims.agency ?
+                        {customClaims.agency && agencyLogo ? (
                             <Image src={agencyLogo} width={100} height={100} alt="image"/>
-                            :
+                         ) : (
                             <div className="w-10 h-10 font-extralight rounded-full tracking-widest flex justify-center text-sm items-center text-white bg-blue-500">M</div>
-                        }
+                        )}
                     </div>
                     <div className="text-md font-semibold px-4 m-auto tracking-wide">
                         {title}
