@@ -243,7 +243,8 @@ const Users = () => {
 											<tr
 												className="border-b transition duration-300 ease-in-out dark:border-indigo-100"
 												key={key} 
-												onClick={()=>handleEditUser(listUser, userId)}>
+  											onClick={customClaims.admin ? () => handleEditUser(listUser, userId) : undefined}
+												>
 												<td scope="row" className={column.data}>{listUser.name}
                         </td>
 												{/* 
