@@ -55,7 +55,6 @@ export const AuthContextProvider = ({children}) => {
                     // Show regular user UI.
                     setCustomClaims({agency: true})
                   } else {
-                    console.log("not admiin or agency")
                     setCustomClaims({agency: false, admin: false})
                   }
                 })
