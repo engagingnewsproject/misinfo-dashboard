@@ -19,7 +19,7 @@ import EditUserModal from './modals/EditUserModal'
 // Profile page that allows the user to edit password or logout of their account
 const Users = () => {
 	// Initialize authentication context
-	const { addAdminRole, addAgencyRole, addUserRole, customClaims, setCustomClaims } = useAuth()
+	const { user, addAdminRole, addAgencyRole, addUserRole, customClaims, setCustomClaims } = useAuth()
 	
 	// State variables for managing user data
 	const [userRole, setUserRole] = useState('')
@@ -27,12 +27,12 @@ const Users = () => {
 	const [loadedMobileUsers, setLoadedMobileUsers] = useState([])
 	const [endIndex, setEndIndex] = useState(0)
 	const [deleteModal, setDeleteModal] = useState(false)
-	const [user, setUser] = useState([])
+	const [userEdit, setUserEdit] = useState([])
 	const [name, setName] = useState('')
 	const [email, setEmail] = useState('')
 	const [agency, setAgency] = useState('')
 	const [banned, setBanned] = useState('')
-	const [editUser, setEditUser] = useState(null)
+	const [userEditClick, setUserEditClick] = useState(null)
 	const [userId, setUserId] = useState(null)
 	const [update, setUpdate] = useState(false)
 	
@@ -61,13 +61,13 @@ const Users = () => {
 	const handleEditUser = async (listUser, userId) => {
 		setUserId(userId)
 		const userRef = await getDoc(doc(db, "mobileUsers", userId));
-		setUser(userRef.data()) 
+		setUserEdit(userRef.data()) 
 		setName(userRef.data()['name'])
 		setEmail(userRef.data()['email']) 
 		setAgency(listUser['agency']) // agency name is derived from the getData call where the mobileUser's 'agency' field has the agency uid
 		setBanned(userRef.data()['isBanned'])
 		setUserRole(userRef.data()['userRole'])
-		setEditUser(true)
+		setUserEditClick(true)
 	}
 	
 	// Function to handle name change
@@ -123,7 +123,7 @@ const Users = () => {
 			userRole: userRole
 		});
 		
-		setEditUser(false)
+		setUserEditClick(false)
 	}	
 	
 	// Function to fetch user data from Firebase
@@ -139,7 +139,8 @@ const Users = () => {
 				const userObject = {
 					[user.id]: userData,
 				};
-				
+				// console.log(user.accountId)
+				// console.log(user.data()['agency'])
 				if (user.data()['agency']) {
 					const agencyDocRef = doc(db, "agency", user.data()['agency']);
 					const promise = new Promise((resolve, reject) => {
@@ -243,7 +244,8 @@ const Users = () => {
 											<tr
 												className="border-b transition duration-300 ease-in-out dark:border-indigo-100"
 												key={key} 
-												onClick={()=>handleEditUser(listUser, userId)}>
+  											onClick={customClaims.admin ? () => handleEditUser(listUser, userId) : undefined}
+												>
 												<td scope="row" className={column.data}>{listUser.name}
                         </td>
 												{/* 
@@ -289,13 +291,13 @@ const Users = () => {
 				CTA="Delete"
 				closeModal={setDeleteModal}
 			/>}
-      {editUser && <EditUserModal 
+      {userEditClick && <EditUserModal 
 				customClaims={customClaims} 
 				userRole={userRole}
 				setUserRole={setUserRole}
-				setEditUser={setEditUser} 
-				editUser={editUser} 
-				user={user}
+				setUserEditClick={setUserEditClick} 
+				userEditClick={userEditClick} 
+				userEdit={userEdit}
 				userId={userId}
 				name={name}
 				onNameChange={handleNameChange}
@@ -308,7 +310,7 @@ const Users = () => {
 				onBannedChange={handleBannedChange}
 				onFormSubmit={handleFormSubmit}
 				onOptionChange={handleOptionChange}
-				setUser={setUser} />}
+				setUserEdit={setUserEdit} />}
 		</div>
   )
 }
