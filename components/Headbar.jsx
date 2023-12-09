@@ -1,99 +1,29 @@
 import React, { useState, useEffect } from 'react'
 import { AiOutlineSearch } from 'react-icons/ai'
-import { collection, getDocs, doc, query, where } from '@firebase/firestore'
+import { collection, getDocs, query, where } from '@firebase/firestore'
 import { useAuth } from '../context/AuthContext'
-import { db, auth } from "../config/firebase"
-import { getStorage,ref,getDownloadURL } from "firebase/storage";
+import { db } from "../config/firebase"
 import Image from 'next/image'
 
 const Headbar = ({ search, setSearch}) => {
-    const { user, verifyRole, customClaims, setCustomClaims } = useAuth()
-    const [userRole, setUserRole] = useState('')
-    const [agency,setAgency] = useState('')
+    const { user, customClaims } = useAuth()
     const [agencyLogo, setAgencyLogo] = useState('')
     const [title,setTitle] = useState('')
-    const [userId, setUserId] = useState('')
-    
-    // Verify user role
-    // useEffect(() => {
-    //     verifyRole().then((result) => {
-    //         if (result.admin) {
-    //             setUserRole('admin')
-    //         } else if (result.agency) {
-    //             setUserRole('agency')
-    //         } else {
-    //             setUserRole('user')
-    //         }
-    //     })
-    // }, [])
 
     const getData = async () => {
         const agencyCollection = collection(db, 'agency')
 		const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
         const querySnapshot = await getDocs(q)
         querySnapshot.forEach((doc) => {
-            setAgency(doc.data())
-            // setAgencyId(doc.id)
+            setTitle(doc.data()['name'])
             setAgencyLogo(doc.data()['logo'][0])
         });
-        
-        if (!customClaims) {
-            setTitle('Misinfo Dashboard')
-            // console.log('user')
-        } else if (customClaims.admin) {
-            setTitle('Misinfo Admin Dashboard')
-            // console.log('admin')
-        } else if (customClaims.agency) {
-            setTitle(`${agency['name']} Dashboard`)
-        }
-		// const userRoles = collection(db, 'userRoles')
-        // const snapshot = await getDocs(userRoles)
-		// try {
-		// 	var arr = []
-		// 	snapshot.forEach((doc) => {
-		// 		arr.push({
-		// 			[doc.id]: doc.data(),
-        //         })
-        //         console.log(doc.data())
-		// 	})
-		// } catch (error) {
-		// 	console.log(error)
-        // }
-        // NEW Work
-        // Working on getting all agency users attached to an agency
-        // this is something we will have to do as the project moves along.
-        // We need to somehow relate users, reports, tags, sources & assets to 
-        // agencies. Since they will all use "different apps". Challenging!!!
-        // auth.onAuthStateChanged((user) => {
-        //     if (user)
-        //     {
-        //         setUserId(user.uid)
-        //         const uid = user.uid;
-        //     }
-        // });
-        // const agencyCollection = collection(db,'agency')
-        // const q = query(agencyCollection,where('agencyUsers',"array-contains",userId))
-        // const agencySnap = await getDocs(q)
-        // try {
-        //     var arr = []
-        //     agencySnap.forEach((doc) => {
-        //         arr.push({
-        //             [doc.id]: doc.data(),
-        //         })
-        //     })
-        //     setAgencies(arr)
-        // } catch (error) {
-        //     console.log(error)
-        // }
-        // END // NEW Work
-        // END // NEW Work
 	}
     
     const handleSearch = (e) => {
         e.preventDefault()
         if (search.length == 0) return
-
-        console.log(search)
+        // console.log(search)
     }
 
     const handleChange = (e) => {
@@ -103,7 +33,6 @@ const Headbar = ({ search, setSearch}) => {
     // //
 	// Effects
 	// //
-    // Effect: get data
 	useEffect(() => {
 		getData()
 	}, [])
@@ -120,10 +49,21 @@ const Headbar = ({ search, setSearch}) => {
                         )}
                     </div>
                     <div className="text-md font-semibold px-4 m-auto tracking-wide">
-                        {title}
-                        {customClaims.admin && 
-                        <div className='text-sm font-normal'>Hi Talia!</div>
-                        }
+                        {customClaims.admin && (
+                            <>
+                                Misinformation
+                                <div className='text-sm font-normal'>ADMIN DASHBOARD</div>
+                            </>
+                        )}
+                        {customClaims.agency && !customClaims.admin && (
+                            <>
+                                {title}
+                                <div className='text-sm font-normal'>Agency Dashboard</div>
+                            </>
+                        )}
+                        {!customClaims.agency && !customClaims.admin && (
+                            <>Misinformation</>
+                        )}
                     </div>
                 </div>
                 {(customClaims.admin || customClaims.agency) &&
