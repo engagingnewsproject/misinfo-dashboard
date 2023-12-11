@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import UpdatePwModal from './modals/UpdatePwModal'
 import UpdateEmailModal from './modals/UpdateEmailModal';
 import { useAuth } from '../context/AuthContext';
-import { auth } from 'firebase-admin';
+// import { auth } from 'firebase-admin';
 import ConfirmModal from './modals/ConfirmModal';
 import { useRouter } from 'next/router'
 import { 
@@ -226,8 +226,6 @@ const Profile = ({customClaims}) => {
   }, []);
   
   useEffect(() => {
-    console.log(agency['name'])
-    console.log(agencyName)
     if (agency['name'] !== agencyName) {
       setAgencyName(agencyName)
     } else {
