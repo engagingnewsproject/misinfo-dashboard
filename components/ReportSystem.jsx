@@ -45,6 +45,10 @@ const ReportSystem = ({
     const [sources, setSources] = useState([])
     const [selectedSource, setSelectedSource] = useState("")
     const [errors, setErrors] = useState({})
+    const [showOtherTopic, setShowOtherTopic] = useState(false)
+    const [otherTopic, setOtherTopic] = useState("")
+    const [list, setList] = useState([])
+    const [active, setActive] = useState([])
 
     // //
     // Text content
@@ -139,6 +143,7 @@ const ReportSystem = ({
             hearFrom: selectedSource
         }).then(() => {
             console.log('Success: report saved: ' + reportId);
+            addNewTag(selectedTopic)
         })
     }
     
@@ -290,6 +295,60 @@ const ReportSystem = ({
         Promise.all(promises)
         .catch((err) => console.log(err));
     };
+
+    const handleTopicChange = (e) => {
+        setSelectedTopic(e.target.value)
+        console.log(e.target.value)
+        if (e.target.value === "Other/Otro") {
+            setShowOtherTopic(true)
+            console.log("SHOW OTHER TOPIC TRUE")
+        } else {
+            setShowOtherTopic(false)
+            console.log("SHOW OTHER TOPIC FALSE")
+        }
+    }
+
+    const handleOtherTopicChange = (e) => {
+        // e.preventDefault()
+        setOtherTopic(e.target.value)
+        setSelectedTopic(e.target.value)
+    }
+
+    const addNewTag = (tag) => {
+        let arr = list
+        arr.push(tag)
+        setList(arr)
+        updateTopicTags(list, user)
+    }
+
+    const updateTopicTags = async(list, user) => {
+        const docRef = await getDoc(doc(db, "tags", user.uid))
+        const updatedDocRef = await setDoc(doc(db, "tags", user.uid), {
+            ...docRef.data(),
+            ['Topic']: {
+                list: list,
+                active: active
+            }
+        });
+        return updatedDocRef
+    }
+
+    const getTopicList = async() => {
+        try {
+            const docRef = await getDoc(doc(db, "tags", user.uid))
+            const { ['Topic']: tagsData } = docRef.data()
+            setList(tagsData.list)
+            tagsData.active.sort((a, b) => {
+                if (a === "Other") return 1; // Move "Other" to the end
+                if (b === "Other") return -1; // Move "Other" to the end
+                return a.localeCompare(b); // Default sorting for other elements
+            });
+            setActive(tagsData.active)
+            
+        } catch (error) {
+            console.log(error)
+        }
+    }
     
     const handleChange = (e) => {
         // console.log('REPORT VALUE CHANGED: ' + e.target.id + ': ' + e.target.value);
@@ -304,6 +363,7 @@ const ReportSystem = ({
         getAllAgencies()
         getAllTopics()
         getAllSources()
+        getTopicList()
     }, [])
     
     useEffect(() => {
@@ -444,11 +504,11 @@ const ReportSystem = ({
                         }
                     </div>
                     }
-                    {/* Topic tag */}
+                    {/* WIP COME HERE: Topic tag */}
                     {reportSystem == 4 &&
                     <div className={style.viewWrapper}>
                             <div className={style.sectionH1}>{t.topicTitle}</div>
-                        {allTopicsArr.map((topic, i) => (
+                            {[...allTopicsArr.filter(topic => topic !== "Other/Otro"), ...allTopicsArr.filter(topic => topic === "Other/Otro")].map((topic, i) => (
                             <>
                             <label key={i+'-'+topic} className={topic === selectedTopic ? style.inputRadioChecked : style.inputRadio}>
                             {/* Topic Tag Input */}
@@ -457,13 +517,33 @@ const ReportSystem = ({
                             id='topic'
                             type="radio"
                             checked={selectedTopic === topic}
-                            onChange={(e) => setSelectedTopic(e.target.value)}
+                            onChange={
+                                // create a custom function 
+                                // (e) => setSelectedTopic(e.target.value)
+                                handleTopicChange
+                            }
                             value={topic}
                             />
                             {topic}</label>
                             </>
                         ))}
                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
+                        {showOtherTopic && (
+                                            <div className="flex">
+                                            <div className="mt-4 mb-0.5 text-zinc-500 pr-3">
+                                                Custom topic
+                                                </div>
+                                                <input
+                                                    id="topic-other"
+                                                    className="rounded shadow-md border-zinc-400"
+                                                    type="text"
+                                                    placeholder="Please specify the topic."
+                                                    onChange={handleOtherTopicChange}
+                                                    value={otherTopic}
+                                                    style={{ fontSize: '14px' }}
+                                                />
+                                                </div>
+                                        )}
                         {selectedTopic != '' && 
                             <button 
                             onClick={() => setReportSystem(reportSystem + 1)} 
