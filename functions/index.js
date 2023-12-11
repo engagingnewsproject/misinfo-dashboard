@@ -1,5 +1,5 @@
 const functions = require("firebase-functions");
-const admin = require("firebase-admin");
+// const admin = require("firebase-admin");
 const mkdirp = require("mkdirp").mkdirp;
 const spawn = require("child-process-promise").spawn;
 const path = require("path");
