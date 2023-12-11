@@ -31,7 +31,7 @@ const SignUp = () => {
         
         if (user) {
             // Set user uid
-            console.log("adding mobile user")
+            // console.log("adding mobile user")
             const uid = user.uid;
             // create a new mobileUsers doc with signed in user's uid
             setDoc(doc(db, "mobileUsers", uid), {
@@ -41,23 +41,23 @@ const SignUp = () => {
                 isBanned: false,
                 userRole: privilege
             });
-            console.log("user was added with uid" + uid)
+            // console.log("user was added with uid" + uid)
         } else {
-            console.log('no user');
+            // console.log('no user');
         }
     }
 
 
     const handleSignUp = async (e) => {
         e.preventDefault()
-        console.log("signing up")
+        // console.log("signing up")
 
         if (data.password.length < 8) {
           return
       }
 
 
-        console.log("should be given agency privilege " + isAgency)
+        // console.log("should be given agency privilege " + isAgency)
 
           try {
               if (isAgency) {
@@ -70,8 +70,8 @@ const SignUp = () => {
                   signInWithEmailLink(auth, data.email, window.location.href).then((result) =>{
                     const promise2 = addAgencyRole({email: data.email});
                   
-                    console.log(result.user.email)
-                    console.log("current user " + auth.currentUser)
+                    // console.log(result.user.email)
+                    // console.log("current user " + auth.currentUser)
                     const promise1 = auth.updateCurrentUser(result.user)
                     auth.currentUser.reload().then(() => {
 
@@ -79,14 +79,14 @@ const SignUp = () => {
 
                     Promise.all([promise1, promise2, promise3]).then((values) => {
                       
-                      console.log(auth.currentUser.email)
+                      // console.log(auth.currentUser.email)
 
                       if (verifyEmail(auth.currentUser)) {
                         setSignUpError("")
-                        console.log("in try")
+                        // console.log("in try")
                         window.location.replace('/dashboard')
                       } else {
-                        console.log("here = for agency")
+                        // console.log("here = for agency")
                         addMobileUser("Agency")
                         window.location.replace('/verifyEmail')
                       }
@@ -99,7 +99,7 @@ const SignUp = () => {
                       // An error happened.
                       setSignUpError("Your email does not match up with the email address that the sign-in link was sent to.")
                     } else {
-                      console.log(error)
+                      console.log(err)
                     }
                   })
 
@@ -112,11 +112,11 @@ const SignUp = () => {
                      verifyEmail(userCredential.user).then((verified)=> {
                       if (verified) {
                         setSignUpError("")
-                        console.log("in try")
+                        // console.log("in try")
                         router.push('/dashboard')
                       } else {
-                        console.log("here")
-                        console.log(userVerified)
+                        // console.log("here")
+                        // console.log(userVerified)
                         router.push('/verifyEmail')
                       }
                      })

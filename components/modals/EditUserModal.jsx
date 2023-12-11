@@ -2,7 +2,7 @@ import React, { useEffect } from "react"
 import { IoClose } from "react-icons/io5"
 import { Switch } from "@headlessui/react"
 
-const EditUserModal = ({customClaims, userRole, onOptionChange, onNameChange, name, onEmailChange, email, agency, onBannedChange, banned, setBanned, onFormSubmit, setEditUser }) => {
+const EditUserModal = ({customClaims, userRole, onOptionChange, onNameChange, name, onEmailChange, email, agency, onBannedChange, banned, setBanned, onFormSubmit, setUserEditClick }) => {
 
 	// Styles
 	const style = {
@@ -24,13 +24,13 @@ const EditUserModal = ({customClaims, userRole, onOptionChange, onNameChange, na
 	}
 
 	return (
-		<div className={style.modal_background} onClick={() => setEditUser(false)}>
+		<div className={style.modal_background} onClick={() => setUserEditClick(false)}>
 			<div className={style.modal_container}>
 				<div className={style.modal_wrapper} onClick={(e) => { e.stopPropagation() }}>
 					<div className={style.modal_header_container}>
 						<div className={style.modal_header_wrapper}>
 							<div className={style.modal_header}>User Info</div>
-							<button onClick={() => setEditUser(false)} className={style.modal_close}>
+							<button onClick={() => setUserEditClick(false)} className={style.modal_close}>
 								<IoClose size={25}/>
 							</button>
 						</div>
