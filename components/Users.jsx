@@ -102,14 +102,14 @@ const Users = () => {
 			if (!!idTokenResult.claims.admin) {
 				// Change the selected user's privileges as requested
         console.log(user)
-				// if (userRole === "Admin") {
-				// 	console.log(addAdminRole({ email: user.email }))
-				// } else if (userRole === "Agency") {
-				// 	console.log(addAgencyRole({ email: user.email }))
-				// } else if (userRole === "User") {
-				// 	console.log(addUserRole({ email: user.email }))
-				// }
-				// setUserRole(userRole)
+				if (userRole === "Admin") {
+					console.log(addAdminRole({ email: user.email }))
+				} else if (userRole === "Agency") {
+					console.log(addAgencyRole({ email: user.email }))
+				} else if (userRole === "User") {
+					console.log(addUserRole({ email: user.email }))
+				}
+				setUserRole(userRole)
 			}
 		})
 		.catch((error) => {
