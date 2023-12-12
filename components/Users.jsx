@@ -101,6 +101,7 @@ const Users = () => {
 			// Confirm the user is an Admin.
 			if (!!idTokenResult.claims.admin) {
 				// Change the selected user's privileges as requested
+        console.log(user)
 				if (userRole === "Admin") {
 					console.log(addAdminRole({ email: user.email }))
 				} else if (userRole === "Agency") {
