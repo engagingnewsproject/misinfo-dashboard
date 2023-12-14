@@ -94,6 +94,7 @@ const Profile = ({customClaims}) => {
 
   useEffect(() => {  // Verify role
     verifyRole().then((result) => {
+      console.log(result)
       if (result.admin) {
         setIsAdmin(true)
       } else if (result.agency) {
@@ -109,10 +110,12 @@ const Profile = ({customClaims}) => {
   // GET DATA
   const getData = async () => { // Get data
     if (isAgency) {
+      console.log(user)
       const agencyCollection = collection(db, 'agency')
       const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
       const querySnapshot = await getDocs(q)
       querySnapshot.forEach((doc) => { // Set initial values
+        console.log(doc.data())
         setAgency(doc.data())
         setAgencyId(doc.id)
         setAgencyName(doc.data()['name'])
@@ -219,11 +222,11 @@ const Profile = ({customClaims}) => {
   }
 
 
-	useEffect(() => { // Get data
+	useEffect(() => { // Get data once we know if the user is an agency or not
     if (user) {
 		  getData()
     }
-  }, []);
+  }, [isAgency]);
   
   useEffect(() => {
     if (agency['name'] !== agencyName) {
