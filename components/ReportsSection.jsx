@@ -6,6 +6,8 @@ import {
 	getDoc,
 	getDocs,
 	doc,
+  query,
+  where,
 	updateDoc,
 	deleteDoc,
 } from "firebase/firestore"
@@ -34,7 +36,9 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	const [reportWeek, setReportWeek] = useState("4")
 	const [readFilter, setReadFilter] = useState("All")
 	const [reportTitle, setReportTitle] = useState('')
-	const { user } = useAuth()
+  // const [agencyName, setAgencyName] = useState('')
+  // const [isAgency, setIsAgency] = useState(false)
+	const { user, verifyRole } = useAuth()
 	const dateOptions = {
 		day: "2-digit",
 		year: "numeric",
@@ -98,16 +102,45 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		// Get the collection of agencies
 		// filter out the agency
 		// Get the current (agency)user's agency name
-		// Filter reports shown in "loadedReports" state to only reports submitted to the user's agency name
-	
+		// Filter reports shown in "loadedReports" state to only reports submitted to the user's agency 
+    let isAgency = false
+    verifyRole().then((result) => {
+      
+      // console.log("Current user information " + result.admin)
+      if (result.admin) {
+        isAgency = false
+      } else if (result.agency) {
+        isAgency = true
+      }
+    })
+
 		// // Short way
 		// Get user's 'agency' name 
 		// & only show reports with the 'agency' key that matches
-		console.log(user)
+
+    let agencyName;
 		const agencyCollection = collection(db,"agency")
-		console.log(agencyCollection)
-		const reportsCollection = collection(db,"reports")
-		const snapshot = await getDocs(reportsCollection)
+    const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
+    const querySnapshot = await getDocs(q)
+    querySnapshot.forEach((doc) => { // Set initial values
+      console.log(doc.data())
+      agencyName = doc.data()['name']
+      console.log(agencyName)
+    
+    })
+      
+    const reportsCollection = collection(db,"reports")
+    let snapshot;
+    // Filters reports for current agency
+    if (isAgency) {
+      const agencyReports = query(reportsCollection, where("agency", "==", agencyName))
+      snapshot = await getDocs(agencyReports)
+    
+    // Displays all reports for admin user
+    } else {
+      snapshot = await getDocs(reportsCollection)
+    }
+   
 
 		try {
 			var arr = []
@@ -222,8 +255,10 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		}
 	}, [search])
 
+ 
 	// On page load (mount), get the reports from firebase
 	useEffect(() => {
+    // determine if current user is an agency or not
 		getData()
 	}, [newReportSubmitted])
 
@@ -350,6 +385,8 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		e.preventDefault()
 		setNewReportModal(true)
 	}
+
+  
 
 	const handleModalShow = async (reportId) => {
 		// get doc
