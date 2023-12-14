@@ -44,9 +44,11 @@ export const AuthContextProvider = ({children}) => {
                     email: user.email
                 })
                 localStorage.setItem("userId", localId)
+                user.getIdTokenResult(true)
 
-                user.getIdTokenResult()
                 .then((idTokenResult) => {
+                  // console.log("getting custom claims")
+                  // console.log(idTokenResult)
                   // Confirm the user is an Admin.
                   if (!!idTokenResult.claims.admin) {
                     // Show admin UI.

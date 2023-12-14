@@ -150,10 +150,10 @@ const SignUp = () => {
                     <div className="w-24 h-24 font-extralight rounded-full tracking-widest flex justify-center items-center text-white bg-blue-500">MOODY</div>
                 </div>
                 <form className="px-8 pt-6 pb-4 mb-4" onChange={handleChange} onSubmit={handleSignUp}>
-                    <div className="mb-4">
+                    {/* <div className="mb-4"> */}
 
                         {/* Only allows user to select team name. Agencies had already had their name selected. */}  
-                        {!isAgency &&       
+                        {/* {!isAgency &&       
                           <input
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="name"
@@ -164,10 +164,17 @@ const SignUp = () => {
                             onChange={handleChange}
                             autoComplete=''
                             />
-                        }
-                    </div>
+                        } */}
+                    {/* </div> */}
                     <div className="mb-4">
-                    {isAgency && <p className="text-center text-gray-500 text-sm">Enter email that the sign-up link was sent to.</p>}
+              
+                          {/* TODO: {agency && Instructions for an agency to sign up */}
+                    {isAgency && 
+                    <div>
+                      <p className="text-lg font-bold text-blue-600 tracking-wider pt-2">Account Creation</p>
+                      <div className="mb-1">Enter your email address.</div>
+                    </div>}
+
                     <input
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="email"
@@ -180,6 +187,8 @@ const SignUp = () => {
                             />
                     </div>
                     <div className="mb-1">
+                      {isAgency && 
+                        <div className="mb-1">Create a secure password for your account.</div>}
                         <input
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="password"
@@ -206,6 +215,7 @@ const SignUp = () => {
                     </div>
                     {data.password !== data.confirmPW && <span className="text-red-500 text-sm font-light">Passwords don't match</span>}
                     {signUpError && <div className="text-red-500 text-sm font-normal pt-3">{signUpError}</div>}
+             
                     <div className="flex-col items-center content-center mt-7">
                         <button 
                         disabled={data.password !== data.confirmPW} 
