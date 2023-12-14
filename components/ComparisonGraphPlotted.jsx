@@ -4,6 +4,7 @@ The customization features, including the topics list and calendar dropdown, all
 to select which topics will be displayed
 */
 import React, { useState, useEffect } from 'react'
+import { useAuth } from "../context/AuthContext"
 import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css'; // theme css file
 import {
@@ -38,6 +39,12 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   // Indicates if the number of topics and date range are valid. 
   const [topicError, setTopicError] = useState(false)
   const [dateError, setDateError] = useState(false)
+
+  // Indicates if current user is an agency or not. 
+  const [agencyName, setAgencyName] = useState(null)
+  const [checkRole, setCheckRole] = useState(false)
+  const { user, verifyRole } = useAuth()
+
 
   // Formats and returns date range for the title of the graph.
   const formatDates = () => {
@@ -111,7 +118,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
 
         // Filters report collection so it only shows reports for the current topic on the day at current index in array
         const queryDaily = query(reportsList, where("topic", "==", selectedTopics[topic].value), where("createdDate", ">=", array[0][index]),
-        where("createdDate", "<", array[0][index + 1]))
+        where("createdDate", "<", array[0][index + 1]), where("agency", "==", agencyName))
         const dailyReports = await getDocs(queryDaily);
         try {
           numReports.push(dailyReports.size)
@@ -147,14 +154,39 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     setGraphData({labels:dateLabels, datasets:arr})
   }
 
+
+  useEffect(()=> {
+      verifyRole().then((result) => {
+        
+        // console.log("Current user information " + result.admin)
+        if (result.agency) {
+          let agencyTempName;
+          const agencyCollection = collection(db,"agency")
+          const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
+          getDocs(q).then((querySnapshot) => {
+          querySnapshot.forEach((doc) => { // Set initial values
+            console.log(doc.data())
+            agencyTempName = doc.data()['name']
+            console.log(agencyTempName)
+            setAgencyName(agencyTempName)
+          
+            })
+          })
+        } else {
+          setAgencyName("")
+        }
+  
+        setCheckRole(true)
+      })  
+  }, [])
   // Populates graph with new data for the selected date range and topics once the
   // topic reports have been collected. 
   useEffect(()=> {
-    if (reportData.length !== 0 && updateGraph && !topicError && !dateError) {	
+    if (reportData.length !== 0 && checkRole && agencyName && updateGraph && !topicError && !dateError) {	
       getGraphData()	
       setUpdateGraph(false)	
     }	
-  }, [reportData]);
+  }, [reportData, checkRole]);
 
   // Displays graph once data points can be plotted.	
   useEffect(() => {	
@@ -170,6 +202,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
       getDailyTopicReports()
     }
   }, [loaded]);
+
 
   // Configuration for React-ChartJS-2
   ChartJS.register(
