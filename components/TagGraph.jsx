@@ -1,18 +1,24 @@
 /* Displays pie charts or line graph for the trending topics based on which view is selected. */
 import React, { useState, useEffect } from 'react'
+import { useAuth } from "../context/AuthContext"
+
 import { collection, query, where, getDocs, Timestamp, getDoc, doc } from "firebase/firestore";
 import { db } from '../config/firebase'
 import Toggle from './Toggle'
 import OverviewGraph from './OverviewGraph'
 import ComparisonGraphSetup from './ComparisonGraphSetup'
+import { setDefaultResultOrder } from 'dns';
 
 const TagGraph = () => {
+	const { user, verifyRole } = useAuth()
   const [viewVal, setViewVal] = useState("overview")
   const [yesterdayReports, setYesterdayReports] = useState([])
   const [threeDayReports, setThreeDayReports] = useState([])
   const [sevenDayReports, setSevenDayReports] = useState([])
   const [numTrendingTopics, setNumTrendingTopics] = useState([])
   const [loaded, setLoaded] = useState(false)
+  const [agencyName, setAgencyName] = useState(null)
+  const [checkRole, setCheckRole] = useState(false)
 
   // Returns the Firebase timestamp for the beginning of yesterday
   const getStartOfDay = (daysAgo) => {
@@ -36,8 +42,36 @@ const TagGraph = () => {
     return timestamp
   }
 
+  const setRole = () => {
+    verifyRole().then((result) => {
+      
+      // console.log("Current user information " + result.admin)
+      if (result.agency) {
+        let agencyTempName;
+        const agencyCollection = collection(db,"agency")
+        const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
+        getDocs(q).then((querySnapshot) => {
+        querySnapshot.forEach((doc) => { // Set initial values
+          console.log(doc.data())
+          agencyTempName = doc.data()['name']
+          console.log(agencyTempName)
+          setAgencyName(agencyTempName)
+        
+          })
+        })
+      } else {
+        setAgencyName("")
+      }
+
+      setCheckRole(true)
+
+    })
+  
+  }
+
   async function getTopicReports() {
     const reportsList = collection(db, "reports");
+    console.log(agencyName)
   
     // Retrieve array of all topics
     const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
@@ -51,17 +85,17 @@ const TagGraph = () => {
 
     for (let index = 0; index < topics.length; index++) {
 
-      // Filters report collection so it only shows reports from yesterday and for the current topic
-      const queryYesterday = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(1)),
+      // Filters report collection so it only shows reports  for current agency, if there is one, from yesterday and for the current topic
+      const queryYesterday = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(1)), where("agency", "==", agencyName),
       where("createdDate", "<", getEndOfDay()))      
       const dataYesterday = await getDocs(queryYesterday);
       
-      const queryThreeDays= query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(3)),
+      const queryThreeDays= query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(3)), where("agency", "==", agencyName),
       where("createdDate", "<", getEndOfDay()))      
       const dataThreeDays = await getDocs(queryThreeDays);
 
       // Filters report collection so it only shows reports from 7 days ago
-      const querySevenDays = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(7)),
+      const querySevenDays = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(7)), where("agency", "==", agencyName),
       where("createdDate", "<", getEndOfDay()))      
       const dataSevenDays = await getDocs(querySevenDays);
       
@@ -118,11 +152,18 @@ const TagGraph = () => {
     setLoaded(true)
   };
   
-  // On page load (mount), retrieve the reports collection to determine top three trending topics
+  // On page load (mount), verify if the current user is an agency
   useEffect(() => {
-      getTopicReports()
+      setRole()
+
   }, [])
 
+  // Gets reports collection to determine top three trending topicsafter we verify if the current user is an agency..
+  useEffect(() => {
+    if (checkRole && agencyName) {
+      getTopicReports()
+    }
+  }, [checkRole])
   
   return (
     <div className="w-full">
