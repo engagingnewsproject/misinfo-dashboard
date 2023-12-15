@@ -34,7 +34,7 @@ const Headbar = ({ search, setSearch}) => {
 	// Effects
 	// //
 	useEffect(() => {
-		getData()
+        getData()
 	}, [])
     return (
         <div className="w-full">
@@ -43,7 +43,7 @@ const Headbar = ({ search, setSearch}) => {
                 {/* TODO: - agency can swap out their logo */}
                     <div className="flex justify-center">
                         {customClaims.agency && agencyLogo ? (
-                            <Image src={agencyLogo} width={100} height={100} alt="image"/>
+                            <Image src={agencyLogo} width={100} height={100} alt="image" style={{ width: '100%', height: 'auto' }}/>
                          ) : (
                             <div className="w-10 h-10 font-extralight rounded-full tracking-widest flex justify-center text-sm items-center text-white bg-blue-500">M</div>
                         )}
