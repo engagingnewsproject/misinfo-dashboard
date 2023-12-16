@@ -10,14 +10,16 @@ const EditUserModal = ({
 	name,
 	onEmailChange,
 	email,
-	agency,
+	agencyUserAgency,
 	onBannedChange,
 	banned,
 	setBanned,
 	onFormSubmit,
 	setUserEditClick,
 	userRole, // New prop to receive the user's role
+	userEditing
 }) => {
+	console.log(userEditing.agencyName)
 	// Styles
 	const style = {
 		modal_background:
@@ -74,7 +76,7 @@ const EditUserModal = ({
 									id='name'
 									type='text'
 									onChange={onNameChange}
-									value={name}
+									value={userEditing.name}
 								/>
 								{/* Email */}
 								<div className={style.modal_form_label}>Email</div>
@@ -83,7 +85,7 @@ const EditUserModal = ({
 									id='email'
 									type='text'
 									onChange={onEmailChange}
-									value={email}
+									value={userEditing.email}
 								/>
 								{/* Agency */}
 								<div className={style.modal_form_label}>Agency</div>
@@ -93,7 +95,7 @@ const EditUserModal = ({
 									type='text'
 									disabled
 									// onChange={onAgencyChange}
-									value={agency}
+									value={userEditing.agencyName}
 								/>
 								<div className={style.modal_form_label}>Banned</div>
 								{/* BANNED */}
