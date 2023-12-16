@@ -140,6 +140,7 @@ const EditUserModal = ({
 												/>
 												Admin
 											</label>
+											{/* TODO: option to switch agency */}
 											<label htmlFor='agency'>
 												<input
 													type='radio'
