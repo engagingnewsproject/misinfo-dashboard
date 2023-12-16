@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from "react"
 import { useAuth } from "../context/AuthContext"
-import { useRouter } from "next/router"
 import {
 	collection,
 	getDocs,
@@ -21,7 +20,6 @@ import EditUserModal from "./modals/EditUserModal"
 
 // Profile page that allows the user to edit password or logout of their account
 const Users = () => {
-	const router = useRouter()
 	// Initialize authentication context
 	const {
 		user,
@@ -32,7 +30,6 @@ const Users = () => {
 		setCustomClaims,
 	} = useAuth()
 
-	const [currentUser, setCurrentUser] = useState("")
 	// State variables for managing user data
 	const [userRole, setUserRole] = useState("")
 	const [loadedMobileUsers, setLoadedMobileUsers] = useState([])
@@ -46,14 +43,14 @@ const Users = () => {
 	const [banned, setBanned] = useState("")
 	const [userEditClick, setUserEditClick] = useState(null)
 	const [userId, setUserId] = useState(null)
-	const [update, setUpdate] = useState(false)
+	const [update,setUpdate] = useState(false)
+	const [listOfUsers, setListOfUsers] =useState([])
 
 	const dateOptions = {
 		day: "2-digit",
 		year: "numeric",
 		month: "short",
 	}
-	// CSS style definitions
 	const tableHeading = {
 		default: "px-3 py-1 text-sm font-semibold text-left tracking-wide",
 		default_center: "text-center p-2 text-sm font-semibold tracking-wide",
@@ -67,77 +64,80 @@ const Users = () => {
 	const style = {
 		icon: "hover:fill-cyan-700",
 	}
+
 	// Function to fetch user data from Firebase
 	const getData = async () => {
-		if (customClaims.agency) {
+		
+		if (customClaims.admin) {
+			// List ALL users for admin
 			try {
-				// Query the agency collection
-				// where currently logged in user's email
-				// is in the 'agencyUsers' array
-				const agencyQuery = query(
-					collection(db, "agency"),
-					where("agencyUsers", "array-contains", user.email)
-				)
-				// Get query snapshot
-				const agencyQuerySnapshot = await getDocs(agencyQuery)
-				// Check if there's an agency matching
-				if (!agencyQuerySnapshot.empty) {
-					const agencyDocument = agencyQuerySnapshot.docs[0]
-					const agencyData = agencyDocument.data()
-					setAgencyName(agencyData.name)
-				}
-				/* Now that we have the `agency` name
-				 * we can use the `agency` name to get
-				 * all the `reports` that are made to the `agency` name.
-				 * and from each reports we will get the `userID` (ex. "userId": "WTVhG4yE1YVn6yjY32alHKw94O52" )
-				 * to query the `mobileUsers` collection for each `userID`
-				 * and add them to the`setLoadedMobileUsers` array
-				 */
-				const reportsQuery = query(
-					collection(db, "reports"),
-					where("agency", "==", agencyName)
-				)
-				const reportsSnapshot = await getDocs(reportsQuery)
-				let userArray = []
-				reportsSnapshot.forEach(async (report) => {
-					/**
-					 * for each report found get the report creator's userID
-					 * userID coresponds to their firebase `mobileUsers` ID
-					 * as well as their firebase auth UID
-					 */
-					const id = report.data()?.userID
-					const docRef = doc(db, "mobileUsers", id)
-					const docSnap = await getDoc(docRef)
-					if (docSnap.exists()) {
-						// now we need to build an array of these user ids
-						// to itterate over and display in the users table
-						userArray.push({ [docSnap.id]: docSnap.data() })
-					} else {
-						// docSnap.data() will be undefined in this case
-						console.log("No such document!")
-					}
-				})
-				// console.log(userArray)
+				const mobileUsersQuery = query(collection(db,'mobileUsers'))
+				const mobileUsersQuerySnapshot = await getDocs(mobileUsersQuery)
 
-				setLoadedMobileUsers(userArray)
-				// console.log(loadedMobileUsers)
-				setEndIndex(endIndex + 14)
+				const mobileUsersArray = []
+				mobileUsersQuerySnapshot.forEach((doc) => {
+					mobileUsersArray.push({
+						id: doc.id,
+						data: doc.data()
+					})
+				})
+				setLoadedMobileUsers(mobileUsersArray)
 			} catch (error) {
-				console.error("Error fetching data:", error)
+				console.error('Error in getData:',error)
 			}
-		} else if (customClaims.admin) {
-			// Get all mobileUsers
-			const userSnapshot = await getDocs(collection(db, "mobileUsers"))
-			let userArray = []
-			userSnapshot.forEach((doc) => {
-				userArray.push({ [doc.id]: doc.data() })
-			})
-			// console.log(userArray)
-			// setMobileUsers(userArray)
-			setLoadedMobileUsers(userArray)
-			setEndIndex(endIndex + 14)
+		} else {
+			// List users for Agencies
+			try {
+				const agencyRef = collection(db,'agency')
+				const q = query(agencyRef,where('agencyUsers','array-contains','lanaes13@yahoo.com'))
+
+				const querySnapshot = await getDocs(q)
+
+				// Check if there is at least one document
+				if (!querySnapshot.empty) {
+					const firstDocument = querySnapshot.docs[0]
+					const name = firstDocument.data().name
+
+					// Use the 'name' value in another query
+					const reportsQuery = query(collection(db,'reports'),where('agency','==',name))
+					const reportsQuerySnapshot = await getDocs(reportsQuery)
+
+					// Build an array of 'userID' from the reports documents
+					const userIDs = []
+					reportsQuerySnapshot.forEach((doc) => {
+						const userID = doc.data().userID
+						// console.log(userID)
+						userIDs.push(userID)
+					})
+
+					// Query 'mobileUsers' collection for each 'userID'
+					const mobileUsersArray = []
+					// Query 'mobileUsers' collection for each userID
+					for (const userID of userIDs) {
+						const mobileUserDocRef = doc(db,'mobileUsers',userID)
+						const mobileUserDocSnapshot = await getDoc(mobileUserDocRef)
+
+						if (mobileUserDocSnapshot.exists()) {
+							// Document exists, add it to the array
+							mobileUsersArray.push({
+								id: mobileUserDocSnapshot.id,
+								data: mobileUserDocSnapshot.data()
+							})
+						}
+					}
+					setLoadedMobileUsers(mobileUsersArray)
+				} else {
+					console.log('No matching documents.')
+				}
+			} catch (error) {
+				console.error('Error in getData:',error)
+			}
 		}
-	}
+	};
+
+	useEffect(() => {
+		getData();
+	}, []);
 
 	// Function to trigger delete user modal
 	const handleMobileUserDelete = async (userId) => {
@@ -230,13 +230,7 @@ const Users = () => {
 
 		setUserEditClick(false)
 	}
-
-	// Initial data fetch
-	useEffect(() => {
-		getData()
-		console.log(loadedMobileUsers)
-	}, [])
-
+	
 	// Data fetch on update
 	useEffect(() => {
 		getData()
@@ -261,8 +255,7 @@ const Users = () => {
 					<InfiniteScroll
 						className='overflow-x-auto'
 						dataLength={endIndex}
-						hasMore={true}
-						loader={<h4>Loading...</h4>}
+						inverse={false}
 						scrollableTarget='scrollableDiv'>
 						<table className='min-w-full bg-white rounded-xl p-1'>
 							<thead className='border-b dark:border-indigo-100 bg-slate-100'>
@@ -300,10 +293,11 @@ const Users = () => {
 								</tr>
 							</thead>
 							<tbody>
-								{loadedMobileUsers.slice(0, endIndex).map((userObj, key) => {
-									const listUser = Object.values(userObj)[0]
-									const userId = Object.keys(userObj)[0]
-									console.log(Object.keys(userObj)[0])
+								{loadedMobileUsers.map((userObj, key) => {
+									// Directly access user details and user ID
+									const userId = userObj.id;
+									const listUser = userObj.data;
+									// console.log(Object.keys(userObj)[0])
 									let posted = listUser.joiningDate
 									// Get list user agency uid & display agency name
 									posted = posted * 1000
@@ -311,13 +305,13 @@ const Users = () => {
 									posted = posted.toLocaleString("en-US", dateOptions)
 									return (
 										<tr
-											className='border-b transition duration-300 ease-in-out dark:border-indigo-100'
-											key={key}
-											onClick={
-												customClaims.admin
-													? () => handleEditUser(listUser, userId)
-													: undefined
-											}>
+												className='border-b transition duration-300 ease-in-out dark:border-indigo-100'
+												key={key}
+												onClick={
+													customClaims.admin
+															? () => handleEditUser(listUser, userId)
+															: undefined
+												}>
 											{/* Name */}
 											<td scope='row' className={column.data}>
 												{listUser.name}
@@ -327,7 +321,7 @@ const Users = () => {
 											<td className={column.data_center}>{listUser.email}</td>
 											{/* Agency */}
 											{customClaims.admin && (
-												<td className={column.data_center}>{userObj.agency}</td>
+												<td className={column.data_center}>{listUser.agency}</td>
 											)}
 											{/* Joined date */}
 											<td className={column.data_center}>{posted}</td>
