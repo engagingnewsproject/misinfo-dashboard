@@ -35,10 +35,10 @@ const Users = () => {
 	const [loadedMobileUsers, setLoadedMobileUsers] = useState([])
 	const [endIndex, setEndIndex] = useState(0)
 	const [deleteModal, setDeleteModal] = useState(false)
-	const [userEdit, setUserEdit] = useState([])
+	const [userEditing, setUserEditing] = useState([])
 	const [name, setName] = useState("")
 	const [email, setEmail] = useState("")
-	const [agency, setAgency] = useState("")
+	const [agencyUserAgency, setAgencyUserAgency] = useState("")
 	const [agencyName, setAgencyName] = useState("")
 	const [banned, setBanned] = useState("")
 	const [userEditClick, setUserEditClick] = useState(null)
@@ -75,12 +75,33 @@ const Users = () => {
 				const mobileUsersQuerySnapshot = await getDocs(mobileUsersQuery)
 
 				const mobileUsersArray = []
-				mobileUsersQuerySnapshot.forEach((doc) => {
-					mobileUsersArray.push({
-						id: doc.id,
-						data: doc.data()
-					})
-				})
+				
+				// Iterate over each mobile user
+				for (const doc of mobileUsersQuerySnapshot.docs) {
+						const userData = {
+								id: doc.id,
+								data: doc.data()
+						};
+					// console.log(userData)
+
+					// Check if the user is associated with any agency
+						const agencyRef = collection(db, 'agency');
+						const agencyQuery = query(agencyRef, where('agencyUsers', 'array-contains', userData.data.email));
+						const agencySnapshot = await getDocs(agencyQuery);
+
+						if (!agencySnapshot.empty) {
+							const agencyData = agencySnapshot.docs[0].data();
+							userData.data.agencyName = agencyData.name;
+							// Set the agency state
+        			setAgencyUserAgency(userData.data.agencyName);
+						}
+
+					mobileUsersArray.push(userData);
+					// console.log(agency)
+				}
+				// need to itterate over the 'agency' collection 
+				// to see if the mobileUser's email is in the 
+				// 'agency'(s) 'agencyUsers' array
 				setLoadedMobileUsers(mobileUsersArray)
 			} catch (error) {
 				console.error('Error in getData:',error)
@@ -106,7 +127,6 @@ const Users = () => {
 					const userIDs = []
 					reportsQuerySnapshot.forEach((doc) => {
 						const userID = doc.data().userID
-						// console.log(userID)
 						userIDs.push(userID)
 					})
 
@@ -162,13 +182,11 @@ const Users = () => {
 
 	// Function to handle opening and setting values in the EditUserModal
 	const handleEditUser = async (userObj, userId) => {
-		console.log(userObj, userId)
 		setUserId(userId)
 		const userRef = await getDoc(doc(db, "mobileUsers", userId))
-		setUserEdit(userRef.data())
+		setUserEditing(userObj)
 		setName(userRef.data()["name"])
 		setEmail(userRef.data()["email"])
-		setAgency(userObj["agency"]) // agency name is derived from the getData call where the mobileUser's 'agency' field has the agency uid
 		setBanned(userRef.data()["isBanned"])
 		setUserRole(userRef.data()["userRole"])
 		setUserEditClick(true)
@@ -297,7 +315,6 @@ const Users = () => {
 									// Directly access user details and user ID
 									const userId = userObj.id;
 									const listUser = userObj.data;
-									// console.log(Object.keys(userObj)[0])
 									let posted = listUser.joiningDate
 									// Get list user agency uid & display agency name
 									posted = posted * 1000
@@ -321,7 +338,7 @@ const Users = () => {
 											<td className={column.data_center}>{listUser.email}</td>
 											{/* Agency */}
 											{customClaims.admin && (
-												<td className={column.data_center}>{listUser.agency}</td>
+												<td className={column.data_center}>{listUser.agencyName}</td>
 											)}
 											{/* Joined date */}
 											<td className={column.data_center}>{posted}</td>
@@ -383,12 +400,10 @@ const Users = () => {
 					userRole={userRole}
 					setUserRole={setUserRole}
 					setUserEditClick={setUserEditClick}
-					userEditClick={userEditClick}
-					userEdit={userEdit}
 					userId={userId}
 					name={name}
 					onNameChange={handleNameChange}
-					agency={agency}
+					agencyUserAgency={agencyUserAgency}
 					// onAgencyChange={handleAgencyChange}
 					email={email}
 					onEmailChange={handleEmailChange}
@@ -397,7 +412,7 @@ const Users = () => {
 					onBannedChange={handleBannedChange}
 					onFormSubmit={handleFormSubmit}
 					onOptionChange={handleOptionChange}
-					setUserEdit={setUserEdit}
+					userEditing={userEditing} // All mobileUser
 				/>
 			)}
 		</div>
