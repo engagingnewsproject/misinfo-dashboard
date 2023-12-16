@@ -103,9 +103,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		// // Short way
 		// Get user's 'agency' name 
 		// & only show reports with the 'agency' key that matches
-		console.log(user)
 		const agencyCollection = collection(db,"agency")
-		console.log(agencyCollection)
 		const reportsCollection = collection(db,"reports")
 		const snapshot = await getDocs(reportsCollection)
 
