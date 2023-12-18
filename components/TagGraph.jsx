@@ -17,7 +17,8 @@ const TagGraph = () => {
   const [sevenDayReports, setSevenDayReports] = useState([])
   const [numTrendingTopics, setNumTrendingTopics] = useState([])
   const [loaded, setLoaded] = useState(false)
-  const [agencyName, setAgencyName] = useState(null)
+  const [agencyName, setAgencyName] = useState("")
+  const [privilege, setPrivilege] = useState(null)
   const [checkRole, setCheckRole] = useState(false)
 
   // Returns the Firebase timestamp for the beginning of yesterday
@@ -54,16 +55,17 @@ const TagGraph = () => {
         querySnapshot.forEach((doc) => { // Set initial values
           console.log(doc.data())
           agencyTempName = doc.data()['name']
-          console.log(agencyTempName)
           setAgencyName(agencyTempName)
+          setPrivilege("Agency")
         
           })
         })
-      } else {
+      } else if (result.admin) {
+        console.log("setting name")
         setAgencyName("")
+        setPrivilege("Admin")
       }
 
-      setCheckRole(true)
 
     })
   
@@ -71,8 +73,9 @@ const TagGraph = () => {
 
   async function getTopicReports() {
     const reportsList = collection(db, "reports");
-    console.log(agencyName)
-  
+    console.log("in topic reports")
+                                         
+    console.log(privilege)
     // Retrieve array of all topics
     const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
     const topicRef = await getDoc(topicDoc);
@@ -86,17 +89,27 @@ const TagGraph = () => {
     for (let index = 0; index < topics.length; index++) {
 
       // Filters report collection so it only shows reports  for current agency, if there is one, from yesterday and for the current topic
-      const queryYesterday = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(1)), where("agency", "==", agencyName),
-      where("createdDate", "<", getEndOfDay()))      
+      let queryYesterday = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(1)), 
+      where("createdDate", "<", getEndOfDay()))  
+      if (privilege === "Agency") {
+        queryYesterday = query(queryYesterday, where("agency", "==", agencyName))
+      }    
       const dataYesterday = await getDocs(queryYesterday);
       
-      const queryThreeDays= query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(3)), where("agency", "==", agencyName),
+      let queryThreeDays= query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(3)),
       where("createdDate", "<", getEndOfDay()))      
+      if (privilege === "Agency") {
+        queryThreeDays = query(queryYesterday, where("agency", "==", agencyName))
+
+      }
       const dataThreeDays = await getDocs(queryThreeDays);
 
       // Filters report collection so it only shows reports from 7 days ago
-      const querySevenDays = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(7)), where("agency", "==", agencyName),
-      where("createdDate", "<", getEndOfDay()))      
+      let querySevenDays = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(7)),
+      where("createdDate", "<", getEndOfDay()))    
+      if (privilege === "Agency") {
+        querySevenDays = query(querySevenDays, where("agency", "==", agencyName))
+      }  
       const dataSevenDays = await getDocs(querySevenDays);
       
       // Excludes topics who had no reports yesterday 
@@ -158,9 +171,14 @@ const TagGraph = () => {
 
   }, [])
 
+  useEffect(()=> {
+    setCheckRole(true)
+    
+  }, [agencyName])
+
   // Gets reports collection to determine top three trending topicsafter we verify if the current user is an agency..
   useEffect(() => {
-    if (checkRole && agencyName) {
+    if (checkRole) {
       getTopicReports()
     }
   }, [checkRole])
