@@ -41,7 +41,8 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   const [dateError, setDateError] = useState(false)
 
   // Indicates if current user is an agency or not. 
-  const [agencyName, setAgencyName] = useState(null)
+  const [agencyName, setAgencyName] = useState("")
+  const [privilege, setPrivilege] = useState(null)
   const [checkRole, setCheckRole] = useState(false)
   const { user, verifyRole } = useAuth()
 
@@ -49,10 +50,8 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   // Formats and returns date range for the title of the graph.
   const formatDates = () => {
     const startRange = new Date(dates[0] * 1000)
-    console.log(dates.length)
     console.log(new Date(dates[dates.length - 2] * 1000))
     const endRange = new Date(dates[dates.length - 2]  * 1000)
-    console.log(dates)
     var newDateOptions = {
       month: "2-digit",
       day: "2-digit"
@@ -96,7 +95,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
 
   // Retrieves the number of reports for the selected topics and date range.
   const getDailyTopicReports = async() => {
-    console.log("before date: " + dateRange[0].endDate.getTime())
+    // console.log("before date: " + dateRange[0].endDate.getTime())
     const days = Math.ceil((dateRange[0].endDate.getTime()- dateRange[0].startDate.getTime()) / 86400000)
     const array = getDates(days)
     
@@ -117,14 +116,19 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
       for (let index = 0; index < array[0].length - 1; index++) {
 
         // Filters report collection so it only shows reports for the current topic on the day at current index in array
-        const queryDaily = query(reportsList, where("topic", "==", selectedTopics[topic].value), where("createdDate", ">=", array[0][index]),
-        where("createdDate", "<", array[0][index + 1]), where("agency", "==", agencyName))
+        let queryDaily = query(reportsList, where("topic", "==", selectedTopics[topic].value), where("createdDate", ">=", array[0][index]),
+          where("createdDate", "<", array[0][index + 1]))
+        if (privilege === "Agency") {
+          queryDaily = query(queryDaily, where("agency", "==", agencyName))
+        }
         const dailyReports = await getDocs(queryDaily);
+
+
         try {
           numReports.push(dailyReports.size)
-          console.log(selectedTopics[topic].value)
+          // console.log(selectedTopics[topic].value)
           console.log("day:" + array[0][index])
-          console.log(dailyReports.size)
+          // console.log(dailyReports.size)
         }
         catch (error) {
           console.log(error)
@@ -140,7 +144,6 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   // Formats data using date range and selected topics to display graph.
   const getGraphData = () => {
     const arr = []
-    console.log("in graph data")
     // Populates data used for the comparison graph
     for (let topic = 0; topic < selectedTopics.length; topic++) {
       const topicData = {
@@ -165,14 +168,14 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
           const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
           getDocs(q).then((querySnapshot) => {
           querySnapshot.forEach((doc) => { // Set initial values
-            console.log(doc.data())
             agencyTempName = doc.data()['name']
-            console.log(agencyTempName)
+            setPrivilege("Agency")
             setAgencyName(agencyTempName)
           
             })
           })
-        } else {
+        } else if (result.admin) {
+          setPrivilege("Admin")
           setAgencyName("")
         }
   
@@ -182,7 +185,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   // Populates graph with new data for the selected date range and topics once the
   // topic reports have been collected. 
   useEffect(()=> {
-    if (reportData.length !== 0 && checkRole && agencyName && updateGraph && !topicError && !dateError) {	
+    if (reportData.length !== 0 && checkRole && updateGraph && !topicError && !dateError) {	
       getGraphData()	
       setUpdateGraph(false)	
     }	
