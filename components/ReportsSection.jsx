@@ -145,6 +145,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		try {
 			var arr = []
 			snapshot.forEach((doc) => {
+        console.log(doc)
 				arr.push({
 					[doc.id]: doc.data(),
 				})
@@ -258,6 +259,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
  
 	// On page load (mount), get the reports from firebase
 	useEffect(() => {
+    console.log("i am here")
     // determine if current user is an agency or not
 		getData()
 	}, [newReportSubmitted])
