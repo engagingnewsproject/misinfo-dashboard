@@ -116,10 +116,13 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
       for (let index = 0; index < array[0].length - 1; index++) {
 
         // Filters report collection so it only shows reports for the current topic on the day at current index in array
-        let queryDaily = query(reportsList, where("topic", "==", selectedTopics[topic].value), where("createdDate", ">=", array[0][index]),
-          where("createdDate", "<", array[0][index + 1]))
+        let queryDaily;
         if (privilege === "Agency") {
-          queryDaily = query(queryDaily, where("agency", "==", agencyName))
+          queryDaily = query(reportsList, where("topic", "==", selectedTopics[topic].value), where("createdDate", ">=", array[0][index]),
+          where("createdDate", "<", array[0][index + 1]), where("agency", "==", agencyName))
+        } else {
+          queryDaily = query(reportsList, where("topic", "==", selectedTopics[topic].value), where("createdDate", ">=", array[0][index]),
+          where("createdDate", "<", array[0][index + 1]))
         }
         const dailyReports = await getDocs(queryDaily);
 
