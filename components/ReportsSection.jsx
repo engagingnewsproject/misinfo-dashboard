@@ -117,7 +117,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		// // Short way
 		// Get user's 'agency' name 
 		// & only show reports with the 'agency' key that matches
-
     let agencyName;
 		const agencyCollection = collection(db,"agency")
     const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
@@ -140,7 +139,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
     } else {
       snapshot = await getDocs(reportsCollection)
     }
-   
 
 		try {
 			var arr = []
