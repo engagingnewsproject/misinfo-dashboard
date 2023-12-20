@@ -78,33 +78,7 @@ const Profile = ({ customClaims }) => {
 			"block flex flex-col text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer",
 	}
 
-	// GET DATA
-	const getData = async () => {
-		try {
-			// Get data
-			const agencyCollection = collection(db, "agency")
-			const q = query(
-				agencyCollection,
-				where("agencyUsers", "array-contains", user.email)
-			)
-			const querySnapshot = await getDocs(q)
 
-			if (!querySnapshot.empty) {
-				const doc = querySnapshot.docs[0] // Assuming there's only one agency
-				const agencyData = doc.data()
-
-				// Set initial values
-				setAgency(agencyData)
-				setAgencyId(doc.id)
-				setAgencyName(agencyData.name)
-				setAgencyState(agencyData.state)
-				setAgencyCity(agencyData.city)
-				setAgencyLogo(agencyData.logo)
-			}
-		} catch (error) {
-			console.error("Error fetching agency data:", error)
-		}
-	}
 
 	// IMAGE UPLOAD
 	const handleLogoEdit = (e) => {
@@ -168,18 +142,26 @@ const Profile = ({ customClaims }) => {
   const getData = async () => { // Get data
     if (isAgency) {
       console.log(user)
-      const agencyCollection = collection(db, 'agency')
-      const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
-      const querySnapshot = await getDocs(q)
-      querySnapshot.forEach((doc) => { // Set initial values
-        console.log(doc.data())
-        setAgency(doc.data())
-        setAgencyId(doc.id)
-        setAgencyName(doc.data()['name'])
-        setAgencyState(doc.data()['state'])
-        setAgencyCity(doc.data()['city'])
-        setAgencyLogo(doc.data()['logo'])
-      });
+      try {
+        const agencyCollection = collection(db, 'agency')
+        const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
+        const querySnapshot = await getDocs(q)
+        
+        if (!querySnapshot.empty) {
+
+          querySnapshot.forEach((doc) => { // Set initial values
+            console.log(doc.data())
+            setAgency(doc.data())
+            setAgencyId(doc.id)
+            setAgencyName(doc.data()['name'])
+            setAgencyState(doc.data()['state'])
+            setAgencyCity(doc.data()['city'])
+            setAgencyLogo(doc.data()['logo'])
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching agency data:", error)
+      }
     }
   }
 
