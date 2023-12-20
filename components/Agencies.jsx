@@ -157,7 +157,11 @@ const handleDelete = async (e) => {
 
       querySnapshot.forEach((doc) => {
         const userData = doc.data();
+        console.log(userData);
 
+
+        // TODO: Change privilege for user since we're deleting agency
+        // TODO: Check if user account exists - if it does, get rid of agency privilege.
         // Update the agency field for the user
         const userUpdatePromise = updateDoc(doc.ref, { agency: '' });
         updatePromises.push(userUpdatePromise);
