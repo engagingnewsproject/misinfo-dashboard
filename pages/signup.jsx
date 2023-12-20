@@ -150,10 +150,10 @@ const SignUp = () => {
                     <div className="w-24 h-24 font-extralight rounded-full tracking-widest flex justify-center items-center text-white bg-blue-500">MOODY</div>
                 </div>
                 <form className="px-8 pt-6 pb-4 mb-4" onChange={handleChange} onSubmit={handleSignUp}>
-                    <div className="mb-4">
+                    {/* <div className="mb-4"> */}
 
                         {/* Only allows user to select team name. Agencies had already had their name selected. */}  
-                        {!isAgency &&       
+                        {/* {!isAgency &&       
                           <input
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="name"
@@ -164,8 +164,8 @@ const SignUp = () => {
                             onChange={handleChange}
                             autoComplete=''
                             />
-                        }
-                    </div>
+                        } */}
+                    {/* </div> */}
                     <div className="mb-4">
               
                           {/* TODO: {agency && Instructions for an agency to sign up */}
