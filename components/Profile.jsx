@@ -149,6 +149,40 @@ const Profile = ({ customClaims }) => {
 		Promise.all(promises).catch((err) => console.log(err))
 	}
 
+  useEffect(() => {  // Verify role
+    verifyRole().then((result) => {
+      console.log(result)
+      if (result.admin) {
+        setIsAdmin(true)
+      } else if (result.agency) {
+        setIsAgency(true)
+      } else {
+        setIsAgency(false)
+        setIsAdmin(false)
+      }
+    })
+  }, [])
+
+  
+  // GET DATA
+  const getData = async () => { // Get data
+    if (isAgency) {
+      console.log(user)
+      const agencyCollection = collection(db, 'agency')
+      const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
+      const querySnapshot = await getDocs(q)
+      querySnapshot.forEach((doc) => { // Set initial values
+        console.log(doc.data())
+        setAgency(doc.data())
+        setAgencyId(doc.id)
+        setAgencyName(doc.data()['name'])
+        setAgencyState(doc.data()['state'])
+        setAgencyCity(doc.data()['city'])
+        setAgencyLogo(doc.data()['logo'])
+      });
+    }
+  }
+
 	// SAVE AGENCY
 	const saveAgency = (imageURLs) => {
 		if (isAgency) {
@@ -246,39 +280,27 @@ const Profile = ({ customClaims }) => {
 		})
 	}
 
-	useEffect(() => {
-		// Verify role
-		verifyRole().then((result) => {
-			if (result.admin) {
-				console.log("is admin role")
-				setIsAdmin(true)
-			} else if (result.agency) {
-				// console.log("is agency role")
-				setIsAgency(true)
-			} else {
-				console.log("general user role")
-				setIsAgency(false)
-				setIsAdmin(false)
-			}
-		})
-	}, [])
 
-	useEffect(() => {
-		// Get data
-		getData()
-	}, [])
 
-	useEffect(() => {
-		if (agency["name"] !== agencyName) {
-			setAgencyName(agencyName)
-		} else {
-			setAgencyName(agency["name"])
-		}
-		if (agency["city"] !== agencyCity || agency["state"] == agencyState) {
-			setLocation(agency["city"] + ", " + agency["state"])
-		}
-		// getData()
-	}, [update])
+
+	useEffect(() => { // Get data once we know if the user is an agency or not
+    if (user) {
+		  getData()
+    }
+  }, [isAgency]);
+  
+  useEffect(() => {
+    if (agency['name'] !== agencyName) {
+      setAgencyName(agencyName)
+    } else {
+      setAgencyName(agency['name'])
+    }
+		if (agency['city'] !== agencyCity || agency['state'] == agencyState) {
+			setLocation(agency['city'] + ', ' + agency['state'])
+    }
+    // getData()
+  }, [update])
+  
 
 	useEffect(() => {
 		if (update) {
