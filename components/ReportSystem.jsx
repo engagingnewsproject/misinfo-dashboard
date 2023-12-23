@@ -123,7 +123,7 @@ const ReportSystem = ({
         const newReportRef = doc(collection(db, "reports"));
         setReportId(newReportRef.id) // set report id
         setDoc(newReportRef, {
-            userID: user.accountId,
+            userID: user.uid,
             state: data.state.name,
             city: data.city == null ? "N/A" : data.city.name,
             agency: selectedAgency,
