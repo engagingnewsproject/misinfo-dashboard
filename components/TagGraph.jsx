@@ -188,7 +188,7 @@ const TagGraph = () => {
     
   }, [agencyName, privilege])
 
-  // Gets reports collection to determine top three trending topicsafter we verify if the current user is an agency..
+  // Gets reports collection to determine top three trending topics after we verify if the current user is an agency..
   useEffect(() => {
     if (checkRole) {
       getTopicReports()

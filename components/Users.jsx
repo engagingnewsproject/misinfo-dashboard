@@ -110,23 +110,30 @@ const Users = () => {
 			// List users for Agencies
 			try {
 				const agencyRef = collection(db,'agency')
-				const q = query(agencyRef,where('agencyUsers','array-contains','lanaes13@yahoo.com'))
+				const q = query(agencyRef,where('agencyUsers','array-contains',user['email']))
 
-				const querySnapshot = await getDocs(q)
+        let agencyName;
+        const querySnapshot = await getDocs(q)
+        querySnapshot.forEach((doc) => { // Set initial values
+          agencyName = doc.data()['name']
+        
+        })
 
 				// Check if there is at least one document
 				if (!querySnapshot.empty) {
-					const firstDocument = querySnapshot.docs[0]
-					const name = firstDocument.data().name
+					// const firstDocument = querySnapshot.docs[0]
+					// const name = firstDocument.data().name
 
 					// Use the 'name' value in another query
-					const reportsQuery = query(collection(db,'reports'),where('agency','==',name))
+					const reportsQuery = query(collection(db,'reports'),where('agency','==',agencyName))
 					const reportsQuerySnapshot = await getDocs(reportsQuery)
 
 					// Build an array of 'userID' from the reports documents
 					const userIDs = []
 					reportsQuerySnapshot.forEach((doc) => {
 						const userID = doc.data().userID
+            console.log(userID)
+
 						userIDs.push(userID)
 					})
 
@@ -143,6 +150,8 @@ const Users = () => {
 								id: mobileUserDocSnapshot.id,
 								data: mobileUserDocSnapshot.data()
 							})
+
+              // Check to see if user exists
 						}
 					}
 					setLoadedMobileUsers(mobileUsersArray)
