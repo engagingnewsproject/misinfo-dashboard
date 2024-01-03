@@ -17,6 +17,7 @@ import { IoTrash } from "react-icons/io5"
 import InfiniteScroll from "react-infinite-scroll-component"
 import ConfirmModal from "./modals/ConfirmModal"
 import EditUserModal from "./modals/EditUserModal"
+import Headbar from "./Headbar"
 
 // Profile page that allows the user to edit password or logout of their account
 const Users = () => {
@@ -39,12 +40,15 @@ const Users = () => {
 	const [name, setName] = useState("")
 	const [email, setEmail] = useState("")
 	const [agencyUserAgency, setAgencyUserAgency] = useState("")
+	const [currentUserAgency,setCurrentUserAgency] = useState('');
 	const [agencyName, setAgencyName] = useState("")
 	const [banned, setBanned] = useState("")
 	const [userEditClick, setUserEditClick] = useState(null)
 	const [userId, setUserId] = useState(null)
 	const [update,setUpdate] = useState(false)
 	const [listOfUsers, setListOfUsers] =useState([])
+	const [search,setSearch] = useState("")
+
 
 	const dateOptions = {
 		day: "2-digit",
@@ -65,99 +69,113 @@ const Users = () => {
 		icon: "hover:fill-cyan-700",
 	}
 
+	const getCurrentUserAgency = async () => {
+		// need to itterate over the 'agency' collection 
+		// to see if the mobileUser's email is in the
+		// 'agency'(s) 'agencyUsers' array
+		const agencyCollection = collection(db,'agency')
+		const q = query(agencyCollection,where('agencyUsers',"array-contains",user['email']))
+		try {
+			const querySnapshot = await getDocs(q)
+
+			// Set the current user's agency in the state
+			if (!querySnapshot.empty) {
+				const agencyName = querySnapshot.docs[0].data()['name']
+				setCurrentUserAgency(agencyName)
+				return agencyName // Optionally, you can also return the agency name
+			} else {
+				setCurrentUserAgency('') // Clear the current user's agency if not found
+				return '' // Optionally, you can also return an empty string
+			}
+		} catch (error) {
+			console.error('Error fetching data:',error)
+			setCurrentUserAgency('') // Clear the current user's agency in case of an error
+			return '' // Optionally, you can also return an empty string
+		}
+	}
+
 	// Function to fetch user data from Firebase
 	const getData = async () => {
 		
-		if (customClaims.admin) {
-			// List ALL users for admin
-			try {
-				const mobileUsersQuery = query(collection(db,'mobileUsers'))
-				const mobileUsersQuerySnapshot = await getDocs(mobileUsersQuery)
+		// ALL users regardless if agency user or admin user
+		try {
+			// Check the current user's agency name
+			if (customClaims.agency) {
+				// Await the result of getCurrentUserAgency
+				const userAgency = await getCurrentUserAgency()
+				console.log('Current user agency: ' + userAgency)
 
-				const mobileUsersArray = []
-				
-				// Iterate over each mobile user
-				for (const doc of mobileUsersQuerySnapshot.docs) {
-						const userData = {
-								id: doc.id,
-								data: doc.data()
-						};
-					// console.log(userData)
+				// Set the list of user's agency names
+				setAgencyUserAgency(userAgency)
 
-					// Check if the user is associated with any agency
-						const agencyRef = collection(db, 'agency');
-						const agencyQuery = query(agencyRef, where('agencyUsers', 'array-contains', userData.data.email));
-						const agencySnapshot = await getDocs(agencyQuery);
-
-						if (!agencySnapshot.empty) {
-							const agencyData = agencySnapshot.docs[0].data();
-							userData.data.agencyName = agencyData.name;
-							// Set the agency state
-        			setAgencyUserAgency(userData.data.agencyName);
-						}
-
-					mobileUsersArray.push(userData);
-					// console.log(agency)
+				// Continue with fetching data only if userAgency is available
+				if (!userAgency) {
+					return
 				}
-				// need to itterate over the 'agency' collection 
-				// to see if the mobileUser's email is in the 
-				// 'agency'(s) 'agencyUsers' array
-				setLoadedMobileUsers(mobileUsersArray)
-			} catch (error) {
-				console.error('Error in getData:',error)
+			} else {
+				// Clear the current user's agency if not an agency user
+				setCurrentUserAgency('')
+				// Clear the list of user's agency names
+				setAgencyUserAgency('')
 			}
-		} else {
-			// List users for Agencies
-			try {
+
+			const mobileUsersQuery = query(collection(db,'mobileUsers'))
+			const mobileUsersQuerySnapshot = await getDocs(mobileUsersQuery)
+
+			const mobileUsersArray = []
+
+			// Build list of mobileUsers
+			// Iterate over each mobile user 
+			for (const doc of mobileUsersQuerySnapshot.docs) {
+				const userData = {
+					id: doc.id,
+					data: doc.data()
+				};
+
+				// Check if the user is associated with any agency
 				const agencyRef = collection(db,'agency')
-				const q = query(agencyRef,where('agencyUsers','array-contains','lanaes13@yahoo.com'))
+				const agencyQuery = query(agencyRef,where('agencyUsers','array-contains',userData.data.email))
+				const agencySnapshot = await getDocs(agencyQuery);
+				if (!agencySnapshot.empty) {
+					const agencyData = agencySnapshot.docs[0].data()
+					userData.data.agencyName = agencyData.name;
 
-				const querySnapshot = await getDocs(q)
+					// Log the user and agency for debugging
+					console.log(
+						'Logged in user agency: ' +
+						currentUserAgency +
+						', User: ' +
+						userData.data.email +
+						', Agency: ' +
+						userData.data.agencyName
+					)
 
-				// Check if there is at least one document
-				if (!querySnapshot.empty) {
-					const firstDocument = querySnapshot.docs[0]
-					const name = firstDocument.data().name
-
-					// Use the 'name' value in another query
-					const reportsQuery = query(collection(db,'reports'),where('agency','==',name))
-					const reportsQuerySnapshot = await getDocs(reportsQuery)
-
-					// Build an array of 'userID' from the reports documents
-					const userIDs = []
-					reportsQuerySnapshot.forEach((doc) => {
-						const userID = doc.data().userID
-						userIDs.push(userID)
-					})
-
-					// Query 'mobileUsers' collection for each 'userID'
-					const mobileUsersArray = []
-					// Query 'mobileUsers' collection for each userID
-					for (const userID of userIDs) {
-						const mobileUserDocRef = doc(db,'mobileUsers',userID)
-						const mobileUserDocSnapshot = await getDoc(mobileUserDocRef)
-
-						if (mobileUserDocSnapshot.exists()) {
-							// Document exists, add it to the array
-							mobileUsersArray.push({
-								id: mobileUserDocSnapshot.id,
-								data: mobileUserDocSnapshot.data()
-							})
-						}
+					// If currentUserAgency is defined and doesn't match, skip this user
+					if (currentUserAgency && userData.data.agencyName !== currentUserAgency) {
+						console.log('Skipping user:: ' + userData.data.email)
+						continue
 					}
-					setLoadedMobileUsers(mobileUsersArray)
-				} else {
-					console.log('No matching documents.')
 				}
-			} catch (error) {
-				console.error('Error in getData:',error)
+
+				mobileUsersArray.push(userData)
 			}
+
+			// FINAL SET loadedMobileUsers
+			setLoadedMobileUsers(mobileUsersArray)
+		} catch (error) {
+			console.error('Error in getData:',error)
 		}
 	};
 
 	useEffect(() => {
-		getData();
-	}, []);
+		const fetchData = async () => {
+			// Ensure that currentUserAgency is updated before calling getData
+			await getData()
+		}
+
+		fetchData()
+	},[currentUserAgency]) // Watch for changes in currentUserAgency and re-run the effect
+
 
 	// Function to trigger delete user modal
 	const handleMobileUserDelete = async (userId) => {
@@ -256,6 +274,7 @@ const Users = () => {
 
 	return (
 		<div className='w-full h-full flex flex-col py-5'>
+			<Headbar search={search} setSearch={setSearch} customClaims={customClaims} user={user} />
 			<div
 				className='w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto'
 				id='scrollableDiv'>
@@ -284,11 +303,11 @@ const Users = () => {
 									<th scope='col' className={tableHeading.default_center}>
 										Email
 									</th>
-									{customClaims.admin && (
+									{/* {customClaims.admin && ( */}
 										<th scope='col' className={tableHeading.default_center}>
 											Agency
 										</th>
-									)}
+									{/* )} */}
 									<th scope='col' className={tableHeading.default_center}>
 										Join Date
 									</th>
@@ -325,7 +344,7 @@ const Users = () => {
 												className='border-b transition duration-300 ease-in-out dark:border-indigo-100'
 												key={key}
 												onClick={
-													customClaims.admin
+													customClaims.agency
 															? () => handleEditUser(listUser, userId)
 															: undefined
 												}>
@@ -337,9 +356,9 @@ const Users = () => {
 											{/* Email */}
 											<td className={column.data_center}>{listUser.email}</td>
 											{/* Agency */}
-											{customClaims.admin && (
+											{/* {customClaims.admin && ( */}
 												<td className={column.data_center}>{listUser.agencyName}</td>
-											)}
+											{/* )} */}
 											{/* Joined date */}
 											<td className={column.data_center}>{posted}</td>
 											{/* Role */}
