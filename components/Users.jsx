@@ -41,6 +41,7 @@ const Users = () => {
 	const [email, setEmail] = useState("")
 	const [agencyUserAgency, setAgencyUserAgency] = useState("")
 	const [currentUserAgency,setCurrentUserAgency] = useState('');
+	const [loading,setLoading] = useState(true);
 	const [agencyName, setAgencyName] = useState("")
 	const [banned, setBanned] = useState("")
 	const [userEditClick, setUserEditClick] = useState(null)
@@ -99,11 +100,13 @@ const Users = () => {
 		
 		// ALL users regardless if agency user or admin user
 		try {
+			// Set loading to true while fetching data
+			setLoading(true);
 			// Check the current user's agency name
 			if (customClaims.agency) {
 				// Await the result of getCurrentUserAgency
 				const userAgency = await getCurrentUserAgency()
-				console.log('Current user agency: ' + userAgency)
+				// console.log('Current user agency: ' + userAgency)
 
 				// Set the list of user's agency names
 				setAgencyUserAgency(userAgency)
@@ -118,7 +121,6 @@ const Users = () => {
 				// Clear the list of user's agency names
 				setAgencyUserAgency('')
 			}
-
 			const mobileUsersQuery = query(collection(db,'mobileUsers'))
 			const mobileUsersQuerySnapshot = await getDocs(mobileUsersQuery)
 
@@ -141,20 +143,22 @@ const Users = () => {
 					userData.data.agencyName = agencyData.name;
 
 					// Log the user and agency for debugging
-					console.log(
-						'Logged in user agency: ' +
-						currentUserAgency +
-						', User: ' +
-						userData.data.email +
-						', Agency: ' +
-						userData.data.agencyName
-					)
+					// console.log(
+					// 	'Logged in user agency: ' +
+					// 	currentUserAgency +
+					// 	', User: ' +
+					// 	userData.data.email +
+					// 	', Agency: ' +
+					// 	userData.data.agencyName
+					// )
 
 					// If currentUserAgency is defined and doesn't match, skip this user
 					if (currentUserAgency && userData.data.agencyName !== currentUserAgency) {
-						console.log('Skipping user:: ' + userData.data.email)
+						// console.log('Skipping user:: ' + userData.data.email)
 						continue
 					}
+					// Set loading to false after data is loaded
+					setLoading(false)
 				}
 
 				mobileUsersArray.push(userData)
@@ -162,8 +166,12 @@ const Users = () => {
 
 			// FINAL SET loadedMobileUsers
 			setLoadedMobileUsers(mobileUsersArray)
+			// Set loading to false after data is loaded
+			setLoading(false);
 		} catch (error) {
 			console.error('Error in getData:',error)
+			// Set loading to false in case of an error
+			setLoading(false);
 		}
 	};
 
@@ -289,6 +297,10 @@ const Users = () => {
 					</div>
 				</div>
 				<div className='flex flex-col h-full'>
+					{/* Display loading message or spinner while data is loading */}
+					{loading && <p>Loading...</p>}
+					{/* Display the table when data is loaded */}
+					{!loading && (
 					<InfiniteScroll
 						className='overflow-x-auto'
 						dataLength={endIndex}
@@ -399,6 +411,7 @@ const Users = () => {
 							</tbody>
 						</table>
 					</InfiniteScroll>
+					)}
 					<div className='mt-2 self-end text-xs'>
 						Total users: {loadedMobileUsers.length}
 					</div>
