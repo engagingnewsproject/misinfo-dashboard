@@ -122,9 +122,9 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
     const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
     const querySnapshot = await getDocs(q)
     querySnapshot.forEach((doc) => { // Set initial values
-      console.log(doc.data())
+			// console.log(doc.data())
       agencyName = doc.data()['name']
-      console.log(agencyName)
+			// console.log(agencyName)
     
     })
       
@@ -143,7 +143,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		try {
 			var arr = []
 			snapshot.forEach((doc) => {
-        console.log(doc)
+				// console.log(doc)
 				arr.push({
 					[doc.id]: doc.data(),
 				})
@@ -257,7 +257,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
  
 	// On page load (mount), get the reports from firebase
 	useEffect(() => {
-    console.log("i am here")
+		// console.log("i am here")
     // determine if current user is an agency or not
 		getData()
 	}, [newReportSubmitted])
