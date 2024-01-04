@@ -177,7 +177,7 @@ const TagGraph = () => {
   
   // On page load (mount), verify if the current user is an agency
   useEffect(() => {
-      console.log("I am here")
+    // console.log("I am here")
       setRole()
   }, [])
 
