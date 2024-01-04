@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react'
+import React,{ useState,useEffect } from 'react'
+import { useRouter } from 'next/router'
 import Image from 'next/image';
 import { reportSystems } from '../pages/report';
 import ReportSystem from './ReportSystem';
 import ReportList from './ReportList';
 import { IoChevronForward } from "react-icons/io5";
+import { auth } from '../config/firebase'
+import { useAuth } from '../context/AuthContext';
 
 const ReportLanding = ({ 
 	onReportStartClick,
@@ -23,9 +26,24 @@ const ReportLanding = ({
 		button: 'bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 mt-4 border border-blue-600 rounded-xl',
 		systemWrap: 'text-xl font-extrabold text-blue-600 tracking-wider mt-5'
 	}
-	// console.log(reportSystem);
-    // console.log('step: '+reportSystem+' disableReminder: '+disableReminder+' ||| reminderShow: '+reminderShow);
-	
+
+	const router = useRouter()
+	// Initialize authentication context
+	const { addAdminRole } = useAuth()
+	// get current user's email
+	const userEmail = auth.currentUser.email
+	// set Julia & Luke's email as admin and open the dashboard
+	// This is a backup so we don't get locked out of custom claims.
+	if (userEmail === 'luke@lukecarlhartman.com' || userEmail === 'juliaelias@utexas.edu') {
+		auth.currentUser.getIdTokenResult()
+			.then((idTokenResult) => {
+				if (!idTokenResult.claims.admin) {
+					console.log(addAdminRole({ email: userEmail }))
+					void router.push('/dashboard')
+				}
+			})
+
+	}
 	return (
 		<div className={style.container}>
 			{/* Headbar */}
