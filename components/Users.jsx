@@ -41,7 +41,7 @@ const Users = () => {
 	const [email, setEmail] = useState("")
 	const [agencyUserAgency, setAgencyUserAgency] = useState("")
 	const [currentUserAgency,setCurrentUserAgency] = useState('');
-	const [loading,setLoading] = useState(true);
+	// const [loading,setLoading] = useState(true);
 	const [agencyName, setAgencyName] = useState("")
 	const [banned, setBanned] = useState("")
 	const [userEditClick, setUserEditClick] = useState(null)
@@ -101,12 +101,12 @@ const Users = () => {
 		// ALL users regardless if agency user or admin user
 		try {
 			// Set loading to true while fetching data
-			setLoading(true);
+			// setLoading(true);
 			// Check the current user's agency name
 			if (customClaims.agency) {
 				// Await the result of getCurrentUserAgency
 				const userAgency = await getCurrentUserAgency()
-				// console.log('Current user agency: ' + userAgency)
+				console.log('Current user agency: ' + userAgency)
 
 				// Set the list of user's agency names
 				setAgencyUserAgency(userAgency)
@@ -142,23 +142,27 @@ const Users = () => {
 					const agencyData = agencySnapshot.docs[0].data()
 					userData.data.agencyName = agencyData.name;
 
+
 					// Log the user and agency for debugging
-					// console.log(
-					// 	'Logged in user agency: ' +
-					// 	currentUserAgency +
-					// 	', User: ' +
-					// 	userData.data.email +
-					// 	', Agency: ' +
-					// 	userData.data.agencyName
-					// )
+					console.log(
+						'Logged in user agency: ' +
+						currentUserAgency +
+						', User: ' +
+						userData.data.email +
+						', Agency: ' +
+						userData.data.agencyName
+					)
 
 					// If currentUserAgency is defined and doesn't match, skip this user
+					if (!agencyUserAgency) {
+						console.log('no list user agency--> ' + userData.data.email)
+					}
 					if (currentUserAgency && userData.data.agencyName !== currentUserAgency) {
 						// console.log('Skipping user:: ' + userData.data.email)
 						continue
 					}
 					// Set loading to false after data is loaded
-					setLoading(false)
+					// setLoading(false)
 				}
 
 				mobileUsersArray.push(userData)
@@ -167,11 +171,11 @@ const Users = () => {
 			// FINAL SET loadedMobileUsers
 			setLoadedMobileUsers(mobileUsersArray)
 			// Set loading to false after data is loaded
-			setLoading(false);
+			// setLoading(false);
 		} catch (error) {
 			console.error('Error in getData:',error)
 			// Set loading to false in case of an error
-			setLoading(false);
+			// setLoading(false);
 		}
 	};
 
@@ -182,7 +186,7 @@ const Users = () => {
 		}
 
 		fetchData()
-	},[currentUserAgency]) // Watch for changes in currentUserAgency and re-run the effect
+	},[update,currentUserAgency]) // Watch for changes in currentUserAgency and re-run the effect
 
 
 	// Function to trigger delete user modal
@@ -298,9 +302,9 @@ const Users = () => {
 				</div>
 				<div className='flex flex-col h-full'>
 					{/* Display loading message or spinner while data is loading */}
-					{loading && <p>Loading...</p>}
+					{/* {loading && <p>Loading...</p>} */}
 					{/* Display the table when data is loaded */}
-					{!loading && (
+					{/* {!loading && ( */}
 					<InfiniteScroll
 						className='overflow-x-auto'
 						dataLength={endIndex}
@@ -342,23 +346,23 @@ const Users = () => {
 								</tr>
 							</thead>
 							<tbody>
-								{loadedMobileUsers.map((userObj, key) => {
+								{loadedMobileUsers.map((userObj,key) => { 
 									// Directly access user details and user ID
-									const userId = userObj.id;
-									const listUser = userObj.data;
+									const userId = userObj.id
+									const listUser = userObj.data
 									let posted = listUser.joiningDate
 									// Get list user agency uid & display agency name
 									posted = posted * 1000
 									posted = new Date(posted)
-									posted = posted.toLocaleString("en-US", dateOptions)
+									posted = posted.toLocaleString("en-US",dateOptions)
 									return (
 										<tr
 												className='border-b transition duration-300 ease-in-out dark:border-indigo-100'
 												key={key}
 												onClick={
 													customClaims.agency
-															? () => handleEditUser(listUser, userId)
-															: undefined
+														? () => handleEditUser(listUser,userId)
+														: undefined
 												}>
 											{/* Name */}
 											<td scope='row' className={column.data}>
@@ -368,9 +372,7 @@ const Users = () => {
 											{/* Email */}
 											<td className={column.data_center}>{listUser.email}</td>
 											{/* Agency */}
-											{/* {customClaims.admin && ( */}
-												<td className={column.data_center}>{listUser.agencyName}</td>
-											{/* )} */}
+											<td className={column.data_center}>{listUser.agencyName}</td>
 											{/* Joined date */}
 											<td className={column.data_center}>{posted}</td>
 											{/* Role */}
@@ -411,7 +413,7 @@ const Users = () => {
 							</tbody>
 						</table>
 					</InfiniteScroll>
-					)}
+					{/* )} */}
 					<div className='mt-2 self-end text-xs'>
 						Total users: {loadedMobileUsers.length}
 					</div>
