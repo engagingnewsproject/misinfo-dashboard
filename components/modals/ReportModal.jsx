@@ -50,7 +50,7 @@ const ReportModal = ({
 	const [images,setImages] = useState([])
 	useEffect(() => {
 		setImages(report['images'])
-		console.log(images)
+		// console.log(images)
 	}, [reportModal])
 	function SendLinkByMail(href) {
 		var subject = "Misinformation Report"
@@ -201,7 +201,7 @@ const ReportModal = ({
 										<div className={style.header}>Images</div>
 										{/* {info['images'] && info['images'][0] ? */}
 										<div className="flex w-full overflow-y-auto">
-											{console.log(report['images'])}
+											{/* {console.log(report['images'])} */}
 											{report['images'] &&
 												report['images'].map((image,i) => {
 													return (
