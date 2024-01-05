@@ -28,6 +28,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [agencies, setAgencies] = useState([])
 	const [agencyInfo, setAgencyInfo] = useState('')
 	const [agencyId, setAgencyId] = useState('')
+	const [agencyUsersArr, setAgencyUsersArr] = useState([])
 	const [agencyAdminUsers, setAgencyAdminUsers] = useState('')
 	// EXISTING Agency Modal
 	const [agencyModal, setAgencyModal] = useState(false)
@@ -188,6 +189,7 @@ const handleDelete = async (e) => {
 		setAgencyModal(true)
 		const docRef = await getDoc(doc(db, 'agency', agencyId))
 		setAgencyInfo(docRef.data())
+		setAgencyUsersArr(docRef.data()['agencyUsers'])
 		setAgencyId(agencyId)
 		setLogo(docRef.data()['logo'])
 	}
@@ -322,6 +324,7 @@ const handleDelete = async (e) => {
 				handleAgencyUpdateSubmit={handleAgencyUpdateSubmit}
 				agencyId={agencyId}
 				agencyInfo={agencyInfo}
+				agencyUsersArr={agencyUsersArr}
 				setAgencyInfo={setAgencyInfo}
 				logo={logo}
 				setLogo={setLogo}
