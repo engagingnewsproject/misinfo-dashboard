@@ -37,7 +37,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	const [readFilter, setReadFilter] = useState("All")
 	const [reportTitle, setReportTitle] = useState('')
   // const [agencyName, setAgencyName] = useState('')
-  // const [isAgency, setIsAgency] = useState(false)
+  const [isAgency, setIsAgency] = useState(false)
 	const { user, verifyRole } = useAuth()
 	const dateOptions = {
 		day: "2-digit",
@@ -103,14 +103,16 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		// filter out the agency
 		// Get the current (agency)user's agency name
 		// Filter reports shown in "loadedReports" state to only reports submitted to the user's agency 
-    let isAgency = false
+    // let isAgency = false
     verifyRole().then((result) => {
       
       // console.log("Current user information " + result.admin)
       if (result.admin) {
-        isAgency = false
+				// isAgency = false
+				setIsAgency(false)
       } else if (result.agency) {
-        isAgency = true
+				// isAgency = true
+				setIsAgency(true)
       }
     })
 
