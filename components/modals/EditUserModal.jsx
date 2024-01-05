@@ -1,7 +1,6 @@
 import React from "react"
 import { IoClose } from "react-icons/io5"
 import { Switch } from "@headlessui/react"
-import { httpsCallable } from "firebase/functions"
 
 const EditUserModal = ({
 	customClaims,
@@ -19,7 +18,6 @@ const EditUserModal = ({
 	userRole, // New prop to receive the user's role
 	userEditing
 }) => {
-	console.log(userEditing.agencyName)
 	// Styles
 	const style = {
 		modal_background:
@@ -76,7 +74,7 @@ const EditUserModal = ({
 									id='name'
 									type='text'
 									onChange={onNameChange}
-									value={userEditing.name}
+									defaultValue={userEditing.name}
 								/>
 								{/* Email */}
 								<div className={style.modal_form_label}>Email</div>
@@ -85,9 +83,9 @@ const EditUserModal = ({
 									id='email'
 									type='text'
 									onChange={onEmailChange}
-									value={userEditing.email}
+									defaultValue={userEditing.email}
 								/>
-								{/* Agency */}
+								{/* Agency - TODO: dropdown to select/change agency */}
 								<div className={style.modal_form_label}>Agency</div>
 								<input
 									className={style.modal_form_input}
