@@ -10,6 +10,7 @@ const AgencyModal = ({
 	setAgencyModal, 
 	handleAgencyUpdateSubmit, 
 	agencyInfo, 
+	agencyUsersArr,
 	logo,
 	setLogo,
 	agencyId,
@@ -162,7 +163,7 @@ const handleImageChange = (e) => {
 							<div className={style.modal_form_data}>{`${agencyInfo.city}, ${agencyInfo.state}`}</div>
 							<div className={style.modal_form_label}>Agency admin user</div>
 							<div className={style.modal_form_data}>
-								{agencyInfo['agencyUsers'].join(', ')}
+								{agencyUsersArr.map(txt => <p>{txt}</p>)}
 							</div>
 							{/* TODO: user should be able to add an admin user */}
 							{/* <input onChange={onAdminChange} defaultValue='this' placeholder="Admin user email" className={style.modal_form_data}/> */} 
