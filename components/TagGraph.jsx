@@ -53,7 +53,7 @@ const TagGraph = () => {
         const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
         getDocs(q).then((querySnapshot) => {
         querySnapshot.forEach((doc) => { // Set initial values
-          console.log(doc.data())
+          // console.log(doc.data())
           agencyTempName = doc.data()['name']
           setAgencyName(agencyTempName)
           setPrivilege("Agency")
@@ -61,7 +61,7 @@ const TagGraph = () => {
           })
         })
       } else if (result.admin) {
-        console.log("setting name")
+        // console.log("setting name")
         setAgencyName("")
         setPrivilege("Admin")
       }
@@ -73,9 +73,9 @@ const TagGraph = () => {
 
   async function getTopicReports() {
     const reportsList = collection(db, "reports");
-    console.log("in topic reports")
-                                         
-    console.log(privilege)
+    // console.log("in topic reports")
+
+    // console.log(privilege)
     // Retrieve array of all topics
     const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
     const topicRef = await getDoc(topicDoc);
