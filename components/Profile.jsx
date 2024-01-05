@@ -89,7 +89,7 @@ const Profile = ({ customClaims }) => {
 	const handleImageChange = (e) => {
 		for (let i = 0; i < e.target.files.length; i++) {
 			const newImage = e.target.files[i]
-			console.log(newImage)
+			// console.log(newImage)
 			setImages((prevState) => [...prevState, newImage])
 			setUpdate(!update)
 		}
@@ -108,7 +108,7 @@ const Profile = ({ customClaims }) => {
 			uploadTask.on(
 				"state_changed",
 				(snapshot) => {
-					console.log(snapshot)
+					// console.log(snapshot)
 				},
 				(error) => {
 					console.log(error)
@@ -125,7 +125,7 @@ const Profile = ({ customClaims }) => {
 
   useEffect(() => {  // Verify role
     verifyRole().then((result) => {
-      console.log(result)
+			// console.log(result)
       if (result.admin) {
         setIsAdmin(true)
       } else if (result.agency) {
@@ -141,7 +141,7 @@ const Profile = ({ customClaims }) => {
   // GET DATA
   const getData = async () => { // Get data
     if (isAgency) {
-      console.log(user)
+			// console.log(user)
       try {
         const agencyCollection = collection(db, 'agency')
         const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
@@ -150,7 +150,7 @@ const Profile = ({ customClaims }) => {
         if (!querySnapshot.empty) {
 
           querySnapshot.forEach((doc) => { // Set initial values
-            console.log(doc.data())
+						// console.log(doc.data())
             setAgency(doc.data())
             setAgencyId(doc.id)
             setAgencyName(doc.data()['name'])
@@ -314,7 +314,7 @@ const Profile = ({ customClaims }) => {
 		const fetchUserRoles = async () => {
 			try {
 				const idTokenResult = await auth.currentUser.getIdTokenResult()
-				console.log(idTokenResult)
+				// console.log(idTokenResult)
 				setUserRoles(idTokenResult.claims)
 			} catch (error) {
 				console.error("Error fetching user roles:", error)
