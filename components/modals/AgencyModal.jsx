@@ -24,7 +24,6 @@ const AgencyModal = ({
 	const [images, setImages] = useState([])
 	const [uploadedImageURLs, setImageURLs] = useState([]);
 	const [update, setUpdate] = useState(false)
-	const [agencyUsers, setAgencyUsers] = useState([])
 	
 // This function handles the change event when the user selects one or more images.
 // It updates the 'images' state and triggers a re-render.
@@ -163,7 +162,7 @@ const handleImageChange = (e) => {
 							<div className={style.modal_form_data}>{`${agencyInfo.city}, ${agencyInfo.state}`}</div>
 							<div className={style.modal_form_label}>Agency admin user</div>
 							<div className={style.modal_form_data}>
-								{agencyInfo['agencyUsers']}
+								{agencyInfo['agencyUsers'].join(', ')}
 							</div>
 							{/* TODO: user should be able to add an admin user */}
 							{/* <input onChange={onAdminChange} defaultValue='this' placeholder="Admin user email" className={style.modal_form_data}/> */} 
