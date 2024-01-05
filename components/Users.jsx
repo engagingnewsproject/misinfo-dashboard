@@ -132,7 +132,7 @@ const Users = () => {
 					const userIDs = []
 					reportsQuerySnapshot.forEach((doc) => {
 						const userID = doc.data().userID
-            console.log(userID)
+						// console.log(userID)
 
 						userIDs.push(userID)
 					})
@@ -269,7 +269,7 @@ const Users = () => {
 				className='w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto'
 				id='scrollableDiv'>
 				<div className='flex flex-col pb-5 md:justify-start'>
-					{customClaims.agency ? (
+					{customClaims.admin ? (
 						<span className='text-xs'>{agencyName}</span>
 					) : (
 						<span className='text-xs'>All Agency</span>
