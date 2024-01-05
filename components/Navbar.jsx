@@ -189,7 +189,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
                           <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
                       </button>
                     } 
-                    { (customClaims.admin) &&
+                    { (customClaims.admin || customClaims.agency) &&
                       <button // Users
                           onClick={() => setTab(3)}
                           data-tip="Users"
