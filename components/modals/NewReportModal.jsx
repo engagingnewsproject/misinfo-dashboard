@@ -39,8 +39,11 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [selectedAgency, setSelectedAgency] = useState('');
     const [selectedTopic, setSelectedTopic] = useState("")
     const [otherTopic, setOtherTopic] = useState("")
+    const [otherSource, setOtherSource] = useState("")
     const [showOtherTopic, setShowOtherTopic] = useState(false)
+    const [showOtherSource, setShowOtherSource] = useState(false)
     const [list, setList] = useState([])
+    const [sourceList, setSourceList] = useState([])
     const [active, setActive] = useState([])
     const [sources, setSources] = useState([])
     const [selectedSource, setSelectedSource] = useState("")
@@ -66,6 +69,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         }).then(() => {
             handleNewReportSubmit(); // Send a signal to ReportsSection so that it updates the list 
             addNewTag(selectedTopic)
+            addNewSource(selectedSource)
         })
         
     }
@@ -165,6 +169,16 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         setReportState(5)
     }
 
+    const handleSourceChangeOther = (e) => {
+        setSelectedSource(e.value)
+        if (e.value === "Other/Otro") {
+            setShowOtherSource(true)
+        } else {
+            setShowOtherSource(false)
+        }
+        setReportState(6)
+    }
+
     const addNewTag = (tag) => {
         let arr = list
         arr.push(tag)
@@ -172,11 +186,35 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         updateTopicTags(list, user)
     }
 
+    const addNewSource = (source) => {
+        let arr = list
+        arr.push(source)
+        setSourceList(arr)
+        updateSourceTags(list, user)
+    }
+
     const getTopicList = async() => {
         try {
             const docRef = await getDoc(doc(db, "tags", user.uid))
             const { ['Topic']: tagsData } = docRef.data()
             setList(tagsData.list)
+            tagsData.active.sort((a, b) => {
+                if (a === "Other") return 1; // Move "Other" to the end
+                if (b === "Other") return -1; // Move "Other" to the end
+                return a.localeCompare(b); // Default sorting for other elements
+            });
+            setActive(tagsData.active)
+            
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const getSourceList = async() => {
+        try {
+            const docRef = await getDoc(doc(db, "tags", user.uid))
+            const { ['Source']: tagsData } = docRef.data()
+            setSourceList(tagsData.list)
             tagsData.active.sort((a, b) => {
                 if (a === "Other") return 1; // Move "Other" to the end
                 if (b === "Other") return -1; // Move "Other" to the end
@@ -201,10 +239,28 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         return updatedDocRef
     }
 
+    const updateSourceTags = async(list, user) => {
+        const docRef = await getDoc(doc(db, "tags", user.uid))
+        const updatedDocRef = await setDoc(doc(db, "tags", user.uid), {
+            ...docRef.data(),
+            ['Source']: {
+                list: list,
+                active: active
+            }
+        });
+        return updatedDocRef
+    }
+
     const handleOtherTopicChange = (e) => {
         // e.preventDefault()
         setOtherTopic(e.target.value)
         setSelectedTopic(e.target.value)
+    }
+
+    const handleOtherSourceChange = (e) => {
+        // e.preventDefault()
+        setOtherSource(e.target.value)
+        setSelectedSource(e.target.value)
     }
     
     const handleSourceChange = (e) => {
@@ -273,6 +329,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         getAllTopics()
         getAllSources()
         getTopicList()
+        getSourceList()
     }, []);
     
     async function getAllAgencies() {
@@ -419,7 +476,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                                 </div>
                                                 <input
                                                     id="topic-other"
-                                                    className="rounded shadow-md border-zinc-400"
+                                                    className="rounded shadow-md border-zinc-400 w-60"
                                                     type="text"
                                                     placeholder="Please specify the topic."
                                                     onChange={handleOtherTopicChange}
@@ -439,10 +496,28 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     type="text"
                                     placeholder="Source"
                                     options={sources.map(source => ({ label: source, value: source }))}
-                                    onChange={handleSourceChange}
+                                    onChange={handleSourceChangeOther}
                                     value={selectedSource.source}
                                     />
                                     {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
+                                    <div className="mt-4 mb-0.5">
+                                    {showOtherSource && (
+                                            <div className="flex">
+                                            <div className="mt-4 mb-0.5 text-zinc-500 pr-3">
+                                                Custom source
+                                                </div>
+                                                <input
+                                                    id="topic-other"
+                                                    className="rounded shadow-md border-zinc-400 w-60"
+                                                    type="text"
+                                                    placeholder="Please specify the source."
+                                                    onChange={handleOtherSourceChange}
+                                                    value={otherSource}
+                                                    style={{ fontSize: '14px' }}
+                                                />
+                                                </div>
+                                        )}
+                                    </div>
                             </div>
                             }
                             {reportState >= 6 && 
