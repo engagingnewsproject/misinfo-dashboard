@@ -504,7 +504,7 @@ const ReportSystem = ({
                         }
                     </div>
                     }
-                    {/* WIP COME HERE: Topic tag */}
+                    {/* Topic tag */}
                     {reportSystem == 4 &&
                     <div className={style.viewWrapper}>
                             <div className={style.sectionH1}>{t.topicTitle}</div>
@@ -529,13 +529,13 @@ const ReportSystem = ({
                         ))}
                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
                         {showOtherTopic && (
-                                            <div className="flex">
-                                            <div className="mt-4 mb-0.5 text-zinc-500 pr-3">
+                                            <div className="">
+                                            <div className="text-zinc-500">
                                                 Custom topic
                                                 </div>
                                                 <input
                                                     id="topic-other"
-                                                    className="rounded shadow-md border-zinc-400"
+                                                    className="rounded shadow-md border-zinc-400 w-full"
                                                     type="text"
                                                     placeholder="Please specify the topic."
                                                     onChange={handleOtherTopicChange}
