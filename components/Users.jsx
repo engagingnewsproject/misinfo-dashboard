@@ -12,7 +12,7 @@ import {
 	where,
 } from "firebase/firestore"
 import { db, auth } from "../config/firebase"
-import ReactTooltip from "react-tooltip"
+// import ReactTooltip from "react-tooltip"
 import { IoTrash } from "react-icons/io5"
 import InfiniteScroll from "react-infinite-scroll-component"
 import ConfirmModal from "./modals/ConfirmModal"
@@ -369,12 +369,12 @@ const Users = () => {
 															size={20}
 															className='ml-4 fill-gray-400 hover:fill-red-600'
 														/>
-														<ReactTooltip
+														{/* <ReactTooltip
 															place='top'
 															type='light'
 															effect='solid'
 															delayShow={500}
-														/>
+														/> */}
 													</button>
 												</td>
 											)}
