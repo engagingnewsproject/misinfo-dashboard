@@ -6,7 +6,8 @@ import { getStorage } from "firebase/storage";
 
 import {
   getFunctions,
-  connectFunctionsEmulator
+  // UNCOMMENT BELOW: enable connection to firebase functions emulator
+  // connectFunctionsEmulator
 } from "firebase/functions";
 
 
@@ -29,4 +30,5 @@ export const storage = getStorage(app);
 
 export const auth = getAuth(app);
 export const functions = getFunctions(app);
-connectFunctionsEmulator(functions,"127.0.0.1",5001)
+// UNCOMMENT BELOW: enable connection to firebase functions emulator
+// connectFunctionsEmulator(functions,"127.0.0.1",5001)
