@@ -27,8 +27,7 @@ const Users = () => {
 		addAgencyRole,
 		addUserRole,
 		customClaims,
-		getUser,
-		viewRole
+		setCustomClaims,
 	} = useAuth()
 
 	// State variables for managing user data
@@ -43,11 +42,10 @@ const Users = () => {
 	const [agencyName, setAgencyName] = useState("")
 	const [banned, setBanned] = useState("")
 	const [userEditModal, setUserEditModal] = useState(null)
-	const [userEditingId, setUserEditingId] = useState(null)
+	const [userId, setUserId] = useState(null)
 	const [update,setUpdate] = useState(false)
-	const [listOfUsers, setListOfUsers] =useState([])
-	const [userEditingUID,setUserEditingUID] = useState([])
-	const [currentUserClaims, setCurrentUserClaims] = useState('')
+	const [listOfUsers, setListOfUsers] = useState([])
+
 	const dateOptions = {
 		day: "2-digit",
 		year: "numeric",
@@ -69,37 +67,36 @@ const Users = () => {
 
 	// Function to fetch user data from Firebase
 	const getData = async () => {
-		
+
 		if (customClaims.admin) {
-			setCurrentUserClaims('admin')
 			// List ALL users for admin
 			try {
 				const mobileUsersQuery = query(collection(db,'mobileUsers'))
 				const mobileUsersQuerySnapshot = await getDocs(mobileUsersQuery)
 
 				const mobileUsersArray = []
-				
+
 				// Iterate over each mobile user
 				for (const doc of mobileUsersQuerySnapshot.docs) {
-						const userData = {
-								id: doc.id,
-								data: doc.data()
-						};
+					const userData = {
+						id: doc.id,
+						data: doc.data()
+					}
 					// console.log(userData)
 
 					// Check if the user is associated with any agency
-						const agencyRef = collection(db, 'agency');
-						const agencyQuery = query(agencyRef, where('agencyUsers', 'array-contains', userData.data.email));
-						const agencySnapshot = await getDocs(agencyQuery);
+					const agencyRef = collection(db,'agency')
+					const agencyQuery = query(agencyRef,where('agencyUsers','array-contains',userData.data.email))
+					const agencySnapshot = await getDocs(agencyQuery)
 
-						if (!agencySnapshot.empty) {
-							const agencyData = agencySnapshot.docs[0].data();
-							userData.data.agencyName = agencyData.name;
-							// Set the agency state
-        			setAgencyUserAgency(userData.data.agencyName);
-						}
+					if (!agencySnapshot.empty) {
+						const agencyData = agencySnapshot.docs[0].data()
+						userData.data.agencyName = agencyData.name
+						// Set the agency state
+						setAgencyUserAgency(userData.data.agencyName)
+					}
 
-					mobileUsersArray.push(userData);
+					mobileUsersArray.push(userData)
 					// console.log(agency)
 				}
 				// need to itterate over the 'agency' collection 
@@ -115,12 +112,12 @@ const Users = () => {
 				const agencyRef = collection(db,'agency')
 				const q = query(agencyRef,where('agencyUsers','array-contains',user['email']))
 
-        let agencyName;
-        const querySnapshot = await getDocs(q)
-        querySnapshot.forEach((doc) => { // Set initial values
-          agencyName = doc.data()['name']
-        
-        })
+				let agencyName
+				const querySnapshot = await getDocs(q)
+				querySnapshot.forEach((doc) => { // Set initial values
+					agencyName = doc.data()['name']
+
+				})
 
 				// Check if there is at least one document
 				if (!querySnapshot.empty) {
@@ -154,7 +151,7 @@ const Users = () => {
 								data: mobileUserDocSnapshot.data()
 							})
 
-              // Check to see if user exists
+							// Check to see if user exists
 						}
 					}
 					setLoadedMobileUsers(mobileUsersArray)
@@ -172,15 +169,15 @@ const Users = () => {
 	}, []);
 
 	// Function to trigger delete user modal
-	const handleMobileUserDelete = async (id) => {
+	const handleMobileUserDelete = async (userId) => {
 		setDeleteModal(true)
-		setUserEditingId(id)
+		setUserId(userId)
 	}
 
 	// Function to handle user deletion
 	const handleDelete = async (e) => {
 		e.preventDefault()
-		const docRef = doc(db, "mobileUsers", userEditingId)
+		const docRef = doc(db, "mobileUsers", userId);
 		deleteDoc(docRef)
 			.then(() => {
 				getData()
@@ -193,77 +190,16 @@ const Users = () => {
 	}
 
 	// Function to handle opening and setting values in the EditUserModal
-	const handleEditUser = async (userObj,id) => {
-		console.log(userObj)
-		// display user editing modal
-		setUserEditModal(true)
-		// set user id
-		setUserEditingId(id)
-		// set userEditing to clicked user 
+	const handleEditUser = async (userObj,userId) => {
+		setUserId(userId)
+		const userRef = await getDoc(doc(db,"mobileUsers",userId))
 		setUserEditing(userObj)
-		// set user editing name
-		setName(userEditing.name)
-		// set user editing email
-		setEmail(userEditing.email)
-		// set user editing banned
-		setBanned(userEditing.isBanned)
-		// set user editing role
-		console.log(userEditing.userRole)
-		// setUserRole(userEditing.userRole)
-		// get logged in user's id token/custom claim: must be admin
-		// if (currentUserClaims === 'admin') {
-		// 	// let userUID = getUser(email)
-		// 	// 	.then((response) => {
-		// 	// 		setUserEditingUID(response)
-		// 	// 	})
-		// 	const userEditingData = await getUser(email)
-		// 	// Now you can access the data object
-		// 	const dataObject = userEditingData.data
-		// 	setUserEditingUID(dataObject.uid);
-		// }
-		// try {
-			// const userEditingData = await viewRole(userObj)
-			// setCurrentUserClaims(userEditingData)
-			// const idTokenResult = await auth.currentUser.getIdTokenResult()
-			// console.log('currentUserClaims--> ', currentUserClaims)
-			// if (currentUserClaims === 'admin') {
-			// 	console.log('view role--> ', viewRole(userEditingId))
-			// 	const userEditingData = await viewRole(userEditingId)
-			// 	// Now you can access the data object
-			// 	const userObject = userEditingData.data
-			// 	console.log(userObject)
-			// 	setUserEditingUID(userObject.uid)
-			// } else {
-			// 	console.log('NOT admin user')
-			// }
-		// } catch (error) {
-			// console.log(error)
-		// }
-		// auth.currentUser.getIdTokenResult()
-		// 	.then((idTokenResult) => {
-		// 		// Confirm the user is an Admin.
-		// 		if (!!idTokenResult.claims.admin) {
-		// 			// current user is admin so they can 
-		// 			// get & set the clicked on user's custom claims
-		// 			let userUID = getUser(email)
-		// 				.then((response) => {
-		// 					setUserEditingUID(response)
-		// 				})
-		// 		} else {
-		// 			// User is not admin & cannot access the user's custom claims
-		// 			console.log('NOT admin user')
-		// 		}
-		// 	})
-		// 	.catch((error) => {
-		// 		console.log(error)
-		// 	})
+		setName(userRef.data()["name"])
+		setEmail(userRef.data()["email"])
+		setBanned(userRef.data()["isBanned"])
+		setUserRole(userRef.data()["userRole"])
+		setUserEditModal(true)
 	}
-	// useEffect(() => {	
-	// 	return () => {
-	// 		console.log('user editing data(view role)--> ', currentUserClaims, userEditingId)
-	// 	}
-	// },[handleEditUser])
-	
 
 	// Function to handle name change
 	const handleNameChange = (e) => {
@@ -290,38 +226,33 @@ const Users = () => {
 	// Function to handle form submission (updating user data)
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
-		// User Role change
-		auth.currentUser
-			.getIdTokenResult()
-			.then((idTokenResult) => {
-				// Confirm the user is an Admin.
-				if (!!idTokenResult.claims.admin) {
-					// Change the selected user's privileges as requested
-					if (userRole === "Admin") {
-						console.log(addAdminRole({ email: user.email }))
-					} else if (userRole === "Agency") {
-						console.log(addAgencyRole({ email: user.email }))
-					} else if (userRole === "User") {
-						console.log(addUserRole({ email: user.email }))
-					}
-					setUserRole(userRole)
-				}
-			})
-			.catch((error) => {
-				console.log(error)
-			})
-		// Name change
-		const docRef = doc(db, "mobileUsers", userEditingId)
-		await updateDoc(docRef, {
+		const docRef = doc(db, "mobileUsers", userId);
+		await updateDoc(docRef,{
 			name: name,
 			email: email,
 			isBanned: banned,
 			userRole: userRole,
 		})
-
+		// Update the loadedMobileUsers state after successful update
+		setLoadedMobileUsers((prevUsers) =>
+			prevUsers.map((userObj) =>
+				userObj.id === userId
+					? {
+						id: userId,
+						data: {
+							...userObj.data,
+							name: name,
+							email: email,
+							isBanned: banned,
+							userRole: userRole,
+						},
+					}
+					: userObj
+			)
+		);
 		setUserEditModal(false)
 	}
-	
+
 	// Data fetch on update
 	useEffect(() => {
 		getData()
@@ -395,13 +326,13 @@ const Users = () => {
 									posted = posted.toLocaleString("en-US", dateOptions)
 									return (
 										<tr
-												className='border-b transition duration-300 ease-in-out dark:border-indigo-100'
-												key={key}
-												onClick={
-													customClaims.admin
-															? () => handleEditUser(listUser, userId)
-															: undefined
-												}>
+											className='border-b transition duration-300 ease-in-out dark:border-indigo-100'
+											key={key}
+											onClick={
+												customClaims.admin
+													? () => handleEditUser(listUser, userId)
+													: undefined
+											}>
 											{/* Name */}
 											<td scope='row' className={column.data}>
 												{listUser.name}
@@ -423,7 +354,7 @@ const Users = () => {
 											)}
 											{/* Banned */}
 											<td className={column.data_center}>
-												{(userObj.isBanned && "yes") || "no"}
+												{(userObj.data.isBanned && "yes") || "no"}
 											</td>
 											{/* Delete */}
 											{customClaims.admin && (
@@ -469,13 +400,11 @@ const Users = () => {
 			)}
 			{userEditModal && (
 				<EditUserModal
-					userEditingUID={userEditingUID}
-					userEditingId={userEditingId}
 					customClaims={customClaims}
-					user={user}
 					userRole={userRole}
 					setUserRole={setUserRole}
 					setUserEditModal={setUserEditModal}
+					userId={userId}
 					name={name}
 					onNameChange={handleNameChange}
 					agencyUserAgency={agencyUserAgency}
