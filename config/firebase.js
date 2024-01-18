@@ -3,11 +3,10 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, isSignInWithEmailLink } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-
+// UNCOMMENT "connectFunctionsEmulator" BELOW: enable connection to firebase functions emulator
+// connectFunctionsEmulator
 import {
   getFunctions,
-  // UNCOMMENT BELOW: enable connection to firebase functions emulator
-  // connectFunctionsEmulator
 } from "firebase/functions";
 
 
