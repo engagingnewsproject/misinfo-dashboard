@@ -27,7 +27,8 @@ const Users = () => {
 		addAgencyRole,
 		addUserRole,
 		customClaims,
-		getUser
+		getUser,
+		viewRole
 	} = useAuth()
 
 	// State variables for managing user data
@@ -42,10 +43,11 @@ const Users = () => {
 	const [agencyName, setAgencyName] = useState("")
 	const [banned, setBanned] = useState("")
 	const [userEditModal, setUserEditModal] = useState(null)
-	const [userId, setUserId] = useState(null)
+	const [userEditingId, setUserEditingId] = useState(null)
 	const [update,setUpdate] = useState(false)
 	const [listOfUsers, setListOfUsers] =useState([])
-	const [userEditingUID, setUserEditingUID] = useState([])
+	const [userEditingUID,setUserEditingUID] = useState([])
+	const [currentUserClaims, setCurrentUserClaims] = useState('')
 	const dateOptions = {
 		day: "2-digit",
 		year: "numeric",
@@ -69,6 +71,7 @@ const Users = () => {
 	const getData = async () => {
 		
 		if (customClaims.admin) {
+			setCurrentUserClaims('admin')
 			// List ALL users for admin
 			try {
 				const mobileUsersQuery = query(collection(db,'mobileUsers'))
@@ -169,15 +172,15 @@ const Users = () => {
 	}, []);
 
 	// Function to trigger delete user modal
-	const handleMobileUserDelete = async (userId) => {
+	const handleMobileUserDelete = async (id) => {
 		setDeleteModal(true)
-		setUserId(userId)
+		setUserEditingId(id)
 	}
 
 	// Function to handle user deletion
 	const handleDelete = async (e) => {
 		e.preventDefault()
-		const docRef = doc(db, "mobileUsers", userId)
+		const docRef = doc(db, "mobileUsers", userEditingId)
 		deleteDoc(docRef)
 			.then(() => {
 				getData()
@@ -190,13 +193,12 @@ const Users = () => {
 	}
 
 	// Function to handle opening and setting values in the EditUserModal
-	const handleEditUser = async (userObj,userId) => {
-		// console.log()
+	const handleEditUser = async (userObj,id) => {
+		console.log(userObj)
 		// display user editing modal
 		setUserEditModal(true)
 		// set user id
-		setUserId(userId)
-		// const userRef = await getDoc(doc(db,"mobileUsers",userId))
+		setUserEditingId(id)
 		// set userEditing to clicked user 
 		setUserEditing(userObj)
 		// set user editing name
@@ -206,27 +208,62 @@ const Users = () => {
 		// set user editing banned
 		setBanned(userEditing.isBanned)
 		// set user editing role
-		setUserRole(userEditing.userRole)
+		console.log(userEditing.userRole)
+		// setUserRole(userEditing.userRole)
 		// get logged in user's id token/custom claim: must be admin
-		auth.currentUser.getIdTokenResult()
-			.then((idTokenResult) => {
-				// Confirm the user is an Admin.
-				if (!!idTokenResult.claims.admin) {
-					// current user is admin so they can 
-					// get & set the clicked on user's custom claims
-					let userUID = getUser(email)
-						.then((response) => {
-							setUserEditingUID(response)
-						})
-				} else {
-					// User is not admin & cannot access the user's custom claims
-					console.log('NOT admin user')
-				}
-			})
-			.catch((error) => {
-				console.log(error)
-			})
+		// if (currentUserClaims === 'admin') {
+		// 	// let userUID = getUser(email)
+		// 	// 	.then((response) => {
+		// 	// 		setUserEditingUID(response)
+		// 	// 	})
+		// 	const userEditingData = await getUser(email)
+		// 	// Now you can access the data object
+		// 	const dataObject = userEditingData.data
+		// 	setUserEditingUID(dataObject.uid);
+		// }
+		// try {
+			// const userEditingData = await viewRole(userObj)
+			// setCurrentUserClaims(userEditingData)
+			// const idTokenResult = await auth.currentUser.getIdTokenResult()
+			// console.log('currentUserClaims--> ', currentUserClaims)
+			// if (currentUserClaims === 'admin') {
+			// 	console.log('view role--> ', viewRole(userEditingId))
+			// 	const userEditingData = await viewRole(userEditingId)
+			// 	// Now you can access the data object
+			// 	const userObject = userEditingData.data
+			// 	console.log(userObject)
+			// 	setUserEditingUID(userObject.uid)
+			// } else {
+			// 	console.log('NOT admin user')
+			// }
+		// } catch (error) {
+			// console.log(error)
+		// }
+		// auth.currentUser.getIdTokenResult()
+		// 	.then((idTokenResult) => {
+		// 		// Confirm the user is an Admin.
+		// 		if (!!idTokenResult.claims.admin) {
+		// 			// current user is admin so they can 
+		// 			// get & set the clicked on user's custom claims
+		// 			let userUID = getUser(email)
+		// 				.then((response) => {
+		// 					setUserEditingUID(response)
+		// 				})
+		// 		} else {
+		// 			// User is not admin & cannot access the user's custom claims
+		// 			console.log('NOT admin user')
+		// 		}
+		// 	})
+		// 	.catch((error) => {
+		// 		console.log(error)
+		// 	})
 	}
+	// useEffect(() => {	
+	// 	return () => {
+	// 		console.log('user editing data(view role)--> ', currentUserClaims, userEditingId)
+	// 	}
+	// },[handleEditUser])
+	
 
 	// Function to handle name change
 	const handleNameChange = (e) => {
@@ -274,7 +311,7 @@ const Users = () => {
 				console.log(error)
 			})
 		// Name change
-		const docRef = doc(db, "mobileUsers", userId)
+		const docRef = doc(db, "mobileUsers", userEditingId)
 		await updateDoc(docRef, {
 			name: name,
 			email: email,
@@ -433,7 +470,7 @@ const Users = () => {
 			{userEditModal && (
 				<EditUserModal
 					userEditingUID={userEditingUID}
-					userId={userId}
+					userEditingId={userEditingId}
 					customClaims={customClaims}
 					user={user}
 					userRole={userRole}
