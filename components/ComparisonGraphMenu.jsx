@@ -14,7 +14,7 @@ import {
   IoIosAlert,
   IoIosTrash
 } from "react-icons/io";
-import ReactTooltip from "react-tooltip";
+// import ReactTooltip from "react-tooltip";
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
 
@@ -120,7 +120,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
                 data-tip="Select Dates"
                 className={dateError ? errorStyle : basicStyle}>
                 <IoMdCalendar size={25}/>
-                <ReactTooltip place="top" type="dark" effect="solid" delayShow={500} />
+                {/* <ReactTooltip place="top" type="dark" effect="solid" delayShow={500} /> */}
           </button>
           :
           <button
@@ -128,7 +128,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
           data-tip="Close calendar"
           className={(dateError ? errorStyle : basicStyle + " text-stone-400 bg-blue-100")}>
           <IoMdRemove size={25} />
-          <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+          {/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
           </button> 
         }
 
@@ -152,7 +152,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
                 data-tip="Refresh Graph"
                 className={basicStyle}>	
                 <IoMdRefresh size={25} />
-                <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+                {/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
           </button>}
           
 
@@ -190,7 +190,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
           data-tip="Clear graph"
           className={basicStyle + "justify-between ml-auto lg:justify-self-end pr-2"}>
           <IoIosTrash size={25}/>
-          <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+          {/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
           </button>
 
       </div>

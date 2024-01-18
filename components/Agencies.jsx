@@ -17,7 +17,7 @@ import Image from 'next/image'
 import AgencyModal from './modals/AgencyModal'
 import NewAgencyModal from './modals/NewAgencyModal'
 import ConfirmModal from "./modals/ConfirmModal"
-import ReactTooltip from "react-tooltip"
+// import ReactTooltip from "react-tooltip"
 import { IoTrash } from "react-icons/io5"
 import { FaPlus } from 'react-icons/fa'
 
@@ -311,7 +311,7 @@ const handleDelete = async (e) => {
 											data-tip="Delete agency"
 											className={style.table_button}>
 											<IoTrash size={20} className={style.table_icon} />
-											<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+											{/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
 										</button>
 									</td>
 								</tr>
