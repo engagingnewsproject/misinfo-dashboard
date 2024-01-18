@@ -46,7 +46,6 @@ const EditUserModal = ({
 		modal_form_button:
 			"bg-blue-500 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
 	}
-	console.log(userEditingUID.data.uid)
 	return (
 		<div
 			className={style.modal_background}

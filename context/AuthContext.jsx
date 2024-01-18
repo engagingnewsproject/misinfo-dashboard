@@ -84,8 +84,8 @@ export const AuthContextProvider = ({children}) => {
 
     const addUserRole = httpsCallable(functions, 'addUserRole')
     
-    const getUser = httpsCallable(functions, 'getUser')
-
+    const getUser = httpsCallable(functions,'getUser')
+    
     const signup = (teamName, email, password) => {
         return createUserWithEmailAndPassword(auth, email, password);
     }
