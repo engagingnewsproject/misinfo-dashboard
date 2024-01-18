@@ -37,8 +37,17 @@
     "rules": "storage.rules",
     "cors": [
       {
-        "origin": ["https://misinfo-dashboard.netlify.app", "https://dev-misinfo-dashboard.netlify.app", "http://localhost:3000"],
-        "method": ["GET", "PUT", "POST", "DELETE"],
+        "origin": [
+          "https://misinfo-dashboard.netlify.app",
+          "https://dev-misinfo-dashboard.netlify.app",
+          "http://localhost:3000"
+        ],
+        "method": [
+          "GET",
+          "PUT",
+          "POST",
+          "DELETE"
+        ],
         "maxAgeSeconds": 3600
       }
     ]
