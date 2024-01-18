@@ -18,7 +18,7 @@ import { IoMdRefresh } from "react-icons/io"
 import { IoAdd, IoTrash } from "react-icons/io5"
 
 // Icons END
-import ReactTooltip from "react-tooltip"
+// import ReactTooltip from "react-tooltip"
 import InfiniteScroll from "react-infinite-scroll-component"
 import NewReport from "./modals/NewReportModal"
 import ReportModal from "./modals/ReportModal"
@@ -525,13 +525,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				</div>
 				<div className="flex flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-evenly">
           <div className="p-0 px-4 md:p-4 md:py-0 md:px-4">
-            <ReactTooltip
+            {/* <ReactTooltip
                 id="refreshTooltip"
                 place="top"
                 type="light"
                 effect="solid"
                 delayShow={500}
-              />
+              /> */}
               {/* Displays refresh icon */}
               {!refresh && !reportsUpdated && <button
                 className="relative top-1 m-0 md:m-0"
@@ -558,13 +558,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
           </div>
 					<div>
 							{/* New report tooltip */}
-							<ReactTooltip
+							{/* <ReactTooltip
                 id="newReportTooltip"
                 place="top"
                 type="light"
                 effect="solid"
                 delayShow={500}
-              />
+              /> */}
             <button
               onClick={() => setNewReportModal(true)}
               className="flex items-center text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
@@ -576,13 +576,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
           </div>
 				  <div className="mb-0">
 						{/* Filter tooltip */}
-						<ReactTooltip
+						{/* <ReactTooltip
 							id="filterTooltip"
 							place="top"
 							type="light"
 							effect="solid"
 							delayShow={500}
-						/>
+						/> */}
             <select
               id="label_read"
               onChange={(e) => handleReadFilterChanged(e)}
@@ -597,13 +597,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
           </div>
           <div className="mt-2 md:mt-0">
 						{/* Timeframe tooltip */}
-						<ReactTooltip
+						{/* <ReactTooltip
 							id="timeframeTooltip"
 							place="top"
 							type="light"
 							effect="solid"
 							delayShow={500}
-						/>
+						/> */}
             <select
               id="label_date"
               onChange={(e) => handleDateChanged(e)}
@@ -664,13 +664,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 										<td className={column.data_center}>{report.hearFrom}</td>
 										<td className={column.data_center}>
 											{/* Change label tooltip */}
-											<ReactTooltip
+											{/* <ReactTooltip
 												id="labelTooltip"
 												place="top"
 												type="light"
 												effect="solid"
 												delayShow={500}
-											/>
+											/> */}
 											<div
 												className={
 													!report.label ? label.default : label.special
@@ -707,7 +707,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 												data-tip="Delete report"
 												className={style.icon}>
 												<IoTrash size={20} className="ml-4 fill-gray-400 hover:fill-red-600" />
-												<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+												{/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
 											</button>
 										</td>
 									</tr>

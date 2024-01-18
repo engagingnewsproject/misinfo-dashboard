@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import SwitchRead from "../SwitchRead"
 import Link from "next/link"
 import Image from "next/image"
-import ReactTooltip from "react-tooltip";
+// import ReactTooltip from "react-tooltip";
 // icons
 import { RiMessage2Fill } from "react-icons/ri"
 import { BiEditAlt } from "react-icons/bi"
@@ -289,7 +289,7 @@ const ReportModal = ({
 										className={style.icon}
 										type='button'>
 										<IoTrash size={30} color="red"/>
-										<ReactTooltip place="left" type="light" effect="solid" delayShow={500} />
+										{/* <ReactTooltip place="left" type="light" effect="solid" delayShow={500} /> */}
 									</button>
 								</div>
 							</div>

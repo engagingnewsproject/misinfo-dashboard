@@ -16,7 +16,7 @@ import {
   IoIosArrowBack,
 } from "react-icons/io";
 import ComparisonGraphPlotted from './ComparisonGraphPlotted'
-import ReactTooltip from "react-tooltip";
+// import ReactTooltip from "react-tooltip";
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
 import _ from "lodash";
@@ -124,7 +124,7 @@ const ComparisonGraphSetup = () => {
                 data-tip="Next"
                 className={basicStyle}>
                 <IoIosArrowForward size={25} />
-                <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+                {/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
               </button>
               </div>
             }
@@ -137,7 +137,7 @@ const ComparisonGraphSetup = () => {
                   data-tip="Previous"
                   className={basicStyle + " ml-[35%] lg:ml-0"}>
                   <IoIosArrowBack size={25} />
-                  <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+                  {/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
                 </button>
                 <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-full lg:w-1/3 overflow-x-auto order-first lg:order-none">
                   <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select dates</h1>
@@ -170,7 +170,7 @@ const ComparisonGraphSetup = () => {
                   data-tip="Display graph"
                   className={basicStyle}>
                   <IoIosArrowForward size={25} />
-                  <ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+                  {/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
                 </button>
               </div>
             }

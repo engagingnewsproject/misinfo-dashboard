@@ -12,7 +12,7 @@ import {
 	where,
 } from "firebase/firestore"
 import { db, auth } from "../config/firebase"
-import ReactTooltip from "react-tooltip"
+// import ReactTooltip from "react-tooltip"
 import { IoTrash } from "react-icons/io5"
 import InfiniteScroll from "react-infinite-scroll-component"
 import ConfirmModal from "./modals/ConfirmModal"
@@ -41,10 +41,10 @@ const Users = () => {
 	const [agencyUserAgency, setAgencyUserAgency] = useState("")
 	const [agencyName, setAgencyName] = useState("")
 	const [banned, setBanned] = useState("")
-	const [userEditClick, setUserEditClick] = useState(null)
+	const [userEditModal, setUserEditModal] = useState(null)
 	const [userId, setUserId] = useState(null)
 	const [update,setUpdate] = useState(false)
-	const [listOfUsers, setListOfUsers] =useState([])
+	const [listOfUsers, setListOfUsers] = useState([])
 
 	const dateOptions = {
 		day: "2-digit",
@@ -67,7 +67,7 @@ const Users = () => {
 
 	// Function to fetch user data from Firebase
 	const getData = async () => {
-		
+
 		if (customClaims.admin) {
 			// List ALL users for admin
 			try {
@@ -75,28 +75,28 @@ const Users = () => {
 				const mobileUsersQuerySnapshot = await getDocs(mobileUsersQuery)
 
 				const mobileUsersArray = []
-				
+
 				// Iterate over each mobile user
 				for (const doc of mobileUsersQuerySnapshot.docs) {
-						const userData = {
-								id: doc.id,
-								data: doc.data()
-						};
+					const userData = {
+						id: doc.id,
+						data: doc.data()
+					}
 					// console.log(userData)
 
 					// Check if the user is associated with any agency
-						const agencyRef = collection(db, 'agency');
-						const agencyQuery = query(agencyRef, where('agencyUsers', 'array-contains', userData.data.email));
-						const agencySnapshot = await getDocs(agencyQuery);
+					const agencyRef = collection(db,'agency')
+					const agencyQuery = query(agencyRef,where('agencyUsers','array-contains',userData.data.email))
+					const agencySnapshot = await getDocs(agencyQuery)
 
-						if (!agencySnapshot.empty) {
-							const agencyData = agencySnapshot.docs[0].data();
-							userData.data.agencyName = agencyData.name;
-							// Set the agency state
-        			setAgencyUserAgency(userData.data.agencyName);
-						}
+					if (!agencySnapshot.empty) {
+						const agencyData = agencySnapshot.docs[0].data()
+						userData.data.agencyName = agencyData.name
+						// Set the agency state
+						setAgencyUserAgency(userData.data.agencyName)
+					}
 
-					mobileUsersArray.push(userData);
+					mobileUsersArray.push(userData)
 					// console.log(agency)
 				}
 				// need to itterate over the 'agency' collection 
@@ -112,12 +112,12 @@ const Users = () => {
 				const agencyRef = collection(db,'agency')
 				const q = query(agencyRef,where('agencyUsers','array-contains',user['email']))
 
-        let agencyName;
-        const querySnapshot = await getDocs(q)
-        querySnapshot.forEach((doc) => { // Set initial values
-          agencyName = doc.data()['name']
-        
-        })
+				let agencyName
+				const querySnapshot = await getDocs(q)
+				querySnapshot.forEach((doc) => { // Set initial values
+					agencyName = doc.data()['name']
+
+				})
 
 				// Check if there is at least one document
 				if (!querySnapshot.empty) {
@@ -151,7 +151,7 @@ const Users = () => {
 								data: mobileUserDocSnapshot.data()
 							})
 
-              // Check to see if user exists
+							// Check to see if user exists
 						}
 					}
 					setLoadedMobileUsers(mobileUsersArray)
@@ -177,7 +177,7 @@ const Users = () => {
 	// Function to handle user deletion
 	const handleDelete = async (e) => {
 		e.preventDefault()
-		const docRef = doc(db, "mobileUsers", userId)
+		const docRef = doc(db, "mobileUsers", userId);
 		deleteDoc(docRef)
 			.then(() => {
 				getData()
@@ -190,15 +190,15 @@ const Users = () => {
 	}
 
 	// Function to handle opening and setting values in the EditUserModal
-	const handleEditUser = async (userObj, userId) => {
+	const handleEditUser = async (userObj,userId) => {
 		setUserId(userId)
-		const userRef = await getDoc(doc(db, "mobileUsers", userId))
+		const userRef = await getDoc(doc(db,"mobileUsers",userId))
 		setUserEditing(userObj)
 		setName(userRef.data()["name"])
 		setEmail(userRef.data()["email"])
 		setBanned(userRef.data()["isBanned"])
 		setUserRole(userRef.data()["userRole"])
-		setUserEditClick(true)
+		setUserEditModal(true)
 	}
 
 	// Function to handle name change
@@ -226,38 +226,33 @@ const Users = () => {
 	// Function to handle form submission (updating user data)
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
-		// User Role change
-		auth.currentUser
-			.getIdTokenResult()
-			.then((idTokenResult) => {
-				// Confirm the user is an Admin.
-				if (!!idTokenResult.claims.admin) {
-					// Change the selected user's privileges as requested
-					if (userRole === "Admin") {
-						console.log(addAdminRole({ email: user.email }))
-					} else if (userRole === "Agency") {
-						console.log(addAgencyRole({ email: user.email }))
-					} else if (userRole === "User") {
-						console.log(addUserRole({ email: user.email }))
-					}
-					setUserRole(userRole)
-				}
-			})
-			.catch((error) => {
-				console.log(error)
-			})
-		// Name change
-		const docRef = doc(db, "mobileUsers", userId)
-		await updateDoc(docRef, {
+		const docRef = doc(db, "mobileUsers", userId);
+		await updateDoc(docRef,{
 			name: name,
 			email: email,
 			isBanned: banned,
 			userRole: userRole,
 		})
-
-		setUserEditClick(false)
+		// Update the loadedMobileUsers state after successful update
+		setLoadedMobileUsers((prevUsers) =>
+			prevUsers.map((userObj) =>
+				userObj.id === userId
+					? {
+						id: userId,
+						data: {
+							...userObj.data,
+							name: name,
+							email: email,
+							isBanned: banned,
+							userRole: userRole,
+						},
+					}
+					: userObj
+			)
+		);
+		setUserEditModal(false)
 	}
-	
+
 	// Data fetch on update
 	useEffect(() => {
 		getData()
@@ -331,13 +326,13 @@ const Users = () => {
 									posted = posted.toLocaleString("en-US", dateOptions)
 									return (
 										<tr
-												className='border-b transition duration-300 ease-in-out dark:border-indigo-100'
-												key={key}
-												onClick={
-													customClaims.admin
-															? () => handleEditUser(listUser, userId)
-															: undefined
-												}>
+											className='border-b transition duration-300 ease-in-out dark:border-indigo-100'
+											key={key}
+											onClick={
+												customClaims.admin
+													? () => handleEditUser(listUser, userId)
+													: undefined
+											}>
 											{/* Name */}
 											<td scope='row' className={column.data}>
 												{listUser.name}
@@ -359,7 +354,7 @@ const Users = () => {
 											)}
 											{/* Banned */}
 											<td className={column.data_center}>
-												{(userObj.isBanned && "yes") || "no"}
+												{(userObj.data.isBanned && "yes") || "no"}
 											</td>
 											{/* Delete */}
 											{customClaims.admin && (
@@ -374,12 +369,12 @@ const Users = () => {
 															size={20}
 															className='ml-4 fill-gray-400 hover:fill-red-600'
 														/>
-														<ReactTooltip
+														{/* <ReactTooltip
 															place='top'
 															type='light'
 															effect='solid'
 															delayShow={500}
-														/>
+														/> */}
 													</button>
 												</td>
 											)}
@@ -403,12 +398,12 @@ const Users = () => {
 					closeModal={setDeleteModal}
 				/>
 			)}
-			{userEditClick && (
+			{userEditModal && (
 				<EditUserModal
 					customClaims={customClaims}
 					userRole={userRole}
 					setUserRole={setUserRole}
-					setUserEditClick={setUserEditClick}
+					setUserEditModal={setUserEditModal}
 					userId={userId}
 					name={name}
 					onNameChange={handleNameChange}

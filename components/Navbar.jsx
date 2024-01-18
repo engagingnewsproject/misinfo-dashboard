@@ -15,7 +15,8 @@ import {
   IoMenu
 } from "react-icons/io5";
 import { HiOutlineDocumentPlus } from "react-icons/hi2";
-import ReactTooltip from "react-tooltip";
+// import ReactTooltip from "react-tooltip";
+import { Tooltip } from 'react-tooltip'
 import Link from "next/link"
 import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
@@ -128,15 +129,19 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
     return (
       <>
       {/* Menu icon that appears when being viewed on mobile screen */}
-      {!showNav && 
-        <button 
-        onClick={() => setShowNav(!showNav)}
-        data-tip="Menu"
-        className="absolute top-8 left-4 z-10 sm:hidden"
-        >
-        <IoMenu size={40}/>
-        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
-    </button>}
+        {!showNav &&
+          <button
+            onClick={() => setShowNav(!showNav)}
+            data-tooltip-id="menu"
+            data-tooltip-content="Menu"
+            data-tooltip-place="top"
+            className="absolute top-8 left-4 z-10 sm:hidden"
+          >
+            <IoMenu size={40} />
+            <Tooltip id="menu" />
+            {/* <Tooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
+          </button>
+        }
       
       <Menu noOverlay={disableOverlay}
         styles={styles}
@@ -151,7 +156,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
                       data-tip="Collapse menu"
                       className={basicStyle + " sm:hidden"}>
                       <IoClose size={30}/>
-                      <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                      {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
                   </button> 
                     {(customClaims.admin || customClaims.agency) &&
                       <button // Home/Reports view
@@ -159,7 +164,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
                         data-tip="Home"
                         className={tab == 0 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
                         <IoHomeOutline size={30}/>
-                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                        {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
                       </button>
                     }
                     {customClaims.admin &&
@@ -168,7 +173,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
                           data-tip="Agencies"
                           className={tab == 4 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
                           <IoBusinessOutline size={30}/>
-                          <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                          {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
                       </button>
                     }
                     {(customClaims.agency ||customClaims.admin) &&
@@ -177,7 +182,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
                           data-tip="Tagging Systems"
                           className={tab == 2 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
                           <IoPricetagsOutline size={30}/>
-                          <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                          {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
                       </button>
                     }
                     {customClaims.agency && // if admin user or agency user show the add report & users icons
@@ -186,7 +191,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
                           data-tip="New Report"
                           className={basicStyle}>
                           <IoAddCircleOutline size={30}/>
-                          <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                          {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
                       </button>
                     } 
                     { (customClaims.admin || customClaims.agency) &&
@@ -195,7 +200,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
                           data-tip="Users"
                           className={basicStyle}>
                           <IoPeopleOutline size={30}/>
-                          <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                          {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
                       </button>
                     }
                     { (!customClaims.admin && !customClaims.agency) &&
@@ -204,7 +209,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
                           data-tip="Create Report"
                           className={basicStyle}>
                           <HiOutlineDocumentPlus size={30}/>
-                          <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                          {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
                       </button>
                     }
                 </div>
@@ -214,7 +219,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
                         data-tip="Profile"
                         className={tab == 1 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
                         <IoPersonOutline size={30}/>
-                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                        {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
                     </button>
                     {(customClaims.admin || customClaims.agency) && <button
                         onClick={()=>setHelpModal(true)}
@@ -222,7 +227,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
                         className={helpModal ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
 
                         <IoHelpCircleOutline size={30}/>
-                        <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} />
+                        {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
 
                     </button>}
                 </div>

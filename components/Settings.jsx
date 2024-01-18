@@ -39,7 +39,8 @@ const Settings = () => {
             </button>
         </div>
       </div> :
-      <TagSystem tagSystem={tagSystem} setTagSystem={setTagSystem}/>}
+        <TagSystem tagSystem={tagSystem} setTagSystem={setTagSystem} />}
+      {/* TODO: add "custom tags section for approval" */}
     </div>
 
   )
