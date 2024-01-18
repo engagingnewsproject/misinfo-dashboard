@@ -27,7 +27,7 @@ const Users = () => {
 		addAgencyRole,
 		addUserRole,
 		customClaims,
-		setCustomClaims,
+		getUser
 	} = useAuth()
 
 	// State variables for managing user data
@@ -41,11 +41,11 @@ const Users = () => {
 	const [agencyUserAgency, setAgencyUserAgency] = useState("")
 	const [agencyName, setAgencyName] = useState("")
 	const [banned, setBanned] = useState("")
-	const [userEditClick, setUserEditClick] = useState(null)
+	const [userEditModal, setUserEditModal] = useState(null)
 	const [userId, setUserId] = useState(null)
 	const [update,setUpdate] = useState(false)
 	const [listOfUsers, setListOfUsers] =useState([])
-
+	const [userEditingUID, setUserEditingUID] = useState([])
 	const dateOptions = {
 		day: "2-digit",
 		year: "numeric",
@@ -190,15 +190,42 @@ const Users = () => {
 	}
 
 	// Function to handle opening and setting values in the EditUserModal
-	const handleEditUser = async (userObj, userId) => {
+	const handleEditUser = async (userObj,userId) => {
+		// console.log()
+		// display user editing modal
+		setUserEditModal(true)
+		// set user id
 		setUserId(userId)
-		const userRef = await getDoc(doc(db, "mobileUsers", userId))
+		// const userRef = await getDoc(doc(db,"mobileUsers",userId))
+		// set userEditing to clicked user 
 		setUserEditing(userObj)
-		setName(userRef.data()["name"])
-		setEmail(userRef.data()["email"])
-		setBanned(userRef.data()["isBanned"])
-		setUserRole(userRef.data()["userRole"])
-		setUserEditClick(true)
+		// set user editing name
+		setName(userEditing.name)
+		// set user editing email
+		setEmail(userEditing.email)
+		// set user editing banned
+		setBanned(userEditing.isBanned)
+		// set user editing role
+		setUserRole(userEditing.userRole)
+		// get logged in user's id token/custom claim: must be admin
+		auth.currentUser.getIdTokenResult()
+			.then((idTokenResult) => {
+				// Confirm the user is an Admin.
+				if (!!idTokenResult.claims.admin) {
+					// current user is admin so they can 
+					// get & set the clicked on user's custom claims
+					let userUID = getUser(email)
+						.then((response) => {
+							setUserEditingUID(response)
+						})
+				} else {
+					// User is not admin & cannot access the user's custom claims
+					console.log('NOT admin user')
+				}
+			})
+			.catch((error) => {
+				console.log(error)
+			})
 	}
 
 	// Function to handle name change
@@ -255,7 +282,7 @@ const Users = () => {
 			userRole: userRole,
 		})
 
-		setUserEditClick(false)
+		setUserEditModal(false)
 	}
 	
 	// Data fetch on update
@@ -403,13 +430,15 @@ const Users = () => {
 					closeModal={setDeleteModal}
 				/>
 			)}
-			{userEditClick && (
+			{userEditModal && (
 				<EditUserModal
+					userEditingUID={userEditingUID}
+					userId={userId}
 					customClaims={customClaims}
+					user={user}
 					userRole={userRole}
 					setUserRole={setUserRole}
-					setUserEditClick={setUserEditClick}
-					userId={userId}
+					setUserEditModal={setUserEditModal}
 					name={name}
 					onNameChange={handleNameChange}
 					agencyUserAgency={agencyUserAgency}

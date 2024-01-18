@@ -3,7 +3,10 @@ import { IoClose } from "react-icons/io5"
 import { Switch } from "@headlessui/react"
 
 const EditUserModal = ({
+	userEditingUID,
+	userId,
 	customClaims,
+	user,
 	onOptionChange,
 	onNameChange,
 	name,
@@ -14,7 +17,7 @@ const EditUserModal = ({
 	banned,
 	setBanned,
 	onFormSubmit,
-	setUserEditClick,
+	setUserEditModal,
 	userRole, // New prop to receive the user's role
 	userEditing
 }) => {
@@ -43,11 +46,11 @@ const EditUserModal = ({
 		modal_form_button:
 			"bg-blue-500 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
 	}
-
+	console.log(userEditingUID.data.uid)
 	return (
 		<div
 			className={style.modal_background}
-			onClick={() => setUserEditClick(false)}>
+			onClick={() => setUserEditModal(false)}>
 			<div className={style.modal_container}>
 				<div
 					className={style.modal_wrapper}
@@ -56,7 +59,7 @@ const EditUserModal = ({
 						<div className={style.modal_header_wrapper}>
 							<div className={style.modal_header}>User Info</div>
 							<button
-								onClick={() => setUserEditClick(false)}
+								onClick={() => setUserEditModal(false)}
 								className={style.modal_close}>
 								<IoClose size={25} />
 							</button>
