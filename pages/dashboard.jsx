@@ -70,7 +70,7 @@ const Dashboard = () => {
         if (user.email === 'luke@lukecarlhartman.com' || user.email === 'juliaelias@utexas.edu') {
           // console.log('email is dev')
           if (!idTokenResult.claims.admin) {
-            console.log(addAdminRole({ email: user.email }))
+            // console.log(addAdminRole({ email: user.email }))
             setCustomClaims({ admin: true })
           }
           // Confirm the user is an Admin.
@@ -87,7 +87,7 @@ const Dashboard = () => {
       .catch((error) => {
         console.log(error);
       });
-      console.log(customClaims)
+      // console.log(customClaims)
     }, [])
 
 
