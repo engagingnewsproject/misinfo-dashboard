@@ -14,7 +14,7 @@ import {
   IoIosAlert,
   IoIosTrash
 } from "react-icons/io";
-import Tooltip from "react-tooltip";
+import { Tooltip } from "react-tooltip";
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
 
@@ -116,12 +116,12 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
         {/* Calendar allows user to change date range. */}
         {showCalendar == 0 ? 
           <button
-                onClick={() => handleSelect()}
-                data-tip="Select Dates"
-              className={`${ dateError ? errorStyle : basicStyle } tooltip-select-dates`}
+            onClick={() => handleSelect()}
+            data-tip="Select Dates"
+            className={`${ dateError ? errorStyle : basicStyle } tooltip-select-dates`}
             >
-                <IoMdCalendar size={25}/>
-                <Tooltip anchorSelect=".tooltip-select-dates" place="top" delayShow={500}>Select Dates</Tooltip>
+            <IoMdCalendar size={25}/>
+            <Tooltip anchorSelect=".tooltip-select-dates" place="top" delayShow={500}>Select Dates</Tooltip>
           </button>
           :
           <button
