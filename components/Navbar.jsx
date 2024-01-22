@@ -17,12 +17,9 @@ import {
 import { HiOutlineDocumentPlus } from "react-icons/hi2";
 // import ReactTooltip from "react-tooltip";
 import { Tooltip } from 'react-tooltip'
-import Link from "next/link"
 import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
 import { useAuth } from '../context/AuthContext'
-import { auth } from "../config/firebase"
-
 
 const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
 
