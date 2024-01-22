@@ -16,7 +16,7 @@ import {
   IoIosArrowBack,
 } from "react-icons/io";
 import ComparisonGraphPlotted from './ComparisonGraphPlotted'
-// import ReactTooltip from "react-tooltip";
+import Tooltip from "react-tooltip";
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
 import _ from "lodash";
@@ -121,10 +121,9 @@ const ComparisonGraphSetup = () => {
               </div>
               <button
                 onClick={() => handleTopicSelection()}
-                data-tip="Next"
-                className={basicStyle}>
+                className={`${basicStyle} tooltip-next`}>
                 <IoIosArrowForward size={25} />
-                {/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
+                <Tooltip anchorSelect=".tooltip-next" place="top" delayShow={500}>Next</Tooltip>
               </button>
               </div>
             }
@@ -134,10 +133,9 @@ const ComparisonGraphSetup = () => {
               <div className="flex flex-wrap lg:items-center lg:justify-center">
                 <button
                   onClick={() => setTab(0)}
-                  data-tip="Previous"
-                  className={basicStyle + " ml-[35%] lg:ml-0"}>
+                  className={`${basicStyle} ml-[35%] lg:ml-0 tooltip-previous`}>
                   <IoIosArrowBack size={25} />
-                  {/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
+                  <Tooltip anchorSelect=".tooltip-previous" place="top" delayShow={500}>Previous</Tooltip>
                 </button>
                 <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-full lg:w-1/3 overflow-x-auto order-first lg:order-none">
                   <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select dates</h1>
@@ -167,10 +165,9 @@ const ComparisonGraphSetup = () => {
                 </div>
                 <button
                   onClick={() => handleGraphChange()}
-                  data-tip="Display graph"
-                  className={basicStyle}>
+                  className={`${basicStyle} tooltip-display-graph`}>
                   <IoIosArrowForward size={25} />
-                  {/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
+                  <Tooltip anchorSelect=".tooltip-display-graph" place="top" delayShow={500}>Display Graph</Tooltip>
                 </button>
               </div>
             }
@@ -179,9 +176,13 @@ const ComparisonGraphSetup = () => {
         {tab == 4 && dateRange && selectedTopics && 
           <div className="bg-white rounded-xl mt-6 py-5">
             <ComparisonGraphPlotted 
-              dateRange={dateRange} setDateRange={setDateRange} 
-              selectedTopics={selectedTopics} setSelectedTopics={setSelectedTopics}
-              topicList={listTopicChoices} tab={tab} setTab={setTab} />
+              dateRange={dateRange} 
+              setDateRange={setDateRange} 
+              selectedTopics={selectedTopics} 
+              setSelectedTopics={setSelectedTopics}
+              topicList={listTopicChoices} 
+              tab={tab} 
+              setTab={setTab} />
           </div>
         }
     </div>
