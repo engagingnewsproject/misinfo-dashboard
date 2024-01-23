@@ -59,8 +59,10 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
 	const linkStyle = "font-light mb-1 text-sm underline underline-offset-1"
 	const label = {
-		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
-		special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl",
+		default: "overflow-hidden inline-block px-5 py-1 rounded-2xl",
+		none: "bg-gray-200",
+		important: "bg-yellow-400",
+		flagged: "bg-orange-400",
 	}
 	const style = {
 		icon: "hover:fill-cyan-700"
@@ -108,12 +110,10 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
       
       // console.log("Current user information " + result.admin)
 			if (result.admin) {
-				console.log('admin user logged in')
 				// isAgency = false
 				setIsAgency(false)
       } else if (result.agency) {
 				// isAgency = true
-				console.log('agency user logged in')
 				setIsAgency(true)
       }
     })
@@ -126,12 +126,9 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
     const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
     const querySnapshot = await getDocs(q)
     querySnapshot.forEach((doc) => { // Set initial values
-			// console.log(doc.data())
-      agencyName = doc.data()['name']
-			// console.log(agencyName)
-    
+      agencyName = doc.data()['name']    
     })
-      
+
     const reportsCollection = collection(db,"reports")
     let snapshot;
     // Filters reports for current agency
@@ -259,10 +256,8 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	}, [search])
 
  
-	// On page load (mount), get the reports from firebase
+	// New report submitted, get the reports data again
 	useEffect(() => {
-		// console.log("i am here")
-    // determine if current user is an agency or not
 		getData()
 	}, [newReportSubmitted])
 
@@ -400,11 +395,8 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		setNote(docRef.data()["note"])
 		setReportTitle(docRef.data()["title"])
 		setDetail(docRef.data()["detail"])
-		setSelectedLabel(docRef.data()["selectedLabel"])
-
-		if (setSelectedLabel(!selectedLabel)) {
-			console.log("changed!!!!!!")
-		}
+		setSelectedLabel(docRef.data()["label"])
+		console.log(docRef.data()["label"])
 
 		setInfo(docRef.data())
 		getDoc(doc(db, "mobileUsers", docRef.data()["userID"])).then((mobileRef) =>
@@ -451,11 +443,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 			setUpdate("")
 		}
 	}
-	useEffect(() => {
-		return () => {
-			console.log(selectedLabel)
-		}
-	}, [handleLabelChange])
 	
 	// Delete report
 	const handleReportDelete = async (e) => {
@@ -518,8 +505,11 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 					.replace("at", "")
 			)
 		}
+		console.log(info)
 		if (info["label"]) {
 			setSelectedLabel(info["label"])
+		} else {
+			setSelectedLabel('No label')
 		}
 	}, [info, reportModal])
 
@@ -648,7 +638,16 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 									.toLocaleString("en-US", dateOptions)
 									.replace(/,/g, "")
 									.replace("at", "")
-								const reportIdKey = Object.keys(reportObj)[0].toString()+'-'+key
+								const reportIdKey = Object.keys(reportObj)[0].toString() + '-' + key
+								let labelClass;
+								const labelValue = report.label && report.label.toLowerCase()
+								if (labelValue === 'important') {
+									labelClass = label.important
+								} else if (labelValue === 'flagged') {
+									labelClass = label.flagged
+								} else {
+									labelClass = label.none
+								}
 								return (
 									<tr
 										onClick={() => handleModalShow(Object.keys(reportObj)[0])}
@@ -661,11 +660,8 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 										<td className={column.data_center}>{report.hearFrom}</td>
 										<td className={column.data_center}>
 											{/* Change label tooltip */}
-											{/* {label.default} */}
-											<div className={
-													report.label !== 'Default' ? label.special : label.default
-												}>
-												{report.label !== 'Default' ? report.label : 'No label'}
+											<div className={`${label.default} ${labelClass}`}>
+												{report.label ? report.label : 'No label'}
 												</div> 
 											<Tooltip
 												anchorSelect=".tooltip-label"
