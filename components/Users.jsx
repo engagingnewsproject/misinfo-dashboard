@@ -12,7 +12,7 @@ import {
 	where,
 } from "firebase/firestore"
 import { db, auth } from "../config/firebase"
-// import ReactTooltip from "react-tooltip"
+import {Tooltip} from "react-tooltip"
 import { IoTrash } from "react-icons/io5"
 import InfiniteScroll from "react-infinite-scroll-component"
 import ConfirmModal from "./modals/ConfirmModal"
@@ -363,18 +363,16 @@ const Users = () => {
 													onClick={(e) => e.stopPropagation()}>
 													<button
 														onClick={() => handleMobileUserDelete(userId)}
-														data-tip='Delete user'
-														className={style.icon}>
+														className={`${style.icon} tooltip-delete-user`}>
 														<IoTrash
 															size={20}
 															className='ml-4 fill-gray-400 hover:fill-red-600'
 														/>
-														{/* <ReactTooltip
+														<Tooltip
+															anchorSelect=".tooltip-delete-user"
 															place='top'
-															type='light'
-															effect='solid'
 															delayShow={500}
-														/> */}
+														>Delete User</Tooltip>
 													</button>
 												</td>
 											)}
