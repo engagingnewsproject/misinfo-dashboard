@@ -13,6 +13,7 @@ npm run dev
 # or
 yarn dev
 ```
+  - You can also start the site with `npm run dev`, and in a new terminal window run `firebase emulators:start --import=./emulator-data` to run the app on the emulator and import the db testing data.
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
