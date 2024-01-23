@@ -62,6 +62,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             detail: detail,
             createdDate: moment().toDate(),
             isApproved: true,
+            label: '',
             read: false,
             topic: selectedTopic,
             hearFrom: selectedSource
