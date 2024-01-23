@@ -15,7 +15,6 @@ import {
   IoMenu
 } from "react-icons/io5";
 import { HiOutlineDocumentPlus } from "react-icons/hi2";
-// import ReactTooltip from "react-tooltip";
 import { Tooltip } from 'react-tooltip'
 import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
