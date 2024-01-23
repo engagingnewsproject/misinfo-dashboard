@@ -18,7 +18,7 @@ import { IoMdRefresh } from "react-icons/io"
 import { IoAdd, IoTrash } from "react-icons/io5"
 
 // Icons END
-// import ReactTooltip from "react-tooltip"
+import { Tooltip } from "react-tooltip"
 import InfiniteScroll from "react-infinite-scroll-component"
 import NewReport from "./modals/NewReportModal"
 import ReportModal from "./modals/ReportModal"
@@ -107,11 +107,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
     verifyRole().then((result) => {
       
       // console.log("Current user information " + result.admin)
-      if (result.admin) {
+			if (result.admin) {
+				console.log('admin user logged in')
 				// isAgency = false
 				setIsAgency(false)
       } else if (result.agency) {
 				// isAgency = true
+				console.log('agency user logged in')
 				setIsAgency(true)
       }
     })
@@ -436,16 +438,24 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	}
 
 	const handleLabelChange = async (e) => {
+		console.log(e.target.value)
 		e.preventDefault()
 		let reportId = reportModalId
-		if (e.target.value !== info['label']) {
+		if (e.target.value !== 'Default') {
 				const docRef = doc(db, "reports", reportId)
 				await updateDoc(docRef, { label: e.target.value })
-				setUpdate(e.target.value)
-		} else {
+			setUpdate(e.target.value)
+			console.log(update)
+		} else if (e.target.value = 'Default') {
+			setSelectedLabel('No label')
 			setUpdate("")
 		}
 	}
+	useEffect(() => {
+		return () => {
+			console.log(selectedLabel)
+		}
+	}, [handleLabelChange])
 	
 	// Delete report
 	const handleReportDelete = async (e) => {
@@ -525,20 +535,16 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				</div>
 				<div className="flex flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-evenly">
           <div className="p-0 px-4 md:p-4 md:py-0 md:px-4">
-            {/* <ReactTooltip
-                id="refreshTooltip"
-                place="top"
-                type="light"
-                effect="solid"
-                delayShow={500}
-              /> */}
               {/* Displays refresh icon */}
               {!refresh && !reportsUpdated && <button
-                className="relative top-1 m-0 md:m-0"
-                onClick={handleRefresh}
-                data-tip="Refresh"
-                data-for="refreshTooltip">
-                <IoMdRefresh size={20} />
+                className="relative top-1 m-0 md:m-0 tooltip-refresh"
+                onClick={handleRefresh}>
+								<IoMdRefresh size={20} />
+								<Tooltip
+									anchorSelect=".tooltip-refresh"
+									place="top"
+									delayShow={500}
+								>Refresh</Tooltip>
               </button>}
 
               {/* Displays loading icon when reports are being updated*/}
@@ -557,66 +563,57 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
             </div>}
           </div>
 					<div>
-							{/* New report tooltip */}
-							{/* <ReactTooltip
-                id="newReportTooltip"
-                place="top"
-                type="light"
-                effect="solid"
-                delayShow={500}
-              /> */}
             <button
               onClick={() => setNewReportModal(true)}
-              className="flex items-center text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
-							data-tip="Create a new report"
-							data-for="newReportTooltip">
+              className="flex items-center text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 tooltip-new-report">
               <IoAdd className="mr-1" size={15} />
-              New Report
+							New Report
+							<Tooltip
+                anchorSelect=".tooltip-new-report"
+                place="top"
+                delayShow={500}
+              >New Report</Tooltip>
             </button>
           </div>
 				  <div className="mb-0">
-						{/* Filter tooltip */}
-						{/* <ReactTooltip
-							id="filterTooltip"
-							place="top"
-							type="light"
-							effect="solid"
-							delayShow={500}
-						/> */}
             <select
               id="label_read"
               onChange={(e) => handleReadFilterChanged(e)}
               defaultValue="All"
 							data-tip="Filter reports"
 							data-for="filterTooltip"
-              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md mr-1 md:mx-2 hover:shadow-none">
+              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md mr-1 md:mx-2 hover:shadow-none tooltop-filter-reports">
               <option value="false">Unread</option>
               <option value="true">Read</option>
               <option value="All">All reports</option>
-            </select>
+						</select>
+						{/* Filter tooltip */}
+						<Tooltip
+							anchorSelect=".tooltop-filter-reports"
+							place="top"
+							delayShow={500}
+						>Filter Reports</Tooltip>
           </div>
           <div className="mt-2 md:mt-0">
-						{/* Timeframe tooltip */}
-						{/* <ReactTooltip
-							id="timeframeTooltip"
-							place="top"
-							type="light"
-							effect="solid"
-							delayShow={500}
-						/> */}
             <select
               id="label_date"
               onChange={(e) => handleDateChanged(e)}
               defaultValue="4"
 							data-tip="Select timeframe"
 							data-for="timeframeTooltip"
-              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none">
+              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none tooltip-duration">
               <option value="4">Last four weeks</option>
               <option value="3">Last three weeks</option>
               <option value="2">Last two weeks</option>
               <option value="1">Last week</option>
               <option value="100">All reports</option>
-            </select>
+						</select>
+						{/* Timeframe tooltip */}
+						<Tooltip
+							anchorSelect=".tooltip-duration"
+							place="top"
+							delayShow={500}
+						>Select Duration</Tooltip>
           </div>
           </div>
 			</div>
@@ -664,21 +661,17 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 										<td className={column.data_center}>{report.hearFrom}</td>
 										<td className={column.data_center}>
 											{/* Change label tooltip */}
-											{/* <ReactTooltip
-												id="labelTooltip"
+											{/* {label.default} */}
+											<div className={
+													report.label !== 'Default' ? label.special : label.default
+												}>
+												{report.label !== 'Default' ? report.label : 'No label'}
+												</div> 
+											<Tooltip
+												anchorSelect=".tooltip-label"
 												place="top"
-												type="light"
-												effect="solid"
 												delayShow={500}
-											/> */}
-											<div
-												className={
-													!report.label ? label.default : label.special
-												}
-												data-tip="Change label"
-												data-for="labelTooltip">
-												{report.label || "None"}
-											</div>
+											>Change Label</Tooltip>
 										</td>
 										<td className={column.data_center} onClick={(e) => e.stopPropagation()}>
 											<Switch
@@ -705,9 +698,9 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 													handleReportDelete(Object.keys(reportObj)[0])
 												}
 												data-tip="Delete report"
-												className={style.icon}>
+												className={`${style.icon} tooltip-delete`}>
 												<IoTrash size={20} className="ml-4 fill-gray-400 hover:fill-red-600" />
-												{/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
+												<Tooltip anchorSelect=".tooltip-delete" place="top" delayShow={500}>Delete Report</Tooltip>
 											</button>
 										</td>
 									</tr>

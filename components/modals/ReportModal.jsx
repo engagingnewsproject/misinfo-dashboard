@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import SwitchRead from "../SwitchRead"
 import Link from "next/link"
 import Image from "next/image"
-// import ReactTooltip from "react-tooltip";
+import {Tooltip} from "react-tooltip";
 // icons
 import { RiMessage2Fill } from "react-icons/ri"
 import { BiEditAlt } from "react-icons/bi"
@@ -245,14 +245,14 @@ const ReportModal = ({
 										onChange={onLabelChange}
 										defaultValue={selectedLabel}
 										className="text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none">
-										<option value={selectedLabel ? selectedLabel : "none"}>
-											{selectedLabel ? selectedLabel : "Choose a label"}
-										</option>
-										{activeLabels
-											.filter((label) => label != selectedLabel)
-											.map((label, i) => {
-												return <option value={label} key={i}>{label}</option>
-											})}
+  <option value="">
+    {selectedLabel ? selectedLabel : "Choose a label"}
+  </option>
+  {activeLabels
+    .filter((label) => label !== selectedLabel)
+    .map((label, i) => {
+      return <option value={label} key={i}>{label}</option>;
+    })}
 									</select>
 									{changeStatus && (
 										<span className="ml-5 font-light text-sm italic">
@@ -266,11 +266,12 @@ const ReportModal = ({
 								</div>
 								{/* Share */}
 								<button
-									className="flex flex-row text-sm bg-white px-4 mb-4 border-none text-black py-1 rounded-md shadow hover:shadow-none"
+									className="flex flex-row text-sm bg-white px-4 mb-4 border-none text-black py-1 rounded-md shadow hover:shadow-none tooltip-share-report"
 									onClick={SendLinkByMail}
 									type="button">
 									<BsShareFill className="my-1" size={15} />
 									<div className="px-3 py-1">Share The Report</div>
+									<Tooltip anchorSelect=".tooltip-share-report" place="top" delayShow={500}>Share Report</Tooltip>
 								</button>
 									<div className="flex items-center justify-between justify-items-stretch">
 								{/* Save button */}
@@ -285,11 +286,10 @@ const ReportModal = ({
 								<div className="delete-button self-end">
 									<button
 										onClick={onReportDelete}
-										data-tip="Delete report"
-										className={style.icon}
+										className={`${style.icon} tooltip-delete-report`}
 										type='button'>
 										<IoTrash size={30} color="red"/>
-										{/* <ReactTooltip place="left" type="light" effect="solid" delayShow={500} /> */}
+										<Tooltip anchorSelect=".tooltip-delete-report" place="top" delayShow={500}>Delete Report</Tooltip>
 									</button>
 								</div>
 							</div>
