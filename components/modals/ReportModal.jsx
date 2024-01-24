@@ -12,8 +12,15 @@ import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
 import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
 
 const ReportModal = ({
-	reportModal,
+	// reportModalShow,
 	report,
+	setReportModalShow,
+	activeLabels,
+	selectedLabel,
+	onLabelChange,
+	setReportSubmitBy,
+	onFormSubmit,
+	// nothing below hopefully
 	reportTitle,
 	note,
 	detail,
@@ -22,13 +29,8 @@ const ReportModal = ({
 	setReportLocation,
 	reporterInfo,
 	onNoteChange,
-	onFormSubmit,
 	onReportDelete,
-	selectedLabel,
-	activeLabels,
-	onLabelChange,
 	changeStatus,
-	setReportModal,
 	setReportModalId,
 }) => {
 	const style = {
@@ -48,10 +50,10 @@ const ReportModal = ({
 	}
 	const reportURI = "/reports/" + setReportModalId
 	const [images,setImages] = useState([])
-	useEffect(() => {
-		setImages(report['images'])
-		// console.log(images)
-	}, [reportModal])
+	// useEffect(() => {
+	// 	setImages(report['images'])
+	// 	// console.log(images)
+	// }, [reportModalShow])
 	function SendLinkByMail(href) {
 		var subject = "Misinformation Report"
 		var body = "Link to report:\r\n"
@@ -68,7 +70,7 @@ const ReportModal = ({
 	
 	return (
 		<div className="fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto" // {style.overlay} 
-			onClick={() => setReportModal(false)}>
+			onClick={() => setReportModalShow(false)}>
 			 <div className="absolute flex justify-center items-center z-[1300] top-4 left-0 right-0 sm:overflow-y-scroll"> {/* {style.modal} */}
 				<div
 					className="flex-col justify-center items-center lg:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible" // {style.wrap}
@@ -83,82 +85,92 @@ const ReportModal = ({
 							</Link>
 						</div>
 						<button
-							onClick={() => setReportModal(false)}
+							onClick={() => setReportModalShow(false)}
 							className="text-gray-800">
 							<IoClose size={25} />
 						</button>
 					</div>
 					<form onSubmit={onFormSubmit}>
 						<div  className="grid md:grid-cols-2 md:gap-10 lg:gap-15">
-						
 							<div className="left-side">
-								<div>
+								<>
+									{/* Title */}
 									<div className={style.header}>Title</div>
-									<div className="text-sm bg-white rounded-xl p-4 mb-5">{reportTitle || <span className="italic text-gray-400">No Title</span>}</div>
-
+									<div className="text-sm bg-white rounded-xl p-4 mb-5">
+										{/* {reportTitle || <span className="italic text-gray-400">No Title</span>} */}
+										{report.title || <span className="italic text-gray-400">No Title</span>}
+									</div>
+									
 									{/* Detail/Description */}
 									<div className="mb-5">
 										<div className={style.header}>Description</div>
 										<textarea
 											placeholder="No detail provided"
 											id='detail'
-											className={detail ? style.textarea : style.textarea + ` italic`}
+											className={report.detail ? style.textarea : style.textarea + ` italic`}
 											disabled
-											value={detail}
+											value={report.detail}
 											rows="6"/>
 									</div>
 
 									{/* Links */}
-									<div>
+									<>
 										<div className={style.header}>Links to the Information</div>
 										<div className="flex flex-col">
-											{info["link"] && (
+											{report.link && (
 												<a
 													className={style.link}
 													target="_blank"
 													rel="noreferrer"
-													href={"//" + info["link"]}>
-													{info["link"]}
+													href={"//" + report.link}>
+													{report.link}
 												</a> 
 											) || <span className="italic text-gray-400">No link provided</span>}
-											{info["secondLink"] && (
+											{report.secondLink && (
 												<a
 													className={style.link}
 													target="_blank"
 													rel="noreferrer"
-													href={"//" + info["secondLink"]}>
-													{info["secondLink"]}
+													href={"//" + report.secondLink}>
+													{report.secondLink}
 												</a>
 											)}
 										</div>
-									</div>
-								</div>
+									</>
+								</>
 							</div> {/* END left side */}
 							
 							<div className="right-side flex flex-col justify-between">
 								<div>
-									{/* Sources and stuff */}
 									<div className="flex flex-col mb-5">
+										{/* Sources & tags */}
 										<div className="flex flex-row mb-3 items-center">
 											<RiMessage2Fill size={20} />
 											<div className="font-semibold px-2 self-center pr-4">
 												Tag
 											</div>
-											<div className="text-md font-light">{info["topic"]}</div>
+											<div className="text-md font-light">
+												{report.topic}
+											</div>
 										</div>
 										<div className="flex flex-row mb-3 items-center">
 											<BiEditAlt size={20} />
 											<div className="font-semibold px-2 self-center pr-4">
 												Sources / Media
 											</div>
-											<div className="text-md font-light">{info["hearFrom"]}</div>
+											<div className="text-md font-light">
+											{report.hearFrom}
+											</div>
 										</div>
+										{/* Date */}
 										<div className="flex flex-row mb-3 items-center">
 											<AiOutlineFieldTime size={20} />
 											<div className="font-semibold px-2 self-center pr-4">
 												Date / Time
 											</div>
-											<div className="text-md font-light">{setPostedDate}</div>
+											<div className="text-md font-light">
+												{setPostedDate}
+											</div>
 										</div>
 										{/* City state */}
 										<div className="flex flex-row mb-3 items-center">
@@ -222,7 +234,7 @@ const ReportModal = ({
 							</div> {/* END right side */}
 							
 						</div>
-						
+
 						{/* Newsroom Edits */}
 						<div className="grid pt-4 mt-5 bg-slate-100 rounded-xl p-8 md:grid-cols-2 md:gap-10 lg:gap-15">
 							{/* Notes */}
@@ -236,7 +248,7 @@ const ReportModal = ({
 									rows="6"
 									defaultValue={note}></textarea>
 							</div>
-							<div>
+							<>
 								{/* LABELS go here */}
 								<div className="mb-4">
 									<div className={style.header}>Label</div>
@@ -245,14 +257,15 @@ const ReportModal = ({
 										onChange={onLabelChange}
 										defaultValue={selectedLabel}
 										className="text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none">
-  <option value="">
-    {selectedLabel ? selectedLabel : "Choose a label"}
-  </option>
-  {activeLabels
-    .filter((label) => label !== selectedLabel)
-    .map((label, i) => {
-      return <option value={label} key={i}>{label}</option>;
-    })}
+									<option value="No label">No label</option>
+									<option value={selectedLabel ? selectedLabel : "No label"}>
+										{selectedLabel ? selectedLabel : "Choose a label"}
+									</option>
+									{activeLabels
+										.filter((label) => label !== selectedLabel)
+										.map((label, i) => {
+											return <option value={label} key={i}>{label}</option>;
+										})}
 									</select>
 									{changeStatus && (
 										<span className="ml-5 font-light text-sm italic">
@@ -273,8 +286,8 @@ const ReportModal = ({
 									<div className="px-3 py-1">Share The Report</div>
 									<Tooltip anchorSelect=".tooltip-share-report" place="top" delayShow={500}>Share Report</Tooltip>
 								</button>
-									<div className="flex items-center justify-between justify-items-stretch">
 								{/* Save button */}
+								<div className="flex items-center justify-between justify-items-stretch">
 									<div className="save-button w-full">
 										<button
 											className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
@@ -293,11 +306,8 @@ const ReportModal = ({
 									</button>
 								</div>
 							</div>
-							</div>
-							
-						
+							</>
 						</div>
-								
 					</form>
 				</div>
 			</div>

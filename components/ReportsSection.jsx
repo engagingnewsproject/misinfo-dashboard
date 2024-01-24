@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
 
 import {
-	collection,
 	getDoc,
 	getDocs,
 	doc,
@@ -10,6 +9,8 @@ import {
   where,
 	updateDoc,
 	deleteDoc,
+	onSnapshot,
+	collection
 } from "firebase/firestore"
 import { db } from "../config/firebase"
 import { Switch } from "@headlessui/react"
@@ -73,11 +74,12 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 
 	// Report modal states
 	const [report, setReport] = useState('')
-	const [reportModal, setReportModal] = useState(false)
+	const [reportModalShow, setReportModalShow] = useState(false)
 	const [reportModalId, setReportModalId] = useState(false)
 	const [note, setNote] = useState("")
 	const [title, setTitle] = useState('')
 	const [detail, setDetail] = useState()
+	const [reportSubmitBy, setReportSubmitBy] = useState()
 	const [info, setInfo] = useState({})
 	const [selectedLabel, setSelectedLabel] = useState("")
 	const [activeLabels, setActiveLabels] = useState([])
@@ -99,8 +101,9 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
     setRefresh(false)
   }
 
+	// Initial get Firebase data.
 	const getData = async () => {
-		// // Long (difficult) way
+		// Long (difficult) way
 		// Get the collection of agencies
 		// filter out the agency
 		// Get the current (agency)user's agency name
@@ -151,6 +154,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 			})
 
 			setReports(arr)
+			console.log(reports.data)
 			if (readFilter !== "All") {
 				arr = arr.filter((reportObj) => {
 				  return Object.values(reportObj)[0].read.toString() === readFilter
@@ -180,6 +184,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		}
 	}
 
+	// Report Table: Filter's date change handler
 	const handleDateChanged = (e) => {
 		e.preventDefault()
 		setReportWeek(e.target.value)
@@ -203,12 +208,14 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		setLoadedReports(arr)
 	}
 
-	const handleReadFilter = (e) => {
-		e.preventDefault()
-		setFilterRead(e.target.value)
-	}
+	// !!! Not sure if this is needed ???
+	// const handleReadFilter = (e) => {
+	// 	e.preventDefault()
+	// 	setFilterRead(e.target.value)
+	// }
 
 	// Filter the reports based on the search text
+	
 	useEffect(() => {
 		if (search == "") {
 			if (readFilter != "All") {
@@ -254,7 +261,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 			)
 		}
 	}, [search])
-
  
 	// New report submitted, get the reports data again
 	useEffect(() => {
@@ -385,38 +391,95 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		setNewReportModal(true)
 	}
 
-  
-
+	// Report Modal: Shows the report modal
 	const handleModalShow = async (reportId) => {
+		setReportModalShow(true)
 		// get doc
-		const docRef = await getDoc(doc(db, "reports", reportId))
-		setReport(docRef.data())
-		// get note
-		setNote(docRef.data()["note"])
-		setReportTitle(docRef.data()["title"])
-		setDetail(docRef.data()["detail"])
-		setSelectedLabel(docRef.data()["label"])
-		console.log(docRef.data()["label"])
+		const reportRef = await getDoc(doc(db,"reports",reportId))
+		const reportData = reportRef.data()
+		// Set the report object and its ID
+		setReport({ id: reportId,...reportData })
+		// Or set the full report object
+		// setReport(docRef.data())
 
-		setInfo(docRef.data())
-		getDoc(doc(db, "mobileUsers", docRef.data()["userID"])).then((mobileRef) =>
-			setReporterInfo(mobileRef.data())
-		)
-
+		// Set the title
+		setReportTitle(reportData["title"])
+		// Set the selected note
+		setNote(reportData["note"])
+		// Set the selected label
+		setSelectedLabel(reportData["label"])
+		// Set the report detail
+		setDetail(reportData["detail"])
+		
+		// Fetch and set active labels
 		const tagsRef = await getDoc(doc(db, "tags", userId))
 		setActiveLabels(tagsRef.data()["Labels"]["active"])
+		
+		// Get report submission user info
+		let reporterID = report.userID
+		console.log(reportId)
+		const docRef = doc(db,"mobileUsers",report.userID);
+		const docSnap = await getDoc(docRef);
+		if (docSnap.exists()) {
+			setReportSubmitBy(docSnap.data());
+		} else {
+			// docSnap.data() will be undefined in this case
+			console.log("No such document!");
+		}
+		// console.log(reporter)
+		// const q = query(collection(db,"mobileUsers"),where(doc(reporter),"==",userID));
+		// console.log(q)
+		// // NEW CODE ABOVE
+		// // NEW CODE ABOVE
+		// // NEW CODE ABOVE
+		// // NEW CODE ABOVE
+		// // NEW CODE ABOVE
+		// get note
+		// setNote(docRef.data()["note"])
+		// setReportTitle(docRef.data()["title"])
+		// setDetail(docRef.data()["detail"])
+		// setInfo(docRef.data())
+
+		// getDoc(doc(db,"mobileUsers",docRef.data()["userID"]))
+		// 	.then((mobileRef) => setReporterInfo(mobileRef.data())
+		// )
+
+		// const tagsRef = await getDoc(doc(db, "tags", userId))
+		// setActiveLabels(tagsRef.data()["Labels"]["active"])
 
 		// set report id var
 		let reportIdRef = reportId
-		setReportModal(true)
+		
 		setReportModalId(reportIdRef)
-	} // end handleModalShow
+	}
 
+	// Report Modal: Submit the report modal's form
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
-		setReportModal(false)
+		
+		// Update the label in the Firestore database
+		const docRef = doc(db,"reports",report.id)
+		
+		// Check if 'label' field exists, if not, create it
+		const reportData = {}
+		if (report && report.data && !("label" in report.data)) {
+			reportData.label = selectedLabel
+		}
+		
+		// Update the document
+		await updateDoc(docRef, reportData)
+
+		// Close the modal
+		setReportModalShow(false)
+		// NEW CODE ABOVE
+		// NEW CODE ABOVE
+		// NEW CODE ABOVE
+		// NEW CODE ABOVE
+		// NEW CODE ABOVE
+		// setReportModalShow(false)
 	}
 	
+	// Report Modal: Newsroom notes change handler
 	const handleNoteChange = async (e) => {
 		e.preventDefault()
 		let reportId = reportModalId
@@ -429,43 +492,83 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		}
 	}
 
+	// Report Modal: Newsroom label (important, flagged) change handler
 	const handleLabelChange = async (e) => {
-		console.log(e.target.value)
 		e.preventDefault()
-		let reportId = reportModalId
-		if (e.target.value !== 'Default') {
-				const docRef = doc(db, "reports", reportId)
-				await updateDoc(docRef, { label: e.target.value })
-			setUpdate(e.target.value)
-			console.log(update)
-		} else if (e.target.value = 'Default') {
-			setSelectedLabel('No label')
-			setUpdate("")
-		}
+		const selectedValue = e.target.value
+		setSelectedLabel(selectedValue)
+		const docRef = doc(db, "reports", report.id) // Use report.id instead of reportId
+		await updateDoc(docRef, { label: e.target.value })
 	}
 	
-	// Delete report
+	// Report Modal: Delete report
 	const handleReportDelete = async (e) => {
-		reportModal ? e.preventDefault() : setReportModalId(e)
+		reportModalShow ? e.preventDefault() : setReportModalId(e)
 		setDeleteModal(true)
 	}
 	
+	// Delete Modal: Delete report handler
 	const handleDelete = async (e) => {
 		e.preventDefault()
 		const docRef = doc(db, "reports", reportModalId)
 		deleteDoc(docRef)
 			.then(() => {
 				getData()
-				setReportModal(false)
+				setReportModalShow(false)
 				setDeleteModal(false)
 			})
 			.catch((error) => {
 				console.log('The write failed' + error);
 			});
 	}
-	
+	// NEW onSnapshot EFFECT
+	// NEW onSnapshot EFFECT
+	// NEW onSnapshot EFFECT
 	useEffect(() => {
-		// getData()
+		const unsubscribe = onSnapshot(
+			collection(db, "reports"),
+			(querySnapshot) => {
+				const reportArray = []
+				querySnapshot.forEach((doc) => {
+					reportArray.push({ id: doc.id, data: doc.data() })
+				})
+				setReports(reportArray)
+			}
+		)
+
+		return () => {
+			// Unsubscribe when the component unmounts
+			unsubscribe()
+		}
+	}, [])
+	// NEW EFFECT
+	// NEW EFFECT
+	// NEW EFFECT
+	useEffect(() => {
+		if (report.createdDate) {
+			const options = {
+				day: "2-digit",
+				year: "numeric",
+				month: "short",
+				hour: "numeric",
+				minute: "numeric",
+			}
+			setPostedDate(
+				report.createdDate
+					.toDate()
+					.toLocaleString("en-US", options)
+					.replace(/,/g, "")
+					.replace("at", "")
+			)
+		}
+		console.log(report.city)
+		// if (info['city'] || info['state']) {
+		if (report.city || report.state) {
+			setReportLocation(report.city + ', ' + report.state)
+		}
+	}, [reportModalShow])
+
+	useEffect(() => {
 		if (info["createdDate"]) {
 			const options = {
 				day: "2-digit",
@@ -482,40 +585,32 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 					.replace("at", "")
 			)
 		}
-		if (info['city'] || info['state']) {
-			setReportLocation(info['city'] + ', ' + info['state'])
-		}
-	}, [reportModal])
-
-
-	useEffect(() => {
-		if (info["createdDate"]) {
-			const options = {
-				day: "2-digit",
-				year: "numeric",
-				month: "short",
-				hour: "numeric",
-				minute: "numeric",
-			}
-			setPostedDate(
-				info["createdDate"]
-					.toDate()
-					.toLocaleString("en-US", options)
-					.replace(/,/g, "")
-					.replace("at", "")
-			)
-		}
-		console.log(info)
 		if (info["label"]) {
 			setSelectedLabel(info["label"])
 		} else {
 			setSelectedLabel('No label')
 		}
-	}, [info, reportModal])
+	}, [info, reportModalShow])
 
 	useEffect(() => {
 		getData()
 	}, [update])
+	
+	
+	// Testing useEfffect
+	useEffect(() => {
+		console.log(
+			// report,
+			// note,
+			// reportTitle,
+			// detail,
+			// activeLabels,
+			// "reporterInfo--> ",
+			// reporterInfo,
+			report.reportSubmitBy
+			// reportModalId
+		)
+	}, [report])
 	
 	return (
 		<div className="flex flex-col h-full">
@@ -639,6 +734,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 									.replace(/,/g, "")
 									.replace("at", "")
 								const reportIdKey = Object.keys(reportObj)[0].toString() + '-' + key
+								// Report label logic START
 								let labelClass;
 								const labelValue = report.label && report.label.toLowerCase()
 								if (labelValue === 'important') {
@@ -648,6 +744,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 								} else {
 									labelClass = label.none
 								}
+								// Report label logic END
 								return (
 									<tr
 										onClick={() => handleModalShow(Object.keys(reportObj)[0])}
@@ -704,9 +801,9 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 							})}
 					</tbody>
 				</table>
-				{reportModal && (
+				{reportModalShow && (
 					<ReportModal
-						reportModal={reportModal}
+						reportModalShow={reportModalShow}
 						report={report}
 						reportTitle={reportTitle}
 						key={reportModalId}
@@ -714,12 +811,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 						detail={detail}
 						info={info}
 						reporterInfo={reporterInfo}
-						setReportModal={setReportModal}
+						setReportModalShow={setReportModalShow}
 						setReportModalId={reportModalId}
 						onNoteChange={handleNoteChange}
 						onLabelChange={handleLabelChange}
 						selectedLabel={selectedLabel}
 						activeLabels={activeLabels}
+						setReportSubmitBy={setReportSubmitBy}
 						changeStatus={changeStatus}
 						onFormSubmit={handleFormSubmit}
 						onReportDelete={handleReportDelete}
