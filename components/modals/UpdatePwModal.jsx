@@ -34,7 +34,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                     e.stopPropagation()
                 }}>
                     <div className="flex justify-between w-full mb-5">
-                        <div className="text-md font-bold text-blue-600 tracking-wide">{updateSuccess ? "PW updated" : "Reset Password"}</div>
+                        <div className="text-md font-bold text-blue-600 tracking-wide">{updateSuccess ? "Password updated" : "Reset Password"}</div>
                         <button onClick={() => setOpenModal(false)} className="text-gray-800">
                             <IoClose size={25}/>
                         </button>

@@ -8,9 +8,24 @@ import { auth } from '../config/firebase'
 const VerifyEmail = () => {
     const router = useRouter()
     // const [signUpError, setSignUpError] = useState("")
-    const { user, signup, verifyEmail } = useAuth()
+    const { user, signup, verifyEmail, verifyRole, customClaims, setCustomClaims} = useAuth()
     const [signUpError, setSignUpError] = useState(!auth.currentUser.emailVerified)
- 
+
+    const [userRole, setUserRole] = useState(null)
+    // Check if the user is an agency, admin, or user.
+    useEffect(()=> {
+      verifyRole().then((result) => {
+        if (result.admin) {
+          setUserRole({admin: true})
+        } else if (result.agency) {
+          setUserRole({agency:true})
+        } else {
+          setUserRole({user: true})
+        }
+      })
+
+    }, [])
+
     const handleVerifyEmail = async (e) => {
       setSignUpError("New verification email sent.")
 
@@ -37,7 +52,18 @@ const VerifyEmail = () => {
                 </div>
                 <div className="mb-4">
                   {signUpError?.length !== 0 && <div>{signUpError}</div>}
-                  <h3>Check your inbox to verify your email in order to log in.</h3>
+                  {userRole?.agency ?
+                    <div>
+                      <p className="text-lg font-bold text-blue-600 tracking-wider pt-2">Email Verification</p>
+
+                      <div>Upon creating an account, you will be asked to verify your email.</div>
+                      <ol className="list-disc pl-4">
+                        <li>Click the link in the verification email.</li>
+                        <li>Log in to the dashboard using your new account information.</li>
+                        <li>If needed, you can change your agency name and location under your profile.</li>
+                      </ol>
+                    </div> : 
+                   <h3>Check your inbox to verify your email in order to log in.</h3> }
 
                 </div>
              
