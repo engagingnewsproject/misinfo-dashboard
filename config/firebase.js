@@ -34,7 +34,7 @@ export const functions = getFunctions(app);
 
 
 if (process.env.NODE_ENV === 'development') {
-  console.log("127.0.0.1 detected!");
+  console.log("Running Emulator");
   connectAuthEmulator(auth, "http://127.0.0.1:9099");
   connectFirestoreEmulator(db, "127.0.0.1", 8080);
   connectStorageEmulator(storage, "127.0.0.1", 9199);
