@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react"
-import SwitchRead from "../SwitchRead"
+import { Switch } from "@headlessui/react"
+import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"
 import Link from "next/link"
 import Image from "next/image"
 import {Tooltip} from "react-tooltip";
@@ -13,25 +14,29 @@ import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5
 
 const ReportModal = ({
 	// reportModalShow,
-	report,
 	setReportModalShow,
+	report, // should hold all report fields
 	activeLabels,
 	selectedLabel,
 	onLabelChange,
-	setReportSubmitBy,
+	reportSubmitBy,
 	onFormSubmit,
 	// nothing below hopefully
-	reportTitle,
 	note,
 	detail,
+	// read status
+	read,
+	setRead,
+	onChangeRead,
+	// read status END
 	info,
-	setPostedDate,
-	setReportLocation,
+	postedDate,
+	reportLocation,
 	reporterInfo,
 	onNoteChange,
 	onReportDelete,
 	changeStatus,
-	setReportModalId,
+	reportModalId,
 }) => {
 	const style = {
 		header: "text-lg font-bold text-black tracking-wider mb-4",
@@ -48,7 +53,7 @@ const ReportModal = ({
 		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
 		special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl",
 	}
-	const reportURI = "/reports/" + setReportModalId
+	const reportURI = "/reports/" + reportModalId
 	const [images,setImages] = useState([])
 	// useEffect(() => {
 	// 	setImages(report['images'])
@@ -66,7 +71,11 @@ const ReportModal = ({
 		window.open(uri)
 	}
 
-	
+	// TESTING results START
+	useEffect(() => {
+		// console.log('read Modal --> ', read)
+	}, [])
+	// TESTING results END
 	
 	return (
 		<div className="fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto" // {style.overlay} 
@@ -97,7 +106,6 @@ const ReportModal = ({
 									{/* Title */}
 									<div className={style.header}>Title</div>
 									<div className="text-sm bg-white rounded-xl p-4 mb-5">
-										{/* {reportTitle || <span className="italic text-gray-400">No Title</span>} */}
 										{report.title || <span className="italic text-gray-400">No Title</span>}
 									</div>
 									
@@ -169,7 +177,7 @@ const ReportModal = ({
 												Date / Time
 											</div>
 											<div className="text-md font-light">
-												{setPostedDate}
+												{postedDate}
 											</div>
 										</div>
 										{/* City state */}
@@ -178,7 +186,7 @@ const ReportModal = ({
 											<div className="font-semibold px-2 self-center pr-4">
 												City, State
 											</div>
-											<div className="text-md font-light">{setReportLocation}</div>
+											<div className="text-md font-light">{reportLocation}</div>
 										</div>
 										{/* Agency */}
 										{report.agency &&
@@ -194,13 +202,13 @@ const ReportModal = ({
 										<AiOutlineUser size={20} />
 											<div className="text-md font-light">
 												<span className="font-semibold px-2 self-center pr-4">Reported by</span>{" "}
-												{reporterInfo["name"]} (
+												{reportSubmitBy.name} (
 												<a
 													target="_blank"
 													rel="noopener noreferrer"
 													className="text-blue-600 hover:underline"
-													href={"mailto:" + reporterInfo["email"]}>
-													{reporterInfo["email"]}
+													href={"mailto:" + reportSubmitBy.email}>
+													{reportSubmitBy.email}
 												</a>
 												)
 											</div>
@@ -236,9 +244,9 @@ const ReportModal = ({
 						</div>
 
 						{/* Newsroom Edits */}
-						<div className="grid pt-4 mt-5 bg-slate-100 rounded-xl p-8 md:grid-cols-2 md:gap-10 lg:gap-15">
+						<div className="grid grid-flow-row pt-4 mt-5 bg-slate-100 rounded-xl p-8 md:grid-cols-2 md:gap-10 lg:gap-15">
 							{/* Notes */}
-							<div className="notes">
+							<div>
 								<div className={style.header}>Newsroom's Notes</div>
 								<textarea
 									id="note"
@@ -248,7 +256,8 @@ const ReportModal = ({
 									rows="6"
 									defaultValue={note}></textarea>
 							</div>
-							<>
+							{/* label read share & save */}
+							<div>
 								{/* LABELS go here */}
 								<div className="mb-4">
 									<div className={style.header}>Label</div>
@@ -275,7 +284,33 @@ const ReportModal = ({
 								</div>
 								{/* Read/Unread */}
 								<div className="flex flex-row mb-4 items-center">
-									<SwitchRead setReportModalId={setReportModalId} />
+									<div className="self-center pr-2">
+										{read ? (
+											<MdMarkEmailRead size={20} />
+										) : (
+											<MdMarkAsUnread size={20} />
+										)}
+									</div>
+									<Switch
+										checked={read}
+  									onChange={() => onChangeRead(reportModalId)}
+										className={`${
+											read ? "bg-blue-600" : "bg-gray-200"
+										} relative inline-flex h-6 w-11 items-center rounded-full`}>
+										<span className="sr-only">Use setting</span>
+										<span
+											aria-hidden="true"
+											className={`${
+												read ? "translate-x-6" : "translate-x-1"
+											} inline-block h-4 w-4 transform rounded-full bg-white transition`}
+										/>
+									</Switch>
+									{/* Toggle read/unread text on switch change */}
+									{read ? (
+										<span className="ml-2">Read</span>
+									) : (
+										<span className="ml-2">Unread</span>
+									)}
 								</div>
 								{/* Share */}
 								<button
@@ -295,18 +330,18 @@ const ReportModal = ({
 											Save
 										</button>
 									</div>
-								{/* Delete button */}
-								<div className="delete-button self-end">
-									<button
-										onClick={onReportDelete}
-										className={`${style.icon} tooltip-delete-report`}
-										type='button'>
-										<IoTrash size={30} color="red"/>
-										<Tooltip anchorSelect=".tooltip-delete-report" place="top" delayShow={500}>Delete Report</Tooltip>
-									</button>
+									{/* Delete button */}
+									<div className="delete-button self-end">
+										<button
+											onClick={onReportDelete}
+											className={`${style.icon} tooltip-delete-report`}
+											type='button'>
+											<IoTrash size={30} color="red"/>
+											<Tooltip anchorSelect=".tooltip-delete-report" place="top" delayShow={500}>Delete Report</Tooltip>
+										</button>
+									</div>
 								</div>
 							</div>
-							</>
 						</div>
 					</form>
 				</div>
