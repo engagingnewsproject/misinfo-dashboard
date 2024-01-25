@@ -244,6 +244,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         setSelectedTopic(e.target.value)
     }
 
+
     const handleOtherSourceChange = (e) => {
         setOtherSource(e.target.value)
         setSelectedSource(e.target.value)
@@ -450,6 +451,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         />
                                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
                                         <div className="mt-4 mb-0.5">
+
                                         {showOtherTopic && (
                                             <div className="flex">
                                             <div className="mt-4 mb-0.5 text-zinc-500 pr-3">
@@ -464,8 +466,9 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                                     value={otherTopic}
                                                     style={{ fontSize: '14px' }}
                                                 />
+
                                                 </div>
-                                        )}
+                                            )}
                                         </div>
                                 </div>
                             }
@@ -480,6 +483,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     onChange={handleSourceChangeOther}
                                     value={selectedSource.hearFrom}
                                     />
+
                                     {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
                                     <div className="mt-4 mb-0.5">
                                     {showOtherSource && (
@@ -499,6 +503,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                                 </div>
                                         )}
                                     </div>
+
                             </div>
                             }
                             {reportState >= 6 && 

@@ -6,6 +6,8 @@ import {
 	getDoc,
 	getDocs,
 	doc,
+  query,
+  where,
 	updateDoc,
 	deleteDoc,
 } from "firebase/firestore"
@@ -16,7 +18,7 @@ import { IoMdRefresh } from "react-icons/io"
 import { IoAdd, IoTrash } from "react-icons/io5"
 
 // Icons END
-import ReactTooltip from "react-tooltip"
+// import ReactTooltip from "react-tooltip"
 import InfiniteScroll from "react-infinite-scroll-component"
 import NewReport from "./modals/NewReportModal"
 import ReportModal from "./modals/ReportModal"
@@ -34,7 +36,9 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	const [reportWeek, setReportWeek] = useState("4")
 	const [readFilter, setReadFilter] = useState("All")
 	const [reportTitle, setReportTitle] = useState('')
-	const { user } = useAuth()
+  // const [agencyName, setAgencyName] = useState('')
+  const [isAgency, setIsAgency] = useState(false)
+	const { user, verifyRole } = useAuth()
 	const dateOptions = {
 		day: "2-digit",
 		year: "numeric",
@@ -94,12 +98,54 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
   }
 
 	const getData = async () => {
-		const reportsCollection = collection(db, "reports")
-		const snapshot = await getDocs(reportsCollection)
+		// // Long (difficult) way
+		// Get the collection of agencies
+		// filter out the agency
+		// Get the current (agency)user's agency name
+		// Filter reports shown in "loadedReports" state to only reports submitted to the user's agency 
+    // let isAgency = false
+    verifyRole().then((result) => {
+      
+      // console.log("Current user information " + result.admin)
+      if (result.admin) {
+				// isAgency = false
+				setIsAgency(false)
+      } else if (result.agency) {
+				// isAgency = true
+				setIsAgency(true)
+      }
+    })
+
+		// // Short way
+		// Get user's 'agency' name 
+		// & only show reports with the 'agency' key that matches
+    let agencyName;
+		const agencyCollection = collection(db,"agency")
+    const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
+    const querySnapshot = await getDocs(q)
+    querySnapshot.forEach((doc) => { // Set initial values
+			// console.log(doc.data())
+      agencyName = doc.data()['name']
+			// console.log(agencyName)
+    
+    })
+      
+    const reportsCollection = collection(db,"reports")
+    let snapshot;
+    // Filters reports for current agency
+    if (isAgency) {
+      const agencyReports = query(reportsCollection, where("agency", "==", agencyName))
+      snapshot = await getDocs(agencyReports)
+    
+    // Displays all reports for admin user
+    } else {
+      snapshot = await getDocs(reportsCollection)
+    }
 
 		try {
 			var arr = []
 			snapshot.forEach((doc) => {
+				// console.log(doc)
 				arr.push({
 					[doc.id]: doc.data(),
 				})
@@ -210,8 +256,11 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		}
 	}, [search])
 
+ 
 	// On page load (mount), get the reports from firebase
 	useEffect(() => {
+		// console.log("i am here")
+    // determine if current user is an agency or not
 		getData()
 	}, [newReportSubmitted])
 
@@ -338,6 +387,8 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		e.preventDefault()
 		setNewReportModal(true)
 	}
+
+  
 
 	const handleModalShow = async (reportId) => {
 		// get doc
@@ -474,13 +525,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				</div>
 				<div className="flex flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-evenly">
           <div className="p-0 px-4 md:p-4 md:py-0 md:px-4">
-            <ReactTooltip
+            {/* <ReactTooltip
                 id="refreshTooltip"
                 place="top"
                 type="light"
                 effect="solid"
                 delayShow={500}
-              />
+              /> */}
               {/* Displays refresh icon */}
               {!refresh && !reportsUpdated && <button
                 className="relative top-1 m-0 md:m-0"
@@ -507,13 +558,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
           </div>
 					<div>
 							{/* New report tooltip */}
-							<ReactTooltip
+							{/* <ReactTooltip
                 id="newReportTooltip"
                 place="top"
                 type="light"
                 effect="solid"
                 delayShow={500}
-              />
+              /> */}
             <button
               onClick={() => setNewReportModal(true)}
               className="flex items-center text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
@@ -525,13 +576,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
           </div>
 				  <div className="mb-0">
 						{/* Filter tooltip */}
-						<ReactTooltip
+						{/* <ReactTooltip
 							id="filterTooltip"
 							place="top"
 							type="light"
 							effect="solid"
 							delayShow={500}
-						/>
+						/> */}
             <select
               id="label_read"
               onChange={(e) => handleReadFilterChanged(e)}
@@ -546,13 +597,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
           </div>
           <div className="mt-2 md:mt-0">
 						{/* Timeframe tooltip */}
-						<ReactTooltip
+						{/* <ReactTooltip
 							id="timeframeTooltip"
 							place="top"
 							type="light"
 							effect="solid"
 							delayShow={500}
-						/>
+						/> */}
             <select
               id="label_date"
               onChange={(e) => handleDateChanged(e)}
@@ -613,13 +664,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 										<td className={column.data_center}>{report.hearFrom}</td>
 										<td className={column.data_center}>
 											{/* Change label tooltip */}
-											<ReactTooltip
+											{/* <ReactTooltip
 												id="labelTooltip"
 												place="top"
 												type="light"
 												effect="solid"
 												delayShow={500}
-											/>
+											/> */}
 											<div
 												className={
 													!report.label ? label.default : label.special
@@ -656,7 +707,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 												data-tip="Delete report"
 												className={style.icon}>
 												<IoTrash size={20} className="ml-4 fill-gray-400 hover:fill-red-600" />
-												<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+												{/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
 											</button>
 										</td>
 									</tr>
