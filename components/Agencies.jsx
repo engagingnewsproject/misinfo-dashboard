@@ -17,7 +17,7 @@ import Image from 'next/image'
 import AgencyModal from './modals/AgencyModal'
 import NewAgencyModal from './modals/NewAgencyModal'
 import ConfirmModal from "./modals/ConfirmModal"
-import ReactTooltip from "react-tooltip"
+// import ReactTooltip from "react-tooltip"
 import { IoTrash } from "react-icons/io5"
 import { FaPlus } from 'react-icons/fa'
 
@@ -28,6 +28,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [agencies, setAgencies] = useState([])
 	const [agencyInfo, setAgencyInfo] = useState('')
 	const [agencyId, setAgencyId] = useState('')
+	const [agencyUsersArr, setAgencyUsersArr] = useState([])
 	const [agencyAdminUsers, setAgencyAdminUsers] = useState('')
 	// EXISTING Agency Modal
 	const [agencyModal, setAgencyModal] = useState(false)
@@ -157,7 +158,11 @@ const handleDelete = async (e) => {
 
       querySnapshot.forEach((doc) => {
         const userData = doc.data();
+        console.log(userData);
 
+
+        // TODO: Change privilege for user since we're deleting agency
+        // TODO: Check if user account exists - if it does, get rid of agency privilege.
         // Update the agency field for the user
         const userUpdatePromise = updateDoc(doc.ref, { agency: '' });
         updatePromises.push(userUpdatePromise);
@@ -184,6 +189,7 @@ const handleDelete = async (e) => {
 		setAgencyModal(true)
 		const docRef = await getDoc(doc(db, 'agency', agencyId))
 		setAgencyInfo(docRef.data())
+		setAgencyUsersArr(docRef.data()['agencyUsers'])
 		setAgencyId(agencyId)
 		setLogo(docRef.data()['logo'])
 	}
@@ -305,7 +311,7 @@ const handleDelete = async (e) => {
 											data-tip="Delete agency"
 											className={style.table_button}>
 											<IoTrash size={20} className={style.table_icon} />
-											<ReactTooltip place="top" type="light" effect="solid" delayShow={500} />
+											{/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
 										</button>
 									</td>
 								</tr>
@@ -318,6 +324,7 @@ const handleDelete = async (e) => {
 				handleAgencyUpdateSubmit={handleAgencyUpdateSubmit}
 				agencyId={agencyId}
 				agencyInfo={agencyInfo}
+				agencyUsersArr={agencyUsersArr}
 				setAgencyInfo={setAgencyInfo}
 				logo={logo}
 				setLogo={setLogo}
