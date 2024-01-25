@@ -36,7 +36,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	const [hasMore, setHasMore] = useState(true)
 	const [reportWeek, setReportWeek] = useState("4")
 	const [readFilter, setReadFilter] = useState("All")
-	const [reportTitle, setReportTitle] = useState('')
   // const [agencyName, setAgencyName] = useState('')
   const [isAgency, setIsAgency] = useState(false)
 	const { user, verifyRole } = useAuth()
@@ -75,11 +74,11 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	// Report modal states
 	const [report, setReport] = useState('')
 	const [reportModalShow, setReportModalShow] = useState(false)
-	const [reportModalId, setReportModalId] = useState(false)
+	const [reportModalId, setReportModalId] = useState(null)
 	const [note, setNote] = useState("")
-	const [title, setTitle] = useState('')
 	const [detail, setDetail] = useState()
-	const [reportSubmitBy, setReportSubmitBy] = useState()
+	const [reportRead, setReportRead] = useState('')
+	const [reportSubmitBy, setReportSubmitBy] = useState([])
 	const [info, setInfo] = useState({})
 	const [selectedLabel, setSelectedLabel] = useState("")
 	const [activeLabels, setActiveLabels] = useState([])
@@ -337,6 +336,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		)
 		reports[reportIndex] = updatedReport
 		const updatedReports = [...reports]
+		setReportRead(updatedReport[reportId].read)
 		setReports([...reports])
 		setFilteredReports([...reports])
 		if (readFilter !== "All") {
@@ -401,9 +401,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		setReport({ id: reportId,...reportData })
 		// Or set the full report object
 		// setReport(docRef.data())
-
-		// Set the title
-		setReportTitle(reportData["title"])
 		// Set the selected note
 		setNote(reportData["note"])
 		// Set the selected label
@@ -416,42 +413,24 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		setActiveLabels(tagsRef.data()["Labels"]["active"])
 		
 		// Get report submission user info
-		let reporterID = report.userID
-		console.log(reportId)
-		const docRef = doc(db,"mobileUsers",report.userID);
+		const docRef = doc(db,"mobileUsers",reportData["userID"]);
 		const docSnap = await getDoc(docRef);
+
 		if (docSnap.exists()) {
 			setReportSubmitBy(docSnap.data());
 		} else {
-			// docSnap.data() will be undefined in this case
 			console.log("No such document!");
 		}
-		// console.log(reporter)
-		// const q = query(collection(db,"mobileUsers"),where(doc(reporter),"==",userID));
-		// console.log(q)
-		// // NEW CODE ABOVE
-		// // NEW CODE ABOVE
-		// // NEW CODE ABOVE
-		// // NEW CODE ABOVE
-		// // NEW CODE ABOVE
-		// get note
-		// setNote(docRef.data()["note"])
-		// setReportTitle(docRef.data()["title"])
-		// setDetail(docRef.data()["detail"])
-		// setInfo(docRef.data())
 
-		// getDoc(doc(db,"mobileUsers",docRef.data()["userID"]))
-		// 	.then((mobileRef) => setReporterInfo(mobileRef.data())
-		// )
-
-		// const tagsRef = await getDoc(doc(db, "tags", userId))
-		// setActiveLabels(tagsRef.data()["Labels"]["active"])
-
-		// set report id var
 		let reportIdRef = reportId
 		
 		setReportModalId(reportIdRef)
 	}
+	
+	useEffect(() => {
+		console.log(reportModalId)
+	}, [reportModalShow])
+	
 
 	// Report Modal: Submit the report modal's form
 	const handleFormSubmit = async (e) => {
@@ -471,12 +450,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 
 		// Close the modal
 		setReportModalShow(false)
-		// NEW CODE ABOVE
-		// NEW CODE ABOVE
-		// NEW CODE ABOVE
-		// NEW CODE ABOVE
-		// NEW CODE ABOVE
-		// setReportModalShow(false)
 	}
 	
 	// Report Modal: Newsroom notes change handler
@@ -562,7 +535,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 			)
 		}
 		console.log(report.city)
-		// if (info['city'] || info['state']) {
 		if (report.city || report.state) {
 			setReportLocation(report.city + ', ' + report.state)
 		}
@@ -600,17 +572,10 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	// Testing useEfffect
 	useEffect(() => {
 		console.log(
-			// report,
-			// note,
-			// reportTitle,
-			// detail,
-			// activeLabels,
-			// "reporterInfo--> ",
-			// reporterInfo,
-			report.reportSubmitBy
-			// reportModalId
+			// 'read Parent--> ', read
+
 		)
-	}, [report])
+	}, [reportModalShow])
 	
 	return (
 		<div className="flex flex-col h-full">
@@ -710,7 +675,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				hasMore={hasMore}
 				loader={<h4>Loading...</h4>}
 				scrollableTarget="scrollableDiv"
-				reportTitle={reportTitle}>
+			>
 				{/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
 				<table className="min-w-full bg-white rounded-xl p-1">
 					<thead className="border-b dark:border-indigo-100 bg-slate-100">
@@ -769,7 +734,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 										<td className={column.data_center} onClick={(e) => e.stopPropagation()}>
 											<Switch
 												// Set checked to the initial reportRead value (false)
-												checked={report.read}
+												checked={reportRead}
 												// When switch toggled setReportRead
 												onChange={() =>
 													handleReadToggled(Object.keys(reportObj)[0])
@@ -803,26 +768,30 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				</table>
 				{reportModalShow && (
 					<ReportModal
-						reportModalShow={reportModalShow}
+						setReportModalShow={setReportModalShow}
 						report={report}
-						reportTitle={reportTitle}
 						key={reportModalId}
 						note={note}
 						detail={detail}
+						// Read status
+						reportRead={reportRead}
+						setReportRead={setReportRead}
+						onChangeRead={handleReadToggled}
+						// Read status END
 						info={info}
 						reporterInfo={reporterInfo}
-						setReportModalShow={setReportModalShow}
-						setReportModalId={reportModalId}
+						reportModalId={reportModalId} // report ID
+						setReportModalId={setReportModalId} // report ID
 						onNoteChange={handleNoteChange}
 						onLabelChange={handleLabelChange}
 						selectedLabel={selectedLabel}
 						activeLabels={activeLabels}
-						setReportSubmitBy={setReportSubmitBy}
+						reportSubmitBy={reportSubmitBy} // Pass the state itself
 						changeStatus={changeStatus}
 						onFormSubmit={handleFormSubmit}
 						onReportDelete={handleReportDelete}
-						setPostedDate={postedDate}
-						setReportLocation={reportLocation}
+						postedDate={postedDate}
+						reportLocation={reportLocation}
 					/>
 				)}
 			</InfiniteScroll>
