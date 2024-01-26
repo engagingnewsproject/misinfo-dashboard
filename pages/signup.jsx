@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
-import {isSignInWithEmailLink, signInWithEmailLink, signOut } from 'firebase/auth'
+import {isSignInWithEmailLink, signInWithEmailLink, signOut, createUserWithEmailAndPassword, verifyEmail } from 'firebase/auth'
 import { doc, setDoc, collection, addDoc, arrayUnion} from '@firebase/firestore'
 import { db, auth } from '../config/firebase'
 import Select from "react-select";
@@ -17,7 +17,7 @@ const SignUp = () => {
     const { user, signup, verifyEmail, addAgencyRole, setPassword } = useAuth()
 
     // Determines if current user has the privilege to sign up as an agency
-    const isAgency =  isSignInWithEmailLink(auth, window.location.href)
+    const isAgency = isSignInWithEmailLink(auth, window.location.href)
     const [data, setData] = useState({
        name: '',
        email: '',
@@ -31,7 +31,7 @@ const SignUp = () => {
         
         if (user) {
             // Set user uid
-            console.log("adding mobile user")
+            // console.log("adding mobile user")
             const uid = user.uid;
             // create a new mobileUsers doc with signed in user's uid
             setDoc(doc(db, "mobileUsers", uid), {
@@ -41,23 +41,23 @@ const SignUp = () => {
                 isBanned: false,
                 userRole: privilege
             });
-            console.log("user was added with uid" + uid)
+            // console.log("user was added with uid" + uid)
         } else {
-            console.log('no user');
+            // console.log('no user');
         }
     }
 
 
     const handleSignUp = async (e) => {
         e.preventDefault()
-        console.log("signing up")
+        // console.log("signing up")
 
         if (data.password.length < 8) {
           return
       }
 
 
-        console.log("should be given agency privilege " + isAgency)
+        // console.log("should be given agency privilege " + isAgency)
 
           try {
               if (isAgency) {
@@ -70,8 +70,8 @@ const SignUp = () => {
                   signInWithEmailLink(auth, data.email, window.location.href).then((result) =>{
                     const promise2 = addAgencyRole({email: data.email});
                   
-                    console.log(result.user.email)
-                    console.log("current user " + auth.currentUser)
+                    // console.log(result.user.email)
+                    // console.log("current user " + auth.currentUser)
                     const promise1 = auth.updateCurrentUser(result.user)
                     auth.currentUser.reload().then(() => {
 
@@ -79,14 +79,14 @@ const SignUp = () => {
 
                     Promise.all([promise1, promise2, promise3]).then((values) => {
                       
-                      console.log(auth.currentUser.email)
+                      // console.log(auth.currentUser.email)
 
                       if (verifyEmail(auth.currentUser)) {
                         setSignUpError("")
-                        console.log("in try")
+                        // console.log("in try")
                         window.location.replace('/dashboard')
                       } else {
-                        console.log("here = for agency")
+                        // console.log("here = for agency")
                         addMobileUser("Agency")
                         window.location.replace('/verifyEmail')
                       }
@@ -99,33 +99,39 @@ const SignUp = () => {
                       // An error happened.
                       setSignUpError("Your email does not match up with the email address that the sign-in link was sent to.")
                     } else {
-                      console.log(error)
+                      console.log(err)
                     }
                   })
 
-                
+                  const userCredential = await auth.currentUser.linkWithCredential(result.credential);
+
+                  verifyEmail(auth.currentUser).then((verified) => {
+                    // Handle email verification logic
+                    // ...
+                  });
                 
               } else {
 
-                signup(data.teamName, data.email, data.password).then((userCredential)=> {
-                  createUserWithEmailAndPassword(auth, email, password).then((userCredential)=> {
-                     verifyEmail(userCredential.user).then((verified)=> {
+                signup(data.teamName, data.email, data.password).then((userCredential) => {
+                  createUserWithEmailAndPassword(auth, data.email, data.password).then((userCredential) => {
+                    verifyEmail(userCredential.user).then((verified) => {
                       if (verified) {
-                        setSignUpError("")
-                        console.log("in try")
-                        router.push('/dashboard')
+                        setSignUpError("");
+                        router.push('/dashboard');
                       } else {
-                        console.log("here")
-                        console.log(userVerified)
-                        router.push('/verifyEmail')
+                        router.push('/verifyEmail');
                       }
-                     })
-                  })}).catch((error) => {
-                    if (error == "FirebaseError: Firebase: Error (auth/email-already-in-use).") {
-                      setSignUpError("The entered email is already in use.")
-                    }
-                    console.log(error)
-                  })
+                    });
+                  });
+                }).catch((error) => {
+                  if (error.code === "auth/email-already-in-use") {
+                    setSignUpError("The entered email is already in use.");
+                  } else {
+                    setSignUpError(error.message);
+                  }
+                  console.error(error);
+                });
+
 
               }
               
@@ -150,10 +156,10 @@ const SignUp = () => {
                     <div className="w-24 h-24 font-extralight rounded-full tracking-widest flex justify-center items-center text-white bg-blue-500">MOODY</div>
                 </div>
                 <form className="px-8 pt-6 pb-4 mb-4" onChange={handleChange} onSubmit={handleSignUp}>
-                    <div className="mb-4">
+                    {/* <div className="mb-4"> */}
 
                         {/* Only allows user to select team name. Agencies had already had their name selected. */}  
-                        {!isAgency &&       
+                        {/* {!isAgency &&       
                           <input
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="name"
@@ -164,10 +170,17 @@ const SignUp = () => {
                             onChange={handleChange}
                             autoComplete=''
                             />
-                        }
-                    </div>
+                        } */}
+                    {/* </div> */}
                     <div className="mb-4">
-                    {isAgency && <p className="text-center text-gray-500 text-sm">Enter email that the sign-up link was sent to.</p>}
+              
+                          {/* TODO: {agency && Instructions for an agency to sign up */}
+                    {isAgency && 
+                    <div>
+                      <p className="text-lg font-bold text-blue-600 tracking-wider pt-2">Account Creation</p>
+                      <div className="mb-1">Enter your email address.</div>
+                    </div>}
+
                     <input
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="email"
@@ -180,6 +193,8 @@ const SignUp = () => {
                             />
                     </div>
                     <div className="mb-1">
+                      {isAgency && 
+                        <div className="mb-1">Create a secure password for your account.</div>}
                         <input
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="password"
@@ -206,6 +221,7 @@ const SignUp = () => {
                     </div>
                     {data.password !== data.confirmPW && <span className="text-red-500 text-sm font-light">Passwords don't match</span>}
                     {signUpError && <div className="text-red-500 text-sm font-normal pt-3">{signUpError}</div>}
+             
                     <div className="flex-col items-center content-center mt-7">
                         <button 
                         disabled={data.password !== data.confirmPW} 

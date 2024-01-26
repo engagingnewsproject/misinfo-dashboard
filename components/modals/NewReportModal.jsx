@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react'
+// TODO: need to make sure the user who created the report is added to the report: userID
+import React,{ useState,useEffect,useRef } from 'react'
 import { useRouter } from 'next/router'
 import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../context/AuthContext'
@@ -38,7 +39,15 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [agencies, setAgencies] = useState([]);
     const [selectedAgency, setSelectedAgency] = useState('');
     const [selectedTopic, setSelectedTopic] = useState("")
-    const [sources, setSources] = useState([])
+    const [otherTopic, setOtherTopic] = useState("")
+    const [otherSource, setOtherSource] = useState("")
+    const [showOtherTopic, setShowOtherTopic] = useState(false)
+    const [showOtherSource, setShowOtherSource] = useState(false)
+    const [list, setList] = useState([])
+    const [sourceList, setSourceList] = useState([])
+    const [active, setActive] = useState([])
+    const [activeSources, setActiveSources] = useState([])
+    const [allSourcesArr, setSources] = useState([])
     const [selectedSource, setSelectedSource] = useState("")
     const [reportState, setReportState] = useState(0)
     const [errors, setErrors] = useState({})
@@ -56,11 +65,13 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             detail: detail,
             createdDate: moment().toDate(),
             isApproved: true,
+            label: '',
             read: false,
             topic: selectedTopic,
             hearFrom: selectedSource
         }).then(() => {
-            handleNewReportSubmit(); // Send a signal to ReportsSection so that it updates the list 
+            handleNewReportSubmit(); // Send a signal to ReportsSection so that it updates the list
+            addNewTag(selectedTopic, selectedSource)
         })
         
     }
@@ -152,12 +163,93 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     
     const handleTopicChange = (e) => {
         setSelectedTopic(e.value)
+        if (e.value === "Other/Otro") {
+            setShowOtherTopic(true)
+        } else {
+            setShowOtherTopic(false)
+        }
         setReportState(5)
     }
-    
-    const handleSourceChange = (e) => {
+
+    const handleSourceChangeOther = (e) => {
         setSelectedSource(e.value)
+        if (e.value === "Other/Otro") {
+            setShowOtherSource(true)
+        } else {
+            setShowOtherSource(false)
+        }
         setReportState(6)
+    }
+
+    const addNewTag = (tag, source) => {
+        let topicArr = list
+        let sourceArr = sourceList
+        topicArr.push(tag)
+        sourceArr.push(source)
+        setList(topicArr)
+        setSourceList(sourceArr)
+        updateTopicTags(list, user, sourceList)
+    }
+
+    const getTopicList = async() => {
+        try {
+            const docRef = await getDoc(doc(db, "tags", user.uid))
+            const { ['Topic']: tagsData } = docRef.data()
+            setList(tagsData.list)
+            tagsData.active.sort((a, b) => {
+                if (a === "Other") return 1; // Move "Other" to the end
+                if (b === "Other") return -1; // Move "Other" to the end
+                return a.localeCompare(b); // Default sorting for other elements
+            });
+            setActive(tagsData.active)
+            
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const getSourceList = async() => {
+        try {
+            const docRef = await getDoc(doc(db, "tags", user.uid))
+            const { ['Source']: tagsData } = docRef.data()
+            setSourceList(tagsData.list)
+            tagsData.active.sort((a, b) => {
+                if (a === "Other") return 1; // Move "Other" to the end
+                if (b === "Other") return -1; // Move "Other" to the end
+                return a.localeCompare(b); // Default sorting for other elements
+            });
+            setActiveSources(tagsData.active)
+            
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const updateTopicTags = async(topicList, user, sourceList) => {
+        const docRef = await getDoc(doc(db, "tags", user.uid))
+        const updatedDocRef = await setDoc(doc(db, "tags", user.uid), {
+            ...docRef.data(),
+            ['Topic']: {
+                list: topicList,
+                active: active
+            },
+            ['Source']: {
+                list: sourceList,
+                active: activeSources
+            }
+        });
+        return updatedDocRef
+    }
+
+    const handleOtherTopicChange = (e) => {
+        setOtherTopic(e.target.value)
+        setSelectedTopic(e.target.value)
+    }
+
+
+    const handleOtherSourceChange = (e) => {
+        setOtherSource(e.target.value)
+        setSelectedSource(e.target.value)
     }
     
     const handleSubmitClick = (e) => {
@@ -220,6 +312,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         getAllAgencies()
         getAllTopics()
         getAllSources()
+        getTopicList()
+        getSourceList()
     }, []);
     
     async function getAllAgencies() {
@@ -295,7 +389,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                 {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)}    
 
                             </div>
-                            {reportState >= 1 && 
+
+                            {reportState >= 1 &&  
                             <div className="mt-4 mb-0.5">
                                 <Select
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -317,7 +412,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     />
                                     {errors.city && data.city === null &&  (<span className="text-red-500">{errors.city}</span>)}
                             </div>
-                            } 
+                            }
                             {reportState >= 2 &&
                                 <div className="mt-4 mb-0.5">
                                     <Select
@@ -331,8 +426,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         />
                                         {errors.topic && selectedAgency === '' &&  (<span className="text-red-500">{errors.agency}</span>)}
                                 </div>
-                            } 
-                            {reportState >= 3 && 
+                            }
+                            {reportState >= 3 &&  
                             <div className="mt-4 mb-0.5">
                                 <input
                                     className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -344,7 +439,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     value={title}
                                     />
                             </div>
-                            } 
+                            }
                             {reportState >= 4 &&
                                 <div className="mt-4 mb-0.5">
                                     <Select
@@ -357,23 +452,63 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         value={selectedTopic.topic}
                                         />
                                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
+                                        <div className="mt-4 mb-0.5">
+
+                                        {showOtherTopic && (
+                                            <div className="flex">
+                                            <div className="mt-4 mb-0.5 text-zinc-500 pr-3">
+                                                Custom topic
+                                                </div>
+                                                <input
+                                                    id="topic-other"
+                                                    className="rounded shadow-md border-zinc-400 w-60"
+                                                    type="text"
+                                                    placeholder="Please specify the topic."
+                                                    onChange={handleOtherTopicChange}
+                                                    value={otherTopic}
+                                                    style={{ fontSize: '14px' }}
+                                                />
+
+                                                </div>
+                                            )}
+                                        </div>
                                 </div>
-                            } 
-                            {reportState >= 5 &&
+                            }
+                            {reportState >= 5 && 
                             <div className="mt-4 mb-0.5">
                                 <Select
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="source-selection"
                                     type="text"
                                     placeholder="Source"
-                                    options={sources.map(source => ({ label: source, value: source }))}
-                                    onChange={handleSourceChange}
-                                    value={selectedSource.source}
+                                    options={allSourcesArr.map(source => ({ label: source, value: source }))}
+                                    onChange={handleSourceChangeOther}
+                                    value={selectedSource.hearFrom}
                                     />
+
                                     {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
+                                    <div className="mt-4 mb-0.5">
+                                    {showOtherSource && (
+                                            <div className="flex">
+                                            <div className="mt-4 mb-0.5 text-zinc-500 pr-3">
+                                                Custom source
+                                                </div>
+                                                <input
+                                                    id="source-other"
+                                                    className="rounded shadow-md border-zinc-400 w-60"
+                                                    type="text"
+                                                    placeholder="Please specify the source."
+                                                    onChange={handleOtherSourceChange}
+                                                    value={otherSource}
+                                                    style={{ fontSize: '14px' }}
+                                                />
+                                                </div>
+                                        )}
+                                    </div>
+
                             </div>
-                            } 
-                            {reportState >= 6 &&
+                            }
+                            {reportState >= 6 && 
                             <>
                                 <div className="mt-4 mb-0.5">Details</div>
                                 <div className="mt-4 mb-0.5">
@@ -433,7 +568,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     </div>
                                 </div>
                             </>
-                            } 
+                            }
                             {reportState >= 6 &&
                             <div className="mt-3 sm:mt-6">
                                 <button
@@ -443,14 +578,14 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     Create
                                 </button>
                             </div>
-                            } 
+                            }
                         </form>
                     </div>
                 </div>
             </div>
         </div>
     )
+                        }
 
-}
 
 export default NewReport

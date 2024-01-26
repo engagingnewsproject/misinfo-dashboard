@@ -2,28 +2,54 @@ import React, { useState, useRef, useEffect } from "react"
 import { useRouter } from 'next/router'
 import { IoClose } from "react-icons/io5"
 import Image from "next/image"
+import ConfirmModal from "./ConfirmModal"
+
 import { db } from "../../config/firebase"
-import { doc, updateDoc } from "firebase/firestore";
+import { 
+	doc, 
+	updateDoc,
+	arrayUnion,
+
+	} from '@firebase/firestore'
+
+import { auth } from '../../config/firebase'
+
+import { useAuth } from '../../context/AuthContext'
+
 import { getStorage, ref, uploadBytesResumable, getDownloadURL, getMetadata, updateMetadata } from 'firebase/storage';
 
 const AgencyModal = ({
 	setAgencyModal, 
 	handleAgencyUpdateSubmit, 
 	agencyInfo, 
+	agencyUsersArr,
+	logo,
+	setLogo,
 	agencyId,
 	onFormSubmit }) => {
+    const { user, sendSignIn, addUserRole } = useAuth() // Add agency user send signup email
+
 	const router = useRouter()
 	const imgPicker = useRef(null)
 	const storage = getStorage();
 	// //
 	// States
 	// //
+  const [addAgencyUsers, setAddAgencyUsers] = useState([])
 	const [errors, setErrors] = useState({})
 	const [images, setImages] = useState([])
 	const [uploadedImageURLs, setImageURLs] = useState([]);
 	const [update, setUpdate] = useState(false)
-	const [agencyUsers, setAgencyUsers] = useState([])
-	
+
+  // used to indicate if email was resent to user, or if user was added as agency admin
+  const [resendEmail, setResendEmail] = useState("")
+  const [sendEmail, setSendEmail] = useState("") 
+
+
+  // delete modal
+  const [deleteModal, setDeleteModal] = useState(false)
+  const [adminDelete, setAdminDelete] = useState("")
+
 // This function handles the change event when the user selects one or more images.
 // It updates the 'images' state and triggers a re-render.
 const handleImageChange = (e) => {
@@ -33,7 +59,7 @@ const handleImageChange = (e) => {
   // Loop through each selected image in the event.
   for (let i = 0; i < e.target.files.length; i++) {
     const newImage = e.target.files[i];
-    console.log(newImage); // Log the new image for debugging.
+    // console.log(newImage); // Log the new image for debugging.
     
     // Update the 'images' state by adding the new image to the previous state.
     setImages((prevState) => [...prevState, newImage]);
@@ -42,6 +68,42 @@ const handleImageChange = (e) => {
     setUpdate(!update);
   }
 }
+
+  const handleNewAgencyEmails = (e) => {
+    e.preventDefault()
+    let usersArr = e.target.value
+		usersArr = usersArr.split(',')
+    setAddAgencyUsers(usersArr)
+  }
+
+
+  // Adds agency users by sending them the sign-in link.
+  // Updates Firebase document and adds the user to the Agency's user list.
+  const handleAddAgencyUsers = async (e) => {
+    e.preventDefault()
+    let tempUsersArr = agencyUsersArr
+    console.log(tempUsersArr)
+    for (const userEmail of addAgencyUsers) {
+      if (!tempUsersArr.includes(userEmail)) {
+        tempUsersArr.push(userEmail)
+      }
+      await sendSignIn(userEmail)
+      setSendEmail("Sign-in link was sent.")
+
+    }
+    const agencyRef = doc(db, "agency", agencyId);
+		updateDoc(agencyRef, {
+      agencyUsers: arrayUnion(...tempUsersArr),
+		}).then(() => {
+			handleAgencyUpdateSubmit(); // Send a signal to ReportsSection so that it updates the list 
+		})
+  }
+
+  // Resends sign-in link to agency user.
+  const sendAgencyLinks = async (email) => {
+    await sendSignIn(email)
+    setResendEmail("Email was sent.")
+  }
 
 	// This function handles the upload of images to Firebase Storage.
 	const handleUpload = async () => {
@@ -88,12 +150,46 @@ const handleImageChange = (e) => {
 			
 			// Update the 'imageURLs' state with the uploaded image URLs.
 			setImageURLs([...imageURLs]);
+			setLogo(imageURLs)
 		} catch (error) {
 			console.error("Error uploading images:", error);
 		}
 	};
 
+  const handleDeleteAdmin = (user) => {
+    setAdminDelete(user)
+    setDeleteModal(true)
+  }
 
+  const deleteAdmin = () => {
+
+    setDeleteModal(false)
+    auth.currentUser
+    .getIdTokenResult()
+    .then((idTokenResult) => {
+      // Confirm the user is an Admin.
+      if (!!idTokenResult.claims.admin) {
+        // Change the selected user's privileges as requested
+        console.log(addUserRole({ email: adminDelete}))
+      }
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+    let tempUsersArr = 
+    [
+      ...agencyUsersArr.slice(0, agencyUsersArr.indexOf(adminDelete)),
+      ...agencyUsersArr.slice(agencyUsersArr.indexOf(adminDelete) + 1)
+    ]
+    console.log(tempUsersArr)
+    const agencyRef = doc(db, "agency", agencyId);
+		updateDoc(agencyRef, {
+      agencyUsers: tempUsersArr,
+		}).then(() => {
+      setUpdate(!update);
+      // Send a signal to ReportsSection so that it updates the list 
+		})
+  }
 
 		
 	// Form button click handler
@@ -136,9 +232,15 @@ const handleImageChange = (e) => {
 		modal_form_container: 'grid md:grid-cols-3 md:gap-10 lg:gap-15',
 		modal_form_label: 'text-black tracking-wider mb-4',
 		modal_form_data: 'col-span-2 text-sm bg-white rounded-xl p-4 mb-5',
+    modal_form_add_agency: 'col-span-2 text-sm rounded-xl p-1 mb-5',
 		modal_form_upload_image: 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
-		modal_form_button: 'bg-blue-500 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
-	}
+		modal_form_button: 'bg-blue-500 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold ml-1 py-2 px-6 rounded-md focus:outline-none focus:shadow-outline',
+    modal_form_button_sent: "bg-green-500 col-start-3 self-end hover:bg-green-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
+    modal_notification_text: "text-green-700",
+    modal_dismiss_button: "bg-green-700 self-end hover:bg-green-800 text-sm text-white font-semibold ml-1 px-2 rounded-lg focus:outline-none focus:shadow-outline",
+    modal_resend_button: "bg-blue-500 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold ml-1 px-2 rounded-lg focus:outline-none focus:shadow-outline",
+    modal_delete:"bg-red-500 text-white font-semibold ml-1 px-1 mr-2 rounded-lg"
+  }
 	// TODO: filter reports, tags & users by agency login
 	return (
 		<div className={style.modal_background} onClick={() => setAgencyModal(false)}>
@@ -158,22 +260,63 @@ const handleImageChange = (e) => {
 							<div className={style.modal_form_data}>{agencyInfo.name}</div>
 							<div className={style.modal_form_label}>Agency location</div>
 							<div className={style.modal_form_data}>{`${agencyInfo.city}, ${agencyInfo.state}`}</div>
-							<div className={style.modal_form_label}>Agency admin user</div>
+							<div className={style.modal_form_label}>Agency admin users</div>
+
 							<div className={style.modal_form_data}>
-								{agencyInfo['agencyUsers']}
-							</div>
+								{agencyUsersArr.map(txt => 
+                  <div className="grid grid-cols-2 py-1">
+                    <div className="flex">
+                      <button onClick={()=>handleDeleteAdmin(txt)} className={style.modal_delete}>
+								        <IoClose size={16}/>
+							        </button>
+
+                      <p>{txt}</p>
+
+                    </div>
+                    <div>
+                      <button onClick={()=>sendAgencyLinks(txt)} className={style.modal_resend_button} type="submit">Resend link</button>
+                    </div> 
+                  </div>)}
+                  {resendEmail && 
+                        <div className="flex py-2">
+                          <p className={style.modal_notification_text}>{resendEmail}</p>                       
+                          <span><button onClick={()=>setResendEmail("")} className={style.modal_dismiss_button} type="submit">Dismiss</button></span>
+                        </div>}
+              </div>
+              <div className={style.modal_form_label}>
+                Add agency user
+              </div>
+              <div className={style.modal_form_add_agency}>
+                    <input // New agency emails
+                      className="rounded-xl"
+                      id="agencyUser"
+                      type="text"
+                      placeholder="Agency User Email"
+                      value={addAgencyUsers}
+                      onChange={handleNewAgencyEmails}
+                      autoComplete='nope'
+                      />
+                      {errors.email ? (
+                        <p className="error">
+                        Email should be at least 15 characters long
+                        </p>
+                        ) : null}
+                      <button onClick={handleAddAgencyUsers} className={style.modal_form_button} type="submit">Send sign-in link</button>
+                      {sendEmail && 
+                        <div className="flex py-2">
+                          <p className={style.modal_notification_text}>{sendEmail}</p>                       
+                          <span><button onClick={()=>setSendEmail("")} className={style.modal_dismiss_button} type="submit">Dismiss</button></span>
+                        </div>}
+
+              </div>
+
 							{/* TODO: user should be able to add an admin user */}
 							{/* <input onChange={onAdminChange} defaultValue='this' placeholder="Admin user email" className={style.modal_form_data}/> */} 
-							<>
-								{images > 0 ?
-									uploadedImageURLs.map((url,i) => (
-									<div className='relative'>
-											<Image src={url} key={i} width={100} height={100} alt={`image-upload-${i}`}/>
-									</div>
-									)) :
-								agencyInfo['logo'] && agencyInfo['logo'][0] ?
+							<div>
+								{
+								logo ?
 									<div className="flex w-full overflow-y-auto">
-										{agencyInfo['logo'].map((image, i) => {
+										{logo.map((image, i) => {
 											return (
 												<div className="flex mr-2" key={i}>
 													<Image src={image} width={100} height={100} alt="image"/>
@@ -183,18 +326,6 @@ const handleImageChange = (e) => {
 									</div> :
 									<div className="italic font-light">No agency logo uploaded.</div>
 								}
-								{/* {agencyInfo['logo'] && agencyInfo['logo'][0] ?
-									<div className="flex w-full overflow-y-auto">
-										{agencyInfo['logo'].map((image, i) => {
-											return (
-												<div className="flex mr-2" key={i}>
-													<Image src={image} width={100} height={100} alt="image"/>
-												</div>
-											)
-										})}
-									</div> :
-									<div className="italic font-light">No agency logo uploaded.</div>
-								}	 */}
 								<label className="block">
 									<span className="sr-only">Choose files</span>
 									<input className={style.modal_form_upload_image} 
@@ -205,11 +336,18 @@ const handleImageChange = (e) => {
 									ref={imgPicker}
 									/>
 								</label>
-							</>
+							</div>
 						<button onClick={handleSubmitClick} className={style.modal_form_button} type="submit">Update Agency</button> 
 							{/* TODO: finish update agency */}
 						</div>
 					</form>
+        {deleteModal && <ConfirmModal
+				func={deleteAdmin}
+				title="Are you sure you want to remove this admin user?"
+				subtitle=""
+				CTA="Delete"
+				closeModal={setDeleteModal}
+			/>}
 				</div>
 			</div>
 		</div>

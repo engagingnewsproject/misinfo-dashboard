@@ -45,6 +45,14 @@ const ReportSystem = ({
     const [sources, setSources] = useState([])
     const [selectedSource, setSelectedSource] = useState("")
     const [errors, setErrors] = useState({})
+    const [showOtherTopic, setShowOtherTopic] = useState(false)
+    const [showOtherSource, setShowOtherSource] = useState(false)
+    const [otherTopic, setOtherTopic] = useState("")
+    const [otherSource, setOtherSource] = useState("")
+    const [list, setList] = useState([])
+    const [sourceList, setSourceList] = useState([])
+    const [active, setActive] = useState([])
+    const [activeSources, setActiveSources] = useState([])
 
     // //
     // Text content
@@ -139,6 +147,7 @@ const ReportSystem = ({
             hearFrom: selectedSource
         }).then(() => {
             console.log('Success: report saved: ' + reportId);
+            addNewTag(selectedTopic, selectedSource)
         })
     }
     
@@ -290,6 +299,94 @@ const ReportSystem = ({
         Promise.all(promises)
         .catch((err) => console.log(err));
     };
+
+    const handleTopicChange = (e) => {
+        setSelectedTopic(e.target.value)
+        if (e.target.value === "Other/Otro") {
+            setShowOtherTopic(true)
+        } else {
+            setShowOtherTopic(false)
+        }
+    }
+
+    const handleSourceChangeOther = (e) => {
+        setSelectedSource(e.target.value)
+        if (e.target.value === "Other/Otro") {
+            setShowOtherSource(true)
+        } else {
+            setShowOtherSource(false)
+        }
+    }
+
+    const handleOtherTopicChange = (e) => {
+        setOtherTopic(e.target.value)
+        setSelectedTopic(e.target.value)
+    }
+
+    const handleOtherSourceChange = (e) => {
+        setOtherSource(e.target.value)
+        setSelectedSource(e.target.value)
+    }
+
+    const addNewTag = (tag, source) => {
+        let topicArr = list
+        let sourceArr = sourceList
+        topicArr.push(tag)
+        sourceArr.push(source)
+        setList(topicArr)
+        setSourceList(sourceArr)
+        updateTopicTags(list, user, sourceList)
+    }
+
+    const updateTopicTags = async(topicList, user, sourceList) => {
+        const docRef = await getDoc(doc(db, "tags", user.uid))
+        const updatedDocRef = await setDoc(doc(db, "tags", user.uid), {
+            ...docRef.data(),
+            ['Topic']: {
+                list: topicList,
+                active: active
+            },
+            ['Source']: {
+                list: sourceList,
+                active: activeSources
+            }
+        });
+        return updatedDocRef
+    }
+
+    const getTopicList = async() => {
+        try {
+            const docRef = await getDoc(doc(db, "tags", user.uid))
+            const { ['Topic']: tagsData } = docRef.data()
+            setList(tagsData.list)
+            tagsData.active.sort((a, b) => {
+                if (a === "Other") return 1; // Move "Other" to the end
+                if (b === "Other") return -1; // Move "Other" to the end
+                return a.localeCompare(b); // Default sorting for other elements
+            });
+            setActive(tagsData.active)
+            
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const getSourceList = async() => {
+        try {
+            const docRef = await getDoc(doc(db, "tags", user.uid))
+            const { ['Source']: tagsData } = docRef.data()
+            setSourceList(tagsData.list)
+            tagsData.active.sort((a, b) => {
+                if (a === "Other") return 1; // Move "Other" to the end
+                if (b === "Other") return -1; // Move "Other" to the end
+                return a.localeCompare(b); // Default sorting for other elements
+            });
+            setActiveSources(tagsData.active)
+            
+        } catch (error) {
+            console.log(error)
+        }
+    }
     
     const handleChange = (e) => {
         // console.log('REPORT VALUE CHANGED: ' + e.target.id + ': ' + e.target.value);
@@ -304,6 +401,8 @@ const ReportSystem = ({
         getAllAgencies()
         getAllTopics()
         getAllSources()
+        getTopicList()
+        getSourceList()
     }, [])
     
     useEffect(() => {
@@ -448,7 +547,7 @@ const ReportSystem = ({
                     {reportSystem == 4 &&
                     <div className={style.viewWrapper}>
                             <div className={style.sectionH1}>{t.topicTitle}</div>
-                        {allTopicsArr.map((topic, i) => (
+                            {[...allTopicsArr.filter(topic => topic !== "Other/Otro"), ...allTopicsArr.filter(topic => topic === "Other/Otro")].map((topic, i) => (
                             <>
                             <label key={i+'-'+topic} className={topic === selectedTopic ? style.inputRadioChecked : style.inputRadio}>
                             {/* Topic Tag Input */}
@@ -457,13 +556,33 @@ const ReportSystem = ({
                             id='topic'
                             type="radio"
                             checked={selectedTopic === topic}
-                            onChange={(e) => setSelectedTopic(e.target.value)}
+                            onChange={
+                                // create a custom function 
+                                // (e) => setSelectedTopic(e.target.value)
+                                handleTopicChange
+                            }
                             value={topic}
                             />
                             {topic}</label>
                             </>
                         ))}
                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
+                        {showOtherTopic && (
+                                            <div className="">
+                                            <div className="text-zinc-500">
+                                                Custom topic
+                                                </div>
+                                                <input
+                                                    id="topic-other"
+                                                    className="rounded shadow-md border-zinc-400 w-full"
+                                                    type="text"
+                                                    placeholder="Please specify the topic."
+                                                    onChange={handleOtherTopicChange}
+                                                    value={otherTopic}
+                                                    style={{ fontSize: '14px' }}
+                                                />
+                                                </div>
+                                        )}
                         {selectedTopic != '' && 
                             <button 
                             onClick={() => setReportSystem(reportSystem + 1)} 
@@ -478,7 +597,7 @@ const ReportSystem = ({
                     {reportSystem == 5 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>{t.sourceTitle}</div>
-                        {sources.map((source, i) => (
+                        {[...sources.filter(source => source !== "Other/Otro"), ...sources.filter(source => source === "Other/Otro")].map((source, i) => (
                             <>
                             <label key={i+'-'+source} className={source === selectedSource ? style.inputRadioChecked : style.inputRadio}>
                             {/* Source tag input */}
@@ -487,13 +606,31 @@ const ReportSystem = ({
                             id='source'
                             type="radio"
                             checked={selectedSource === source}
-                            onChange={(e) => setSelectedSource(e.target.value)}
+                            onChange={
+                                handleSourceChangeOther
+                            }
                             value={source}
                             />
                             {source}</label>
                             </>
                         ))}
                         {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
+                        {showOtherSource && (
+                                            <div className="">
+                                            <div className="text-zinc-500">
+                                                Custom source
+                                                </div>
+                                                <input
+                                                    id="topic-other"
+                                                    className="rounded shadow-md border-zinc-400 w-full"
+                                                    type="text"
+                                                    placeholder="Please specify the source."
+                                                    onChange={handleOtherSourceChange}
+                                                    value={otherSource}
+                                                    style={{ fontSize: '14px' }}
+                                                />
+                                                </div>
+                                        )}
                         {selectedSource != '' && 
                             <button onClick={() => setReportSystem(reportSystem + 1)} className={style.sectionIconButtonWrap}>
                                 <BiRightArrowCircle size={40} className={style.sectionIconButton} />
