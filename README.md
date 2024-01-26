@@ -24,21 +24,32 @@ firebase emulators:start --import=./emulator-data
 
 emulator should start and provide you an emulator link `View Emulator UI at`. Open that link and add yourself as a user under the Authentication tab. You only need to provide a name, email and password when adding a user. 
 
-You can also assign a role (reccommended):
+You can also assign a role (reccommended) in the Custom Claims input:
 - Admin role: `{"role":"admin"}`
 - Agency role: `{"role":"agency"}`
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-_Next.js original docs:_
+# Emulator Notes
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+[Firebase Emulator Docs](https://firebase.google.com/docs/emulator-suite/connect_and_prototype?database=Firestore)
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+### Emulator UI
+- Database: find the imported database under the Emulator UI / Firestore tab.
+- Users: view, add, edit & delete users under the Authentication tab.
+- Files & Uploads: Storage tab in the Emulator UI.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+### Users
 
-## Learn More
+Your user UID that you created will not be associated with any reports or agencies so you can either add reports via the Misinfo Dashboard in your localhost:3000 window or go into the Emulator UI and manually change the `userID` to your own for some reports. Same idea with assigning your user to an agency: go into the Emulator UI and add your email to an agency's `agencyUsers` field.
+
+### Emulator log files
+
+Emulator creates log files (`firebase-debug.log` & `ui-debug.log`) when you boot up the emulator. No need to push those with git. 
+
+
+
+## Next.js
 
 To learn more about Next.js, take a look at the following resources:
 
