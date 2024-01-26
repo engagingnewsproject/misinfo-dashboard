@@ -14,13 +14,13 @@ npm run dev
 yarn dev
 ```
 
+> If you have not installed firebase tools to run the emulator run `npm install -g firebase-tools`.
+
 Next, to run the app on the emulator and import the db testing data, in a new terminal window run 
 
 ```bash
 firebase emulators:start --import=./emulator-data
 ``` 
-
-> First to install the firebase tools to run the emulator run `npm install -g firebase-tools`.
 
 emulator should start and provide you an emulator link `View Emulator UI at`. Open that link and add yourself as a user under the Authentication tab. You only need to provide a name, email and password when adding a user. 
 
