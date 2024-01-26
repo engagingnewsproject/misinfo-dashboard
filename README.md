@@ -35,6 +35,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ![emulator-running](https://media.github.austin.utexas.edu/user/3619/files/fa9f1c63-1f3a-4dd2-b0d3-2ca3ab6b86f0)
 
+> You will have a lot of windows/tabs open while developing: Terminal: 1 tab for `npm run dev`, 1 tab for `firebase emulators:start --import=./emulator-data`. Browser: 1 tab for `localhost:3000`, 1 tab for `Emulator UI`
+
 # Emulator Notes
 
 [Firebase Emulator Docs](https://firebase.google.com/docs/emulator-suite/connect_and_prototype?database=Firestore)
