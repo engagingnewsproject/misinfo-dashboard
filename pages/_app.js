@@ -4,8 +4,8 @@ import { AuthContextProvider } from '../context/AuthContext'
 import '../styles/globals.css'
 import 'react-tooltip/dist/react-tooltip.css'
 
-const noAuthRequired = ['/login', '/signup', '/resetPassword']
-
+const noAuthRequired = ['/login', '/signup', '/resetPassword', '/testPage']
+// for testing page add '/testPage' above
 function MyApp({ Component, pageProps }) {
 
   const router = useRouter()

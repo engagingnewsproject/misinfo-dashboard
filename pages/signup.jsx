@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
-import {isSignInWithEmailLink, signInWithEmailLink, signOut } from 'firebase/auth'
+import {isSignInWithEmailLink, signInWithEmailLink, signOut, createUserWithEmailAndPassword, verifyEmail } from 'firebase/auth'
 import { doc, setDoc, collection, addDoc, arrayUnion} from '@firebase/firestore'
 import { db, auth } from '../config/firebase'
 import Select from "react-select";
@@ -17,7 +17,7 @@ const SignUp = () => {
     const { user, signup, verifyEmail, addAgencyRole, setPassword } = useAuth()
 
     // Determines if current user has the privilege to sign up as an agency
-    const isAgency =  isSignInWithEmailLink(auth, window.location.href)
+    const isAgency = isSignInWithEmailLink(auth, window.location.href)
     const [data, setData] = useState({
        name: '',
        email: '',
@@ -103,29 +103,35 @@ const SignUp = () => {
                     }
                   })
 
-                
+                  const userCredential = await auth.currentUser.linkWithCredential(result.credential);
+
+                  verifyEmail(auth.currentUser).then((verified) => {
+                    // Handle email verification logic
+                    // ...
+                  });
                 
               } else {
 
-                signup(data.teamName, data.email, data.password).then((userCredential)=> {
-                  createUserWithEmailAndPassword(auth, email, password).then((userCredential)=> {
-                     verifyEmail(userCredential.user).then((verified)=> {
+                signup(data.teamName, data.email, data.password).then((userCredential) => {
+                  createUserWithEmailAndPassword(auth, data.email, data.password).then((userCredential) => {
+                    verifyEmail(userCredential.user).then((verified) => {
                       if (verified) {
-                        setSignUpError("")
-                        // console.log("in try")
-                        router.push('/dashboard')
+                        setSignUpError("");
+                        router.push('/dashboard');
                       } else {
-                        // console.log("here")
-                        // console.log(userVerified)
-                        router.push('/verifyEmail')
+                        router.push('/verifyEmail');
                       }
-                     })
-                  })}).catch((error) => {
-                    if (error == "FirebaseError: Firebase: Error (auth/email-already-in-use).") {
-                      setSignUpError("The entered email is already in use.")
-                    }
-                    console.log(error)
-                  })
+                    });
+                  });
+                }).catch((error) => {
+                  if (error.code === "auth/email-already-in-use") {
+                    setSignUpError("The entered email is already in use.");
+                  } else {
+                    setSignUpError(error.message);
+                  }
+                  console.error(error);
+                });
+
 
               }
               
