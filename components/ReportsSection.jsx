@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
 
 import {
+	collection,
 	getDoc,
 	getDocs,
 	doc,
@@ -9,8 +10,6 @@ import {
   where,
 	updateDoc,
 	deleteDoc,
-	onSnapshot,
-	collection
 } from "firebase/firestore"
 import { db } from "../config/firebase"
 import { Switch } from "@headlessui/react"
@@ -19,7 +18,7 @@ import { IoMdRefresh } from "react-icons/io"
 import { IoAdd, IoTrash } from "react-icons/io5"
 
 // Icons END
-import { Tooltip } from "react-tooltip"
+// import ReactTooltip from "react-tooltip"
 import InfiniteScroll from "react-infinite-scroll-component"
 import NewReport from "./modals/NewReportModal"
 import ReportModal from "./modals/ReportModal"
@@ -36,6 +35,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	const [hasMore, setHasMore] = useState(true)
 	const [reportWeek, setReportWeek] = useState("4")
 	const [readFilter, setReadFilter] = useState("All")
+	const [reportTitle, setReportTitle] = useState('')
   // const [agencyName, setAgencyName] = useState('')
   const [isAgency, setIsAgency] = useState(false)
 	const { user, verifyRole } = useAuth()
@@ -59,10 +59,8 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
 	const linkStyle = "font-light mb-1 text-sm underline underline-offset-1"
 	const label = {
-		default: "overflow-hidden inline-block px-5 py-1 rounded-2xl",
-		none: "bg-gray-200",
-		important: "bg-yellow-400",
-		flagged: "bg-orange-400",
+		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
+		special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl",
 	}
 	const style = {
 		icon: "hover:fill-cyan-700"
@@ -73,12 +71,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 
 	// Report modal states
 	const [report, setReport] = useState('')
-	const [reportModalShow, setReportModalShow] = useState(false)
-	const [reportModalId, setReportModalId] = useState(null)
+	const [reportModal, setReportModal] = useState(false)
+	const [reportModalId, setReportModalId] = useState(false)
 	const [note, setNote] = useState("")
-	const [detail, setDetail] = useState()
-	const [reportRead, setReportRead] = useState('')
-	const [reportSubmitBy, setReportSubmitBy] = useState([])
+	const [title, setTitle] = useState('')
+	const [detail,setDetail] = useState()
+	const [reportSubmitBy,setReportSubmitBy] = useState('')
+	const [reportRead, setReportRead] = useState(false)
 	const [info, setInfo] = useState({})
 	const [selectedLabel, setSelectedLabel] = useState("")
 	const [activeLabels, setActiveLabels] = useState([])
@@ -100,9 +99,8 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
     setRefresh(false)
   }
 
-	// Initial get Firebase data.
 	const getData = async () => {
-		// Long (difficult) way
+		// // Long (difficult) way
 		// Get the collection of agencies
 		// filter out the agency
 		// Get the current (agency)user's agency name
@@ -111,7 +109,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
     verifyRole().then((result) => {
       
       // console.log("Current user information " + result.admin)
-			if (result.admin) {
+      if (result.admin) {
 				// isAgency = false
 				setIsAgency(false)
       } else if (result.agency) {
@@ -128,9 +126,12 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
     const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
     const querySnapshot = await getDocs(q)
     querySnapshot.forEach((doc) => { // Set initial values
-      agencyName = doc.data()['name']    
+			// console.log(doc.data())
+      agencyName = doc.data()['name']
+			// console.log(agencyName)
+    
     })
-
+      
     const reportsCollection = collection(db,"reports")
     let snapshot;
     // Filters reports for current agency
@@ -153,7 +154,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 			})
 
 			setReports(arr)
-			console.log(reports.data)
 			if (readFilter !== "All") {
 				arr = arr.filter((reportObj) => {
 				  return Object.values(reportObj)[0].read.toString() === readFilter
@@ -183,7 +183,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		}
 	}
 
-	// Report Table: Filter's date change handler
 	const handleDateChanged = (e) => {
 		e.preventDefault()
 		setReportWeek(e.target.value)
@@ -207,14 +206,12 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		setLoadedReports(arr)
 	}
 
-	// !!! Not sure if this is needed ???
-	// const handleReadFilter = (e) => {
-	// 	e.preventDefault()
-	// 	setFilterRead(e.target.value)
-	// }
+	const handleReadFilter = (e) => {
+		e.preventDefault()
+		setFilterRead(e.target.value)
+	}
 
 	// Filter the reports based on the search text
-	
 	useEffect(() => {
 		if (search == "") {
 			if (readFilter != "All") {
@@ -260,9 +257,12 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 			)
 		}
 	}, [search])
+
  
-	// New report submitted, get the reports data again
+	// On page load (mount), get the reports from firebase
 	useEffect(() => {
+		// console.log("i am here")
+    // determine if current user is an agency or not
 		getData()
 	}, [newReportSubmitted])
 
@@ -330,13 +330,11 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				read: !report[reportId].read,
 			},
 		}
-		console.log(updatedReport)
 		const reportIndex = reports.findIndex(
 			(report) => Object.keys(report) == reportId
 		)
 		reports[reportIndex] = updatedReport
 		const updatedReports = [...reports]
-		setReportRead(updatedReport[reportId].read)
 		setReports([...reports])
 		setFilteredReports([...reports])
 		if (readFilter !== "All") {
@@ -349,13 +347,14 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		const reportDoc = doc(db, "reports", reportId)
 		await updateDoc(reportDoc, { read: !report[reportId].read })
 			.then(function () {
-				console.log("Success")
+				// console.log("Success")
 			})
 			.catch(function (error) {
 				console.log("error")
 			})
 	}
 
+	
 	const handleReadFilterChanged = (e) => {
 		console.log(e.target.value + "went into function")
 		if (e.target.value != "All") {
@@ -391,68 +390,145 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		setNewReportModal(true)
 	}
 
-	// Report Modal: Shows the report modal
+  
+
 	const handleModalShow = async (reportId) => {
-		setReportModalShow(true)
 		// get doc
-		const reportRef = await getDoc(doc(db,"reports",reportId))
-		const reportData = reportRef.data()
-		// Set the report object and its ID
-		setReport({ id: reportId,...reportData })
-		// Or set the full report object
-		// setReport(docRef.data())
-		// Set the selected note
-		setNote(reportData["note"])
-		// Set the selected label
-		setSelectedLabel(reportData["label"])
-		// Set the report detail
-		setDetail(reportData["detail"])
-		
-		// Fetch and set active labels
+		const docRef = await getDoc(doc(db,"reports",reportId))
+		setReport(docRef.data())
+		// get note
+		setNote(docRef.data().note)
+		setReportTitle(docRef.data().title)
+		setDetail(docRef.data().detail)
+		setSelectedLabel(docRef.data().selectedLabel)
+		setReportRead(docRef.data().read)
+		setInfo(docRef.data())
+		getDoc(doc(db,"mobileUsers",docRef.data()["userID"]))
+			.then((mobileRef) =>
+			setReporterInfo(mobileRef.data())
+		)
+
 		const tagsRef = await getDoc(doc(db, "tags", userId))
 		setActiveLabels(tagsRef.data()["Labels"]["active"])
-		
-		// Get report submission user info
-		const docRef = doc(db,"mobileUsers",reportData["userID"]);
-		const docSnap = await getDoc(docRef);
 
+		// Get report submission user info
+		// const mobileUserRef = doc(db,"mobileUsers",docRef.data().userID);
+		// const docSnap = await getDoc(mobileUserRef);
+
+		const mUserRef = doc(db, "mobileUsers", docRef.data().userID);
+		const docSnap = await getDoc(mUserRef);
+		
 		if (docSnap.exists()) {
 			setReportSubmitBy(docSnap.data());
 		} else {
 			console.log("No such document!");
 		}
-
-		let reportIdRef = reportId
 		
+		// set report id var
+		let reportIdRef = reportId
+		setReportModal(true)
 		setReportModalId(reportIdRef)
-	}
+	} // end handleModalShow
+
+	// MODAL
+	// MODAL
+	// MODAL
+	// MODAL
+	// MODAL read switch toggle
+	const handleReadToggledModal = async (reportId) => {
+		// Find the report with the given reportId
+		const reportDocRef = doc(db,"reports",reportId);
+		const docSnap = await getDoc(reportDocRef);
+		if (docSnap.exists() && docSnap.data().read === false) {
+			console.log("Document data:",docSnap.data().read);
+			await updateDoc(reportDocRef, { read: true })
+				.then(() => {
+					setReportRead(true)
+					console.log("Modal read status updated successfully", docSnap.data().read);
+				})
+				.catch((error) => {
+					console.error("Error updating read status: ", error);
+				});
+		} else {
+			// docSnap.data() will be undefined in this case
+			console.log("No such document!");
+		}
+		// await updateDoc(reportDocRef, { read: !read })
+		// 	.then(() => {
+				
+		// 		console.log("Modal read status updated successfully");
+		// 	})
+		// 	.catch((error) => {
+		// 		console.error("Error updating read status: ", error);
+		// 	});
+		// const reportToUpdate = reports.find(report => Object.keys(report)[0] === reportId);
+
+		// // Toggle the read status of the report
+		// const updatedReadStatus = !reportToUpdate[reportId].read;
+
+		// // Update the read status in the local state
+		// const updatedReports = reports.map(report => {
+		// 	if (Object.keys(report)[0] === reportId) {
+		// 		return {
+		// 			[reportId]: {
+		// 				...report[reportId],
+		// 				read: updatedReadStatus
+		// 			}
+		// 		};
+		// 	} else {
+		// 		return report;
+		// 	}
+		// });
+		// setReports(updatedReports);
+
+		// // Update the read status in Firestore
+		// const reportDocRef = doc(db, "reports", reportId);
+		// await updateDoc(reportDocRef, { read: updatedReadStatus })
+		// 	.then(() => {
+		// 		console.log("Read status updated successfully");
+		// 	})
+		// 	.catch((error) => {
+		// 		console.error("Error updating read status: ", error);
+		// 	});
+	};
+	
+	const handleSwitchChange = (id) => {
+		console.log(id)
+    // Toggle the reportRead state
+    setReportRead(!reportRead);
+
+    // Update the read status in the database
+    const reportDocRef = doc(db, "reports", id);
+    updateDoc(reportDocRef, { read: !reportRead })
+        .then(() => {
+            console.log("Read status updated successfully.");
+        })
+        .catch((error) => {
+            console.error("Error updating read status:", error);
+        });
+};
 	
 	useEffect(() => {
-		console.log(reportModalId)
-	}, [reportModalShow])
-	
+    console.log(reportModalId, reportModal, reportRead);
+    if (reportModal) {
+			if (reportRead === false) {
+				setReportRead(true);
+				const reportDocRef = doc(db,"reports",reportModalId);
+				updateDoc(reportDocRef, { read: true })
+			} else {
+				console.log('already read DUDE!')
+			}
+		}
+		// return setReportRead(!reportRead)
 
-	// Report Modal: Submit the report modal's form
+	}, [reportRead, reportModalId, reportModal])
+	
+	
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
-		
-		// Update the label in the Firestore database
-		const docRef = doc(db,"reports",report.id)
-		
-		// Check if 'label' field exists, if not, create it
-		const reportData = {}
-		if (report && report.data && !("label" in report.data)) {
-			reportData.label = selectedLabel
-		}
-		
-		// Update the document
-		await updateDoc(docRef, reportData)
-
-		// Close the modal
-		setReportModalShow(false)
+		setReportModal(false)
 	}
 	
-	// Report Modal: Newsroom notes change handler
 	const handleNoteChange = async (e) => {
 		e.preventDefault()
 		let reportId = reportModalId
@@ -465,60 +541,41 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		}
 	}
 
-	// Report Modal: Newsroom label (important, flagged) change handler
 	const handleLabelChange = async (e) => {
 		e.preventDefault()
-		const selectedValue = e.target.value
-		setSelectedLabel(selectedValue)
-		const docRef = doc(db, "reports", report.id) // Use report.id instead of reportId
-		await updateDoc(docRef, { label: e.target.value })
+		let reportId = reportModalId
+		if (e.target.value !== info['label']) {
+				const docRef = doc(db, "reports", reportId)
+				await updateDoc(docRef, { label: e.target.value })
+				setUpdate(e.target.value)
+		} else {
+			setUpdate("")
+		}
 	}
 	
-	// Report Modal: Delete report
+	// Delete report
 	const handleReportDelete = async (e) => {
-		reportModalShow ? e.preventDefault() : setReportModalId(e)
+		reportModal ? e.preventDefault() : setReportModalId(e)
 		setDeleteModal(true)
 	}
 	
-	// Delete Modal: Delete report handler
 	const handleDelete = async (e) => {
 		e.preventDefault()
 		const docRef = doc(db, "reports", reportModalId)
 		deleteDoc(docRef)
 			.then(() => {
 				getData()
-				setReportModalShow(false)
+				setReportModal(false)
 				setDeleteModal(false)
 			})
 			.catch((error) => {
 				console.log('The write failed' + error);
 			});
 	}
-	// NEW onSnapshot EFFECT
-	// NEW onSnapshot EFFECT
-	// NEW onSnapshot EFFECT
+	
 	useEffect(() => {
-		const unsubscribe = onSnapshot(
-			collection(db, "reports"),
-			(querySnapshot) => {
-				const reportArray = []
-				querySnapshot.forEach((doc) => {
-					reportArray.push({ id: doc.id, data: doc.data() })
-				})
-				setReports(reportArray)
-			}
-		)
-
-		return () => {
-			// Unsubscribe when the component unmounts
-			unsubscribe()
-		}
-	}, [])
-	// NEW EFFECT
-	// NEW EFFECT
-	// NEW EFFECT
-	useEffect(() => {
-		if (report.createdDate) {
+		// getData()
+		if (info["createdDate"]) {
 			const options = {
 				day: "2-digit",
 				year: "numeric",
@@ -527,18 +584,18 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				minute: "numeric",
 			}
 			setPostedDate(
-				report.createdDate
+				info["createdDate"]
 					.toDate()
 					.toLocaleString("en-US", options)
 					.replace(/,/g, "")
 					.replace("at", "")
 			)
 		}
-		console.log(report.city)
-		if (report.city || report.state) {
-			setReportLocation(report.city + ', ' + report.state)
+		if (info['city'] || info['state']) {
+			setReportLocation(info['city'] + ', ' + info['state'])
 		}
-	}, [reportModalShow])
+	}, [reportModal])
+
 
 	useEffect(() => {
 		if (info["createdDate"]) {
@@ -559,23 +616,12 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		}
 		if (info["label"]) {
 			setSelectedLabel(info["label"])
-		} else {
-			setSelectedLabel('No label')
 		}
-	}, [info, reportModalShow])
+	}, [info, reportModal])
 
 	useEffect(() => {
 		getData()
 	}, [update])
-	
-	
-	// Testing useEfffect
-	useEffect(() => {
-		console.log(
-			// 'read Parent--> ', read
-
-		)
-	}, [reportModalShow])
 	
 	return (
 		<div className="flex flex-col h-full">
@@ -585,16 +631,20 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				</div>
 				<div className="flex flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-evenly">
           <div className="p-0 px-4 md:p-4 md:py-0 md:px-4">
+            {/* <ReactTooltip
+                id="refreshTooltip"
+                place="top"
+                type="light"
+                effect="solid"
+                delayShow={500}
+              /> */}
               {/* Displays refresh icon */}
               {!refresh && !reportsUpdated && <button
-                className="relative top-1 m-0 md:m-0 tooltip-refresh"
-                onClick={handleRefresh}>
-								<IoMdRefresh size={20} />
-								<Tooltip
-									anchorSelect=".tooltip-refresh"
-									place="top"
-									delayShow={500}
-								>Refresh</Tooltip>
+                className="relative top-1 m-0 md:m-0"
+                onClick={handleRefresh}
+                data-tip="Refresh"
+                data-for="refreshTooltip">
+                <IoMdRefresh size={20} />
               </button>}
 
               {/* Displays loading icon when reports are being updated*/}
@@ -613,57 +663,66 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
             </div>}
           </div>
 					<div>
+							{/* New report tooltip */}
+							{/* <ReactTooltip
+                id="newReportTooltip"
+                place="top"
+                type="light"
+                effect="solid"
+                delayShow={500}
+              /> */}
             <button
               onClick={() => setNewReportModal(true)}
-              className="flex items-center text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 tooltip-new-report">
+              className="flex items-center text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+							data-tip="Create a new report"
+							data-for="newReportTooltip">
               <IoAdd className="mr-1" size={15} />
-							New Report
-							<Tooltip
-                anchorSelect=".tooltip-new-report"
-                place="top"
-                delayShow={500}
-              >New Report</Tooltip>
+              New Report
             </button>
           </div>
 				  <div className="mb-0">
+						{/* Filter tooltip */}
+						{/* <ReactTooltip
+							id="filterTooltip"
+							place="top"
+							type="light"
+							effect="solid"
+							delayShow={500}
+						/> */}
             <select
               id="label_read"
               onChange={(e) => handleReadFilterChanged(e)}
               defaultValue="All"
 							data-tip="Filter reports"
 							data-for="filterTooltip"
-              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md mr-1 md:mx-2 hover:shadow-none tooltop-filter-reports">
+              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md mr-1 md:mx-2 hover:shadow-none">
               <option value="false">Unread</option>
               <option value="true">Read</option>
               <option value="All">All reports</option>
-						</select>
-						{/* Filter tooltip */}
-						<Tooltip
-							anchorSelect=".tooltop-filter-reports"
-							place="top"
-							delayShow={500}
-						>Filter Reports</Tooltip>
+            </select>
           </div>
           <div className="mt-2 md:mt-0">
+						{/* Timeframe tooltip */}
+						{/* <ReactTooltip
+							id="timeframeTooltip"
+							place="top"
+							type="light"
+							effect="solid"
+							delayShow={500}
+						/> */}
             <select
               id="label_date"
               onChange={(e) => handleDateChanged(e)}
               defaultValue="4"
 							data-tip="Select timeframe"
 							data-for="timeframeTooltip"
-              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none tooltip-duration">
+              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none">
               <option value="4">Last four weeks</option>
               <option value="3">Last three weeks</option>
               <option value="2">Last two weeks</option>
               <option value="1">Last week</option>
               <option value="100">All reports</option>
-						</select>
-						{/* Timeframe tooltip */}
-						<Tooltip
-							anchorSelect=".tooltip-duration"
-							place="top"
-							delayShow={500}
-						>Select Duration</Tooltip>
+            </select>
           </div>
           </div>
 			</div>
@@ -675,7 +734,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				hasMore={hasMore}
 				loader={<h4>Loading...</h4>}
 				scrollableTarget="scrollableDiv"
-			>
+				reportTitle={reportTitle}>
 				{/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
 				<table className="min-w-full bg-white rounded-xl p-1">
 					<thead className="border-b dark:border-indigo-100 bg-slate-100">
@@ -698,18 +757,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 									.toLocaleString("en-US", dateOptions)
 									.replace(/,/g, "")
 									.replace("at", "")
-								const reportIdKey = Object.keys(reportObj)[0].toString() + '-' + key
-								// Report label logic START
-								let labelClass;
-								const labelValue = report.label && report.label.toLowerCase()
-								if (labelValue === 'important') {
-									labelClass = label.important
-								} else if (labelValue === 'flagged') {
-									labelClass = label.flagged
-								} else {
-									labelClass = label.none
-								}
-								// Report label logic END
+								const reportIdKey = Object.keys(reportObj)[0].toString()+'-'+key
 								return (
 									<tr
 										onClick={() => handleModalShow(Object.keys(reportObj)[0])}
@@ -722,23 +770,32 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 										<td className={column.data_center}>{report.hearFrom}</td>
 										<td className={column.data_center}>
 											{/* Change label tooltip */}
-											<div className={`${label.default} ${labelClass}`}>
-												{report.label ? report.label : 'No label'}
-												</div> 
-											<Tooltip
-												anchorSelect=".tooltip-label"
+											{/* <ReactTooltip
+												id="labelTooltip"
 												place="top"
+												type="light"
+												effect="solid"
 												delayShow={500}
-											>Change Label</Tooltip>
+											/> */}
+											<div
+												className={
+													!report.label ? label.default : label.special
+												}
+												data-tip="Change label"
+												data-for="labelTooltip">
+												{report.label || "None"}
+											</div>
 										</td>
 										<td className={column.data_center} onClick={(e) => e.stopPropagation()}>
 											<Switch
 												// Set checked to the initial reportRead value (false)
 												checked={reportRead}
 												// When switch toggled setReportRead
-												onChange={() =>
-													handleReadToggled(Object.keys(reportObj)[0])
-												}
+												// onChange={() =>
+												// 	handleSwitchChange(Object.keys(reportObj)[0])
+												// }
+												// onChange={handleSwitchChange(Object.keys(reportObj)[0])}
+												onChange={() => handleSwitchChange(Object.keys(reportObj)[0])}
 												// On click handler
 												className={`${
 													report.read ? "bg-blue-600" : "bg-gray-200"
@@ -756,9 +813,9 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 													handleReportDelete(Object.keys(reportObj)[0])
 												}
 												data-tip="Delete report"
-												className={`${style.icon} tooltip-delete`}>
+												className={style.icon}>
 												<IoTrash size={20} className="ml-4 fill-gray-400 hover:fill-red-600" />
-												<Tooltip anchorSelect=".tooltip-delete" place="top" delayShow={500}>Delete Report</Tooltip>
+												{/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
 											</button>
 										</td>
 									</tr>
@@ -766,32 +823,31 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 							})}
 					</tbody>
 				</table>
-				{reportModalShow && (
+				{reportModal && (
 					<ReportModal
-						setReportModalShow={setReportModalShow}
+						reportModal={reportModal}
 						report={report}
+						reportTitle={reportTitle}
 						key={reportModalId}
 						note={note}
 						detail={detail}
-						// Read status
-						reportRead={reportRead}
-						setReportRead={setReportRead}
-						onChangeRead={handleReadToggled}
-						// Read status END
 						info={info}
+						onChangeRead={handleReadToggledModal}
+						setReportRead={setReportRead}
+						reportRead={reportRead}
+						reportSubmitBy={reportSubmitBy}
 						reporterInfo={reporterInfo}
-						reportModalId={reportModalId} // report ID
-						setReportModalId={setReportModalId} // report ID
+						setReportModal={setReportModal}
+						reportModalId={reportModalId}
 						onNoteChange={handleNoteChange}
 						onLabelChange={handleLabelChange}
 						selectedLabel={selectedLabel}
 						activeLabels={activeLabels}
-						reportSubmitBy={reportSubmitBy} // Pass the state itself
 						changeStatus={changeStatus}
 						onFormSubmit={handleFormSubmit}
 						onReportDelete={handleReportDelete}
-						postedDate={postedDate}
-						reportLocation={reportLocation}
+						setPostedDate={postedDate}
+						setReportLocation={reportLocation}
 					/>
 				)}
 			</InfiniteScroll>

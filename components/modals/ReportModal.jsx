@@ -14,7 +14,7 @@ import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5
 
 const ReportModal = ({
 	// reportModalShow,
-	setReportModalShow,
+	setReportModal,
 	report, // should hold all report fields
 	activeLabels,
 	selectedLabel,
@@ -25,8 +25,8 @@ const ReportModal = ({
 	note,
 	detail,
 	// read status
-	read,
-	setRead,
+	reportRead,
+	setReportRead,
 	onChangeRead,
 	// read status END
 	info,
@@ -55,6 +55,8 @@ const ReportModal = ({
 	}
 	const reportURI = "/reports/" + reportModalId
 	const [images,setImages] = useState([])
+	const [isReportRead, setIsReportRead] = useState(reportRead || false);
+
 	// useEffect(() => {
 	// 	setImages(report['images'])
 	// 	// console.log(images)
@@ -72,14 +74,18 @@ const ReportModal = ({
 	}
 
 	// TESTING results START
-	useEffect(() => {
-		// console.log('read Modal --> ', read)
-	}, [])
+	// useEffect(() => {
+	// 	if (reportRead === false) {
+	// 		setIsReportRead(!isReportRead)
+	// 	} else {
+	// 		console.log('report is already read')
+	// 	}
+	// }, [isReportRead])
 	// TESTING results END
 	
 	return (
 		<div className="fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto" // {style.overlay} 
-			onClick={() => setReportModalShow(false)}>
+			onClick={() => setReportModal(false)}>
 			 <div className="absolute flex justify-center items-center z-[1300] top-4 left-0 right-0 sm:overflow-y-scroll"> {/* {style.modal} */}
 				<div
 					className="flex-col justify-center items-center lg:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible" // {style.wrap}
@@ -94,7 +100,7 @@ const ReportModal = ({
 							</Link>
 						</div>
 						<button
-							onClick={() => setReportModalShow(false)}
+							onClick={() => setReportModal(false)}
 							className="text-gray-800">
 							<IoClose size={25} />
 						</button>
@@ -285,28 +291,29 @@ const ReportModal = ({
 								{/* Read/Unread */}
 								<div className="flex flex-row mb-4 items-center">
 									<div className="self-center pr-2">
-										{read ? (
+										{reportRead ? (
 											<MdMarkEmailRead size={20} />
 										) : (
 											<MdMarkAsUnread size={20} />
 										)}
 									</div>
 									<Switch
-										checked={read}
+										checked={reportRead}
   									onChange={() => onChangeRead(reportModalId)}
+  									// onChange={() => onChangeRead()}
 										className={`${
-											read ? "bg-blue-600" : "bg-gray-200"
+											reportRead ? "bg-blue-600" : "bg-gray-200"
 										} relative inline-flex h-6 w-11 items-center rounded-full`}>
 										<span className="sr-only">Use setting</span>
 										<span
 											aria-hidden="true"
 											className={`${
-												read ? "translate-x-6" : "translate-x-1"
+												reportRead ? "translate-x-6" : "translate-x-1"
 											} inline-block h-4 w-4 transform rounded-full bg-white transition`}
 										/>
 									</Switch>
 									{/* Toggle read/unread text on switch change */}
-									{read ? (
+									{reportRead ? (
 										<span className="ml-2">Read</span>
 									) : (
 										<span className="ml-2">Unread</span>
