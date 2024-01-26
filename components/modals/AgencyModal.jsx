@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from "react"
 import { useRouter } from 'next/router'
 import { IoClose } from "react-icons/io5"
 import Image from "next/image"
+import ConfirmModal from "./ConfirmModal"
+
 import { db } from "../../config/firebase"
 import { 
 	doc, 
@@ -9,7 +11,10 @@ import {
 	arrayUnion,
 
 	} from '@firebase/firestore'
-  import { useAuth } from '../../context/AuthContext'
+
+import { auth } from '../../config/firebase'
+
+import { useAuth } from '../../context/AuthContext'
 
 import { getStorage, ref, uploadBytesResumable, getDownloadURL, getMetadata, updateMetadata } from 'firebase/storage';
 
@@ -22,7 +27,7 @@ const AgencyModal = ({
 	setLogo,
 	agencyId,
 	onFormSubmit }) => {
-    const { user, sendSignIn } = useAuth() // Add agency user send signup email
+    const { user, sendSignIn, addUserRole } = useAuth() // Add agency user send signup email
 
 	const router = useRouter()
 	const imgPicker = useRef(null)
@@ -39,6 +44,11 @@ const AgencyModal = ({
   // used to indicate if email was resent to user, or if user was added as agency admin
   const [resendEmail, setResendEmail] = useState("")
   const [sendEmail, setSendEmail] = useState("") 
+
+
+  // delete modal
+  const [deleteModal, setDeleteModal] = useState(false)
+  const [adminDelete, setAdminDelete] = useState("")
 
 // This function handles the change event when the user selects one or more images.
 // It updates the 'images' state and triggers a re-render.
@@ -146,7 +156,40 @@ const handleImageChange = (e) => {
 		}
 	};
 
+  const handleDeleteAdmin = (user) => {
+    setAdminDelete(user)
+    setDeleteModal(true)
+  }
 
+  const deleteAdmin = () => {
+
+    setDeleteModal(false)
+    auth.currentUser
+    .getIdTokenResult()
+    .then((idTokenResult) => {
+      // Confirm the user is an Admin.
+      if (!!idTokenResult.claims.admin) {
+        // Change the selected user's privileges as requested
+        console.log(addUserRole({ email: adminDelete}))
+      }
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+    let tempUsersArr = 
+    [
+      ...agencyUsersArr.slice(0, agencyUsersArr.indexOf(adminDelete)),
+      ...agencyUsersArr.slice(agencyUsersArr.indexOf(adminDelete) + 1)
+    ]
+    console.log(tempUsersArr)
+    const agencyRef = doc(db, "agency", agencyId);
+		updateDoc(agencyRef, {
+      agencyUsers: tempUsersArr,
+		}).then(() => {
+      setUpdate(!update);
+      // Send a signal to ReportsSection so that it updates the list 
+		})
+  }
 
 		
 	// Form button click handler
@@ -194,7 +237,9 @@ const handleImageChange = (e) => {
 		modal_form_button: 'bg-blue-500 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold ml-1 py-2 px-6 rounded-md focus:outline-none focus:shadow-outline',
     modal_form_button_sent: "bg-green-500 col-start-3 self-end hover:bg-green-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
     modal_notification_text: "text-green-700",
-    modal_dismiss_button: "bg-green-700 self-end hover:bg-green-800 text-sm text-white font-semibold ml-1 px-2 rounded-lg focus:outline-none focus:shadow-outline"
+    modal_dismiss_button: "bg-green-700 self-end hover:bg-green-800 text-sm text-white font-semibold ml-1 px-2 rounded-lg focus:outline-none focus:shadow-outline",
+    modal_resend_button: "bg-blue-500 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold ml-1 px-2 rounded-lg focus:outline-none focus:shadow-outline",
+    modal_delete:"bg-red-500 text-white font-semibold ml-1 px-1 mr-2 rounded-lg"
   }
 	// TODO: filter reports, tags & users by agency login
 	return (
@@ -220,11 +265,16 @@ const handleImageChange = (e) => {
 							<div className={style.modal_form_data}>
 								{agencyUsersArr.map(txt => 
                   <div className="grid grid-cols-2 py-1">
-                    <div>
+                    <div className="flex">
+                      <button onClick={()=>handleDeleteAdmin(txt)} className={style.modal_delete}>
+								        <IoClose size={16}/>
+							        </button>
+
                       <p>{txt}</p>
+
                     </div>
                     <div>
-                      <button onClick={()=>sendAgencyLinks(txt)} className={style.modal_form_button} type="submit">Resend link</button>
+                      <button onClick={()=>sendAgencyLinks(txt)} className={style.modal_resend_button} type="submit">Resend link</button>
                     </div> 
                   </div>)}
                   {resendEmail && 
@@ -291,6 +341,13 @@ const handleImageChange = (e) => {
 							{/* TODO: finish update agency */}
 						</div>
 					</form>
+        {deleteModal && <ConfirmModal
+				func={deleteAdmin}
+				title="Are you sure you want to remove this admin user?"
+				subtitle=""
+				CTA="Delete"
+				closeModal={setDeleteModal}
+			/>}
 				</div>
 			</div>
 		</div>
