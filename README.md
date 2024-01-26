@@ -14,15 +14,49 @@ npm run dev
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000/) with your browser to see the result.
+> If you have not installed firebase tools to run the emulator run `npm install -g firebase-tools`.
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+Next, to run the app on the emulator and import the db testing data, in a new terminal window run 
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+```bash
+firebase emulators:start --import=./emulator-data
+``` 
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+emulator should start and provide you an emulator link `View Emulator UI at`. Open that link and add yourself as a user under the Authentication tab. You only need to provide a name, email and password when adding a user. 
 
-#### Learn More
+Emulator UI:
+![emulator-ui](https://media.github.austin.utexas.edu/user/3619/files/1012c2ee-b9b2-4529-8914-2e0455af9bda)
+
+You can also assign a role (reccommended) in the Custom Claims input:
+- Admin role: `{"role":"admin"}`
+- Agency role: `{"role":"agency"}`
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. If you have the emulator running you will see a banner `Running in emulator mode. Do not use with production credentials.` at the bottom of your screen as well as Console log messages letting you know that the emulator is running:
+
+![emulator-running](https://media.github.austin.utexas.edu/user/3619/files/fa9f1c63-1f3a-4dd2-b0d3-2ca3ab6b86f0)
+
+> You will have a lot of windows/tabs open while developing: Terminal: 1 tab for `npm run dev`, 1 tab for `firebase emulators:start --import=./emulator-data`. Browser: 1 tab for `localhost:3000`, 1 tab for `Emulator UI`
+
+# Emulator Notes
+
+[Firebase Emulator Docs](https://firebase.google.com/docs/emulator-suite/connect_and_prototype?database=Firestore)
+
+### Emulator UI
+- Database: find the imported database under the Emulator UI / Firestore tab.
+- Users: view, add, edit & delete users under the Authentication tab.
+- Files & Uploads: Storage tab in the Emulator UI.
+
+### Users
+
+Your user UID that you created will not be associated with any reports or agencies so you can either add reports via the Misinfo Dashboard in your localhost:3000 window or go into the Emulator UI and manually change the `userID` to your own for some reports. Same idea with assigning your user to an agency: go into the Emulator UI and add your email to an agency's `agencyUsers` field.
+
+### Emulator log files
+
+Emulator creates log files (`firebase-debug.log` & `ui-debug.log`) when you boot up the emulator. No need to push those with git. 
+
+
+
+## Next.js
 
 To learn more about Next.js, take a look at the following resources:
 

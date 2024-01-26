@@ -63,7 +63,8 @@ const Profile = ({ customClaims }) => {
 	const [images, setImages] = useState([])
 	const [imageURLs, setImageURLs] = useState([])
 	const [agencyLogo, setAgencyLogo] = useState([])
-	const [update, setUpdate] = useState(false)
+	const [update,setUpdate] = useState(false)
+  const [showUpdateMessage, setShowUpdateMessage] = useState(false);
 
 	const style = {
 		button:
@@ -141,7 +142,6 @@ const Profile = ({ customClaims }) => {
   // GET DATA
   const getData = async () => { // Get data
     if (isAgency) {
-			// console.log(user)
       try {
         const agencyCollection = collection(db, 'agency')
         const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
@@ -167,36 +167,48 @@ const Profile = ({ customClaims }) => {
 
 	// SAVE AGENCY
 	const saveAgency = (imageURLs) => {
-		if (isAgency) {
-			const docRef = doc(db, "agency", agencyId)
-			updateDoc(docRef, {
-				name: agencyName,
-				logo: imageURLs,
-				state: agencyState,
-				city: data.city == null ? "N/A" : data.city.name,
-			}).then(() => {
-				console.log("Success: agency saved: " + agencyId)
-			})
-		}
+		const docRef = doc(db, "agency", agencyId)
+		updateDoc(docRef, {
+			name: agencyName,
+			logo: imageURLs,
+			state: data.state.name,
+			city: data.city == null ? "N/A" : data.city.name,
+		}).then(() => {
+			setUpdate(true)
+		})
 	}
+	
+	// Agency updated message
+	useEffect(() => {
+		if (update && Object.keys(errors).length === 0) {
+			setShowUpdateMessage(true);
+			console.log('Agency updated. MESSAGE SHOULD SHOW', showUpdateMessage);
+
+			// Hide the message after 5 seconds
+			const timeoutId = setTimeout(() => {
+				setShowUpdateMessage(false);
+			}, 5000);
+
+			// Clean up the timeout to prevent memory leaks
+			return () => clearTimeout(timeoutId);
+		}
+	}, [update, errors]);
 
 	// NAME CHANGE
-	const handleNameChange = (e) => {
-		// Handler: new agency NAME
+	const handleAgencyNameChange = (e) => {
 		e.preventDefault()
 		setAgencyName(e.target.value)
 	}
-
 	// LOCATION CHANGE
-	const handleLocationChange = (e) => {
+	const handleAgencyLocationChange = (e) => {
 		e.preventDefault()
 		setEditLocation(!editLocation)
 	}
-	const handleStateChange = (e) => {
+	const handleAgencyStateChange = (e) => {
 		// location STATE
 		setData((data) => ({ ...data, state: e, city: null }))
 	}
-	const handleCityChange = (e) => {
+	const handleAgencyCityChange = (e) => {
 		setData((data) => ({ ...data, city: e !== null ? e : null }))
 	}
 
@@ -204,21 +216,9 @@ const Profile = ({ customClaims }) => {
 	const handleSubmitClick = (e) => {
 		e.preventDefault()
 		const allErrors = {}
-		if (agencyName == "") {
-			console.log("No agency name error")
-			allErrors.name = "Please enter an agency name."
-		}
-
-		if (data.state == null && agency["state"] === "") {
-			console.log("state error")
-			allErrors.state = "Please enter a state."
-		} else {
-			setAgencyState(agency["state"])
-		}
-		if (data.city == null && agency["city"] === "") {
-			// Don't display the report, show an error message
-			console.log("city error")
-			allErrors.city = "Please enter a city."
+		// HANDLE CITY ERRORS
+		const handleCityError = (errorMessage) => {
+			allErrors.city = errorMessage
 			if (
 				data.state != null &&
 				City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
@@ -227,33 +227,85 @@ const Profile = ({ customClaims }) => {
 				console.log("No cities here")
 				delete allErrors.city
 			}
+			setErrors(allErrors)
+			console.log(allErrors)
+		}
+		// AGENCY NAME
+		if (agencyName == "") {
+			console.log("No agency name error")
+			allErrors.name = "Please enter an agency name."
+		}
+		// STATE
+		if (!data.state || agency["state"] === "") {
+			console.log(data.state)
+			console.log("state error")
+			allErrors.state = "Please enter a state."
 		} else {
-			data.city == agency["city"]
+			setAgencyState(agency["state"])
 		}
-		// if (agencyLogo == '') {
-		//   console.log('no images');
-		//   allErrors.images = "Please enter an agency image."
-		// }
-		setErrors(allErrors)
-		console.log(allErrors.length + "Error array length")
+		// CITY
+		if (!data.city || agency["city"] === "") {
+			handleCityError("Please enter a city.");
+			if (
+				data.state != null &&
+				City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
+					.length == 0
+			) {
+				console.log("No cities here")
+				delete allErrors.city
+			}
+			setErrors(allErrors)
+			console.log(allErrors)
+		} else if (
+				!data.city ||
+				data.city === null ||
+				data.city === undefined ||
+				agency["city"] === ""
+			) {
+				handleCityError("Please enter a city.");
+				if (
+					data.state != null &&
+					City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
+						.length === 0
+				) {
+					console.log("No cities here")
+					delete allErrors.city
+				}
+				setErrors(allErrors)
+				console.log(allErrors)
+			} else {
+				if (!errors.city && data.city === null) {
+					console.log("No city error")
+					data.city = agency["city"]
+				} else if (errors.city) {
+					// Handle the case where there are errors related to the city
+					console.log("There are city errors:", errors.city)
+				}
+			}
 
-		if (images.length > 0) {
-			setUpdate(!update)
-		}
+		// IMAGE/LOGO
+		// if (images.length > 0) {
+		// 	setUpdate(!update)
+		// }
 		if (Object.keys(allErrors).length == 0) {
 			// handleSubmitClick(e)
+			console.log(update)
+			setUpdate(true)
+			console.log(update, ' no errors')
 			saveAgency(imageURLs)
+			
 		}
 	}
 
-	const handleFormSubmit = async (e) => {
-		e.preventDefault()
-		setUpdate(true)
-		const docRef = doc(db, "agency", agencyId)
-		updateDoc(docRef, {
-			logo: e.target.value,
-		})
-	}
+	// const handleFormSubmit = async (e) => {
+	// 	e.preventDefault()
+	// 	console.log('handleFormSubmit processed')
+	// 	setUpdate(true)
+	// 	const docRef = doc(db, "agency", agencyId)
+	// 	updateDoc(docRef, {
+	// 		logo: e.target.value,
+	// 	})
+	// }
 
 	// LOGOUT
 	const handleLogout = () => {
@@ -261,9 +313,6 @@ const Profile = ({ customClaims }) => {
 			router.push("/login")
 		})
 	}
-
-
-
 
 	useEffect(() => { // Get data once we know if the user is an agency or not
     if (user) {
@@ -322,7 +371,8 @@ const Profile = ({ customClaims }) => {
 		}
 
 		fetchUserRoles()
-	}, [])
+	},[])
+	
 	return (
 		<div className='w-full h-auto'>
 			<div className='z-0 flex-col p-16 pt-10'>
@@ -374,7 +424,7 @@ const Profile = ({ customClaims }) => {
 					</div>
 					<div className='w-full h-auto'>
 						<form
-							onSubmit={handleFormSubmit}
+							// onSubmit={handleFormSubmit}
 							id='agencyDesign'
 							className='flex flex-col'>
 							<div className='mt-4 mb-4 grid gap-4'>
@@ -383,7 +433,7 @@ const Profile = ({ customClaims }) => {
 									<div className='col-span-3'>
 										<input
 											id='agency_name'
-											onChange={handleNameChange}
+											onChange={handleAgencyNameChange}
 											placeholder='Agency name'
 											type='text'
 											className={style.input}
@@ -406,7 +456,7 @@ const Profile = ({ customClaims }) => {
 													? " visible relative"
 													: " hidden absolute"
 											}`}
-											onClick={handleLocationChange}>
+											onClick={handleAgencyLocationChange}>
 											<div
 												className={
 													style.input
@@ -433,7 +483,7 @@ const Profile = ({ customClaims }) => {
 												return options["name"]
 											}}
 											label='state'
-											onChange={handleStateChange}
+											onChange={handleAgencyStateChange}
 										/>
 										{errors.state && data.state === null && (
 											<span className='text-red-500 text-xs col-start-1 col-span-3'>
@@ -462,7 +512,7 @@ const Profile = ({ customClaims }) => {
 											getOptionValue={(options) => {
 												return options["name"]
 											}}
-											onChange={handleCityChange}
+											onChange={handleAgencyCityChange}
 										/>
 										{errors.city && data.city === null && (
 											<span className='text-red-500 text-xs col-span-3 col-start-4'>
@@ -475,7 +525,7 @@ const Profile = ({ customClaims }) => {
 													? " visible block"
 													: " hidden absolute"
 											}`}
-											onClick={handleLocationChange}>
+											onClick={handleAgencyLocationChange}>
 											Cancel
 										</div>
 									</div>
@@ -538,12 +588,17 @@ const Profile = ({ customClaims }) => {
 									)}
 								</div>
 							</div>
-							<button
-								onClick={handleSubmitClick}
-								className={style.button}
-								type='submit'>
-								Update Agency
-							</button>
+							<div className='flex justify-end items-center'>
+								{showUpdateMessage && (
+									<div className='transition-opacity opacity-100'>Agency updated</div>
+								)}
+								<button
+									onClick={handleSubmitClick}
+									className={`${style.button} ml-2`}
+									type='submit'>
+									Update Agency
+								</button>
+							</div>
 						</form>
 					</div>
 				</div>
