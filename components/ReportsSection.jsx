@@ -37,37 +37,8 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	const [readFilter, setReadFilter] = useState("All")
 	const [reportTitle, setReportTitle] = useState('')
   // const [agencyName, setAgencyName] = useState('')
-  const [isAgency, setIsAgency] = useState(false)
-	const { user, verifyRole } = useAuth()
-	const dateOptions = {
-		day: "2-digit",
-		year: "numeric",
-		month: "short",
-		hour: "numeric",
-		minute: "numeric",
-	}
-	// Styles
-	const tableHeading = {
-		default: "px-3 py-1 text-sm font-semibold text-left tracking-wide",
-		default_center: "text-center p-2 text-sm font-semibold tracking-wide",
-		small: ""
-	}
-	const column = {
-		data: "whitespace-normal text-sm px-3 py-1 cursor-pointer",
-		data_center: "whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 cursor-pointer text-center"
-	}
-	const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
-	const linkStyle = "font-light mb-1 text-sm underline underline-offset-1"
-	const label = {
-		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
-		special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl",
-	}
-	const style = {
-		icon: "hover:fill-cyan-700"
-	}
-
-  // Styling for dismiss button after refreshing reports section
-  const active = "rounded-lg bg-blue-600 text-white py-1 px-2 drop-shadow-lg text-sm font-light tracking-wide"
+  const [isAgency, setIsAgency] = useState(null)
+	const { user,verifyRole, customClaims } = useAuth()
 
 	// Report modal states
 	const [report, setReport] = useState('')
@@ -91,58 +62,49 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
   const [reportsUpdated, setReportsUpdated] = useState(false)
   const [refresh, setRefresh] = useState(false)
 	
-  // Handler that is run once user wants to refresh the reports section
-  const handleRefresh = async () => {
-    setRefresh(true)
-    await getData()
-    setReportsUpdated(true)
-    setRefresh(false)
-  }
+	useEffect(() => {
+		if (customClaims.admin) {
+			setIsAgency(false)
+		} else if (customClaims.agency) {
+			setIsAgency(true)
+		}
+	},[])
+	
+	// On page load (mount) or new report submitted, get the reports from firebase
+	useEffect(() => {
+		getData()
+	}, [isAgency, newReportSubmitted])
 
 	const getData = async () => {
-		// // Long (difficult) way
-		// Get the collection of agencies
-		// filter out the agency
-		// Get the current (agency)user's agency name
-		// Filter reports shown in "loadedReports" state to only reports submitted to the user's agency 
-    // let isAgency = false
-    verifyRole().then((result) => {
-      
-      // console.log("Current user information " + result.admin)
-      if (result.admin) {
-				// isAgency = false
-				setIsAgency(false)
-      } else if (result.agency) {
-				// isAgency = true
-				setIsAgency(true)
-      }
-    })
 
-		// // Short way
-		// Get user's 'agency' name 
-		// & only show reports with the 'agency' key that matches
-    let agencyName;
-		const agencyCollection = collection(db,"agency")
-    const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
-    const querySnapshot = await getDocs(q)
-    querySnapshot.forEach((doc) => { // Set initial values
-			// console.log(doc.data())
-      agencyName = doc.data()['name']
-			// console.log(agencyName)
-    
-    })
-      
-    const reportsCollection = collection(db,"reports")
-    let snapshot;
-    // Filters reports for current agency
-    if (isAgency) {
-      const agencyReports = query(reportsCollection, where("agency", "==", agencyName))
-      snapshot = await getDocs(agencyReports)
-    
-    // Displays all reports for admin user
-    } else {
-      snapshot = await getDocs(reportsCollection)
-    }
+		// get reports collection
+		const reportsCollection = collection(db, "reports")
+		let snapshot
+
+		if (isAgency) {
+			let agencyName
+			const agencyCollection = collection(db,"agency")
+			// From agency collection find agency with user's email
+			const q = query(
+				agencyCollection,
+				where("agencyUsers", "array-contains", user["email"])
+			)
+			// Fetch user's 'agency' name. . .
+			const querySnapshot = await getDocs(q)
+			querySnapshot.forEach((doc) => {
+				agencyName = doc.data()["name"]
+			})
+			// & only fetch reports with the user's 'agency' name
+			const agencyReports = query(
+				reportsCollection,
+				where("agency", "==", agencyName)
+			)
+			snapshot = await getDocs(agencyReports)
+
+			// Displays all reports for admin user
+		} else {
+			snapshot = await getDocs(reportsCollection)
+		}
 
 		try {
 			var arr = []
@@ -156,7 +118,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 			setReports(arr)
 			if (readFilter !== "All") {
 				arr = arr.filter((reportObj) => {
-				  return Object.values(reportObj)[0].read.toString() === readFilter
+					return Object.values(reportObj)[0].read.toString() === readFilter
 				})
 			}
 			setFilteredReports(arr)
@@ -183,6 +145,14 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		}
 	}
 
+	  // Handler that is run once user wants to refresh the reports section
+  const handleRefresh = async () => {
+    setRefresh(true)
+    await getData()
+    setReportsUpdated(true)
+    setRefresh(false)
+  }
+	
 	const handleDateChanged = (e) => {
 		e.preventDefault()
 		setReportWeek(e.target.value)
@@ -257,14 +227,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 			)
 		}
 	}, [search])
-
- 
-	// On page load (mount), get the reports from firebase
-	useEffect(() => {
-		// console.log("i am here")
-    // determine if current user is an agency or not
-		getData()
-	}, [newReportSubmitted])
 
 	// Updates the loaded reports whenever a user filters reports based on search.
 	useEffect(() => {
@@ -622,6 +584,36 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	useEffect(() => {
 		getData()
 	}, [update])
+	
+		const dateOptions = {
+		day: "2-digit",
+		year: "numeric",
+		month: "short",
+		hour: "numeric",
+		minute: "numeric",
+	}
+	// Styles
+	const tableHeading = {
+		default: "px-3 py-1 text-sm font-semibold text-left tracking-wide",
+		default_center: "text-center p-2 text-sm font-semibold tracking-wide",
+		small: "",
+	}
+	const column = {
+		data: "whitespace-normal text-sm px-3 py-1 cursor-pointer",
+		data_center: "whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 cursor-pointer text-center"
+	}
+	const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
+	const linkStyle = "font-light mb-1 text-sm underline underline-offset-1"
+	const label = {
+		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
+		special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl",
+	}
+	const style = {
+		icon: "hover:fill-cyan-700"
+	}
+  // Styling for dismiss button after refreshing reports section
+  const active = "rounded-lg bg-blue-600 text-white py-1 px-2 drop-shadow-lg text-sm font-light tracking-wide"
+
 	
 	return (
 		<div className="flex flex-col h-full">
