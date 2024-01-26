@@ -20,7 +20,13 @@ Next, to run the app on the emulator and import the db testing data, in a new te
 firebase emulators:start --import=./emulator-data
 ``` 
 
-emulator should start and provide you an emulator link `View Emulator UI at`. Open that link and add yourself as a user under the Authentication tab. You only need to provide a name, email and password when adding a user. You can also assign a role (reccommended).
+> First to install the firebase tools to run the emulator run `npm install -g firebase-tools`.
+
+emulator should start and provide you an emulator link `View Emulator UI at`. Open that link and add yourself as a user under the Authentication tab. You only need to provide a name, email and password when adding a user. 
+
+You can also assign a role (reccommended):
+- Admin role: `{"role":"admin"}`
+- Agency role: `{"role":"agency"}`
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
