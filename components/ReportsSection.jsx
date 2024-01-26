@@ -75,7 +75,9 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	const [reportModalId, setReportModalId] = useState(false)
 	const [note, setNote] = useState("")
 	const [title, setTitle] = useState('')
-	const [detail, setDetail] = useState()
+	const [detail,setDetail] = useState()
+	const [reportSubmitBy,setReportSubmitBy] = useState('')
+	const [reportRead, setReportRead] = useState(false)
 	const [info, setInfo] = useState({})
 	const [selectedLabel, setSelectedLabel] = useState("")
 	const [activeLabels, setActiveLabels] = useState([])
@@ -328,7 +330,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				read: !report[reportId].read,
 			},
 		}
-		console.log(updatedReport)
 		const reportIndex = reports.findIndex(
 			(report) => Object.keys(report) == reportId
 		)
@@ -346,13 +347,14 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		const reportDoc = doc(db, "reports", reportId)
 		await updateDoc(reportDoc, { read: !report[reportId].read })
 			.then(function () {
-				console.log("Success")
+				// console.log("Success")
 			})
 			.catch(function (error) {
 				console.log("error")
 			})
 	}
 
+	
 	const handleReadFilterChanged = (e) => {
 		console.log(e.target.value + "went into function")
 		if (e.target.value != "All") {
@@ -392,32 +394,136 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 
 	const handleModalShow = async (reportId) => {
 		// get doc
-		const docRef = await getDoc(doc(db, "reports", reportId))
+		const docRef = await getDoc(doc(db,"reports",reportId))
 		setReport(docRef.data())
 		// get note
-		setNote(docRef.data()["note"])
-		setReportTitle(docRef.data()["title"])
-		setDetail(docRef.data()["detail"])
-		setSelectedLabel(docRef.data()["selectedLabel"])
-
-		if (setSelectedLabel(!selectedLabel)) {
-			console.log("changed!!!!!!")
-		}
-
+		setNote(docRef.data().note)
+		setReportTitle(docRef.data().title)
+		setDetail(docRef.data().detail)
+		setSelectedLabel(docRef.data().selectedLabel)
+		setReportRead(docRef.data().read)
 		setInfo(docRef.data())
-		getDoc(doc(db, "mobileUsers", docRef.data()["userID"])).then((mobileRef) =>
+		getDoc(doc(db,"mobileUsers",docRef.data()["userID"]))
+			.then((mobileRef) =>
 			setReporterInfo(mobileRef.data())
 		)
 
 		const tagsRef = await getDoc(doc(db, "tags", userId))
 		setActiveLabels(tagsRef.data()["Labels"]["active"])
 
+		// Get report submission user info
+		// const mobileUserRef = doc(db,"mobileUsers",docRef.data().userID);
+		// const docSnap = await getDoc(mobileUserRef);
+
+		const mUserRef = doc(db, "mobileUsers", docRef.data().userID);
+		const docSnap = await getDoc(mUserRef);
+		
+		if (docSnap.exists()) {
+			setReportSubmitBy(docSnap.data());
+		} else {
+			console.log("No such document!");
+		}
+		
 		// set report id var
 		let reportIdRef = reportId
 		setReportModal(true)
 		setReportModalId(reportIdRef)
 	} // end handleModalShow
 
+	// MODAL
+	// MODAL
+	// MODAL
+	// MODAL
+	// MODAL read switch toggle
+	const handleReadToggledModal = async (reportId) => {
+		// Find the report with the given reportId
+		const reportDocRef = doc(db,"reports",reportId);
+		const docSnap = await getDoc(reportDocRef);
+		if (docSnap.exists() && docSnap.data().read === false) {
+			console.log("Document data:",docSnap.data().read);
+			await updateDoc(reportDocRef, { read: true })
+				.then(() => {
+					setReportRead(true)
+					console.log("Modal read status updated successfully", docSnap.data().read);
+				})
+				.catch((error) => {
+					console.error("Error updating read status: ", error);
+				});
+		} else {
+			// docSnap.data() will be undefined in this case
+			console.log("No such document!");
+		}
+		// await updateDoc(reportDocRef, { read: !read })
+		// 	.then(() => {
+				
+		// 		console.log("Modal read status updated successfully");
+		// 	})
+		// 	.catch((error) => {
+		// 		console.error("Error updating read status: ", error);
+		// 	});
+		// const reportToUpdate = reports.find(report => Object.keys(report)[0] === reportId);
+
+		// // Toggle the read status of the report
+		// const updatedReadStatus = !reportToUpdate[reportId].read;
+
+		// // Update the read status in the local state
+		// const updatedReports = reports.map(report => {
+		// 	if (Object.keys(report)[0] === reportId) {
+		// 		return {
+		// 			[reportId]: {
+		// 				...report[reportId],
+		// 				read: updatedReadStatus
+		// 			}
+		// 		};
+		// 	} else {
+		// 		return report;
+		// 	}
+		// });
+		// setReports(updatedReports);
+
+		// // Update the read status in Firestore
+		// const reportDocRef = doc(db, "reports", reportId);
+		// await updateDoc(reportDocRef, { read: updatedReadStatus })
+		// 	.then(() => {
+		// 		console.log("Read status updated successfully");
+		// 	})
+		// 	.catch((error) => {
+		// 		console.error("Error updating read status: ", error);
+		// 	});
+	};
+	
+	const handleSwitchChange = (id) => {
+		console.log(id)
+    // Toggle the reportRead state
+    setReportRead(!reportRead);
+
+    // Update the read status in the database
+    const reportDocRef = doc(db, "reports", id);
+    updateDoc(reportDocRef, { read: !reportRead })
+        .then(() => {
+            console.log("Read status updated successfully.");
+        })
+        .catch((error) => {
+            console.error("Error updating read status:", error);
+        });
+};
+	
+	useEffect(() => {
+    console.log(reportModalId, reportModal, reportRead);
+    if (reportModal) {
+			if (reportRead === false) {
+				setReportRead(true);
+				const reportDocRef = doc(db,"reports",reportModalId);
+				updateDoc(reportDocRef, { read: true })
+			} else {
+				console.log('already read DUDE!')
+			}
+		}
+		// return setReportRead(!reportRead)
+
+	}, [reportRead, reportModalId, reportModal])
+	
+	
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
 		setReportModal(false)
@@ -683,11 +789,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 										<td className={column.data_center} onClick={(e) => e.stopPropagation()}>
 											<Switch
 												// Set checked to the initial reportRead value (false)
-												checked={report.read}
+												checked={reportRead}
 												// When switch toggled setReportRead
-												onChange={() =>
-													handleReadToggled(Object.keys(reportObj)[0])
-												}
+												// onChange={() =>
+												// 	handleSwitchChange(Object.keys(reportObj)[0])
+												// }
+												// onChange={handleSwitchChange(Object.keys(reportObj)[0])}
+												onChange={() => handleSwitchChange(Object.keys(reportObj)[0])}
 												// On click handler
 												className={`${
 													report.read ? "bg-blue-600" : "bg-gray-200"
@@ -724,9 +832,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 						note={note}
 						detail={detail}
 						info={info}
+						onChangeRead={handleReadToggledModal}
+						setReportRead={setReportRead}
+						reportRead={reportRead}
+						reportSubmitBy={reportSubmitBy}
 						reporterInfo={reporterInfo}
 						setReportModal={setReportModal}
-						setReportModalId={reportModalId}
+						reportModalId={reportModalId}
 						onNoteChange={handleNoteChange}
 						onLabelChange={handleLabelChange}
 						selectedLabel={selectedLabel}

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react'
+// TODO: need to make sure the user who created the report is added to the report: userID
+import React,{ useState,useEffect,useRef } from 'react'
 import { useRouter } from 'next/router'
 import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../context/AuthContext'
@@ -64,6 +65,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             detail: detail,
             createdDate: moment().toDate(),
             isApproved: true,
+            label: '',
             read: false,
             topic: selectedTopic,
             hearFrom: selectedSource

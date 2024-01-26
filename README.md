@@ -14,7 +14,17 @@ npm run dev
 yarn dev
 ```
 
+Next, to run the app on the emulator and import the db testing data, in a new terminal window run 
+
+```bash
+firebase emulators:start --import=./emulator-data
+``` 
+
+emulator should start and provide you an emulator link `View Emulator UI at`. Open that link and add yourself as a user under the Authentication tab. You only need to provide a name, email and password when adding a user. You can also assign a role (reccommended).
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+_Next.js original docs:_
 
 You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
 

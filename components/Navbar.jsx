@@ -15,14 +15,10 @@ import {
   IoMenu
 } from "react-icons/io5";
 import { HiOutlineDocumentPlus } from "react-icons/hi2";
-// import ReactTooltip from "react-tooltip";
 import { Tooltip } from 'react-tooltip'
-import Link from "next/link"
 import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
 import { useAuth } from '../context/AuthContext'
-import { auth } from "../config/firebase"
-
 
 const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
 
@@ -132,14 +128,10 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
         {!showNav &&
           <button
             onClick={() => setShowNav(!showNav)}
-            data-tooltip-id="menu"
-            data-tooltip-content="Menu"
-            data-tooltip-place="top"
-            className="absolute top-8 left-4 z-10 sm:hidden"
+            className="absolute top-8 left-4 z-10 sm:hidden tooltip-menu"
           >
             <IoMenu size={40} />
-            <Tooltip id="menu" />
-            {/* <Tooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
+            <Tooltip anchorSelect='.tooltip-menu' place="bottom" delayShow={500}>Menu</Tooltip>
           </button>
         }
       
@@ -153,82 +145,71 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
                 <div>
                   <button 
                       onClick={() => setShowNav(!showNav)}
-                      data-tip="Collapse menu"
-                      className={basicStyle + " sm:hidden"}>
+                      className={basicStyle + " sm:hidden tooltip-close"}>
                       <IoClose size={30}/>
-                      {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
+                    <Tooltip anchorSelect='.tooltip-close' place='bottom' delayShow={500}>Collapse menu</Tooltip>
                   </button> 
                     {(customClaims.admin || customClaims.agency) &&
                       <button // Home/Reports view
                         onClick={() => setTab(0)}
-                        data-tip="Home"
-                        className={tab == 0 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
+                        className={`${ basicStyle } ${ tab === 0 ? "text-indigo-500 bg-indigo-100" : "" } tooltip-home`}>
                         <IoHomeOutline size={30}/>
-                        {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
+                        <Tooltip anchorSelect='.tooltip-home' place="bottom" delayShow={500}>Home</Tooltip>
                       </button>
                     }
                     {customClaims.admin &&
                       <button // Agencies
-                          onClick={() => setTab(4)}
-                          data-tip="Agencies"
-                          className={tab == 4 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
-                          <IoBusinessOutline size={30}/>
-                          {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
+                        onClick={() => setTab(4)}
+                        className={`${ basicStyle } ${ tab === 4 ? "text-indigo-500 bg-indigo-100" : "" } tooltip-agencies`}>
+                        <IoBusinessOutline size={30}/>
+                        <Tooltip anchorSelect='.tooltip-agencies' place="bottom" delayShow={500}>Agencies</Tooltip>
                       </button>
                     }
                     {(customClaims.agency ||customClaims.admin) &&
                       <button // Tags
-                          onClick={() => setTab(2)}
-                          data-tip="Tagging Systems"
-                          className={tab == 2 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
-                          <IoPricetagsOutline size={30}/>
-                          {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
+                        onClick={() => setTab(2)}
+                        className={`${ basicStyle } ${ tab === 2 ? " text-indigo-500 bg-indigo-100" : "" } tooltip-tags`}>
+                        <IoPricetagsOutline size={30}/>
+                        <Tooltip anchorSelect='.tooltip-tags' place="bottom" delayShow={500}>Tagging Systems</Tooltip>
                       </button>
                     }
                     {customClaims.agency && // if admin user or agency user show the add report & users icons
                       <button //  Agency user create report
                           onClick={handleNewReportModal}
-                          data-tip="New Report"
-                          className={basicStyle}>
+                          className={`${basicStyle} tooltip-new-report`}>
                           <IoAddCircleOutline size={30}/>
-                          {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
+                          <Tooltip anchorSelect='.tooltip-new-report' place="bottom" delayShow={500}>New Report</Tooltip>
                       </button>
                     } 
                     { (customClaims.admin || customClaims.agency) &&
                       <button // Users
-                          onClick={() => setTab(3)}
-                          data-tip="Users"
-                          className={basicStyle}>
-                          <IoPeopleOutline size={30}/>
-                          {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
+                        onClick={() => setTab(3)}
+                        className={`${ basicStyle } ${ tab === 3 ? " text-indigo-500 bg-indigo-100" : "" } tooltip-users`}>
+                        <IoPeopleOutline size={30}/>
+                        <Tooltip anchorSelect='.tooltip-users' place="bottom" delayShow={500}>Users</Tooltip>
                       </button>
                     }
                     { (!customClaims.admin && !customClaims.agency) &&
                       <button // General User create report
                           onClick={onReportTabClick}
-                          data-tip="Create Report"
                           className={basicStyle}>
                           <HiOutlineDocumentPlus size={30}/>
-                          {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
+                          <Tooltip anchorSelect='.tooltip-create-report' place="bottom" delayShow={500}>Create Report</Tooltip>
                       </button>
                     }
                 </div>
                 <div>
                     <button
-                        onClick={() => setTab(1)}
-                        data-tip="Profile"
-                        className={tab == 1 ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
-                        <IoPersonOutline size={30}/>
-                        {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
+                      onClick={() => setTab(1)}
+                      className={`${ basicStyle } ${ tab === 1 ? " text-indigo-500 bg-indigo-100" : "" } tooltip-profile`}>
+                      <IoPersonOutline size={30}/>
+                      <Tooltip anchorSelect='.tooltip-profile' place="bottom" delayShow={500}>Profile</Tooltip>
                     </button>
                     {(customClaims.admin || customClaims.agency) && <button
                         onClick={()=>setHelpModal(true)}
-                        data-tip="Help"
-                        className={helpModal ? basicStyle + " text-indigo-500 bg-indigo-100" : basicStyle}>
-
+                        className={`${ basicStyle } tooltip-help`}>
                         <IoHelpCircleOutline size={30}/>
-                        {/* <ReactTooltip place="bottom" type="light" effect="solid" delayShow={500} /> */}
-
+                        <Tooltip anchorSelect='.tooltip-help' place="bottom" delayShow={500}>Help</Tooltip>
                     </button>}
                 </div>
             </div>

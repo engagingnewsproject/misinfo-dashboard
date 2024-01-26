@@ -34,3 +34,8 @@ yarn-error.log*
 .env
 Brewfile
 .vscode/settings.json
+
+# firebase
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
