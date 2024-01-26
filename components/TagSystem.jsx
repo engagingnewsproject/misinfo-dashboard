@@ -6,7 +6,7 @@ import ConfirmModal from './modals/ConfirmModal'
 import { IoMdArrowRoundBack } from 'react-icons/io'
 import { AiOutlineSearch } from 'react-icons/ai'
 import { FaPlus } from 'react-icons/fa'
-import { GoPrimitiveDot } from 'react-icons/go'
+import { GoDotFill } from 'react-icons/go'
 import { MdModeEditOutline } from 'react-icons/md'
 import { TiDelete } from 'react-icons/ti'
 import { IoIosRadioButtonOn } from 'react-icons/io'
@@ -148,6 +148,9 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
     useEffect(() => {
         setSearch(selected)
     }, [selected])
+useEffect(() => {
+  console.log(customClaims)
+}, [])
 
     return (
         <div className="z-0 flex flex-col p-4 sm:p-16 h-full" onClick={(e) => {
@@ -253,16 +256,16 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                                 !customClaims.admin ?
                                     !item.includes('Other/Otro') ?
                                         <div onClick={() => setSelected(item)} className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center" key={item}>
-                                            <GoPrimitiveDot size={25} className="text-green-600"/>
+                                            <GoDotFill size={25} className="text-green-600"/>
                                             <div className="pl-2">{item}</div>
                                         </div> :
                                         <div className="text-md font-light my-5 leading-normal flex items-center justify-center" key={`other`}>
-                                            <GoPrimitiveDot size={25} className="text-gray-400"/>
+                                            <GoDotFill size={25} className="text-gray-400"/>
                                             <div className="pl-2">{`Other*`}</div>
                                         </div>
                                     :
                                     <div className="text-md font-light my-5 leading-normal flex items-center justify-center" key={item}>
-                                        <GoPrimitiveDot size={25} className="text-green-600"/>
+                                        <GoDotFill size={25} className="text-green-600"/>
                                         <div className="pl-2">{item}</div>
                                     </div>
                                 )
@@ -278,16 +281,17 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                         {list.map((item) => {
                             const normStyles = "text-md font-light p-2 my-3 md:mx-2 cursor-pointer leading-normal flex items-center justify-center"
                             const selectedStyles = normStyles + " bg-blue-600 text-white rounded-lg"
+                            const randomKey = self.crypto.randomUUID(); // Generate random UUID
                             return (
                                 !customClaims.admin ?
                                     !item.includes('Other/Otro') &&
-                                    <div onClick={() => setSelected(item)} className={selected == item ? selectedStyles : normStyles} key={item}>
-                                        { active.includes(item) && <GoPrimitiveDot size={25} className="text-green-600"/> }
+                                    <div onClick={() => setSelected(item)} className={selected == item ? selectedStyles : normStyles} key={randomKey}>
+                                        { active.includes(item) && <GoDotFill size={25} className="text-green-600"/> }
                                         <div className="pl-2">{item}</div>
                                     </div>
                                 :
-                                <div className={`text-md font-light p-2 my-3 md:mx-2 leading-normal flex items-center justify-center`} key={item}>
-                                    { active.includes(item) && <GoPrimitiveDot size={25} className="text-green-600"/> }
+                                <div className={`text-md font-light p-2 my-3 md:mx-2 leading-normal flex items-center justify-center`} key={randomKey}>
+                                    { active.includes(item) && <GoDotFill size={25} className="text-green-600"/> }
                                     <div className="pl-2">{item}</div>
                                 </div>
                             )
