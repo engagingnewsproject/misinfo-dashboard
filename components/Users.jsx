@@ -28,6 +28,7 @@ const Users = () => {
 		addUserRole,
 		customClaims,
 		setCustomClaims,
+		getUser
 	} = useAuth()
 
 	// State variables for managing user data
@@ -36,6 +37,7 @@ const Users = () => {
 	const [endIndex, setEndIndex] = useState(0)
 	const [deleteModal, setDeleteModal] = useState(false)
 	const [userEditing, setUserEditing] = useState([])
+	const [userEditingAuthData, setUserEditingAuthData] = useState([])
 	const [name, setName] = useState("")
 	const [email, setEmail] = useState("")
 	const [agencyUserAgency, setAgencyUserAgency] = useState("")
@@ -189,10 +191,56 @@ const Users = () => {
 			})
 	}
 
+	// NEW FUNCTION
+	// Example of calling getUser Cloud Function to retrieve user data by email
+const getUserData = async (email) => {
+  // console.log(email); // Ensure you're getting the correct email
+  try {
+    const response = await getUser({ email }); // Pass the email directly
+		const userData = response.data;
+    const idToken = userData.idToken; // Access the ID token from the response
+		console.log('ID Token:',idToken)
+		return userData
+  } catch (error) {
+    return console.error('Error fetching user data:', error);
+  }
+}
+
 	// Function to handle opening and setting values in the EditUserModal
 	const handleEditUser = async (userObj,userId) => {
 		setUserId(userId)
 		const userRef = await getDoc(doc(db,"mobileUsers",userId))
+		// get edit user data
+		// console.log(userRef.data())
+		setUserEditingAuthData(getUserData(userRef.data()["email"]))
+		// const userEditingData = getUserData(userRef.data()["email"])
+		// TODO: the below need to match!
+		console.log(auth.currentUser)
+		console.log(userEditingAuthData)
+
+		// auth.currentUser.getIdTokenResult()
+		// 	.then((idTokenResult) => {
+		// 	console.log(idTokenResult)
+		// 	// Confirm the user is an Admin.
+		// 	if (!!idTokenResult.claims.admin) {
+		// 		// Change the selected user's privileges as requested
+    //     console.log('if !!idTokenResult.claims.admin true')
+		// 		if (userRole === "Admin") {
+		// 			console.log('admin user--> ', addAdminRole({ email: user.email }))
+		// 		} else if (userRole === "Agency") {
+		// 			console.log('agency user--> ', addAgencyRole({ email: user.email }))
+		// 		} else if (userRole === "User") {
+		// 			console.log('general user--> ', addUserRole({ email: user.email }))
+		// 		}
+		// 		setUserRole(userRole)
+		// 	}
+		// })
+		// .catch((error) => {
+		// 	console.log(error);
+		// });
+		// USER ROLE
+		// USER ROLE
+
 		setUserEditing(userObj)
 		setName(userRef.data()["name"])
 		setEmail(userRef.data()["email"])
