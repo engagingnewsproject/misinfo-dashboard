@@ -98,33 +98,72 @@ exports.viewRole = functions.https.onCall((data,context) => {
 })
 
 // get another user data by uid
-exports.getUser = functions.https.onCall((data,context) => {
+// exports.getUser = functions.https.onCall(async (data,context) => {
+//   try {
+//     // Check if the request is authorized (if needed)
+//     // if (!context.auth) {
+//     //   return { error: 'Unauthorized' };
+//     // }
+//     const email = data.email; // Extract email from data object
+//     const userRecord = await admin.auth().getUserByEmail(email);
+//     console.log('User Record:', userRecord);
+//     const customToken = await admin.auth().createCustomToken(userRecord.uid)
+//       .then((response) => {
+//         // Extract relevant user data
+//         console.log(`Successfully fetched user data: ${userRecord}`);
+//         const userData = {
+//           displayName: response.displayName,
+//           email: response.email,
+//           uid: response.uid,
+//           idToken: customToken // Include the generated ID token in the response
+//           // Add other fields as needed
+//         }
+//         return userData
+//       })
+//     return userRecord
+//   } catch (error) {
+//     console.error('Error fetching user data:',error)
+
+//     // If user does not exist
+//     if (error.code === 'auth/user-not-found') {
+//       return {}
+//     }
+
+//     // Throw the error for other cases
+//     throw error
+//   }
+// })
+
+// new
+exports.getUser = functions.https.onCall(async (data, context) => {
   try {
     // Check if the request is authorized (if needed)
     // if (!context.auth) {
     //   return { error: 'Unauthorized' };
     // }
-    const userRecord = admin.auth().getUserByEmail(data)
-      .then((response) => {
-        // Extract relevant user data
-        const userData = {
-          displayName: response.displayName,
-          email: response.email,
-          uid: response.uid
-          // Add other fields as needed
-        }
-        return userData
-      })
-    return userRecord
+    const email = data.email; // Extract email from data object
+    const userRecord = await admin.auth().getUserByEmail(email);
+    console.log('User Record:', userRecord);
+    const customToken = await admin.auth().createCustomToken(userRecord.uid);
+    // Generate ID token for the user
+    console.log(`Successfully fetched user data: ${userRecord}`);
+    const userData = {
+      displayName: userRecord.displayName,
+      email: userRecord.email,
+      uid: userRecord.uid,
+      idToken: customToken // Include the generated custom token in the response
+      // Add other fields as needed
+    };
+    return userData;
   } catch (error) {
-    console.error('Error fetching user data:',error)
+    console.error('Error fetching user data:', error);
 
     // If user does not exist
     if (error.code === 'auth/user-not-found') {
-      return {}
+      return {};
     }
 
     // Throw the error for other cases
-    throw error
+    throw error;
   }
-})
+});
