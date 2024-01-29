@@ -75,10 +75,10 @@ const Dashboard = () => {
             setCustomClaims({ admin: true })
           }
           // Confirm the user is an Admin.
-        } else if (idTokenResult.claims.role === "Admin") {
+        } else if (idTokenResult.claims.admin) {
           console.log('ADMIN USER')
            setCustomClaims({admin: true})
-        } else if (idTokenResult.claims.role === 'Agency') {
+        } else if (idTokenResult.claims.agency) {
           console.log('AGENCY USER')
            setCustomClaims({agency: true})
         } else {

@@ -47,9 +47,13 @@ const ReportLanding = ({
 		console.log(customClaims)
 		auth.currentUser.getIdTokenResult()
 			.then((idTokenResult) => {
-				if (idTokenResult.claims.role) {
-					console.log(`ROLE: ${idTokenResult.claims.role}`)
-				} 
+				if (idTokenResult.claims.admin) {
+					console.log(`ROLE: ${idTokenResult.claims.admin}`)
+				} else if (idTokenResult.claims.agency) {
+					console.log(`ROLE: ${idTokenResult.claims.agency}`)
+				} else {
+					console.log(`genUser ROLE: ${idTokenResult.claims}`)
+				}
 			})
 	}
 	return (
