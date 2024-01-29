@@ -27,6 +27,7 @@ exports.addUserRole = functions.https.onCall((data,context) => {
 // Adds admin privilege to user based on the email provided
 exports.addAdminRole = functions.https.onCall((data,context) => {
   // get user and add custom claim to user
+  console.log(data)
   return admin.auth().getUserByEmail(data.email).then(user => {
 
     // Once user object is retrieved, updates custom claim
@@ -98,7 +99,7 @@ exports.viewRole = functions.https.onCall((data,context) => {
 })
 
 // get another user data by uid
-// exports.getUser = functions.https.onCall(async (data,context) => {
+// exports.getUserByEmail = functions.https.onCall(async (data,context) => {
 //   try {
 //     // Check if the request is authorized (if needed)
 //     // if (!context.auth) {
@@ -135,7 +136,7 @@ exports.viewRole = functions.https.onCall((data,context) => {
 // })
 
 // new
-exports.getUser = functions.https.onCall(async (data, context) => {
+exports.getUserByEmail = functions.https.onCall(async (data, context) => {
   try {
     // Check if the request is authorized (if needed)
     // if (!context.auth) {
@@ -143,18 +144,20 @@ exports.getUser = functions.https.onCall(async (data, context) => {
     // }
     const email = data.email; // Extract email from data object
     const userRecord = await admin.auth().getUserByEmail(email);
-    console.log('User Record:', userRecord);
-    const customToken = await admin.auth().createCustomToken(userRecord.uid);
-    // Generate ID token for the user
-    console.log(`Successfully fetched user data: ${userRecord}`);
-    const userData = {
-      displayName: userRecord.displayName,
-      email: userRecord.email,
-      uid: userRecord.uid,
-      idToken: customToken // Include the generated custom token in the response
-      // Add other fields as needed
-    };
-    return userData;
+    console.log('User Record:',userRecord);
+    return userRecord
+    // const customToken = await admin.auth().createCustomToken(userRecord.uid);
+    // // Generate ID token for the user
+    // console.log(`Successfully fetched user data: ${ userRecord }`);
+    // console.log(`custom cliams--> ${userRecord.customClaims['admin']}`);
+    // const userData = {
+    //   displayName: userRecord.displayName,
+    //   email: userRecord.email,
+    //   uid: userRecord.uid,
+    //   idToken: customToken // Include the generated custom token in the response
+    //   // Add other fields as needed
+    // };
+    // return userData;
   } catch (error) {
     console.error('Error fetching user data:', error);
 
@@ -165,5 +168,25 @@ exports.getUser = functions.https.onCall(async (data, context) => {
 
     // Throw the error for other cases
     throw error;
+  }
+});
+
+exports.changeUserRole = functions.https.onCall(async (data, context) => {
+  // Check if the request is coming from an authenticated user with admin privileges
+  console.log(data)
+  if (!context.auth || !context.auth.token.admin) {
+    throw new functions.https.HttpsError('permission-denied', 'Only admins can change user roles.');
+  }
+
+  const { uid, newRole } = data;
+
+  try {
+    // Set custom claims to update the user's role
+    await admin.auth().setCustomUserClaims(uid, { role: newRole });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error changing user role:', error);
+    throw new functions.https.HttpsError('internal', 'Failed to change user role.');
   }
 });
