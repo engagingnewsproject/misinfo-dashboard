@@ -35,8 +35,8 @@ const Login = () => {
           auth.currentUser.getIdTokenResult()
           .then((idTokenResult) => {
               // if admin load the dashboard
-              // console.log("here")
-              if (!!idTokenResult.claims.admin || !!idTokenResult.claims.agency) {
+              console.log(`${idTokenResult.claims.role}`)
+              if (idTokenResult.claims.role === 'Admin' || idTokenResult.claims.role === 'Agency') {
                 setLoading(true)
                 void router.push('/dashboard')
                 // otherwise load the report page
