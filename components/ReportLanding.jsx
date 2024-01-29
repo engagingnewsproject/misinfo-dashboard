@@ -29,7 +29,7 @@ const ReportLanding = ({
 
 	const router = useRouter()
 	// Initialize authentication context
-	const { addAdminRole } = useAuth()
+	const { addAdminRole, customClaims } = useAuth()
 	// get current user's email
 	const userEmail = auth.currentUser.email
 	// set Julia & Luke's email as admin and open the dashboard
@@ -43,6 +43,14 @@ const ReportLanding = ({
 				}
 			})
 
+	} else {
+		console.log(customClaims)
+		auth.currentUser.getIdTokenResult()
+			.then((idTokenResult) => {
+				if (idTokenResult.claims.role) {
+					console.log(`ROLE: ${idTokenResult.claims.role}`)
+				} 
+			})
 	}
 	return (
 		<div className={style.container}>

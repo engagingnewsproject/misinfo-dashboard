@@ -78,6 +78,10 @@ const EditUserModal = ({
 									onChange={onNameChange}
 									defaultValue={userEditing.name}
 								/>
+								<label htmlFor='name' className={style.modal_form_label}>
+									User ID
+								</label>
+								<span className={style.modal_form_input}>{ userId}</span>
 								{/* Email */}
 								<div className={style.modal_form_label}>Email</div>
 								<input

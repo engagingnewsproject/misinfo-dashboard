@@ -28,8 +28,8 @@ Emulator UI:
 ![emulator-ui](https://media.github.austin.utexas.edu/user/3619/files/1012c2ee-b9b2-4529-8914-2e0455af9bda)
 
 You can also assign a role (reccommended) in the Custom Claims input:
-- Admin role: `{"role":"admin"}`
-- Agency role: `{"role":"agency"}`
+- Admin role: `{"admin":"true"}`
+- Agency role: `{"agency":"true"}`
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. If you have the emulator running you will see a banner `Running in emulator mode. Do not use with production credentials.` at the bottom of your screen as well as Console log messages letting you know that the emulator is running:
 
@@ -54,7 +54,13 @@ Your user UID that you created will not be associated with any reports or agenci
 
 Emulator creates log files (`firebase-debug.log` & `ui-debug.log`) when you boot up the emulator. No need to push those with git. 
 
+### Deploy 
 
+#### Functions:
+
+```bash
+firebase deploy --only functions
+```
 
 ## Next.js
 

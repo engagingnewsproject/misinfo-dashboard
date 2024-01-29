@@ -28,7 +28,9 @@ const Users = () => {
 		addUserRole,
 		customClaims,
 		setCustomClaims,
-		getUser
+		getUserByEmail,
+		changeUserRole,
+		viewRole
 	} = useAuth()
 
 	// State variables for managing user data
@@ -192,16 +194,15 @@ const Users = () => {
 	}
 
 	// NEW FUNCTION
-	// Example of calling getUser Cloud Function to retrieve user data by email
+	// Example of calling getUserByEmail Cloud Function to retrieve user data by email
 const getUserData = async (email) => {
   // console.log(email); // Ensure you're getting the correct email
   try {
-    const response = await getUser({ email }); // Pass the email directly
-		const userData = response.data;
-    const idToken = userData.idToken; // Access the ID token from the response
-		console.log('ID Token:',idToken)
-		return userData
-  } catch (error) {
+		const response = await getUserByEmail({ email }) // Pass the email directly
+		console.log(response.data)
+		const user = response.data
+		return user
+	} catch (error) {
     return console.error('Error fetching user data:', error);
   }
 }
@@ -210,43 +211,18 @@ const getUserData = async (email) => {
 	const handleEditUser = async (userObj,userId) => {
 		setUserId(userId)
 		const userRef = await getDoc(doc(db,"mobileUsers",userId))
-		// get edit user data
-		// console.log(userRef.data())
-		setUserEditingAuthData(getUserData(userRef.data()["email"]))
-		// const userEditingData = getUserData(userRef.data()["email"])
-		// TODO: the below need to match!
-		console.log(auth.currentUser)
-		console.log(userEditingAuthData)
-
-		// auth.currentUser.getIdTokenResult()
-		// 	.then((idTokenResult) => {
-		// 	console.log(idTokenResult)
-		// 	// Confirm the user is an Admin.
-		// 	if (!!idTokenResult.claims.admin) {
-		// 		// Change the selected user's privileges as requested
-    //     console.log('if !!idTokenResult.claims.admin true')
-		// 		if (userRole === "Admin") {
-		// 			console.log('admin user--> ', addAdminRole({ email: user.email }))
-		// 		} else if (userRole === "Agency") {
-		// 			console.log('agency user--> ', addAgencyRole({ email: user.email }))
-		// 		} else if (userRole === "User") {
-		// 			console.log('general user--> ', addUserRole({ email: user.email }))
-		// 		}
-		// 		setUserRole(userRole)
-		// 	}
-		// })
-		// .catch((error) => {
-		// 	console.log(error);
-		// });
-		// USER ROLE
-		// USER ROLE
-
-		setUserEditing(userObj)
-		setName(userRef.data()["name"])
-		setEmail(userRef.data()["email"])
-		setBanned(userRef.data()["isBanned"])
-		setUserRole(userRef.data()["userRole"])
-		setUserEditModal(true)
+    try {
+        const user = getUserData(userRef.data()["email"]);
+        setUserEditing(userObj);
+        setName(userRef.data()["name"]);
+        setEmail(userRef.data()["email"]);
+        setBanned(userRef.data()["isBanned"]);
+        setUserRole(userRef.data()["userRole"]);
+        setUserEditModal(true);
+    } catch (error) {
+        console.error('Error fetching user editing data:', error);
+        // Handle error if needed
+    }
 	}
 
 	// Function to handle name change
@@ -281,6 +257,13 @@ const getUserData = async (email) => {
 			isBanned: banned,
 			userRole: userRole,
 		})
+					// Update the user role using the Cloud Function
+			try {
+				await changeUserRole({ uid: userId, newRole: userRole });
+				console.log("User role updated successfully.");
+			} catch (error) {
+				console.error("Error updating user role:", error);
+			}
 		// Update the loadedMobileUsers state after successful update
 		setLoadedMobileUsers((prevUsers) =>
 			prevUsers.map((userObj) =>
@@ -304,6 +287,7 @@ const getUserData = async (email) => {
 	// Data fetch on update
 	useEffect(() => {
 		getData()
+		console.log(`user role: ${userRole}`)
 	}, [update])
 
 	return (
