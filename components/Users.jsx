@@ -212,7 +212,7 @@ const getUserData = async (email) => {
 		setUserId(userId)
 		const userRef = await getDoc(doc(db,"mobileUsers",userId))
     try {
-        const user = getUserData(userRef.data()["email"]);
+				const user = getUserData(userRef.data()["email"]);
         setUserEditing(userObj);
         setName(userRef.data()["name"]);
         setEmail(userRef.data()["email"]);
@@ -258,8 +258,8 @@ const getUserData = async (email) => {
 			userRole: userRole,
 		})
 					// Update the user role using the Cloud Function
-			try {
-				await changeUserRole({ uid: userId, newRole: userRole });
+		try {
+			// await changeUserRole({ uid: userId, newRole: userRole });
 				console.log("User role updated successfully.");
 			} catch (error) {
 				console.error("Error updating user role:", error);
