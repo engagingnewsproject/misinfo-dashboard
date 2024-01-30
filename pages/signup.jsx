@@ -69,7 +69,7 @@ const SignUp = () => {
                 // Sees if agency already exists -if it does, adds user to the agency's user list
                   signInWithEmailLink(auth, data.email, window.location.href).then((result) =>{
                     const promise2 = addAgencyRole({email: data.email});
-                  
+
                     // console.log(result.user.email)
                     // console.log("current user " + auth.currentUser)
                     const promise1 = auth.updateCurrentUser(result.user)
@@ -111,26 +111,19 @@ const SignUp = () => {
                   });
                 
               } else {
-
-                signup(data.teamName, data.email, data.password).then((userCredential) => {
-                  createUserWithEmailAndPassword(auth, data.email, data.password).then((userCredential) => {
-                    verifyEmail(userCredential.user).then((verified) => {
-                      if (verified) {
-                        setSignUpError("");
-                        router.push('/dashboard');
-                      } else {
-                        router.push('/verifyEmail');
-                      }
-                    });
-                  });
-                }).catch((error) => {
-                  if (error.code === "auth/email-already-in-use") {
-                    setSignUpError("The entered email is already in use.");
-                  } else {
-                    setSignUpError(error.message);
-                  }
-                  console.error(error);
-                });
+                signup(data.teamName, data.email, data.password)
+									.then((userCredential) => {
+										setSignUpError("")
+										router.push('/dashboard');
+									})
+									.catch((error) => {
+										if (error.code === "auth/email-already-in-use") {
+											setSignUpError("The entered email is already in use.")
+										} else {
+											setSignUpError(error.message)
+										}
+										console.error(error)
+									})
 
 
               }
