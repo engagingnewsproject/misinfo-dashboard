@@ -39,7 +39,7 @@ const Users = () => {
 	const [endIndex, setEndIndex] = useState(0)
 	const [deleteModal, setDeleteModal] = useState(false)
 	const [userEditing, setUserEditing] = useState([])
-	const [userEditingAuthData, setUserEditingAuthData] = useState([])
+	const [userEditingClaims, setUserEditingClaims] = useState([])
 	const [name, setName] = useState("")
 	const [email, setEmail] = useState("")
 	const [agencyUserAgency, setAgencyUserAgency] = useState("")
@@ -199,26 +199,67 @@ const getUserData = async (email) => {
   // console.log(email); // Ensure you're getting the correct email
   try {
 		const response = await getUserByEmail({ email }) // Pass the email directly
-		console.log(response.data)
-		const user = response.data
+		const user = response
 		return user
 	} catch (error) {
     return console.error('Error fetching user data:', error);
   }
 }
+	
+	// Inside your component or function
+const getUserRole = async (user) => {
+  try {
+		// Call the viewRole function with the user's ID
+		const userUID = user.uid
+		// console.log(user)
+    const role = await viewRole({ id: userUID });
+    return role;
+  } catch (error) {
+    console.error('Error retrieving user role:', error);
+    return null;
+  }
+}
+	
+	const updateUserRole = async (role) => {
+    try {
+        // Call the changeUserRole function on the server-side
+        const response = await changeUserRole({ uid: userEditingUID, newRole: role });
+
+        // Handle success response
+        console.log("User role updated successfully:", response);
+
+        // Optionally, update the local state or perform any other actions
+    } catch (error) {
+        // Handle error
+        console.error("Error updating user role:", error);
+    }
+};
 
 	// Function to handle opening and setting values in the EditUserModal
 	const handleEditUser = async (userObj,userId) => {
 		setUserId(userId)
 		const userRef = await getDoc(doc(db,"mobileUsers",userId))
-    try {
-				const user = getUserData(userRef.data()["email"]);
-        setUserEditing(userObj);
-        setName(userRef.data()["name"]);
-        setEmail(userRef.data()["email"]);
-        setBanned(userRef.data()["isBanned"]);
-        setUserRole(userRef.data()["userRole"]);
-        setUserEditModal(true);
+		try {
+			const user = await getUserData(userRef.data()["email"]);
+			const customClaims = user.data.customClaims;
+			console.log(customClaims)
+        setUserEditingClaims(customClaims);
+
+        // Check the custom claims and set the userRole accordingly
+			// let userRole = "user" // Default role
+      //   if (customClaims.admin) {
+      //       userRole = "admin";
+      //   } else if (customClaims.agency) {
+      //       userRole = "agency";
+			// 	} else {
+			// 		userRole = 'user'
+			// 	}
+			setUserEditing(userObj);
+			setName(userRef.data()["name"]);
+			setEmail(userRef.data()["email"]);
+			setBanned(userRef.data()["isBanned"]);
+			setUserRole(userRole); // Set userRole based on custom claims
+			setUserEditModal(true);
     } catch (error) {
         console.error('Error fetching user editing data:', error);
         // Handle error if needed
@@ -248,47 +289,61 @@ const getUserData = async (email) => {
 	}
 
 	// Function to handle form submission (updating user data)
-	const handleFormSubmit = async (e) => {
-		e.preventDefault()
-		const docRef = doc(db, "mobileUsers", userId);
-		await updateDoc(docRef,{
-			name: name,
-			email: email,
-			isBanned: banned,
-			userRole: userRole,
-		})
-					// Update the user role using the Cloud Function
-		try {
-			// await changeUserRole({ uid: userId, newRole: userRole });
-				console.log("User role updated successfully.");
-			} catch (error) {
-				console.error("Error updating user role:", error);
-			}
-		// Update the loadedMobileUsers state after successful update
-		setLoadedMobileUsers((prevUsers) =>
-			prevUsers.map((userObj) =>
-				userObj.id === userId
-					? {
-						id: userId,
-						data: {
-							...userObj.data,
-							name: name,
-							email: email,
-							isBanned: banned,
-							userRole: userRole,
-						},
-					}
-					: userObj
-			)
-		);
-		setUserEditModal(false)
-	}
+const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    const docRef = doc(db, "mobileUsers", userId);
+    try {
+        // Update user data in Firestore
+        await updateDoc(docRef, {
+            name: name,
+            email: email,
+            isBanned: banned,
+            userRole: userRole,
+        });
+
+        // Update the user's role using the Cloud Function
+        await updateUserRole(userRole);
+
+        // Update the loadedMobileUsers state after successful update
+        setLoadedMobileUsers((prevUsers) =>
+            prevUsers.map((userObj) =>
+                userObj.id === userId
+                    ? {
+                          id: userId,
+                          data: {
+                              ...userObj.data,
+                              name: name,
+                              email: email,
+                              isBanned: banned,
+                              userRole: userRole,
+                          },
+                      }
+                    : userObj
+            )
+        );
+
+        // Close the modal
+        setUserEditModal(false);
+
+        console.log("User data and role updated successfully.");
+    } catch (error) {
+        console.error("Error updating user data and role:", error);
+        // Handle error if needed
+    }
+};
+
 
 	// Data fetch on update
 	useEffect(() => {
 		getData()
-		console.log(`user role: ${userRole}`)
-	}, [update])
+		// console.log(`user claims: ${userEditingClaims}`)
+	},[update])
+	
+	// TESTING
+	useEffect(() => {
+		console.log("EFFECT: user claims:",JSON.stringify(userEditingClaims));
+		console.log(`EFFECT: ${userRole}`)
+	}, [userEditModal])
 
 	return (
 		<div className='w-full h-full flex flex-col py-5'>

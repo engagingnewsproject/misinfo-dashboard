@@ -172,21 +172,32 @@ exports.getUserByEmail = functions.https.onCall(async (data, context) => {
 });
 
 exports.changeUserRole = functions.https.onCall(async (data, context) => {
-  // Check if the request is coming from an authenticated user with admin privileges
+    // Check if the request is coming from an authenticated user with admin privileges
+    if (!context.auth || !context.auth.token.admin) {
+        throw new functions.https.HttpsError('permission-denied', 'Only admins can change user roles.');
+    }
   console.log(data)
-  if (!context.auth || !context.auth.token.admin) {
-    throw new functions.https.HttpsError('permission-denied', 'Only admins can change user roles.');
-  }
+    const { uid, newRole } = data;
 
-  const { uid, newRole } = data;
+    try {
+        let customClaims = {};
 
-  try {
-    // Set custom claims to update the user's role
-    await admin.auth().setCustomUserClaims(uid, { role: newRole });
+        // Set custom claims based on the new role
+        if (newRole === 'admin') {
+            customClaims = { admin: true, agency: false };
+        } else if (newRole === 'agency') {
+            customClaims = { admin: false, agency: true };
+        } else {
+            // For roles other than admin or agency, set both claims to false
+            customClaims = { admin: false, agency: false };
+        }
 
-    return { success: true };
-  } catch (error) {
-    console.error('Error changing user role:', error);
-    throw new functions.https.HttpsError('internal', 'Failed to change user role.');
-  }
+        // Set custom claims to update the user's role
+        await admin.auth().setCustomUserClaims(uid, customClaims);
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error changing user role:', error);
+        throw new functions.https.HttpsError('internal', 'Failed to change user role.');
+    }
 });
