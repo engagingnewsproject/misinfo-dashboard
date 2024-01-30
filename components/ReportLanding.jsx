@@ -29,33 +29,25 @@ const ReportLanding = ({
 
 	const router = useRouter()
 	// Initialize authentication context
-	const { addAdminRole, customClaims } = useAuth()
+	const { setCustomClaims } = useAuth()
 	// get current user's email
 	const userEmail = auth.currentUser.email
-	// set Julia & Luke's email as admin and open the dashboard
-	// This is a backup so we don't get locked out of custom claims.
-	if (userEmail === 'luke@lukecarlhartman.com' || userEmail === 'juliaelias@utexas.edu') {
+	useEffect(()=> {
+		// TODO: debugging callback function to verify user role before displaying dashboard view
 		auth.currentUser.getIdTokenResult()
 			.then((idTokenResult) => {
-				if (!idTokenResult.claims.admin) {
-					console.log(addAdminRole({ email: userEmail }))
-					void router.push('/dashboard')
-				}
-			})
-
-	} else {
-		console.log(customClaims)
-		auth.currentUser.getIdTokenResult()
-			.then((idTokenResult) => {
-				if (idTokenResult.claims.admin) {
-					console.log(`ROLE: ${idTokenResult.claims.admin}`)
-				} else if (idTokenResult.claims.agency) {
-					console.log(`ROLE: ${idTokenResult.claims.agency}`)
-				} else {
-					console.log(`genUser ROLE: ${idTokenResult.claims}`)
-				}
-			})
-	}
+			if (idTokenResult.claims.admin) {
+					setCustomClaims({admin: true})
+			} else if (idTokenResult.claims.agency) {
+					setCustomClaims({agency: true})
+			} else {
+				// console.log('GENERAL USER')
+			}
+		})
+		.catch((error) => {
+			console.log(error);
+		});
+	}, [])
 	return (
 		<div className={style.container}>
 			{/* Headbar */}
