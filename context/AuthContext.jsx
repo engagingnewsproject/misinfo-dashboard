@@ -17,8 +17,8 @@ import {
   httpsCallable,
 } from "firebase/functions";
 import { auth, app, db, functions } from '../config/firebase'
-import { getDoc, doc } from "firebase/firestore";
-
+import { getDoc, doc, setDoc } from "firebase/firestore";
+import moment from 'moment'
 
 
 const AuthContext = createContext({})
@@ -105,29 +105,51 @@ export const AuthContextProvider = ({children}) => {
     });
   }
 
-  const signup = (teamName, email, password) => {
-    return new Promise((resolve, reject) => {
-      createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          // Perform email verification after user creation
-          verifyEmail(userCredential.user)
-            .then((verified) => {
-              // If email is verified, resolve with user credential
-              if (verified) {
-                resolve(userCredential);
-              } else {
-                reject(new Error('Email verification failed'));
-              }
-            })
-            .catch((error) => {
-              reject(error); // Forward any verification errors
-            });
-        })
-        .catch((error) => {
-          reject(error); // Forward any errors from user creation
-        });
-    });
-  }
+  const signup = (name, email, password) => {
+		return new Promise((resolve, reject) => {
+			// Create a new Promise that wraps the asynchronous user creation process
+			createUserWithEmailAndPassword(auth, email, password) // Attempt to create a new user with the provided email and password
+				.then((userCredential) => {
+					// If user creation is successful, execute the following callback function with the userCredential object
+					// Perform email verification after user creation
+					verifyEmail(userCredential.user) // Verify the user's email address
+						.then((verified) => {
+							// If email verification is successful, execute the following callback function with the 'verified' boolean value
+							if (verified) {
+								// If the email is verified, proceed with the following actions
+								const uid = userCredential.user.uid // Extract the UID (unique identifier) of the newly created user
+								const mobileUserDocRef = doc(db, "mobileUsers", uid) // Create a reference to the document in the 'mobileUsers' collection with the user's UID
+								const userData = {
+									// Define the data to be stored in the user document
+									name: name,
+									email: email,
+									joiningDate: moment().utc().unix(),
+									isBanned: false,
+									userRole: "User",
+								}
+								// Create a new document in the 'mobileUsers' collection with the provided user data
+								setDoc(mobileUserDocRef, userData)
+									.then(() => {
+										resolve(userCredential) // If document creation is successful, resolve the Promise with the userCredential object
+									})
+									.catch((error) => {
+										reject(error) // If there's an error creating the document, reject the Promise with the error
+									})
+							} else {
+								reject(new Error("Email verification failed")) // If email verification fails, reject the Promise with an error
+							}
+						})
+						.catch((error) => {
+							reject(error) // Forward any errors from email verification
+						})
+				})
+				.catch((error) => {
+					reject(error) // Forward any errors from user creation
+				})
+		})
+	}
+
+
 
     const login = (email, password) => {
       return signInWithEmailAndPassword(auth, email, password);
