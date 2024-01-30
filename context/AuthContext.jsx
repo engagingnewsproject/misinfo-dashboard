@@ -86,32 +86,49 @@ export const AuthContextProvider = ({children}) => {
 
     const addUserRole = httpsCallable(functions, 'addUserRole')
     
-    const getUserByEmail = httpsCallable(functions,'getUserByEmail')
-    
-    const signup = (teamName, email, password) => {
-        return createUserWithEmailAndPassword(auth, email, password);
-    }
-
-    const verifyEmail = (user) => {
+  const getUserByEmail = httpsCallable(functions,'getUserByEmail')
+  
+  const verifyEmail = (user) => {
+    return new Promise((resolve, reject) => {
       var actionCodeSettings = {
-        // URL you want to redirect back to. The domain (www.example.com) for this URL
-        // must be whitelisted in the Firebase Console.
-        //'url': 'http://localhost:3000/login',
         'url': 'https://misinfo-dashboard.netlify.app/login',
-        // 'url': 'https://misinfo-dashboard.netlify.app/signup', // Here we redirect back to this same page.
-        'handleCodeInApp': true, // This must be true.
-    };
+        'handleCodeInApp': true,
+      };
 
-      sendEmailVerification(user, actionCodeSettings).then((task)=> {
-        if (task.isSuccessful()) {
-          return true;
-        } else {
-          return false;
-        }
-    }).catch((error) => {
-      return error
-      })
-    }
+      sendEmailVerification(user, actionCodeSettings)
+        .then(() => {
+          resolve(true); // Email sent successfully
+        })
+        .catch((error) => {
+          reject(error); // Email sending failed
+        });
+    });
+  }
+
+  const signup = (teamName, email, password) => {
+    return new Promise((resolve, reject) => {
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          // Perform email verification after user creation
+          verifyEmail(userCredential.user)
+            .then((verified) => {
+              // If email is verified, resolve with user credential
+              if (verified) {
+                resolve(userCredential);
+              } else {
+                reject(new Error('Email verification failed'));
+              }
+            })
+            .catch((error) => {
+              reject(error); // Forward any verification errors
+            });
+        })
+        .catch((error) => {
+          reject(error); // Forward any errors from user creation
+        });
+    });
+  }
+
     const login = (email, password) => {
       return signInWithEmailAndPassword(auth, email, password);
     }
