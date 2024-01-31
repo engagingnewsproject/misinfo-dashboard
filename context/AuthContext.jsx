@@ -78,8 +78,6 @@ export const AuthContextProvider = ({children}) => {
     // add admin cloud function
   const addAdminRole = httpsCallable(functions,'addAdminRole')
   
-    const changeUserRole = httpsCallable(functions, 'changeUserRole')
-
     const addAgencyRole = httpsCallable(functions, 'addAgencyRole')
 
     const viewRole = httpsCallable(functions, 'viewRole')
@@ -226,7 +224,7 @@ export const AuthContextProvider = ({children}) => {
     }
  
     return (
-        <AuthContext.Provider value={{ user, customClaims, setCustomClaims, login, signup, logout, resetPassword, deleteAdminUser, updateUserPassword, setPassword, verifyEmail, sendSignIn, addAdminRole, changeUserRole, addAgencyRole, verifyRole, viewRole, addUserRole, getUserByEmail }}>
+        <AuthContext.Provider value={{ user, customClaims, setCustomClaims, login, signup, logout, resetPassword, deleteAdminUser, updateUserPassword, setPassword, verifyEmail, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole, getUserByEmail }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )
