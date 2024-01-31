@@ -27,7 +27,6 @@ exports.addUserRole = functions.https.onCall((data,context) => {
 // Adds admin privilege to user based on the email provided
 exports.addAdminRole = functions.https.onCall((data,context) => {
   // get user and add custom claim to user
-  console.log(data)
   return admin.auth().getUserByEmail(data.email).then(user => {
 
     // Once user object is retrieved, updates custom claim
@@ -99,43 +98,37 @@ exports.viewRole = functions.https.onCall((data,context) => {
 })
 
 // get another user data by uid
-// exports.getUserByEmail = functions.https.onCall(async (data,context) => {
-//   try {
-//     // Check if the request is authorized (if needed)
-//     // if (!context.auth) {
-//     //   return { error: 'Unauthorized' };
-//     // }
-//     const email = data.email; // Extract email from data object
-//     const userRecord = await admin.auth().getUserByEmail(email);
-//     console.log('User Record:', userRecord);
-//     const customToken = await admin.auth().createCustomToken(userRecord.uid)
-//       .then((response) => {
-//         // Extract relevant user data
-//         console.log(`Successfully fetched user data: ${userRecord}`);
-//         const userData = {
-//           displayName: response.displayName,
-//           email: response.email,
-//           uid: response.uid,
-//           idToken: customToken // Include the generated ID token in the response
-//           // Add other fields as needed
-//         }
-//         return userData
-//       })
-//     return userRecord
-//   } catch (error) {
-//     console.error('Error fetching user data:',error)
+exports.getUser = functions.https.onCall((data,context) => {
+  try {
+    // Check if the request is authorized (if needed)
+    // if (!context.auth) {
+    //   return { error: 'Unauthorized' };
+    // }
+    const userRecord = admin.auth().getUserByEmail(data)
+      .then((response) => {
+        // Extract relevant user data
+        const userData = {
+          displayName: response.displayName,
+          email: response.email,
+          uid: response.uid
+          // Add other fields as needed
+        }
+        return userData
+      })
+    return userRecord
+  } catch (error) {
+    console.error('Error fetching user data:',error)
 
-//     // If user does not exist
-//     if (error.code === 'auth/user-not-found') {
-//       return {}
-//     }
+    // If user does not exist
+    if (error.code === 'auth/user-not-found') {
+      return {}
+    }
 
-//     // Throw the error for other cases
-//     throw error
-//   }
-// })
+    // Throw the error for other cases
+    throw error
+  }
+})
 
-// new
 exports.getUserByEmail = functions.https.onCall(async (data, context) => {
   try {
     // Check if the request is authorized (if needed)
@@ -146,18 +139,7 @@ exports.getUserByEmail = functions.https.onCall(async (data, context) => {
     const userRecord = await admin.auth().getUserByEmail(email);
     console.log('User Record:',userRecord);
     return userRecord
-    // const customToken = await admin.auth().createCustomToken(userRecord.uid);
-    // // Generate ID token for the user
-    // console.log(`Successfully fetched user data: ${ userRecord }`);
-    // console.log(`custom cliams--> ${userRecord.customClaims['admin']}`);
-    // const userData = {
-    //   displayName: userRecord.displayName,
-    //   email: userRecord.email,
-    //   uid: userRecord.uid,
-    //   idToken: customToken // Include the generated custom token in the response
-    //   // Add other fields as needed
-    // };
-    // return userData;
+
   } catch (error) {
     console.error('Error fetching user data:', error);
 
@@ -169,7 +151,7 @@ exports.getUserByEmail = functions.https.onCall(async (data, context) => {
     // Throw the error for other cases
     throw error;
   }
-});
+})
 
 exports.changeUserRole = functions.https.onCall(async (data, context) => {
     // Check if the request is coming from an authenticated user with admin privileges
