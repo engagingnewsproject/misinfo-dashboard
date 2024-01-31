@@ -69,7 +69,7 @@ const SignUp = () => {
                 // Sees if agency already exists -if it does, adds user to the agency's user list
                   signInWithEmailLink(auth, data.email, window.location.href).then((result) =>{
                     const promise2 = addAgencyRole({email: data.email});
-                  
+
                     // console.log(result.user.email)
                     // console.log("current user " + auth.currentUser)
                     const promise1 = auth.updateCurrentUser(result.user)
@@ -111,26 +111,19 @@ const SignUp = () => {
                   });
                 
               } else {
-
-                signup(data.teamName, data.email, data.password).then((userCredential) => {
-                  createUserWithEmailAndPassword(auth, data.email, data.password).then((userCredential) => {
-                    verifyEmail(userCredential.user).then((verified) => {
-                      if (verified) {
-                        setSignUpError("");
-                        router.push('/dashboard');
-                      } else {
-                        router.push('/verifyEmail');
-                      }
-                    });
-                  });
-                }).catch((error) => {
-                  if (error.code === "auth/email-already-in-use") {
-                    setSignUpError("The entered email is already in use.");
-                  } else {
-                    setSignUpError(error.message);
-                  }
-                  console.error(error);
-                });
+                signup(data.name, data.email, data.password)
+									.then((userCredential) => {
+										setSignUpError("")
+										router.push('/verifyEmail');
+									})
+									.catch((error) => {
+										if (error.code === "auth/email-already-in-use") {
+											setSignUpError("The entered email is already in use.")
+										} else {
+											setSignUpError(error.message)
+										}
+										console.error(error)
+									})
 
 
               }
@@ -156,22 +149,21 @@ const SignUp = () => {
                     <div className="w-24 h-24 font-extralight rounded-full tracking-widest flex justify-center items-center text-white bg-blue-500">MOODY</div>
                 </div>
                 <form className="px-8 pt-6 pb-4 mb-4" onChange={handleChange} onSubmit={handleSignUp}>
-                    {/* <div className="mb-4"> */}
-
+                    <div className="mb-4">
                         {/* Only allows user to select team name. Agencies had already had their name selected. */}  
-                        {/* {!isAgency &&       
+                        {!isAgency &&       
                           <input
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="name"
                             type="text"
-                            placeholder="Name of your team"
+                            placeholder="Name"
                             required
                             value={data.name}
                             onChange={handleChange}
                             autoComplete=''
                             />
-                        } */}
-                    {/* </div> */}
+                        }
+                    </div>
                     <div className="mb-4">
               
                           {/* TODO: {agency && Instructions for an agency to sign up */}
