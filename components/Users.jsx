@@ -29,7 +29,6 @@ const Users = () => {
 		customClaims,
 		setCustomClaims,
 		getUserByEmail,
-		changeUserRole,
 		viewRole
 	} = useAuth()
 
@@ -39,17 +38,17 @@ const Users = () => {
 	const [endIndex, setEndIndex] = useState(0)
 	const [deleteModal, setDeleteModal] = useState(false)
 	const [userEditing, setUserEditing] = useState([])
-	const [userEditingClaims, setUserEditingClaims] = useState([])
 	const [name, setName] = useState("")
 	const [email, setEmail] = useState("")
-	const [agencyUserAgency, setAgencyUserAgency] = useState("")
+	const [agencyUserAgency,setAgencyUserAgency] = useState("")
+	const [agenciesArray, setAgenciesArray] = useState([])
 	const [agencyName, setAgencyName] = useState("")
 	const [banned, setBanned] = useState("")
 	const [userEditModal, setUserEditModal] = useState(null)
 	const [userId, setUserId] = useState(null)
 	const [update,setUpdate] = useState(false)
 	const [listOfUsers, setListOfUsers] = useState([])
-
+	const [userRoleFromUID, setUserRoleFromUID] = useState([])
 	const dateOptions = {
 		day: "2-digit",
 		year: "numeric",
@@ -166,7 +165,50 @@ const Users = () => {
 				console.error('Error in getData:',error)
 			}
 		}
+		const agenciesQuery = query(collection(db,'agency'))
+		const agenciesQuerySnapshot = await getDocs(agenciesQuery)
+		const newAgenciesArray = [];
+
+		agenciesQuerySnapshot.forEach((doc) => {
+				// doc.data() is never undefined for query doc snapshots
+				// console.log(doc.id," => ",doc.data());
+				const agencyData = {
+						id: doc.id,
+						data: doc.data()
+				};
+				newAgenciesArray.push(agencyData);
+		});
+		// Set the state variable agenciesArray with the new array
+		setAgenciesArray(newAgenciesArray);
 	};
+	
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
+	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
 
 	useEffect(() => {
 		getData();
@@ -193,77 +235,42 @@ const Users = () => {
 			})
 	}
 
-	// NEW FUNCTION
-	// Example of calling getUserByEmail Cloud Function to retrieve user data by email
-const getUserData = async (email) => {
-  // console.log(email); // Ensure you're getting the correct email
-  try {
-		const response = await getUserByEmail({ email }) // Pass the email directly
-		const user = response
-		return user
-	} catch (error) {
-    return console.error('Error fetching user data:', error);
-  }
-}
+	const getUserData = async (email) => {
+		// console.log(email); // Ensure you're getting the correct email
+		try {
+			return await getUserByEmail({ email }) // Pass the email directly
+		} catch (error) {
+			return console.error("Error fetching user data:", error)
+		}
+	}
 	
-	// Inside your component or function
-const getUserRole = async (user) => {
-  try {
-		// Call the viewRole function with the user's ID
-		const userUID = user.uid
-		// console.log(user)
-    const role = await viewRole({ id: userUID });
-    return role;
-  } catch (error) {
-    console.error('Error retrieving user role:', error);
-    return null;
-  }
-}
-	
-	const updateUserRole = async (role) => {
-    try {
-        // Call the changeUserRole function on the server-side
-        const response = await changeUserRole({ uid: userEditingUID, newRole: role });
-
-        // Handle success response
-        console.log("User role updated successfully:", response);
-
-        // Optionally, update the local state or perform any other actions
-    } catch (error) {
-        // Handle error
-        console.error("Error updating user role:", error);
-    }
-};
-
 	// Function to handle opening and setting values in the EditUserModal
-	const handleEditUser = async (userObj,userId) => {
+	const handleEditUser = async (userObj, userId) => {
 		setUserId(userId)
 		const userRef = await getDoc(doc(db,"mobileUsers",userId))
 		try {
-			const user = await getUserData(userRef.data()["email"]);
-			const customClaims = user.data.customClaims;
-			console.log(customClaims)
-        setUserEditingClaims(customClaims);
-
-        // Check the custom claims and set the userRole accordingly
-			// let userRole = "user" // Default role
-      //   if (customClaims.admin) {
-      //       userRole = "admin";
-      //   } else if (customClaims.agency) {
-      //       userRole = "agency";
-			// 	} else {
-			// 		userRole = 'user'
-			// 	}
-			setUserEditing(userObj);
-			setName(userRef.data()["name"]);
-			setEmail(userRef.data()["email"]);
-			setBanned(userRef.data()["isBanned"]);
-			setUserRole(userRole); // Set userRole based on custom claims
-			setUserEditModal(true);
-    } catch (error) {
-        console.error('Error fetching user editing data:', error);
-        // Handle error if needed
-    }
+			// Role from user email
+			const user = await getUserData(userRef.data()["email"])
+			if (user.data.customClaims === undefined) {
+				console.log('ROLE: user')
+				setUserRole('User')
+			} else if (user.data.customClaims.agency) {
+				console.log('ROLE: agency')
+				setUserRole('Agency')
+			} else if (user.data.customClaims.admin) {
+				console.log('ROLE: admin')
+				setUserRole('Admin')
+			}
+		} catch (error) {
+			console.error("Error fetching user editing data:", error)
+			// Handle error if needed
+		}
+		setUserEditing(userObj)
+		setName(userRef.data()["name"])
+		setEmail(userRef.data()["email"])
+		setBanned(userRef.data()["isBanned"])
+		// setUserRole(userRef.data()["userRole"])
+		setUserEditModal(true)
 	}
 
 	// Function to handle name change
@@ -289,61 +296,57 @@ const getUserRole = async (user) => {
 	}
 
 	// Function to handle form submission (updating user data)
-const handleFormSubmit = async (e) => {
-    e.preventDefault();
-    const docRef = doc(db, "mobileUsers", userId);
-    try {
-        // Update user data in Firestore
-        await updateDoc(docRef, {
-            name: name,
-            email: email,
-            isBanned: banned,
-            userRole: userRole,
-        });
-
-        // Update the user's role using the Cloud Function
-        await updateUserRole(userRole);
-
-        // Update the loadedMobileUsers state after successful update
-        setLoadedMobileUsers((prevUsers) =>
-            prevUsers.map((userObj) =>
-                userObj.id === userId
-                    ? {
-                          id: userId,
-                          data: {
-                              ...userObj.data,
-                              name: name,
-                              email: email,
-                              isBanned: banned,
-                              userRole: userRole,
-                          },
-                      }
-                    : userObj
-            )
-        );
-
-        // Close the modal
-        setUserEditModal(false);
-
-        console.log("User data and role updated successfully.");
-    } catch (error) {
-        console.error("Error updating user data and role:", error);
-        // Handle error if needed
-    }
-};
-
+	const handleFormSubmit = async (e) => {
+		e.preventDefault()
+		const docRef = doc(db, "mobileUsers", userId);
+		await updateDoc(docRef,{
+			name: name,
+			email: email,
+			isBanned: banned,
+			userRole: userRole,
+		})
+		// Update the loadedMobileUsers state after successful update
+		setLoadedMobileUsers((prevUsers) =>
+			prevUsers.map((userObj) =>
+				userObj.id === userId
+					? {
+						id: userId,
+						data: {
+							...userObj.data,
+							name: name,
+							email: email,
+							isBanned: banned,
+							userRole: userRole,
+						},
+					}
+					: userObj
+			)
+		);
+		setUserEditModal(false)
+	}
 
 	// Data fetch on update
 	useEffect(() => {
 		getData()
-		// console.log(`user claims: ${userEditingClaims}`)
 	},[update])
 	
-	// TESTING
+	// Dev logs
 	useEffect(() => {
-		console.log("EFFECT: user claims:",JSON.stringify(userEditingClaims));
-		console.log(`EFFECT: ${userRole}`)
-	}, [userEditModal])
+		console.log(agenciesArray)
+		// if (userEditingClaims === undefined) {
+		// 	console.log('ROLE: user')
+		// 	setUserRole('User')
+		// } else if (userEditingClaims.agency) {
+		// 	console.log('ROLE: agency')
+		// 	setUserRole('Agency')
+		// } else if (userEditingClaims.admin) {
+		// 	console.log('ROLE: admin')
+		// 	setUserRole('Admin')
+		// }
+		// console.log(`logged in user claims ${JSON.stringify(customClaims)}`)
+		// console.log(`user editing obj ${JSON.stringify(userEditing)}`)
+	}, [])
+	
 
 	return (
 		<div className='w-full h-full flex flex-col py-5'>
