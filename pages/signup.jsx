@@ -156,7 +156,7 @@ const SignUp = () => {
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="name"
                             type="text"
-                            placeholder="Name of your team"
+                            placeholder="Name"
                             required
                             value={data.name}
                             onChange={handleChange}
