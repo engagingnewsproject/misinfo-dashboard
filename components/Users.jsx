@@ -39,9 +39,14 @@ const Users = () => {
 	const [deleteModal, setDeleteModal] = useState(false)
 	const [userEditing, setUserEditing] = useState([])
 	const [name, setName] = useState("")
-	const [email, setEmail] = useState("")
+	const [email,setEmail] = useState("")
+	// agency
+	// table agency
 	const [agencyUserAgency,setAgencyUserAgency] = useState("")
 	const [agenciesArray, setAgenciesArray] = useState([])
+	const [selectedAgency,setSelectedAgency] = useState("")
+	// const [agencyUserAgency,setAgencyUserAgency] = useState("")
+	// const [agenciesArray, setAgenciesArray] = useState([])
 	const [agencyName, setAgencyName] = useState("")
 	const [banned, setBanned] = useState("")
 	const [userEditModal, setUserEditModal] = useState(null)
@@ -96,7 +101,7 @@ const Users = () => {
 						const agencyData = agencySnapshot.docs[0].data()
 						userData.data.agencyName = agencyData.name
 						// Set the agency state
-						setAgencyUserAgency(userData.data.agencyName)
+						setSelectedAgency(userData.data.agencyName)
 					}
 
 					mobileUsersArray.push(userData)
@@ -183,33 +188,7 @@ const Users = () => {
 	};
 	
 	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-
+	
 	useEffect(() => {
 		getData();
 	}, []);
@@ -244,10 +223,15 @@ const Users = () => {
 		}
 	}
 	
-	// Function to handle opening and setting values in the EditUserModal
+	const getAgencies = () => {
+	
+	}
+	
+	// MODAL: Function to handle opening and setting values in the EditUserModal
 	const handleEditUser = async (userObj, userId) => {
 		setUserId(userId)
 		const userRef = await getDoc(doc(db,"mobileUsers",userId))
+		setUserEditing(userObj)
 		try {
 			// Role from user email
 			const user = await getUserData(userRef.data()["email"])
@@ -265,14 +249,77 @@ const Users = () => {
 			console.error("Error fetching user editing data:", error)
 			// Handle error if needed
 		}
-		setUserEditing(userObj)
+		// Fetch and set user agency
+		const agencyRef = collection(db,'agency')
+		const agencyQuery = query(agencyRef,where('agencyUsers','array-contains',userRef.data()["email"]))
+		const agencySnapshot = await getDocs(agencyQuery)
+		if (!agencySnapshot.empty) {
+			setSelectedAgency(agencySnapshot.docs[0].data().name)
+			// const agencyData = agencySnapshot.docs[0].data().name
+			// console.log(agencyData)
+			// userData.data.agencyName = agencyData.name
+			// Set the agency state
+			// setAgencyUserAgency(userData.data.agencyName)
+		}
+		// agencies END
+		
 		setName(userRef.data()["name"])
 		setEmail(userRef.data()["email"])
 		setBanned(userRef.data()["isBanned"])
+		setSelectedAgency(agencySnapshot.docs[0].data().name)
 		// setUserRole(userRef.data()["userRole"])
 		setUserEditModal(true)
 	}
 
+	const handleAgencyChange = async (e) => {
+		e.preventDefault()
+		const selectedValue = e.target.value
+		setSelectedAgency(selectedValue)
+		const selectedAgency = agenciesArray.find(
+			(agency) => agency.data.name === selectedValue
+		)
+
+		if (selectedAgency) {
+			try {
+				// Fetch the current data of the agency document to which the user is being added
+        const newDocRef = doc(db, "agency", selectedAgency.id); // Use agency ID as document ID
+				const newDocSnap = await getDoc(newDocRef)
+				if (newDocSnap.exists()) {
+					const newAgencyData = newDocSnap.data()
+					// Check if the user's email is already in the agencyUsers array of the new agency
+					const newAgencyUsers = newAgencyData.agencyUsers || []
+					if (!newAgencyUsers.includes(email)) {
+						// Fetch all agency documents where the user's email is listed in the agencyUsers array
+						const agenciesQuery = query(
+							collection(db, "agency"),
+							where("agencyUsers", "array-contains", email)
+						)
+						const agenciesQuerySnapshot = await getDocs(agenciesQuery)
+						// Loop through the documents to remove the user's email from their current agency (if any)
+						agenciesQuerySnapshot.forEach(async (doc) => {
+							const docData = doc.data()
+							const updatedAgencyUsers = (docData.agencyUsers || []).filter(
+								(userEmail) => userEmail !== email
+							)
+							await updateDoc(doc.ref, { agencyUsers: updatedAgencyUsers })
+						})
+
+						// Update the new agency document by appending the user's email
+						const updatedNewAgencyUsers = [...newAgencyUsers, email]
+						await updateDoc(newDocRef, { agencyUsers: updatedNewAgencyUsers })
+					}
+				} else {
+					console.log("New agency document does not exist")
+				}
+			} catch (error) {
+				console.error("Error updating agency documents:", error)
+			}
+		} else {
+			console.log("Selected agency not found in agenciesArray")
+		}
+
+	}
+	
 	// Function to handle name change
 	const handleNameChange = (e) => {
 		e.preventDefault()
@@ -286,7 +333,7 @@ const Users = () => {
 	}
 
 	// Function to handle user role change
-	const handleOptionChange = (e) => {
+	const handleRoleChange = (e) => {
 		setUserRole(e.target.value)
 	}
 
@@ -323,6 +370,7 @@ const Users = () => {
 			)
 		);
 		setUserEditModal(false)
+		setUpdate(!update)
 	}
 
 	// Data fetch on update
@@ -331,8 +379,8 @@ const Users = () => {
 	},[update])
 	
 	// Dev logs
-	useEffect(() => {
-		console.log(agenciesArray)
+	// useEffect(() => {
+		// console.log(userEditing)
 		// if (userEditingClaims === undefined) {
 		// 	console.log('ROLE: user')
 		// 	setUserRole('User')
@@ -345,7 +393,7 @@ const Users = () => {
 		// }
 		// console.log(`logged in user claims ${JSON.stringify(customClaims)}`)
 		// console.log(`user editing obj ${JSON.stringify(userEditing)}`)
-	}, [])
+	// }, [selectedAgency])
 	
 
 	return (
@@ -432,7 +480,9 @@ const Users = () => {
 											<td className={column.data_center}>{listUser.email}</td>
 											{/* Agency */}
 											{customClaims.admin && (
-												<td className={column.data_center}>{listUser.agencyName}</td>
+												<td className={column.data_center}>
+												{listUser.agencyName}
+												</td>
 											)}
 											{/* Joined date */}
 											<td className={column.data_center}>{posted}</td>
@@ -488,23 +538,33 @@ const Users = () => {
 			)}
 			{userEditModal && (
 				<EditUserModal
-					customClaims={customClaims}
-					userRole={userRole}
-					setUserRole={setUserRole}
-					setUserEditModal={setUserEditModal}
+					// User
 					userId={userId}
+					userEditing={userEditing}
+					// Claims
+					customClaims={customClaims}
+					// Modal
+					setUserEditModal={setUserEditModal}
+					// Name
 					name={name}
 					onNameChange={handleNameChange}
-					agencyUserAgency={agencyUserAgency}
-					// onAgencyChange={handleAgencyChange}
+					// agency
+					agenciesArray={agenciesArray}
+					selectedAgency={selectedAgency}
+					onAgencyChange={handleAgencyChange}
+					// Role
+					onRoleChange={handleRoleChange}
+					userRole={userRole}
+					setUserRole={setUserRole}
+					// Email
 					email={email}
 					onEmailChange={handleEmailChange}
+					// Banned
 					banned={banned}
 					setBanned={setBanned}
 					onBannedChange={handleBannedChange}
+					// Form submit
 					onFormSubmit={handleFormSubmit}
-					onOptionChange={handleOptionChange}
-					userEditing={userEditing} // All mobileUser
 				/>
 			)}
 		</div>
