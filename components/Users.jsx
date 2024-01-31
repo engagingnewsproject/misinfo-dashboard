@@ -205,35 +205,12 @@ const Users = () => {
 			})
 	}
 
-	// const getUserData = async (email) => {
-	// 	try {
-	// 		return await getUserByEmail({ email }) // Pass the email directly
-	// 	} catch (error) {
-	// 		return console.error("Error fetching user data:", error)
-	// 	}
-	// }
-	
 	// MODAL: Function to handle opening and setting values in the EditUserModal
 	const handleEditUser = async (userObj, userId) => {
 		setUserId(userId)
 		const userRef = await getDoc(doc(db,"mobileUsers",userId))
 		setUserEditing(userObj)
 		setUserEditModal(true)
-		// try {
-		// 	// Role from user email
-		// 	const user = await getUserData(userRef.data()["email"])
-		// 	const claim = user.data.customClaims
-		// 	if (claim === undefined) {
-		// 		setUserRole('User')
-		// 	} else if (claim.agency) {
-		// 		setUserRole('Agency')
-		// 	} else if (claim.admin) {
-		// 		setUserRole('Admin')
-		// 	}
-		// } catch (error) {
-		// 	console.error("Error fetching user editing data:", error)
-		// 	// Handle error if needed
-		// }
 		// Fetch and set user agency
 		const agencyRef = collection(db,'agency')
 		const agencyQuery = query(agencyRef,where('agencyUsers','array-contains',userRef.data()["email"]))
@@ -245,7 +222,6 @@ const Users = () => {
 		setEmail(userRef.data()["email"])
 		setBanned(userRef.data()["isBanned"])
 		setUserRole(userRef.data()["userRole"])
-		// setSelectedAgency(agencySnapshot.docs[0].data().name)
 	}
 
 	const handleAgencyChange = async (e) => {
@@ -330,9 +306,9 @@ const Users = () => {
 			userRole: userRole,
 		})
 		// set role on the server side
-		// If the userRole is set to "Admin", call the addAdminRole function
 		// Check if the user's role has been modified
 		if (userRole !== userEditing.userRole) {
+			// If the userRole is set to "Admin", call the addAdminRole function
 			if (userRole === "Admin") {
 				try {
 					// Call the addAdminRole function
@@ -383,16 +359,10 @@ const Users = () => {
 		setUpdate(!update)
 	}
 
-
 	// Data fetch on update
 	useEffect(() => {
 		getData()
 	},[update])
-	
-	useEffect(() => {
-		console.log(userRole)
-	}, [userEditModal])
-	
 
 	return (
 		<div className='w-full h-full flex flex-col py-5'>
