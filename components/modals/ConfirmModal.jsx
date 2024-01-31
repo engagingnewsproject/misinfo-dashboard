@@ -2,7 +2,11 @@ import React, { useState } from 'react'
 import { RiDeleteBin2Fill } from 'react-icons/ri'
 import { BiLogOut } from 'react-icons/bi'
 
-const ConfirmModal = ({ func, title, subtitle, CTA, closeModal }) => {
+const ConfirmModal = ({ func,title,subtitle,CTA,closeModal }) => {
+        const handleSubmit = (e) => {
+        e.preventDefault(); // Prevent the default form submission behavior
+        func(); // Call the provided function on form submission
+    };
     return (
         <div>
             <div className="flex justify-center items-center z-[1900] absolute top-0 left-0 w-full h-full bg-black opacity-60">
@@ -23,7 +27,7 @@ const ConfirmModal = ({ func, title, subtitle, CTA, closeModal }) => {
                             <div className="text-xs font-light">{subtitle}</div>
                         </div>
                     </div>
-                    <form onSubmit={(e) => func(e)}>
+                    <form onSubmit={handleSubmit}>
                         <div className="mt-6 flex justify-between">
                             <button
                                 onClick={() => closeModal(false)}
