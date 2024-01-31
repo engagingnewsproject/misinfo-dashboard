@@ -90,7 +90,7 @@ const EditUserModal = ({
 								<label htmlFor='name' className={style.modal_form_label}>
 									User ID
 								</label>
-								<span className={style.modal_form_input}>{ userId}</span>
+								<span className={style.modal_form_input}>{userId}</span>
 								{/* Email */}
 								<div className={style.modal_form_label}>Email</div>
 								<input
@@ -138,7 +138,7 @@ const EditUserModal = ({
 													value='Admin'
 													id='admin'
 													checked={userRole === "Admin"}
-													onChange={onRoleChange}
+													onChange={() => onRoleChange("Admin")} // Update user role to "Admin" when this radio button is selected
 													className={style.modal_form_radio}
 												/>
 												Admin
@@ -149,7 +149,7 @@ const EditUserModal = ({
 													value='Agency'
 													id='agency'
 													checked={userRole === "Agency"}
-													onChange={onRoleChange}
+													onChange={() => onRoleChange("Agency")} // Pass "Agency" as the selected role value
 													className={style.modal_form_radio}
 												/>
 												Agency
@@ -160,29 +160,29 @@ const EditUserModal = ({
 													value='User'
 													id='user'
 													checked={userRole === "User"}
-													onChange={onRoleChange}
+											    onChange={() => onRoleChange("User")} // Update user role to "User" when this radio button is selected
 													className={style.modal_form_radio}
 												/>
 												User
 											</label>
 										</div>
 										{/* Agency - TODO: dropdown to select/change agency */}
-										{userRole === 'Agency' && 
+										{userRole === "Agency" && (
 											<>
-											<div className={style.modal_form_label}>Agency</div>
-											<select
-												id='agency'
-												onChange={onAgencyChange}
-												value={selectedAgency}
-												className={`${style.modal_form_input}`}>
-												{agenciesArray.map((agency, i) => (
-													<option value={agency.data.name} key={i}>
-														{agency.data.name}
-													</option>
-												))}
-											</select>
+												<div className={style.modal_form_label}>Agency</div>
+												<select
+													id='agency'
+													onChange={onAgencyChange}
+													value={selectedAgency}
+													className={`${style.modal_form_input}`}>
+													{agenciesArray.map((agency, i) => (
+														<option value={agency.data.name} key={i}>
+															{agency.data.name}
+														</option>
+													))}
+												</select>
 											</>
-										}
+										)}
 									</>
 								)}
 								<div className='grid col-span-3 justify-center'>
