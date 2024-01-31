@@ -42,18 +42,13 @@ const Users = () => {
 	const [email,setEmail] = useState("")
 	// agency
 	// table agency
-	const [agencyUserAgency,setAgencyUserAgency] = useState("")
 	const [agenciesArray, setAgenciesArray] = useState([])
 	const [selectedAgency,setSelectedAgency] = useState("")
-	// const [agencyUserAgency,setAgencyUserAgency] = useState("")
-	// const [agenciesArray, setAgenciesArray] = useState([])
 	const [agencyName, setAgencyName] = useState("")
 	const [banned, setBanned] = useState("")
 	const [userEditModal, setUserEditModal] = useState(null)
 	const [userId, setUserId] = useState(null)
 	const [update,setUpdate] = useState(false)
-	const [listOfUsers, setListOfUsers] = useState([])
-	const [userRoleFromUID, setUserRoleFromUID] = useState([])
 	const dateOptions = {
 		day: "2-digit",
 		year: "numeric",
@@ -210,36 +205,12 @@ const Users = () => {
 			})
 	}
 
-	const getUserData = async (email) => {
-		try {
-			return await getUserByEmail({ email }) // Pass the email directly
-		} catch (error) {
-			return console.error("Error fetching user data:", error)
-		}
-	}
-	
 	// MODAL: Function to handle opening and setting values in the EditUserModal
 	const handleEditUser = async (userObj, userId) => {
 		setUserId(userId)
 		const userRef = await getDoc(doc(db,"mobileUsers",userId))
 		setUserEditing(userObj)
-		try {
-			// Role from user email
-			const user = await getUserData(userRef.data()["email"])
-			if (user.data.customClaims === undefined) {
-				console.log('ROLE: user')
-				setUserRole('User')
-			} else if (user.data.customClaims.agency) {
-				console.log('ROLE: agency')
-				setUserRole('Agency')
-			} else if (user.data.customClaims.admin) {
-				console.log('ROLE: admin')
-				setUserRole('Admin')
-			}
-		} catch (error) {
-			console.error("Error fetching user editing data:", error)
-			// Handle error if needed
-		}
+		setUserEditModal(true)
 		// Fetch and set user agency
 		const agencyRef = collection(db,'agency')
 		const agencyQuery = query(agencyRef,where('agencyUsers','array-contains',userRef.data()["email"]))
@@ -247,14 +218,10 @@ const Users = () => {
 		if (!agencySnapshot.empty) {
 			setSelectedAgency(agencySnapshot.docs[0].data().name)
 		}
-		// agencies END
-		
 		setName(userRef.data()["name"])
 		setEmail(userRef.data()["email"])
 		setBanned(userRef.data()["isBanned"])
-		setSelectedAgency(agencySnapshot.docs[0].data().name)
-		// setUserRole(userRef.data()["userRole"])
-		setUserEditModal(true)
+		setUserRole(userRef.data()["userRole"])
 	}
 
 	const handleAgencyChange = async (e) => {
@@ -319,8 +286,8 @@ const Users = () => {
 	}
 
 	// Function to handle user role change
-	const handleRoleChange = (e) => {
-		setUserRole(e.target.value)
+	const handleRoleChange = (role) => {
+		setUserRole(role);
 	}
 
 	// Function to handle banned status change
@@ -331,30 +298,63 @@ const Users = () => {
 	// Function to handle form submission (updating user data)
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
-		const docRef = doc(db, "mobileUsers", userId);
-		await updateDoc(docRef,{
+		const docRef = doc(db, "mobileUsers", userId)
+		await updateDoc(docRef, {
 			name: name,
 			email: email,
 			isBanned: banned,
 			userRole: userRole,
 		})
+		// set role on the server side
+		// Check if the user's role has been modified
+		if (userRole !== userEditing.userRole) {
+			// If the userRole is set to "Admin", call the addAdminRole function
+			if (userRole === "Admin") {
+				try {
+					// Call the addAdminRole function
+					await addAdminRole({ email: email })
+					console.log(`${ email } has been made an admin`)
+				} catch (error) {
+					console.error("Error adding admin role:",error)
+				}
+			} else if (userRole === "Agency") {
+				// Call the addAgencyRole function
+				try {
+					await addAgencyRole({ email: email })
+					console.log(`${ email } has been made an agency user`)
+				} catch (error) {
+					console.error("Error adding agency role:",error)
+					// Handle error if needed
+				}
+			} else if (userRole === "User") {
+				// Call the addUserRole function
+				try {
+					await addUserRole({ email: email })
+					console.log(`${ email } has been made a general user`)
+				} catch (error) {
+					console.error("Error adding general user role:",error)
+					// Handle error if needed
+				}
+			}
+		}
+
 		// Update the loadedMobileUsers state after successful update
 		setLoadedMobileUsers((prevUsers) =>
 			prevUsers.map((userObj) =>
 				userObj.id === userId
 					? {
-						id: userId,
-						data: {
-							...userObj.data,
-							name: name,
-							email: email,
-							isBanned: banned,
-							userRole: userRole,
-						},
-					}
+							id: userId,
+							data: {
+								...userObj.data,
+								name: name,
+								email: email,
+								isBanned: banned,
+								userRole: userRole,
+							},
+						}
 					: userObj
 			)
-		);
+		)
 		setUserEditModal(false)
 		setUpdate(!update)
 	}
