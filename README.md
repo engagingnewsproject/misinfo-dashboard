@@ -54,7 +54,13 @@ Your user UID that you created will not be associated with any reports or agenci
 
 Emulator creates log files (`firebase-debug.log` & `ui-debug.log`) when you boot up the emulator. No need to push those with git. 
 
+### Deploy 
 
+#### Functions:
+
+```bash
+firebase deploy --only functions
+```
 
 ## Next.js
 
