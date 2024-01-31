@@ -2,8 +2,6 @@ const functions = require('firebase-functions')
 const admin = require('firebase-admin')
 admin.initializeApp()
 
-
-
 exports.addUserRole = functions.https.onCall((data,context) => {
   // get user and add custom claim to user
   return admin.auth().getUserByEmail(data.email).then(user => {
@@ -45,7 +43,6 @@ exports.addAdminRole = functions.https.onCall((data,context) => {
 
 })
 
-
 // Adds agency privilege to user based on email provided
 exports.addAgencyRole = functions.https.onCall((data,context) => {
   // get user and add custom claim to user
@@ -68,7 +65,6 @@ exports.addAgencyRole = functions.https.onCall((data,context) => {
   })
 
 })
-
 
 exports.viewRole = functions.https.onCall((data,context) => {
   // get user and add custom claim to user
@@ -152,34 +148,3 @@ exports.getUserByEmail = functions.https.onCall(async (data, context) => {
     throw error;
   }
 })
-
-exports.changeUserRole = functions.https.onCall(async (data, context) => {
-    // Check if the request is coming from an authenticated user with admin privileges
-    if (!context.auth || !context.auth.token.admin) {
-        throw new functions.https.HttpsError('permission-denied', 'Only admins can change user roles.');
-    }
-  console.log(data)
-    const { uid, newRole } = data;
-
-    try {
-        let customClaims = {};
-
-        // Set custom claims based on the new role
-        if (newRole === 'admin') {
-            customClaims = { admin: true, agency: false };
-        } else if (newRole === 'agency') {
-            customClaims = { admin: false, agency: true };
-        } else {
-            // For roles other than admin or agency, set both claims to false
-            customClaims = { admin: false, agency: false };
-        }
-
-        // Set custom claims to update the user's role
-        await admin.auth().setCustomUserClaims(uid, customClaims);
-
-        return { success: true };
-    } catch (error) {
-        console.error('Error changing user role:', error);
-        throw new functions.https.HttpsError('internal', 'Failed to change user role.');
-    }
-});
