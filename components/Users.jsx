@@ -333,13 +333,13 @@ const Users = () => {
 		// set role on the server side
 		// If the userRole is set to "Admin", call the addAdminRole Firebase function
 		// Fetch the current user data from Firestore
-    const snapshot = await getDoc(docRef);
-    const userData = snapshot.data();
+		const snapshot = await getDoc(docRef)
+		const userData = snapshot.data()
 		console.log(`first ${userData.userRole}, second ${userRole}`)
 		if (userRole === "Admin") {
 			try {
 				// Call the addAdminRole function
-				await addAdminRole({ email: email });
+				await addAdminRole({ email: email })
 				console.log(`${email} has been made an admin`)
 			} catch (error) {
 				console.error("Error adding admin role:", error)
@@ -347,7 +347,7 @@ const Users = () => {
 		} else if (userRole === "Agency") {
 			try {
 				// Call the addAgencyRole function
-				await addAgencyRole({ email: email });
+				await addAgencyRole({ email: email })
 				console.log(`${email} has been made an agency user`)
 			} catch (error) {
 				console.error("Error adding agency role:", error)
@@ -356,7 +356,7 @@ const Users = () => {
 		} else if (userRole === "User") {
 			try {
 				// Call the addUserRole function
-				await addUserRole({ email: email });
+				await addUserRole({ email: email })
 				console.log(`${email} has been made a general user`)
 			} catch (error) {
 				console.error("Error adding general user role:", error)
