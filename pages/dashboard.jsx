@@ -46,41 +46,11 @@ const Dashboard = () => {
       // TODO: debugging callback function to verify user role before displaying dashboard view
       auth.currentUser.getIdTokenResult()
       .then((idTokenResult) => {
-         // Confirm the user is an Admin.
-         if (!!idTokenResult.claims.admin) {
-           // Show admin UI.
+        if (idTokenResult.claims.admin) {
            setCustomClaims({admin: true})
-         } else if (!!idTokenResult.claims.agency) {
-           // Show regular user UI.
+        } else if (idTokenResult.claims.agency) {
            setCustomClaims({agency: true})
-         }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-      
-    }, [])
-
-    useEffect(()=> {
-      // TODO: debugging callback function to verify user role before displaying dashboard view
-      auth.currentUser.getIdTokenResult()
-      .then((idTokenResult) => {
-        // set Julia & Luke's email as admin and open the dashboard
-        // This is a backup so we don't get locked out of custom claims.
-        if (user.email === 'luke@lukecarlhartman.com' || user.email === 'juliaelias@utexas.edu') {
-          // console.log('email is dev')
-          if (!idTokenResult.claims.admin) {
-            // console.log(addAdminRole({ email: user.email }))
-            setCustomClaims({ admin: true })
-          }
-          // Confirm the user is an Admin.
-        } else if (!!idTokenResult.claims.admin) {
-           // Show admin UI.
-           setCustomClaims({admin: true})
-         } else if (!!idTokenResult.claims.agency) {
-           // Show regular user UI.
-           setCustomClaims({agency: true})
-         } else {
+        } else {
           setTab(1)
          }
       })
