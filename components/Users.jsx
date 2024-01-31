@@ -336,31 +336,36 @@ const Users = () => {
 		const snapshot = await getDoc(docRef)
 		const userData = snapshot.data()
 		console.log(`first ${userData.userRole}, second ${userRole}`)
-		if (userRole === "Admin") {
-			try {
-				// Call the addAdminRole function
-				await addAdminRole({ email: email })
-				console.log(`${email} has been made an admin`)
-			} catch (error) {
-				console.error("Error adding admin role:", error)
-			}
-		} else if (userRole === "Agency") {
-			try {
+
+		// Compare the user role before and after the form submission
+		if (userData.userRole !== userRole) {
+			// If the userRole is set to "Admin", call the addAdminRole function
+			if (userRole === "Admin") {
+				try {
+					// Call the addAdminRole function
+					await addAdminRole({ email: email })
+					console.log(`${email} has been made an admin`)
+				} catch (error) {
+					console.error("Error adding admin role:", error)
+				}
+			} else if (userRole === "Agency") {
 				// Call the addAgencyRole function
-				await addAgencyRole({ email: email })
-				console.log(`${email} has been made an agency user`)
-			} catch (error) {
-				console.error("Error adding agency role:", error)
-				// Handle error if needed
-			}
-		} else if (userRole === "User") {
-			try {
+				try {
+					await addAgencyRole({ email: email })
+					console.log(`${email} has been made an agency user`)
+				} catch (error) {
+					console.error("Error adding agency role:", error)
+					// Handle error if needed
+				}
+			} else if (userRole === "User") {
 				// Call the addUserRole function
-				await addUserRole({ email: email })
-				console.log(`${email} has been made a general user`)
-			} catch (error) {
-				console.error("Error adding general user role:", error)
-				// Handle error if needed
+				try {
+					await addUserRole({ email: email })
+					console.log(`${email} has been made a general user`)
+				} catch (error) {
+					console.error("Error adding general user role:", error)
+					// Handle error if needed
+				}
 			}
 		}
 
@@ -377,13 +382,14 @@ const Users = () => {
 								isBanned: banned,
 								userRole: userRole,
 							},
-					  }
+						}
 					: userObj
 			)
 		)
 		setUserEditModal(false)
 		setUpdate(!update)
 	}
+
 
 	// Data fetch on update
 	useEffect(() => {
