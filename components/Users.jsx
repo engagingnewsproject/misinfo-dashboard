@@ -90,7 +90,6 @@ const Users = () => {
 						id: doc.id,
 						data: doc.data()
 					}
-					// console.log(userData)
 
 					// Check if the user is associated with any agency
 					const agencyRef = collection(db,'agency')
@@ -105,7 +104,6 @@ const Users = () => {
 					}
 
 					mobileUsersArray.push(userData)
-					// console.log(agency)
 				}
 				// need to itterate over the 'agency' collection 
 				// to see if the mobileUser's email is in the 
@@ -140,7 +138,6 @@ const Users = () => {
 					const userIDs = []
 					reportsQuerySnapshot.forEach((doc) => {
 						const userID = doc.data().userID
-						// console.log(userID)
 
 						userIDs.push(userID)
 					})
@@ -176,7 +173,6 @@ const Users = () => {
 
 		agenciesQuerySnapshot.forEach((doc) => {
 				// doc.data() is never undefined for query doc snapshots
-				// console.log(doc.id," => ",doc.data());
 				const agencyData = {
 						id: doc.id,
 						data: doc.data()
@@ -215,16 +211,11 @@ const Users = () => {
 	}
 
 	const getUserData = async (email) => {
-		// console.log(email); // Ensure you're getting the correct email
 		try {
 			return await getUserByEmail({ email }) // Pass the email directly
 		} catch (error) {
 			return console.error("Error fetching user data:", error)
 		}
-	}
-	
-	const getAgencies = () => {
-	
 	}
 	
 	// MODAL: Function to handle opening and setting values in the EditUserModal
@@ -255,11 +246,6 @@ const Users = () => {
 		const agencySnapshot = await getDocs(agencyQuery)
 		if (!agencySnapshot.empty) {
 			setSelectedAgency(agencySnapshot.docs[0].data().name)
-			// const agencyData = agencySnapshot.docs[0].data().name
-			// console.log(agencyData)
-			// userData.data.agencyName = agencyData.name
-			// Set the agency state
-			// setAgencyUserAgency(userData.data.agencyName)
 		}
 		// agencies END
 		
@@ -377,24 +363,6 @@ const Users = () => {
 	useEffect(() => {
 		getData()
 	},[update])
-	
-	// Dev logs
-	// useEffect(() => {
-		// console.log(userEditing)
-		// if (userEditingClaims === undefined) {
-		// 	console.log('ROLE: user')
-		// 	setUserRole('User')
-		// } else if (userEditingClaims.agency) {
-		// 	console.log('ROLE: agency')
-		// 	setUserRole('Agency')
-		// } else if (userEditingClaims.admin) {
-		// 	console.log('ROLE: admin')
-		// 	setUserRole('Admin')
-		// }
-		// console.log(`logged in user claims ${JSON.stringify(customClaims)}`)
-		// console.log(`user editing obj ${JSON.stringify(userEditing)}`)
-	// }, [selectedAgency])
-	
 
 	return (
 		<div className='w-full h-full flex flex-col py-5'>
