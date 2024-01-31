@@ -205,13 +205,13 @@ const Users = () => {
 			})
 	}
 
-	const getUserData = async (email) => {
-		try {
-			return await getUserByEmail({ email }) // Pass the email directly
-		} catch (error) {
-			return console.error("Error fetching user data:", error)
-		}
-	}
+	// const getUserData = async (email) => {
+	// 	try {
+	// 		return await getUserByEmail({ email }) // Pass the email directly
+	// 	} catch (error) {
+	// 		return console.error("Error fetching user data:", error)
+	// 	}
+	// }
 	
 	// MODAL: Function to handle opening and setting values in the EditUserModal
 	const handleEditUser = async (userObj, userId) => {
@@ -310,8 +310,8 @@ const Users = () => {
 	}
 
 	// Function to handle user role change
-	const handleRoleChange = (e) => {
-		setUserRole(e.target.value)
+	const handleRoleChange = (role) => {
+		setUserRole(role);
 	}
 
 	// Function to handle banned status change
@@ -323,7 +323,6 @@ const Users = () => {
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
 		const docRef = doc(db, "mobileUsers", userId)
-		console.log(`${e.target.value} ${userRole}`)
 		await updateDoc(docRef, {
 			name: name,
 			email: email,
@@ -331,39 +330,33 @@ const Users = () => {
 			userRole: userRole,
 		})
 		// set role on the server side
-		// If the userRole is set to "Admin", call the addAdminRole Firebase function
-		// Fetch the current user data from Firestore
-		const snapshot = await getDoc(docRef)
-		const userData = snapshot.data()
-		console.log(`first ${userData.userRole}, second ${userRole}`)
-
-		// Compare the user role before and after the form submission
-		if (userData.userRole !== userRole) {
-			// If the userRole is set to "Admin", call the addAdminRole function
+		// If the userRole is set to "Admin", call the addAdminRole function
+		// Check if the user's role has been modified
+		if (userRole !== userEditing.userRole) {
 			if (userRole === "Admin") {
 				try {
 					// Call the addAdminRole function
 					await addAdminRole({ email: email })
-					console.log(`${email} has been made an admin`)
+					console.log(`${ email } has been made an admin`)
 				} catch (error) {
-					console.error("Error adding admin role:", error)
+					console.error("Error adding admin role:",error)
 				}
 			} else if (userRole === "Agency") {
 				// Call the addAgencyRole function
 				try {
 					await addAgencyRole({ email: email })
-					console.log(`${email} has been made an agency user`)
+					console.log(`${ email } has been made an agency user`)
 				} catch (error) {
-					console.error("Error adding agency role:", error)
+					console.error("Error adding agency role:",error)
 					// Handle error if needed
 				}
 			} else if (userRole === "User") {
 				// Call the addUserRole function
 				try {
 					await addUserRole({ email: email })
-					console.log(`${email} has been made a general user`)
+					console.log(`${ email } has been made a general user`)
 				} catch (error) {
-					console.error("Error adding general user role:", error)
+					console.error("Error adding general user role:",error)
 					// Handle error if needed
 				}
 			}
@@ -395,6 +388,11 @@ const Users = () => {
 	useEffect(() => {
 		getData()
 	},[update])
+	
+	useEffect(() => {
+		console.log(userRole)
+	}, [userEditModal])
+	
 
 	return (
 		<div className='w-full h-full flex flex-col py-5'>
