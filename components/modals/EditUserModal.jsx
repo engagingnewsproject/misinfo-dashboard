@@ -1,4 +1,4 @@
-import React from "react"
+import React, {useEffect} from "react"
 import { IoClose } from "react-icons/io5"
 import { Switch } from "@headlessui/react"
 
@@ -46,6 +46,16 @@ const EditUserModal = ({
 		modal_form_button:
 			"bg-blue-500 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
 	}
+	useEffect(() => {
+		if (userRole === 'Admin') {
+			console.log('Admin ', userRole)
+		}else if (userRole === 'Agency') {
+			console.log('Agency ', userRole)
+		} else {
+			console.log('General User')
+		}
+	}, [userEditing])
+	
 	return (
 		<div
 			className={style.modal_background}
@@ -90,16 +100,6 @@ const EditUserModal = ({
 									type='text'
 									onChange={onEmailChange}
 									defaultValue={userEditing.email}
-								/>
-								{/* Agency - TODO: dropdown to select/change agency */}
-								<div className={style.modal_form_label}>Agency</div>
-								<input
-									className={style.modal_form_input}
-									id='agency'
-									type='text'
-									disabled
-									// onChange={onAgencyChange}
-									value={userEditing.agencyName}
 								/>
 								<div className={style.modal_form_label}>Banned</div>
 								{/* BANNED */}
@@ -168,6 +168,34 @@ const EditUserModal = ({
 												User
 											</label>
 										</div>
+										{/* Agency - TODO: dropdown to select/change agency */}
+										{userRole === 'Agency' && 
+											<>
+											<div className={style.modal_form_label}>Agency</div>
+												<select
+													id="agency"
+													onChange={onLabelChange}
+													defaultValue={userEditingAgency}
+													className="text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none">
+												<option value={userEditingAgency ? userEditingAgency : "No agency"}>
+													{userEditingAgency ? userEditingAgency : "Choose an agency"}
+												</option>
+												{agencies
+													.filter((label) => label !== userEditingAgency)
+													.map((label, i) => {
+														return <option value={label} key={i}>{label}</option>;
+													})}
+												</select>
+												<input
+													className={style.modal_form_input}
+													id='agency'
+													type='text'
+													disabled
+													// onChange={onAgencyChange}
+													value={userEditing.agencyName}
+												/>
+											</>
+										}
 									</>
 								)}
 								<div className='grid col-span-3 justify-center'>
