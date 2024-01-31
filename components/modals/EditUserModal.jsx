@@ -1,4 +1,4 @@
-import React from "react"
+import React, {useEffect} from "react"
 import { IoClose } from "react-icons/io5"
 import { Switch } from "@headlessui/react"
 
@@ -7,7 +7,11 @@ const EditUserModal = ({
 	userId,
 	customClaims,
 	user,
-	onOptionChange,
+	onRoleChange,
+	// agency
+	agenciesArray,
+	selectedAgency,
+	onAgencyChange,
 	onNameChange,
 	name,
 	onEmailChange,
@@ -46,6 +50,11 @@ const EditUserModal = ({
 		modal_form_button:
 			"bg-blue-500 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
 	}
+	useEffect(() => {
+		console.log(selectedAgency)
+		// console.log(`user editing--> ${JSON.stringify(userEditing)}`)
+	}, [selectedAgency])
+	
 	return (
 		<div
 			className={style.modal_background}
@@ -78,6 +87,10 @@ const EditUserModal = ({
 									onChange={onNameChange}
 									defaultValue={userEditing.name}
 								/>
+								<label htmlFor='name' className={style.modal_form_label}>
+									User ID
+								</label>
+								<span className={style.modal_form_input}>{ userId}</span>
 								{/* Email */}
 								<div className={style.modal_form_label}>Email</div>
 								<input
@@ -86,16 +99,6 @@ const EditUserModal = ({
 									type='text'
 									onChange={onEmailChange}
 									defaultValue={userEditing.email}
-								/>
-								{/* Agency - TODO: dropdown to select/change agency */}
-								<div className={style.modal_form_label}>Agency</div>
-								<input
-									className={style.modal_form_input}
-									id='agency'
-									type='text'
-									disabled
-									// onChange={onAgencyChange}
-									value={userEditing.agencyName}
 								/>
 								<div className={style.modal_form_label}>Banned</div>
 								{/* BANNED */}
@@ -135,7 +138,7 @@ const EditUserModal = ({
 													value='Admin'
 													id='admin'
 													checked={userRole === "Admin"}
-													onChange={onOptionChange}
+													onChange={onRoleChange}
 													className={style.modal_form_radio}
 												/>
 												Admin
@@ -147,7 +150,7 @@ const EditUserModal = ({
 													value='Agency'
 													id='agency'
 													checked={userRole === "Agency"}
-													onChange={onOptionChange}
+													onChange={onRoleChange}
 													className={style.modal_form_radio}
 												/>
 												Agency
@@ -158,12 +161,30 @@ const EditUserModal = ({
 													value='User'
 													id='user'
 													checked={userRole === "User"}
-													onChange={onOptionChange}
+													onChange={onRoleChange}
 													className={style.modal_form_radio}
 												/>
 												User
 											</label>
 										</div>
+										{/* Agency - TODO: dropdown to select/change agency */}
+										{userRole === 'Agency' && 
+											<>
+											<div className={style.modal_form_label}>Agency</div>
+											{/* value={userEditing.agencyName} */}
+	<select
+		id='agency'
+		onChange={onAgencyChange}
+		value={selectedAgency}
+		className={`${style.modal_form_input}`}>
+		{agenciesArray.map((agency, i) => (
+			<option value={agency.data.name} key={i}>
+				{agency.data.name}
+			</option>
+		))}
+	</select>
+											</>
+										}
 									</>
 								)}
 								<div className='grid col-span-3 justify-center'>
