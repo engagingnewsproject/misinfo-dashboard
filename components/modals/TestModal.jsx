@@ -1,9 +1,10 @@
-import React, {useState} from "react"
-import { Switch } from '@headlessui/react'
+import React, { useEffect } from "react"
+import { Switch } from "@headlessui/react"
 
 const TestModal = ({
 	// report
 	report,
+	reports,
 	// modal
 	setTestModalShow,
 	// labels
@@ -11,8 +12,8 @@ const TestModal = ({
 	selectedLabel,
 	onLabelChange,
 	// read/unread
-	enabled,
-	setEnabled,
+	read,
+	onReadChange,
 	// form submit
 	onFormSubmit,
 }) => {
@@ -23,7 +24,17 @@ const TestModal = ({
 		content:
 			"flex-col justify-center items-center lg:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible",
 	}
-
+	
+  // Function to handle checkbox change and update parent state
+  const handleCheckboxChange = () => {
+    // Invert the current read state
+    const newReadState = !read;
+    // Call the function passed from TestComponent to update the read state
+    onReadChange(newReadState);
+    // Log the value of the read state after toggling
+    console.log('Read state after toggling in TestModal:', newReadState);
+	};
+	
 	return (
 		<div className={modal.wrap} onClick={() => setTestModalShow(false)}>
 			<div
@@ -34,19 +45,13 @@ const TestModal = ({
 				<div className={modal.content}>
 					<h2>{report.title}</h2>
 					<form onSubmit={onFormSubmit}>
-						<Switch
-							checked={enabled}
-							onChange={setEnabled}
-							className={`${
-								enabled ? "bg-blue-600" : "bg-gray-200"
-							} relative inline-flex h-6 w-11 items-center rounded-full`}>
-							<span className='sr-only'>Enable notifications</span>
-							<span
-								className={`${
-									enabled ? "translate-x-6" : "translate-x-1"
-								} inline-block h-4 w-4 transform rounded-full bg-white transition`}
-							/>
-						</Switch>
+						<input
+								type="checkbox"
+								id="checkbox"
+								checked={read}
+								onChange={handleCheckboxChange} // Use local function to update parent state
+						/>
+						<label htmlFor="checkbox">{read ? "read" : "unread"}</label>
 						<select
 							id='labels'
 							onChange={onLabelChange}
