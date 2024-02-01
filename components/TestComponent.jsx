@@ -1,26 +1,50 @@
 import React, { useState, useEffect } from "react"
 import TestModal from "./modals/TestModal"
-import { getDoc, doc, updateDoc, onSnapshot, collection } from "firebase/firestore"
+import {
+	getDoc,
+	doc,
+	updateDoc,
+	onSnapshot,
+	collection,
+} from "firebase/firestore"
 import { db } from "../config/firebase"
-import { Switch } from '@headlessui/react'
-
+import { Switch } from "@headlessui/react"
+// Checkbox HELL: https://www.codemzy.com/blog/react-checkbox-not-updating
 const TestComponent = () => {
 	// user
 	const userId = localStorage.getItem("userId")
 	// report
 	const [reports, setReports] = useState([])
-	const [report,setReport] = useState("")
+	const [report, setReport] = useState("")
 	// modal
-	const [testModalShow,setTestModalShow] = useState(false)
+	const [testModalShow, setTestModalShow] = useState(false)
 	// labels
 	const [activeLabels, setActiveLabels] = useState([])
-	const [selectedLabel,setSelectedLabel] = useState("")
+	const [selectedLabel, setSelectedLabel] = useState("")
 	// read/unread
-	const [enabledStates, setEnabledStates] = useState({}); // Object to store enabled state for each report
+	const [read, setRead] = useState(false)
+	const [update, setUpdate] = useState(false)
+
+	const handleReadChange = async (reportId) => {
+		// Update the read status of the report in Firestore
+		const docRef = doc(db, "reports", reportId)
+		await updateDoc(docRef, {
+			read: read,
+		})
+		// Toggle the read state
+		// setRead(read => !read)
+		setRead((prevRead) => !prevRead)
+		// setUpdate(!update)
+		// Log the value of the read state
+		console.log(`Read state after toggling in ID:${reportId} handleReadChange:`, !read)
+	}
+
+	// Define a function to update the read state in modal
+	const updateReadState = (newReadState) => {
+		setRead(newReadState)
+	}
 
 	const handleTestModalShow = async (reportId) => {
-		setTestModalShow(true)
-
 		// Fetch the specific report by ID
 		const docRef = await getDoc(doc(db, "reports", reportId))
 		const reportData = docRef.data()
@@ -28,12 +52,14 @@ const TestComponent = () => {
 		// Set the report object and its ID
 		setReport({ id: reportId, ...reportData })
 
-    // Set the enabled state for the report
-    setEnabledStates(prevStates => ({
-        ...prevStates,
-        [reportId]: reportData.read || false, // Set the enabled state based on the read status in Firestore
-    }));
-		
+		// if report is unread, mark it as read
+		if (!reportData.read) {
+			handleReadChange(reportId)
+		}
+
+		// Show the modal
+		setTestModalShow(true)
+
 		// Fetch and set active labels
 		const tagsRef = await getDoc(doc(db, "tags", userId))
 		setActiveLabels(tagsRef.data()["Labels"]["active"])
@@ -47,56 +73,45 @@ const TestComponent = () => {
 		await updateDoc(docRef, { label: e.target.value })
 	}
 
-	const handleToggleSwitch = async (reportId, newState) => {
-    // Update the Firestore document to reflect the new read/unread state
-    const docRef = doc(db, "reports", reportId);
-    await updateDoc(docRef, {
-        read: newState,
-    });
-
-    // Update the local state to reflect the new state
-    setEnabledStates(prevStates => ({
-        ...prevStates,
-        [reportId]: newState,
-    }));
-};
-
-	
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
 
-    // Update the label and read status in the Firestore database
-    const docRef = doc(db, "reports", report.id);
-    await updateDoc(docRef, {
-        label: selectedLabel,
-        read: enabledStates[report.id] || false, // Update the "read" field in Firestore
-    });
+		// Update the label and read status in the Firestore database
+		const docRef = doc(db, "reports", report.id)
+		await updateDoc(docRef, {
+			label: selectedLabel,
+			read: read, // Update the "read" field in Firestore
+		})
 
 		// Close the modal
 		setTestModalShow(false)
 	}
 
 	useEffect(() => {
-		// console.log('use effect run')
-		const unsubscribe = onSnapshot(collection(db,"reports"),(querySnapshot) => {
-			const reportArray = [];
-			const initialEnabledStates = {}; // Initialize enabledStates with initial values from Firestore
-			querySnapshot.forEach((doc) => {
-					const reportData = doc.data();
-					reportArray.push({ id: doc.id, data: reportData });
-					initialEnabledStates[doc.id] = reportData.read || false; // Set initial value based on "read" field
-			});
-			setReports(reportArray);
-			setEnabledStates(initialEnabledStates); // Set the initial enabledStates
-		});
+		const unsubscribe = onSnapshot(
+			collection(db, "reports"),
+			(querySnapshot) => {
+				const reportArray = []
+				querySnapshot.forEach((doc) => {
+					const reportData = doc.data()
+					const { id } = doc
+					const read = reportData.read // Fetch read field from Firestore
+					reportArray.push({ id, data: reportData, read }) // Include read field in report object
+				})
+				setReports(reportArray)
+			}
+		)
 
 		return () => {
-			// Unsubscribe when the component unmounts
-			unsubscribe();
-		};
-	}, [testModalShow]);
+			unsubscribe()
+		}
+	}, [update])
 
-	
+	// Inside your useEffect hook in TestComponent where you fetch reports:
+	// useEffect(() => {
+	// 	console.log("Reports in useEffect:", reports)
+	// }, [reports])
+
 	return (
 		<>
 			{/* map over reports */}
@@ -107,19 +122,19 @@ const TestComponent = () => {
 						onClick={() => handleTestModalShow(item.id)}>
 						<span>{item.id}</span>: <span>{item.data.title}</span>:{" "}
 						<span onClick={(e) => e.stopPropagation()}>
-							<Switch
-								checked={enabledStates[item.id] || false}
-								onChange={(newState) => handleToggleSwitch(item.id, newState)} // Pass reportId and new state
-								className={`${
-									enabledStates[item.id] ? "bg-blue-600" : "bg-gray-200"
-								} relative inline-flex h-6 w-11 items-center rounded-full`}>
-								<span className='sr-only'>Enable notifications</span>
-								<span
-									className={`${
-										enabledStates[item.id] ? "translate-x-6" : "translate-x-1"
-									} inline-block h-4 w-4 transform rounded-full bg-white transition`}
-								/>
-							</Switch>
+							{" "}
+							<input
+								type='checkbox'
+								id={`checkbox-${item.id}`}
+								checked={item.read}
+								onChange={() => {
+									console.log(
+										`Read state before toggling in ID:${item.id} <input>:`,
+										item.read
+									)
+									handleReadChange(item.id)
+								}}
+							/>
 						</span>
 						<span>{`--> ${item.data.label}`}</span>
 					</li>
@@ -130,20 +145,17 @@ const TestComponent = () => {
 				<TestModal
 					// report
 					report={report}
+					reports={reports}
 					// modal
+					testModalShow={testModalShow}
 					setTestModalShow={setTestModalShow}
 					// labels
 					activeLabels={activeLabels}
 					selectedLabel={selectedLabel}
 					onLabelChange={handleLabelChange}
 					// read/unread
-					enabled={enabledStates[report.id] || false}
-					setEnabled={(newState) =>
-						setEnabledStates((prevStates) => ({
-							...prevStates,
-							[report.id]: newState,
-						}))
-					}
+					read={read} // Pass the read state to TestModal
+					onReadChange={updateReadState} // Pass the function to update the read state
 					// form submit
 					onFormSubmit={handleFormSubmit}
 				/>
