@@ -115,24 +115,24 @@ const handleImageChange = (e) => {
 			}
 			
 			// Define the list of allowed image types.
-			const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+			// const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 			
-			// Filter out invalid images based on their types.
-			const invalidImages = images.filter((image) => {
-				// Check if the image's type is not in the list of valid types.
-				return !validImageTypes.includes(image.type);
-			});
+			// // Filter out invalid images based on their types.
+			// const invalidImages = images.filter((image) => {
+			// 	// Check if the image's type is not in the list of valid types.
+			// 	return !validImageTypes.includes(image.type);
+			// });
 			
-			// If there are invalid images, log them and exit.
-			if (invalidImages.length > 0) {
-				console.error("Invalid image(s) detected:", invalidImages);
-				return;
-			}
+			// // If there are invalid images, log them and exit.
+			// if (invalidImages.length > 0) {
+			// 	console.error("Invalid image(s) detected:", invalidImages);
+			// 	return;
+			// }
 			
 			// Create an array of upload promises for each image.
 			const uploadPromises = images.map(async (image) => {
 				// Create a reference to a unique storage location for each image using a timestamp.
-				const storageRef = ref(storage, `agencies/logo_${new Date().getTime().toString()}.png`);
+				const storageRef = ref(storage, `${new Date().getTime().toString()}.png`);
 				
 				// Start the upload task for the current image.
 				const uploadTask = uploadBytesResumable(storageRef, image);
@@ -319,7 +319,7 @@ const handleImageChange = (e) => {
 										{logo.map((image, i) => {
 											return (
 												<div className="flex mr-2" key={i}>
-													<Image src={image} width={100} height={100} alt="image"/>
+													<Image src={`${image}`} width={100} height={100} alt="image"/>
 												</div>
 											)
 										})}
