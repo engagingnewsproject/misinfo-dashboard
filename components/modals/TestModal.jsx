@@ -1,5 +1,5 @@
 import React, { useEffect } from "react"
-import { Switch } from "@headlessui/react"
+import Switch from "react-switch"
 
 const TestModal = ({
 	// report
@@ -13,7 +13,8 @@ const TestModal = ({
 	onLabelChange,
 	// read/unread
 	read,
-	onReadChange,
+	checked,
+	handleChange,
 	// form submit
 	onFormSubmit,
 }) => {
@@ -45,13 +46,18 @@ const TestModal = ({
 				<div className={modal.content}>
 					<h2>{report.title}</h2>
 					<form onSubmit={onFormSubmit}>
-						<input
+						{/* <input
 								type="checkbox"
 								id="checkbox"
 								checked={read}
 								onChange={handleCheckboxChange} // Use local function to update parent state
-						/>
-						<label htmlFor="checkbox">{read ? "read" : "unread"}</label>
+						/> */}
+							{/* Render the Switch component */}
+							<Switch
+								onChange={handleChange} // Use the handleChange function from props
+								checked={checked} // Use the checked state from props
+							/>
+						<p>The switch is {checked ? "on" : "off"}.</p>
 						<select
 							id='labels'
 							onChange={onLabelChange}
