@@ -8,7 +8,8 @@ import {
 	collection,
 } from "firebase/firestore"
 import { db } from "../config/firebase"
-import { Switch } from "@headlessui/react"
+import Switch from "react-switch";
+
 // Checkbox HELL: https://www.codemzy.com/blog/react-checkbox-not-updating
 const TestComponent = () => {
 	// user
@@ -22,7 +23,9 @@ const TestComponent = () => {
 	const [activeLabels, setActiveLabels] = useState([])
 	const [selectedLabel, setSelectedLabel] = useState("")
 	// read/unread
-	const [read, setRead] = useState(false)
+	const [read,setRead] = useState(false)
+	// react-switch
+	const [checked, setChecked] = useState(false);
 	const [update, setUpdate] = useState(false)
 
 	const handleReadChange = async (reportId) => {
@@ -36,9 +39,15 @@ const TestComponent = () => {
 		setRead((prevRead) => !prevRead)
 		// setUpdate(!update)
 		// Log the value of the read state
-		console.log(`Read state after toggling in ID:${reportId} handleReadChange:`, !read)
+		console.log(`Read state after toggling in ID:${reportId} handleReadChange:`, read)
 	}
 
+	// react-switch
+	const handleChange = nextChecked => {
+		console.log(nextChecked)
+    setChecked(nextChecked);
+  };
+	
 	// Define a function to update the read state in modal
 	const updateReadState = (newReadState) => {
 		setRead(newReadState)
@@ -122,8 +131,13 @@ const TestComponent = () => {
 						onClick={() => handleTestModalShow(item.id)}>
 						<span>{item.id}</span>: <span>{item.data.title}</span>:{" "}
 						<span onClick={(e) => e.stopPropagation()}>
-							{" "}
-							<input
+							
+							<Switch
+								onChange={handleChange}
+								checked={checked}
+								className='react-switch'
+							/>
+							{/* <input
 								type='checkbox'
 								id={`checkbox-${item.id}`}
 								checked={item.read}
@@ -134,7 +148,7 @@ const TestComponent = () => {
 									)
 									handleReadChange(item.id)
 								}}
-							/>
+							/> */}
 						</span>
 						<span>{`--> ${item.data.label}`}</span>
 					</li>
