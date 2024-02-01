@@ -7,6 +7,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'firebasestorage.googleapis.com',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost:3000'
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1' // emulator
+      },
     ],
   },
   
