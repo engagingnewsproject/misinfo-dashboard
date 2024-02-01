@@ -25,44 +25,43 @@ const Login = () => {
 
   
 
-  const handleLogin = e => {
-      e.preventDefault()
-      //console.log(user)
-      login(data.email, data.password).then(()=> {
-        setError(null)
-        // console.log(auth.currentUser.uid)
-        if (auth.currentUser?.emailVerified) {
-          auth.currentUser.getIdTokenResult()
-          .then((idTokenResult) => {
-              // if admin load the dashboard
-              if (idTokenResult.claims.admin || idTokenResult.claims.agency) {
-                setLoading(true)
-                void router.push('/dashboard')
-                // otherwise load the report page
-              } else {
-                setLoading(true)
+  const handleLogin = async (e) => {
+		e.preventDefault()
+		setLoading(true) // Set loading state to true during login process
+		try {
+			await login(data.email, data.password)
+			// Login successful, check if email is verified
+			if (auth.currentUser?.emailVerified) {
+				const idTokenResult = await auth.currentUser.getIdTokenResult()
+				console.log("Claims:", idTokenResult.claims)
 
-                void router.push('/report')
-              }
-          })
-        } else if (!auth.currentUser?.emailVerified) {
-          verifyEmail(auth.currentUser)
-          router.push('/verifyEmail')
-        }
-      }).catch((err)=> {
-        if (err == "FirebaseError: Firebase: Error (auth/user-not-found).") {
-          setError("An account was not found with the provided email. ")
-        } else if (err == "FirebaseError: Firebase: Error (auth/wrong-password).") {
-          setError("The password is incorrect. ")
-        } else {
-          setError("An error occurred when logging in.")
-          console.log(err)
-        }
-        
-      })
-  
-   
-  }
+				// Redirect user based on their role
+				if (idTokenResult.claims.admin || idTokenResult.claims.agency) {
+					console.log("Redirecting to dashboard...")
+					await router.push("/dashboard")
+				} else {
+					console.log("Redirecting to report page...")
+					await router.push("/report")
+				}
+			} else {
+				// Email not verified, send verification email and redirect
+				console.log("Email not verified. Sending verification email...")
+				await verifyEmail(auth.currentUser)
+				await router.push("/verifyEmail")
+			}
+		} catch (error) {
+			// Login error occurred, handle and display it
+			console.error("Login error:", error)
+			if (error.code === "auth/user-not-found") {
+				setError("An account was not found with the provided email.")
+			} else if (error.code === "auth/wrong-password") {
+				setError("The password is incorrect.")
+			} else {
+				setError("An error occurred when logging in.")
+			}
+    }
+    setLoading(false)
+	}
 
   const handleChange = (e) => {
       setData({ ...data, [e.target.id]: e.target.value})
@@ -75,7 +74,7 @@ const Login = () => {
             <div className="flex justify-center mb-4">
                 <div className="w-24 h-24 font-extralight rounded-full tracking-widest flex justify-center items-center text-white bg-blue-500">MOODY</div>
             </div>
-            <form className="px-8 pt-6 pb-4 mb-4" >
+            <form className="px-8 pt-6 pb-4 mb-4" onSubmit={handleLogin}>
                 <div className="mb-4">
                     <input
                         className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -104,7 +103,7 @@ const Login = () => {
                 <div className="mt-5 flex-col items-center content-center">
                     <button 
                     className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-4 px-6 rounded focus:outline-none focus:shadow-outline"
-                    type="submit" onClick={handleLogin}>
+                    type="submit">
                         {loading ?        
                           <svg aria-hidden="true" className="m-auto h-4 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">	
 									          <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />	
