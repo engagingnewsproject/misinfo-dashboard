@@ -99,6 +99,29 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				reportsCollection,
 				where("agency", "==", agencyName)
 			)
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
+			// TODO: Fix READ showing in the table list per report. If you click on it: read. Close modal: unread. BAD!
 			snapshot = await getDocs(agencyReports)
 
 			// Displays all reports for admin user
@@ -471,7 +494,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 };
 	
 	useEffect(() => {
-    console.log(reportModalId, reportModal, reportRead);
     if (reportModal) {
 			if (reportRead === false) {
 				setReportRead(true);
