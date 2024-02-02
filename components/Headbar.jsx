@@ -37,8 +37,8 @@ const Headbar = ({ search, setSearch}) => {
         getData()
 	}, [])
     return (
-        <div className="w-full">
-            <div className="flex py-4 px-12 md:pl-12 sm:px-3 sm:pl-20 md:px-5 lg:px-12 justify-center md:justify-between items-center">
+        <div className="w-full lg:w-full lg:max-w-7xl">
+            <div className="flex py-4 px-12 md:pl-12 sm:px-3 sm:pl-20 md:px-5 lg:px-20 justify-center md:justify-between items-center">
                 <div className="flex">
                 {/* TODO: - agency can swap out their logo */}
                     <div className="flex justify-center">
