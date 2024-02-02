@@ -375,7 +375,7 @@ const Profile = ({ customClaims }) => {
 	
 	return (
 		<div className='w-full h-auto'>
-			<div className='z-0 flex-col p-16 pt-10'>
+			<div className='z-0 flex-col p-2 md:p-8 lg:p-16 pt-5 md:pt-10'>
 				<div className='text-xl font-extrabold text-blue-600 tracking-wider'>
 					Account
 				</div>
@@ -389,18 +389,18 @@ const Profile = ({ customClaims }) => {
 						</div>
 					</div>
 				)}
-				<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
-					<div className='font-light'>Email</div>
-					<div className='flex gap-2 my-2 tracking-normal items-center'>
+				<div className='flex flex-col md:flex-row justify-start md:justify-between mx-0 md:mx-6 my-6 tracking-normal items-stretch md:items-center'>
+					<div className='font-semibold text-sm md:font-light'>Email</div>
+					<div className='flex gap-2 my-2 tracking-normal items-center justify-between'>
 						<div className='font-light'>{user.email}</div>
 						<button
 							onClick={() => setEmailModal(true)}
-							className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl'>
+							className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl flex justify-self-end'>
 							Edit Email
 						</button>
 					</div>
 				</div>
-				<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
+				<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
 					<div className='font-light'>Reset Password</div>
 					<button
 						onClick={() => setOpenModal(true)}
@@ -408,7 +408,7 @@ const Profile = ({ customClaims }) => {
 						Edit Password
 					</button>
 				</div>
-				<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
+				<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
 					<div className='font-light'>Logout</div>
 					<button
 						onClick={() => setLogoutModal(true)}
