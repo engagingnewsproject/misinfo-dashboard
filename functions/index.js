@@ -2,8 +2,6 @@ const functions = require('firebase-functions')
 const admin = require('firebase-admin')
 admin.initializeApp()
 
-
-
 exports.addUserRole = functions.https.onCall((data,context) => {
   // get user and add custom claim to user
   return admin.auth().getUserByEmail(data.email).then(user => {
@@ -45,7 +43,6 @@ exports.addAdminRole = functions.https.onCall((data,context) => {
 
 })
 
-
 // Adds agency privilege to user based on email provided
 exports.addAgencyRole = functions.https.onCall((data,context) => {
   // get user and add custom claim to user
@@ -68,7 +65,6 @@ exports.addAgencyRole = functions.https.onCall((data,context) => {
   })
 
 })
-
 
 exports.viewRole = functions.https.onCall((data,context) => {
   // get user and add custom claim to user
@@ -126,5 +122,29 @@ exports.getUser = functions.https.onCall((data,context) => {
 
     // Throw the error for other cases
     throw error
+  }
+})
+
+exports.getUserByEmail = functions.https.onCall(async (data, context) => {
+  try {
+    // Check if the request is authorized (if needed)
+    // if (!context.auth) {
+    //   return { error: 'Unauthorized' };
+    // }
+    const email = data.email; // Extract email from data object
+    const userRecord = await admin.auth().getUserByEmail(email);
+    console.log('User Record:',userRecord);
+    return userRecord
+
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+
+    // If user does not exist
+    if (error.code === 'auth/user-not-found') {
+      return {};
+    }
+
+    // Throw the error for other cases
+    throw error;
   }
 })
