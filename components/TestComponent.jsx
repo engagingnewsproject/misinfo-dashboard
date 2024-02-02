@@ -17,7 +17,7 @@ const TestComponent = () => {
 	const [testModalShow, setTestModalShow] = useState(false)
 	const [activeLabels, setActiveLabels] = useState([])
 	const [selectedLabel, setSelectedLabel] = useState("")
-	const [checkedReports, setCheckedReports] = useState({}) // Store checked state for each report
+	const [reportsRead, setReportsRead] = useState({}) // Store checked state for each report
 	const [update, setUpdate] = useState(false)
 
 	useEffect(() => {
@@ -34,13 +34,13 @@ const TestComponent = () => {
 				})
 				setReports(reportsArray)
 
-				// Initialize checkedReports with read status of each report
-				const initialCheckedReports = reportsArray.reduce((acc, report) => {
+				// Initialize reportsRead with read status of each report
+				const initialReportsRead = reportsArray.reduce((acc, report) => {
 					acc[report.id] = report.read // Use report ID as key and read status as value
 					return acc
 				}, {})
-				// Set checkedReports state
-				setCheckedReports(initialCheckedReports)
+				// Set reportsRead state
+				setReportsRead(initialReportsRead)
 				const fetchActiveLabels = async () => {
 					// Fetch active labels from Firebase or any other source
 					setActiveLabels(["Important", "Flagged"])
@@ -78,8 +78,8 @@ const TestComponent = () => {
 
 	// list item handle read change
 	const handleChange = async (reportId, checked) => {
-		setCheckedReports((prevCheckedReports) => ({
-			...prevCheckedReports,
+		setReportsRead((prevReportsRead) => ({
+			...prevReportsRead,
 			[reportId]: checked,
 		}))
 
@@ -110,7 +110,7 @@ const TestComponent = () => {
 						}}>
 						<Switch
 							onChange={(checked) => handleChange(report.id, checked)}
-							checked={checkedReports[report.id]}
+							checked={reportsRead[report.id]}
 						/>
 					</span>
 					{`${report.data.read === true ? "Read" : "unread"}`}
@@ -123,7 +123,7 @@ const TestComponent = () => {
 					activeLabels={activeLabels}
 					selectedLabel={selectedLabel}
 					onLabelChange={handleLabelChange}
-					checked={checkedReports[report.id]} // Pass the checked state for the selected report
+					checked={reportsRead[report.id]} // Pass the checked state for the selected report
 					onReadChange={handleModalReadChange}
 					onFormSubmit={handleFormSubmit}
 				/>
