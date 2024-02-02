@@ -77,7 +77,7 @@ const TestComponent = () => {
 	}
 
 	// list item handle read change
-	const handleChange = async (reportId, checked) => {
+	const handleChangeRead = async (reportId, checked) => {
 		setReportsRead((prevReportsRead) => ({
 			...prevReportsRead,
 			[reportId]: checked,
@@ -89,7 +89,7 @@ const TestComponent = () => {
 	}
 
 	// modal item read change
-	const handleModalReadChange = async (reportId, checked) => {
+	const handleChangeReadModal = async (reportId, checked) => {
 		const docRef = doc(db, "reports", reportId)
 		await updateDoc(docRef, { read: checked })
 		setUpdate(!update)
@@ -109,7 +109,7 @@ const TestComponent = () => {
 							e.stopPropagation()
 						}}>
 						<Switch
-							onChange={(checked) => handleChange(report.id, checked)}
+							onChange={(checked) => handleChangeRead(report.id, checked)}
 							checked={reportsRead[report.id]}
 						/>
 					</span>
@@ -124,7 +124,7 @@ const TestComponent = () => {
 					selectedLabel={selectedLabel}
 					onLabelChange={handleLabelChange}
 					checked={reportsRead[report.id]} // Pass the checked state for the selected report
-					onReadChange={handleModalReadChange}
+					onReadChange={handleChangeReadModal}
 					onFormSubmit={handleFormSubmit}
 				/>
 			)}
