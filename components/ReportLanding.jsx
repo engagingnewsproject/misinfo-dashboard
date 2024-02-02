@@ -55,7 +55,7 @@ const ReportLanding = ({
 				<h2 className={style.header}>Hello</h2>
 			</div>
 			<button onClick={onReportStartClick} className={style.buttonLg}>
-				<Image src="/img/report.png" width={200} height={120} alt="report" className='h-auto'/>
+				<Image src="/img/report.png" width={200} height={120} alt="report" className='h-auto max-w-36 sm:h-auto'/>
 				<span className='flex flex-col text-left'>
 					<span className='flex items-center'>Report<IoChevronForward size={25}/></span>
 					<span className='text-xs'>Potential Misinformation</span>
