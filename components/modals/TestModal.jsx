@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from "react"
+import { db } from "../../config/firebase"
+import { doc, updateDoc } from "firebase/firestore"
 import Switch from "react-switch"
 
 const TestModal = ({
 	report,
-	testModalShow,
 	setTestModalShow,
 	activeLabels,
 	selectedLabel,
 	onLabelChange,
 	checked,
 	onReadChange,
-	onModalReadChange,
 	onFormSubmit,
 }) => {
-	// const [localChecked, setLocalChecked] = useState(checked)
+
 	const modal = {
 		wrap: "fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto",
 		inner:
@@ -21,32 +21,23 @@ const TestModal = ({
 		content:
 			"flex-col justify-center items-center lg:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible",
 	}
-// Call onModalReadChange when switch state changes
-// const handleChange = () => {
-//   const newChecked = !localChecked;
-//   setLocalChecked(newChecked);
-//   onModalReadChange(report.id, newChecked); // Call the parent's function to update the checked prop
-//   onReadChange(report.id, newChecked); // Also update Firestore
-// };
 
-	
-	useEffect(() => {
-		console.log(checked)
-		console.log(report.id)
-	}, [testModalShow])
-	
 	return (
 		<div className={modal.wrap} onClick={() => setTestModalShow(false)}>
-			<div
-				className={modal.inner}
-				onClick={(e) => {
-					e.stopPropagation()
-				}}>
+			<div className={modal.inner}>
 				<div className={modal.content}>
 					<h2>{report.title}</h2>
 					<form onSubmit={onFormSubmit}>
-						<Switch onChange={onReadChange} checked={checked} />
-						<p>read {checked ? "yes" : "no"}.</p>
+						<span
+							onClick={(e) => {
+								e.stopPropagation()
+							}}>
+							<Switch
+								onChange={(checked) => onReadChange(report.id, checked)}
+								checked={checked}
+							/>
+							<p>read {checked ? "yes" : "no"}.</p>
+						</span>
 						<select id='labels' onChange={onLabelChange} value={selectedLabel}>
 							<option value=''>Choose a label</option>
 							{activeLabels.map((label, i) => (
@@ -55,7 +46,7 @@ const TestModal = ({
 								</option>
 							))}
 						</select>
-						<button type='submit'>Close</button>
+						<button type="button">Submit</button>
 					</form>
 				</div>
 			</div>
