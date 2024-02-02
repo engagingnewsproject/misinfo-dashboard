@@ -332,7 +332,11 @@ const ReportModal = ({
 											checked ? "bg-blue-600" : "bg-gray-200"
 										} relative inline-flex h-6 w-11 items-center rounded-full`}
 									/>
-								
+									{checked ? (
+										<span className="ml-2">Read</span>
+									) : (
+										<span className="ml-2">Unread</span>
+									)}
 								</div>
 								{/* Share */}
 								<button
