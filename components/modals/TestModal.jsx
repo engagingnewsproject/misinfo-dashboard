@@ -14,6 +14,10 @@ const TestModal = ({
 	onFormSubmit,
 }) => {
 
+	useEffect(() => {
+		console.log(checked)
+	}, [onReadChange])
+	
 	const modal = {
 		wrap: "fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto",
 		inner:

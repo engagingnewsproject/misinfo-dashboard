@@ -13,6 +13,7 @@ import Switch from "react-switch"
 const TestComponent = () => {
 	const userId = localStorage.getItem("userId")
 	const [reports, setReports] = useState([])
+	const [agencies, setAgencies] = useState([])
 	const [report, setReport] = useState([])
 	const [testModalShow, setTestModalShow] = useState(false)
 	const [activeLabels, setActiveLabels] = useState([])
@@ -21,7 +22,7 @@ const TestComponent = () => {
 	const [update, setUpdate] = useState(false)
 
 	useEffect(() => {
-		const unsubscribe = onSnapshot(
+		const reportsUnsubscribe = onSnapshot(
 			collection(db, "reports"),
 			(querySnapshot) => {
 				const reportsArray = []
@@ -40,18 +41,37 @@ const TestComponent = () => {
 					return acc
 				}, {})
 				// Set reportsRead state
+				console.log(initialReportsRead)
 				setReportsRead(initialReportsRead)
-				const fetchActiveLabels = async () => {
-					// Fetch active labels from Firebase or any other source
-					setActiveLabels(["Important", "Flagged"])
-				}
+				// const fetchActiveLabels = async () => {
+				// 	// Fetch active labels from Firebase or any other source
+				// 	setActiveLabels(["Important", "Flagged"])
+				// }
 			}
 		)
-
+		const agencyUnsubscribe = onSnapshot(
+			collection(db, "agency"),
+			(querySnapshot) => {
+				const agencyArray = []
+				querySnapshot.forEach((doc) => {
+					agencyArray.push({
+						id: doc.id,
+						data: doc.data(),
+					})
+				})
+				setAgencies(agencyArray)
+			}
+		)
 		return () => {
 			// Unsubscribe when the component unmounts
-			unsubscribe()
+			reportsUnsubscribe()
+			agencyUnsubscribe()
 		}
+	}, [])
+	
+	useEffect(() => {
+		console.log(reports)
+		console.log(agencies)
 	}, [])
 
 	const handleLabelChange = async (e) => {
@@ -82,7 +102,6 @@ const TestComponent = () => {
 			...prevReportsRead,
 			[reportId]: checked,
 		}))
-
 		// Update the Firestore document with the new read status
 		const docRef = doc(db, "reports", reportId)
 		await updateDoc(docRef, { read: checked })
@@ -98,7 +117,7 @@ const TestComponent = () => {
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
 	}
-
+	console.log(reportsRead[report.id])
 	return (
 		<>
 			{reports.map((report) => (
