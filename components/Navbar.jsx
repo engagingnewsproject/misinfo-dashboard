@@ -93,7 +93,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
     },
     bmMenuWrap: {
       width: '64px',
-
+      top: '0'
     },
     bmMenu: {
       width: '64px'
@@ -110,7 +110,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
     },
     bmOverlay: {
       background: 'rgba(0, 0, 0, 0.3)',
-      top: '0 px',
+      top: '0',
       right: '0 px'
     }
   }
