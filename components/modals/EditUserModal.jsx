@@ -107,7 +107,7 @@ const EditUserModal = ({
 										// Set checked to the initial banned value (false)
 										checked={banned}
 										// When switch toggled setBanned
-										onChange={onBannedChange}
+										onChange={onBannedChange} 
 										// On click handler
 										onClick={() => setBanned(!banned)}
 										className={`${
