@@ -45,7 +45,7 @@ const Headbar = ({ search, setSearch}) => {
                         {customClaims.agency && agencyLogo ? (
                             <Image src={agencyLogo} width={100} height={100} alt="image" style={{ width: '100%', height: 'auto' }}/>
                          ) : (
-                            <div className="w-10 h-10 font-extralight rounded-full tracking-widest flex justify-center text-sm items-center text-white bg-blue-500">M</div>
+                            <Image src="/img/misinformation-app-logo.png" width={45} height={45} alt="image" style={{ width: '100%', height: 'auto' }}/>
                         )}
                     </div>
                     <div className="text-md font-semibold px-4 m-auto tracking-wide">
