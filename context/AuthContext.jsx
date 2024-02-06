@@ -75,16 +75,18 @@ export const AuthContextProvider = ({children}) => {
     }, [])
 
 
-    // add admin cloud function
+  // add admin cloud function
   const addAdminRole = httpsCallable(functions,'addAdminRole')
+
+  const addAgencyRole = httpsCallable(functions, 'addAgencyRole')
+
+  const viewRole = httpsCallable(functions, 'viewRole')
+
+  const addUserRole = httpsCallable(functions, 'addUserRole')
   
-    const addAgencyRole = httpsCallable(functions, 'addAgencyRole')
-
-    const viewRole = httpsCallable(functions, 'viewRole')
-
-    const addUserRole = httpsCallable(functions, 'addUserRole')
-    
   const getUserByEmail = httpsCallable(functions,'getUserByEmail')
+    
+  const deleteUser = httpsCallable(functions,'deleteUser')
   
   const verifyEmail = (user) => {
     return new Promise((resolve, reject) => {
@@ -224,7 +226,7 @@ export const AuthContextProvider = ({children}) => {
     }
  
     return (
-        <AuthContext.Provider value={{ user, customClaims, setCustomClaims, login, signup, logout, resetPassword, deleteAdminUser, updateUserPassword, setPassword, verifyEmail, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole, getUserByEmail }}>
+        <AuthContext.Provider value={{ user, customClaims, setCustomClaims, login, signup, logout, resetPassword, deleteAdminUser, updateUserPassword, setPassword, verifyEmail, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole, getUserByEmail, deleteUser }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )
