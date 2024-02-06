@@ -246,7 +246,7 @@ const SignUp = () => {
                             onChange={handleChecked}
                             autoComplete='contact'
                             />
-                      <label for="contact">I confirm that news agencies can contact me to follow up on my submitted reports.</label>
+                      <label htmlFor="contact">I confirm that news agencies can contact me to follow up on my submitted reports.</label>
 
                     </div>
 
