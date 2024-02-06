@@ -1,7 +1,7 @@
 {
     "theme_color": "#2066D3",
     "background_color": "#ffffff",
-    "display": "browser",
+    "display": "fullscreen",
     "scope": "/",
     "start_url": "/login",
     "name": "Misinformation",
@@ -27,6 +27,12 @@
             "src": "/icon-512x512.png",
             "sizes": "512x512",
             "type": "image/png"
+        },
+        {
+            "src": "/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
         }
     ]
 }
