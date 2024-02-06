@@ -94,36 +94,41 @@ exports.viewRole = functions.https.onCall((data,context) => {
 })
 
 // get another user data by uid
-exports.getUser = functions.https.onCall((data,context) => {
+exports.getUser = functions.https.onCall(async (data, context) => {
   try {
     // Check if the request is authorized (if needed)
     // if (!context.auth) {
     //   return { error: 'Unauthorized' };
     // }
-    const userRecord = admin.auth().getUserByEmail(data)
-      .then((response) => {
-        // Extract relevant user data
-        const userData = {
-          displayName: response.displayName,
-          email: response.email,
-          uid: response.uid
-          // Add other fields as needed
-        }
-        return userData
-      })
-    return userRecord
+
+    // Get the UID from the request data
+    const uid = data.uid;
+
+    // Retrieve the user record using the UID
+    const userRecord = await admin.auth().getUser(uid);
+
+    // Extract relevant user data
+    const userData = {
+      displayName: userRecord.displayName,
+      email: userRecord.email,
+      uid: userRecord.uid
+      // Add other fields as needed
+    };
+
+    return userData;
   } catch (error) {
-    console.error('Error fetching user data:',error)
+    console.error('Error fetching user data:', error);
 
     // If user does not exist
     if (error.code === 'auth/user-not-found') {
-      return {}
+      return {};
     }
 
     // Throw the error for other cases
-    throw error
+    throw error;
   }
-})
+});
+
 
 exports.getUserByEmail = functions.https.onCall(async (data, context) => {
   try {
@@ -147,4 +152,32 @@ exports.getUserByEmail = functions.https.onCall(async (data, context) => {
     // Throw the error for other cases
     throw error;
   }
+})
+
+// get another user data by uid
+exports.deleteUser = functions.https.onCall(async (data, context) => {
+	try {
+		// Check if the request is authorized (if needed)
+		// if (!context.auth) {
+		//   return { error: 'Unauthorized' };
+		// }
+
+		// Get the UID from the request data
+		const uid = data.uid
+
+		if (!uid) {
+			console.log("User data not found")
+			return { success: false, message: "User data not found" }
+		} else {
+			// Perform user deletion operation
+			await admin.auth().deleteUser(uid)
+
+			console.log("User deleted successfully on server side")
+		}
+
+		return { success: true, message: "User deleted successfully", userRecord }
+	} catch (error) {
+		console.error("Error deleting user:", error)
+		return { success: false, message: "Error deleting user", error }
+	}
 })
