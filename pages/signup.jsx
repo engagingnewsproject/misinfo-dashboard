@@ -6,9 +6,13 @@ import {isSignInWithEmailLink, signInWithEmailLink, signOut, createUserWithEmail
 import { doc, setDoc, collection, addDoc, arrayUnion} from '@firebase/firestore'
 import { db, auth } from '../config/firebase'
 import Select from "react-select";
+import PhoneInput from 'react-phone-input-2'
+import 'react-phone-input-2/lib/style.css'
+
 import { Country, State, City }  from 'country-state-city';
 
 import moment from 'moment'
+import { RiContactsBookLine } from 'react-icons/ri'
 
 const SignUp = () => {
     const router = useRouter()
@@ -21,8 +25,10 @@ const SignUp = () => {
     const [data, setData] = useState({
        name: '',
        email: '',
+       phoneNumber: '',
        password: '',
-       confirmPW: ''
+       confirmPW: '',
+       contact: false
     })
     
     const addMobileUser = (privilege) => {
@@ -37,9 +43,11 @@ const SignUp = () => {
             setDoc(doc(db, "mobileUsers", uid), {
                 name: data.name,
                 email: data.email,
+                phone: (data.phone ? data.phone : ""),
                 joiningDate: moment().utc().unix(),
                 isBanned: false,
-                userRole: privilege
+                userRole: privilege,
+                contact: data.contact
             });
             // console.log("user was added with uid" + uid)
         } else {
@@ -61,10 +69,6 @@ const SignUp = () => {
 
           try {
               if (isAgency) {
-
-                
-                
-
 
                 // Sees if agency already exists -if it does, adds user to the agency's user list
                   signInWithEmailLink(auth, data.email, window.location.href).then((result) =>{
@@ -114,6 +118,7 @@ const SignUp = () => {
                 signup(data.name, data.email, data.password)
 									.then((userCredential) => {
 										setSignUpError("")
+                    addMobileUser("User")
 										router.push('/verifyEmail');
 									})
 									.catch((error) => {
@@ -142,13 +147,25 @@ const SignUp = () => {
         setData({ ...data, [e.target.id]: e.target.value})
     }
 
+    const handleChecked = (e) => {
+      console.log(e.target.checked)
+
+      setData({...data, contact: e.target.checked})
+    }
+
+
+    const handlePhoneNumber = (number) => {
+      console.log(number)
+      setData({...data, phone: number})
+
+    }
     return (
         <div className="w-screen h-screen flex justify-center items-center">
             <div className="w-full max-w-sm font-light">
                 <div className="flex justify-center mb-4">
                     <div className="w-24 h-24 font-extralight rounded-full tracking-widest flex justify-center items-center text-white bg-blue-500">MOODY</div>
                 </div>
-                <form className="px-8 pt-6 pb-4 mb-4" onChange={handleChange} onSubmit={handleSignUp}>
+                <form className="px-8 pt-6 pb-4 mb-4"  onSubmit={handleSignUp}>
                     <div className="mb-4">
                         {/* Only allows user to select team name. Agencies had already had their name selected. */}  
                         {!isAgency &&       
@@ -172,17 +189,25 @@ const SignUp = () => {
                       <p className="text-lg font-bold text-blue-600 tracking-wider pt-2">Account Creation</p>
                       <div className="mb-1">Enter your email address.</div>
                     </div>}
+                    <PhoneInput
+                        placeholder="Enter phone number"
+                        value={data.phone}
+                        country={'us'}
+                        inputStyle={{width: "100%"}}
 
-                    <input
-                            className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="email"
-                            type="text"
-                            placeholder="Email"
-                            required
-                            value={data.email}
-                            onChange={handleChange}
-                            autoComplete='email'
-                            />
+                        onChange={handlePhoneNumber}/>
+                    </div>
+                    <div className="mb-4">
+                      <input
+                        className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="email"
+                        type="text"
+                        placeholder="Email"
+                        required
+                        value={data.email}
+                        onChange={handleChange}
+                        autoComplete='email'
+                        />
                     </div>
                     <div className="mb-1">
                       {isAgency && 
@@ -211,6 +236,20 @@ const SignUp = () => {
                             autoComplete='new-password'
                             />
                     </div>
+                    <div className="mb-1">
+                      <input
+                            className="shadow border-white rounded-md mx-1"
+                            id="contact"
+                            type="checkbox"
+                            value={data.contact}
+                            checked={data.contact}
+                            onChange={handleChecked}
+                            autoComplete='contact'
+                            />
+                      <label htmlFor="contact">I confirm that news agencies can contact me to follow up on my submitted reports.</label>
+
+                    </div>
+
                     {data.password !== data.confirmPW && <span className="text-red-500 text-sm font-light">Passwords don't match</span>}
                     {signUpError && <div className="text-red-500 text-sm font-normal pt-3">{signUpError}</div>}
              
