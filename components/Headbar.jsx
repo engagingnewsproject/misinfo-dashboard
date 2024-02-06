@@ -37,15 +37,15 @@ const Headbar = ({ search, setSearch}) => {
         getData()
 	}, [])
     return (
-        <div className="w-full">
-            <div className="flex py-4 px-12 md:pl-12 sm:px-3 sm:pl-20 md:px-5 lg:px-12 justify-center md:justify-between items-center">
+        <div className="w-full lg:w-full lg:max-w-7xl">
+            <div className="flex py-4 px-12 md:pl-12 sm:px-3 sm:pl-20 md:px-5 lg:px-20 justify-center md:justify-between items-center">
                 <div className="flex">
                 {/* TODO: - agency can swap out their logo */}
                     <div className="flex justify-center">
                         {customClaims.agency && agencyLogo ? (
                             <Image src={agencyLogo} width={100} height={100} alt="image" style={{ width: '100%', height: 'auto' }}/>
                          ) : (
-                            <div className="w-10 h-10 font-extralight rounded-full tracking-widest flex justify-center text-sm items-center text-white bg-blue-500">M</div>
+                            <Image src="/img/misinformation-app-logo.png" width={45} height={45} alt="image" style={{ width: '100%', height: 'auto' }}/>
                         )}
                     </div>
                     <div className="text-md font-semibold px-4 m-auto tracking-wide">

@@ -72,7 +72,7 @@ const Report = () => {
 		button: 'w-80 self-center mt-4 shadow bg-blue-600 hover:bg-gray-100 text-sm text-white py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
 		pageContainer: 'h-full w-full pt-4',
 		container: 'md:pl-12 lg:pl-2',
-		wrapper: 'wrapper w-full h-full flex flex-col py-4 px-5 md:px-5 mb-5 sm:pl-20 md:pl-12 lg:overflow-visible'
+		wrapper: 'wrapper w-full h-full flex flex-col py-4 px-5 lg:px-20 mb-5 sm:pl-20 md:pl-12 lg:overflow-visible'
 	}
 
   return (
