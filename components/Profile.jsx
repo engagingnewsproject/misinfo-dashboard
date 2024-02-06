@@ -442,7 +442,7 @@ const handleDelete = async () => {
 					<div className='font-light'>Delete my account</div>
 					<button
 						onClick={() => setDeleteModal(true)}
-						className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl'>
+						className='bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl'>
 						Request Delete
 					</button>
 				</div>
