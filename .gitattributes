@@ -3,3 +3,6 @@ firestore-debug.log filter=lfs diff=lfs merge=lfs -text
 /yarn.lock filter=lfs diff=lfs merge=lfs -text
 /functions/package-lock.json filter=lfs diff=lfs merge=lfs -text
 /firebase-debug.log filter=lfs diff=lfs merge=lfs -text
+/firestore-debug.log filter=lfs diff=lfs merge=lfs -text
+/public/icons/apple_splash_2048.png filter=lfs diff=lfs merge=lfs -text
+/public/workbox-c3b909ba.js.map filter=lfs diff=lfs merge=lfs -text
