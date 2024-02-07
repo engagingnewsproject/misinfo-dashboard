@@ -1,22 +1,22 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 
 export default function useUserAgent() {
     /**
      * we set our initial state as null because we don't know what the user agent is yet
      * that way we can check if the user agent has been set or not
      */
-    const [isMobile, setIsMobile] = useState<boolean | null>(null);
-    const [userAgent, setUserAgent] = useState<string | null>(null);
-    const [isIOS, setIsIOS] = useState<boolean | null>(null);
-    const [isStandalone, setIsStandalone] = useState<boolean | null>(null);
-    const [userAgentString, setUserAgentString] = useState<string | null>(null);
+	const [isMobile,setIsMobile] = useState(null);
+    const [userAgent, setUserAgent] = useState(null);
+    const [isIOS, setIsIOS] = useState(null);
+    const [isStandalone, setIsStandalone] = useState(null);
+    const [userAgentString, setUserAgentString] = useState(null);
 
     useEffect(() => {
-        if (window) {
+        if (typeof window !== 'undefined') {
             const userAgentString = window.navigator.userAgent;
             setUserAgentString(userAgentString);
-            let userAgent;
-
+					let userAgent;
+					
             /**
              * Parse user agent string to determine browser
              * The order of the if statements is important because some browsers
@@ -42,7 +42,7 @@ export default function useUserAgent() {
             // Check if user agent is mobile
             const isIOS = userAgentString.match(/iPhone|iPad|iPod/i);
             const isAndroid = userAgentString.match(/Android/i);
-            setIsIOS(isIOS ? true : false);
+            setIsIOS(!!isIOS);
             const isMobile = isIOS || isAndroid;
             setIsMobile(!!isMobile);
 
@@ -53,5 +53,5 @@ export default function useUserAgent() {
         }
     }, []);
 
-    return { isMobile, userAgent, isIOS, isStandalone, userAgentString }
+    return { isMobile, userAgent, isIOS, isStandalone, userAgentString };
 }
