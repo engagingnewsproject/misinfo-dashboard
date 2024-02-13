@@ -212,8 +212,7 @@ const ReportModal = ({
 													{report.agency}
 												</div>
 											</div>
-											<div className="text-md font-light">{report.agency}</div>
-										</div>}
+										)}
 										{reporterInfo && reportSubmitBy.contact && (
 										<div className="flex flex-row mb-3 items-center">
 										<AiOutlineUser size={20} />
