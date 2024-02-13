@@ -39,7 +39,7 @@ function MyApp({ Component, pageProps }) {
     // Register the service worker when the component mounts
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('../public/sw.js').then(registration => {
+        navigator.serviceWorker.register('../sw.js').then(registration => {
           console.log('Service worker registered:', registration);
         }).catch(error => {
           console.error('Service worker registration failed:', error);
