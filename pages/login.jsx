@@ -3,10 +3,19 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import { db, auth } from '../config/firebase'
+import { useTranslation } from "react-i18next";
 
+import { Switch } from "@headlessui/react"
 
 const Login = () => {
   const router = useRouter()
+
+  const LANGUAGES = [
+    { value: "en", label: "English" },
+    { value: "es", label: "Español" },
+  ];
+  const { t, i18n } = useTranslation();
+
   const { user, login, verifyEmail } = useAuth()
   const [data, setData] = useState({
     email: '',
@@ -22,8 +31,11 @@ const Login = () => {
     router.prefetch('/dashboard')
   }, [router])
 
+  // Manages translations between English and Spanish on report page
+  const setLanguage = (code) => {
+    return i18n.changeLanguage(code);
+  };
 
-  
 
   const handleLogin = async (e) => {
 		e.preventDefault()
@@ -65,6 +77,10 @@ const Login = () => {
 
   const handleChange = (e) => {
       setData({ ...data, [e.target.id]: e.target.value})
+  }
+
+  const handleLanguageChange = (e) => {
+    setLanguage(e.default.value)
   }
 
 
@@ -129,6 +145,21 @@ const Login = () => {
                     Sign Up
                 </Link>
             </p>
+                {/* <View> */}
+          <div>
+            <Switch
+                  options={LANGUAGES}
+                  checked={i18n.language == "en" ? false : true}
+                  onChange={handleLanguageChange}
+                  // textColor={Color.black} //'#7a44cf'
+                  // selectedColor={'#2167D4'}
+                  // buttonColor={'#2167D4'}
+                  // // borderColor={'#EDE8E4'}
+                  // backgroundColor={'#EDE8E4'}
+                  // bold={true}
+              />
+            {/* </View> */}
+          </div>
         </div>
     </div>
   )
