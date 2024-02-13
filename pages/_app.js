@@ -5,7 +5,7 @@ import { AuthContextProvider } from '../context/AuthContext'
 import Head from 'next/head'
 import '../styles/globals.css'
 import 'react-tooltip/dist/react-tooltip.css'
-// NEW
+
 // Define PWA metadata
 export const metadata = {
   title: "Misinformation",
@@ -27,7 +27,7 @@ export const metadata = {
     { rel: "icon", url: "/icons/icon-192x192.png" },
   ],
 };
-// NEW end
+// Define PWA metadata end
 const noAuthRequired = ['/login', '/signup', '/resetPassword', '/testPage']
 // for testing page add '/testPage' above
 function MyApp({ Component, pageProps }) {
@@ -82,17 +82,17 @@ function MyApp({ Component, pageProps }) {
         <link href="/icons/apple_splash_750.png" sizes="750x1334" rel="apple-touch-startup-image" />
         <link href="/icons/apple_splash_640.png" sizes="640x1136" rel="apple-touch-startup-image" />
         <meta name="twitter:card" content="summary" />
-        <meta name="twitter:url" content="https://yourdomain.com" />
-        <meta name="twitter:title" content="PWA App" />
-        <meta name="twitter:description" content="Best PWA App in the world" />
-        {/* <meta name="twitter:image" content="/icons/android-chrome-192x192.png" /> */}
-        <meta name="twitter:creator" content="@DavidWShadow" />
+        <meta name="twitter:url" content="https://misinfo-dashboard.netlify.app" />
+        <meta name="twitter:title" content="Misinformation App" />
+        <meta name="twitter:description" content="Report misinformation in your location for submission to news agencies near that location." />
+        <meta name="twitter:image" content="/icons/android-chrome-192x192.png" />
+        <meta name="twitter:creator" content="@CME" />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="PWA App" />
-        <meta property="og:description" content="Best PWA App in the world" />
-        <meta property="og:site_name" content="PWA App" />
-        <meta property="og:url" content="https://yourdomain.com" />
-        {/* <meta property="og:image" content="https://yourdomain.com/icons/apple-touch-icon.png" /> */}
+        <meta property="og:title" content="Misinformation App" />
+        <meta property="og:description" content="Report misinformation in your location for submission to news agencies near that location" />
+        <meta property="og:site_name" content="Misinformation App" />
+        <meta property="og:url" content="https://misinfo-dashboard.netlify.app" />
+        <meta property="og:image" content="https://misinfo-dashboard.netlify.app/icons/apple-touch-icon.png" />
       </Head>
       <div className="bg-sky-100 w-full h-full overflow-y-auto">
         <div className='w-screen h-screen content-center'>

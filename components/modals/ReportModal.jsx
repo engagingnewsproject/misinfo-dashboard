@@ -10,6 +10,8 @@ import { BiEditAlt } from "react-icons/bi"
 import { BsShareFill } from "react-icons/bs"
 import { BiLinkExternal } from "react-icons/bi";
 import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
+import { MdOutlineLocalPhone } from "react-icons/md";
+
 import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
 
 const ReportModal = ({
@@ -75,6 +77,9 @@ const ReportModal = ({
 		uri += reportURI
 		window.open(uri)
 	}
+	useEffect(() => {
+		console.log(report)
+	}, [])
 	
 	return (
 		<div
@@ -84,7 +89,7 @@ const ReportModal = ({
 				{" "}
 				{/* {style.modal} */}
 				<div
-					className='flex-col justify-center items-center lg:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible' // {style.wrap}
+					className='flex-col justify-center items-center rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible md:w-10/12 lg:w-10/12' // {style.wrap}
 					onClick={(e) => {
 						e.stopPropagation()
 					}}>
@@ -201,54 +206,65 @@ const ReportModal = ({
 										</div>
 										{/* Agency */}
 										{report.agency && (
-											<div className='flex flex-row mb-3 items-center'>
-												<IoBusinessOutline size={20} />
-												<div className='font-semibold px-2 self-center pr-4'>
-													Agency
+											<>
+												<div className='flex flex-row mb-3 items-center'>
+													<IoBusinessOutline size={20} />
+													<div className='font-semibold px-2 self-center pr-4'>
+														Agency
+													</div>
+													<div className='text-md font-light'>
+														{report.agency}
+													</div>
 												</div>
-												<div className='text-md font-light'>
-													{report.agency}
-												</div>
-											</div>
+											</>
 										)}
-										{reportSubmitBy && (
-											<div className='flex flex-row mb-3 items-center'>
-												<AiOutlineUser size={20} />
-												<div className='text-md font-light'>
-													<span className='font-semibold px-2 self-center pr-4'>
-														Reported by
-													</span>{" "}
-													{reportSubmitBy.name} (
-													<a
-														target='_blank'
-														rel='noopener noreferrer'
-														className='text-blue-600 hover:underline'
-														href={"mailto:" + reportSubmitBy.email}>
-														{reportSubmitBy.email}
-													</a>
-													)
-												</div>
+										{reportSubmitBy.contact && (
+										<div className="flex flex-row mb-3 items-center">
+										<AiOutlineUser size={20} />
+											<div className="text-md font-light">
+												<span className="font-semibold px-2 self-center pr-4">Reported by</span>{" "}
+												{reportSubmitBy.name} (
+												<a
+													target="_blank"
+													rel="noopener noreferrer"
+													className="text-blue-600 hover:underline"
+													href={"mailto:" + reportSubmitBy.email}>
+													{reportSubmitBy.email}
+												</a>
+												)
 											</div>
-										)}
+										</div>
+									)}
+
+                  {/* {reporterInfo && reportSubmitBy.contact && reportSubmitBy.phone &&  */}
+                  {reportSubmitBy.contact && reportSubmitBy.phone && 
+										<div className="flex flex-row mb-3 items-center">
+										<MdOutlineLocalPhone size={20} />
+											<div className="text-md font-light">
+												<span className="font-semibold px-2 self-center pr-4">Phone number</span>{" "}
+												<a href={`tel:${reportSubmitBy.phone}`}>{reportSubmitBy.phone}</a>
+											</div>
+										</div>
+									}
 									</div>
 
 									{/* Images */}
 									<div className='images mb-12'>
 										<div className={style.header}>Images</div>
 										{/* {info['images'] && info['images'][0] ? */}
-										<div className='flex w-full overflow-y-auto'>
-											{/* {console.log(report['images'])} */}
-											{report["images"] &&
-												report["images"].map((image, i) => {
+										<div className='grid grid-cols-4 gap-4 w-full overflow-y-auto'>
+											{report.images ?
+												report.images.map((image, i) => {
 													return (
-														<div className='flex mr-2' key={i}>
+														<div className='grid-cols-subgrid' key={i}>
 															{image ? (
 																<Link href={image} target='_blank'>
 																	<Image
 																		src={image}
-																		width={100}
-																		height={100}
+																		width={400}
+																		height={400}
 																		alt='image'
+																		className="w-auto"
 																	/>
 																</Link>
 															) : (
@@ -258,11 +274,13 @@ const ReportModal = ({
 															)}
 														</div>
 													)
-												})}
+												}) :
+												`No images uploaded`
+											}
 										</div>
 									</div>
 								</div>
-							</div>{" "}
+							</div>
 							{/* END right side */}
 						</div>
 
