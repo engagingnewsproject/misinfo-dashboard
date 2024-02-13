@@ -19,7 +19,7 @@ const ReportLanding = ({
 	disableReminder, 
 	setDisableReminder }) => {
 	const style = {
-		container: "z-0 flex-col",
+		container: "z-0 flex-col lg:max-w-4xl",
 		headerWrap: 'flex pb-4 justify-between',
 		header: "text-center md:text-left text-xl font-bold text-blue-600 tracking-wider mt-2",
 		buttonLg: 'flex items-center justify-center gap-5 bg-blue-600 w-full hover:bg-blue-200 text-white font-normal py-2 px-6 border border-blue-600 rounded-xl',
@@ -29,21 +29,25 @@ const ReportLanding = ({
 
 	const router = useRouter()
 	// Initialize authentication context
-	const { addAdminRole } = useAuth()
+	const { setCustomClaims } = useAuth()
 	// get current user's email
 	const userEmail = auth.currentUser.email
-	// set Julia & Luke's email as admin and open the dashboard
-	// This is a backup so we don't get locked out of custom claims.
-	if (userEmail === 'luke@lukecarlhartman.com' || userEmail === 'juliaelias@utexas.edu') {
+	useEffect(()=> {
+		// TODO: debugging callback function to verify user role before displaying dashboard view
 		auth.currentUser.getIdTokenResult()
 			.then((idTokenResult) => {
-				if (!idTokenResult.claims.admin) {
-					console.log(addAdminRole({ email: userEmail }))
-					void router.push('/dashboard')
-				}
-			})
-
-	}
+			if (idTokenResult.claims.admin) {
+					setCustomClaims({admin: true})
+			} else if (idTokenResult.claims.agency) {
+					setCustomClaims({agency: true})
+			} else {
+				// console.log('GENERAL USER')
+			}
+		})
+		.catch((error) => {
+			console.log(error);
+		});
+	}, [])
 	return (
 		<div className={style.container}>
 			{/* Headbar */}
@@ -51,7 +55,7 @@ const ReportLanding = ({
 				<h2 className={style.header}>Hello</h2>
 			</div>
 			<button onClick={onReportStartClick} className={style.buttonLg}>
-				<Image src="/img/report.png" width={200} height={120} alt="report" className='h-auto'/>
+				<Image src="/img/report.png" width={200} height={120} alt="report" className='h-auto max-w-36 sm:h-auto'/>
 				<span className='flex flex-col text-left'>
 					<span className='flex items-center'>Report<IoChevronForward size={25}/></span>
 					<span className='text-xs'>Potential Misinformation</span>

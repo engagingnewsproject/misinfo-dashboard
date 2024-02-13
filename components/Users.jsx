@@ -28,6 +28,8 @@ const Users = () => {
 		addUserRole,
 		customClaims,
 		setCustomClaims,
+		getUserByEmail,
+		viewRole
 	} = useAuth()
 
 	// State variables for managing user data
@@ -37,15 +39,16 @@ const Users = () => {
 	const [deleteModal, setDeleteModal] = useState(false)
 	const [userEditing, setUserEditing] = useState([])
 	const [name, setName] = useState("")
-	const [email, setEmail] = useState("")
-	const [agencyUserAgency, setAgencyUserAgency] = useState("")
+	const [email,setEmail] = useState("")
+	// agency
+	// table agency
+	const [agenciesArray, setAgenciesArray] = useState([])
+	const [selectedAgency,setSelectedAgency] = useState("")
 	const [agencyName, setAgencyName] = useState("")
 	const [banned, setBanned] = useState("")
 	const [userEditModal, setUserEditModal] = useState(null)
 	const [userId, setUserId] = useState(null)
 	const [update,setUpdate] = useState(false)
-	const [listOfUsers, setListOfUsers] = useState([])
-
 	const dateOptions = {
 		day: "2-digit",
 		year: "numeric",
@@ -82,7 +85,6 @@ const Users = () => {
 						id: doc.id,
 						data: doc.data()
 					}
-					// console.log(userData)
 
 					// Check if the user is associated with any agency
 					const agencyRef = collection(db,'agency')
@@ -93,11 +95,10 @@ const Users = () => {
 						const agencyData = agencySnapshot.docs[0].data()
 						userData.data.agencyName = agencyData.name
 						// Set the agency state
-						setAgencyUserAgency(userData.data.agencyName)
+						setSelectedAgency(userData.data.agencyName)
 					}
 
 					mobileUsersArray.push(userData)
-					// console.log(agency)
 				}
 				// need to itterate over the 'agency' collection 
 				// to see if the mobileUser's email is in the 
@@ -132,7 +133,6 @@ const Users = () => {
 					const userIDs = []
 					reportsQuerySnapshot.forEach((doc) => {
 						const userID = doc.data().userID
-						// console.log(userID)
 
 						userIDs.push(userID)
 					})
@@ -162,8 +162,22 @@ const Users = () => {
 				console.error('Error in getData:',error)
 			}
 		}
-	};
+		const agenciesQuery = query(collection(db,'agency'))
+		const agenciesQuerySnapshot = await getDocs(agenciesQuery)
+		const newAgenciesArray = [];
 
+		agenciesQuerySnapshot.forEach((doc) => {
+				// doc.data() is never undefined for query doc snapshots
+				const agencyData = {
+						id: doc.id,
+						data: doc.data()
+				};
+				newAgenciesArray.push(agencyData);
+		});
+		// Set the state variable agenciesArray with the new array
+		setAgenciesArray(newAgenciesArray);
+	};
+		
 	useEffect(() => {
 		getData();
 	}, []);
@@ -189,18 +203,74 @@ const Users = () => {
 			})
 	}
 
-	// Function to handle opening and setting values in the EditUserModal
-	const handleEditUser = async (userObj,userId) => {
+	// MODAL: Function to handle opening and setting values in the EditUserModal
+	const handleEditUser = async (userObj, userId) => {
 		setUserId(userId)
 		const userRef = await getDoc(doc(db,"mobileUsers",userId))
 		setUserEditing(userObj)
+		setUserEditModal(true)
+		// Fetch and set user agency
+		const agencyRef = collection(db,'agency')
+		const agencyQuery = query(agencyRef,where('agencyUsers','array-contains',userRef.data()["email"]))
+		const agencySnapshot = await getDocs(agencyQuery)
+		if (!agencySnapshot.empty) {
+			setSelectedAgency(agencySnapshot.docs[0].data().name)
+		}
 		setName(userRef.data()["name"])
 		setEmail(userRef.data()["email"])
 		setBanned(userRef.data()["isBanned"])
 		setUserRole(userRef.data()["userRole"])
-		setUserEditModal(true)
 	}
 
+	const handleAgencyChange = async (e) => {
+		e.preventDefault()
+		const selectedValue = e.target.value
+		setSelectedAgency(selectedValue)
+		const selectedAgency = agenciesArray.find(
+			(agency) => agency.data.name === selectedValue
+		)
+
+		if (selectedAgency) {
+			try {
+				// Fetch the current data of the agency document to which the user is being added
+        const newDocRef = doc(db, "agency", selectedAgency.id); // Use agency ID as document ID
+				const newDocSnap = await getDoc(newDocRef)
+				if (newDocSnap.exists()) {
+					const newAgencyData = newDocSnap.data()
+					// Check if the user's email is already in the agencyUsers array of the new agency
+					const newAgencyUsers = newAgencyData.agencyUsers || []
+					if (!newAgencyUsers.includes(email)) {
+						// Fetch all agency documents where the user's email is listed in the agencyUsers array
+						const agenciesQuery = query(
+							collection(db, "agency"),
+							where("agencyUsers", "array-contains", email)
+						)
+						const agenciesQuerySnapshot = await getDocs(agenciesQuery)
+						// Loop through the documents to remove the user's email from their current agency (if any)
+						agenciesQuerySnapshot.forEach(async (doc) => {
+							const docData = doc.data()
+							const updatedAgencyUsers = (docData.agencyUsers || []).filter(
+								(userEmail) => userEmail !== email
+							)
+							await updateDoc(doc.ref, { agencyUsers: updatedAgencyUsers })
+						})
+
+						// Update the new agency document by appending the user's email
+						const updatedNewAgencyUsers = [...newAgencyUsers, email]
+						await updateDoc(newDocRef, { agencyUsers: updatedNewAgencyUsers })
+					}
+				} else {
+					console.log("New agency document does not exist")
+				}
+			} catch (error) {
+				console.error("Error updating agency documents:", error)
+			}
+		} else {
+			console.log("Selected agency not found in agenciesArray")
+		}
+
+	}
+	
 	// Function to handle name change
 	const handleNameChange = (e) => {
 		e.preventDefault()
@@ -214,8 +284,8 @@ const Users = () => {
 	}
 
 	// Function to handle user role change
-	const handleOptionChange = (e) => {
-		setUserRole(e.target.value)
+	const handleRoleChange = (role) => {
+		setUserRole(role);
 	}
 
 	// Function to handle banned status change
@@ -226,37 +296,71 @@ const Users = () => {
 	// Function to handle form submission (updating user data)
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
-		const docRef = doc(db, "mobileUsers", userId);
-		await updateDoc(docRef,{
+		const docRef = doc(db, "mobileUsers", userId)
+		await updateDoc(docRef, {
 			name: name,
 			email: email,
 			isBanned: banned,
 			userRole: userRole,
 		})
+		// set role on the server side
+		// Check if the user's role has been modified
+		if (userRole !== userEditing.userRole) {
+			// If the userRole is set to "Admin", call the addAdminRole function
+			if (userRole === "Admin") {
+				try {
+					// Call the addAdminRole function
+					await addAdminRole({ email: email })
+					console.log(`${ email } has been made an admin`)
+				} catch (error) {
+					console.error("Error adding admin role:",error)
+				}
+			} else if (userRole === "Agency") {
+				// Call the addAgencyRole function
+				try {
+					await addAgencyRole({ email: email })
+					console.log(`${ email } has been made an agency user`)
+				} catch (error) {
+					console.error("Error adding agency role:",error)
+					// Handle error if needed
+				}
+			} else if (userRole === "User") {
+				// Call the addUserRole function
+				try {
+					await addUserRole({ email: email })
+					console.log(`${ email } has been made a general user`)
+				} catch (error) {
+					console.error("Error adding general user role:",error)
+					// Handle error if needed
+				}
+			}
+		}
+
 		// Update the loadedMobileUsers state after successful update
 		setLoadedMobileUsers((prevUsers) =>
 			prevUsers.map((userObj) =>
 				userObj.id === userId
 					? {
-						id: userId,
-						data: {
-							...userObj.data,
-							name: name,
-							email: email,
-							isBanned: banned,
-							userRole: userRole,
-						},
-					}
+							id: userId,
+							data: {
+								...userObj.data,
+								name: name,
+								email: email,
+								isBanned: banned,
+								userRole: userRole,
+							},
+						}
 					: userObj
 			)
-		);
+		)
 		setUserEditModal(false)
+		setUpdate(!update)
 	}
 
 	// Data fetch on update
 	useEffect(() => {
 		getData()
-	}, [update])
+	},[update])
 
 	return (
 		<div className='w-full h-full flex flex-col py-5'>
@@ -342,7 +446,9 @@ const Users = () => {
 											<td className={column.data_center}>{listUser.email}</td>
 											{/* Agency */}
 											{customClaims.admin && (
-												<td className={column.data_center}>{listUser.agencyName}</td>
+												<td className={column.data_center}>
+												{listUser.agencyName}
+												</td>
 											)}
 											{/* Joined date */}
 											<td className={column.data_center}>{posted}</td>
@@ -398,23 +504,33 @@ const Users = () => {
 			)}
 			{userEditModal && (
 				<EditUserModal
-					customClaims={customClaims}
-					userRole={userRole}
-					setUserRole={setUserRole}
-					setUserEditModal={setUserEditModal}
+					// User
 					userId={userId}
+					userEditing={userEditing}
+					// Claims
+					customClaims={customClaims}
+					// Modal
+					setUserEditModal={setUserEditModal}
+					// Name
 					name={name}
 					onNameChange={handleNameChange}
-					agencyUserAgency={agencyUserAgency}
-					// onAgencyChange={handleAgencyChange}
+					// agency
+					agenciesArray={agenciesArray}
+					selectedAgency={selectedAgency}
+					onAgencyChange={handleAgencyChange}
+					// Role
+					onRoleChange={handleRoleChange}
+					userRole={userRole}
+					setUserRole={setUserRole}
+					// Email
 					email={email}
 					onEmailChange={handleEmailChange}
+					// Banned
 					banned={banned}
 					setBanned={setBanned}
 					onBannedChange={handleBannedChange}
+					// Form submit
 					onFormSubmit={handleFormSubmit}
-					onOptionChange={handleOptionChange}
-					userEditing={userEditing} // All mobileUser
 				/>
 			)}
 		</div>

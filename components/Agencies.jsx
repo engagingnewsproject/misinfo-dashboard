@@ -286,7 +286,7 @@ const handleDelete = async (e) => {
 												{agency['logo'].map((image, i) => {
 													return (
 														<div className="flex mr-2" key={i}>
-															<Image src={image} width={70} height={100} className='w-auto' alt="image"/>
+															<Image src={`${image}`} width={70} height={100} className='w-auto' alt="image"/>
 														</div>
 													)
 												})}
