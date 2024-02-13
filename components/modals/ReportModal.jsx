@@ -235,7 +235,7 @@ const ReportModal = ({
 											</div>
 										</div>
 									)}
-									{reportSubmitBy.contact && reportSubmitBy.phone && 
+                  {reportSubmitBy.contact && reportSubmitBy.phone && 
 										<div className="flex flex-row mb-3 items-center">
 										<MdOutlineLocalPhone size={20} />
 											<div className="text-md font-light">
