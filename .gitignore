@@ -39,3 +39,8 @@ Brewfile
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+
+# PWA
+public/sw.js.map
+public/workbox-*.js.map
+public/worker-*.js.map
