@@ -396,55 +396,57 @@ const handleDelete = async () => {
 	},[])
 	
 	return (
-		<div className='w-full h-auto'>
-			<div className='z-0 flex-col p-2 md:p-8 lg:p-16 pt-5 md:pt-10'>
-				<div className='text-xl font-extrabold text-blue-600 tracking-wider'>
-					Account
-				</div>
-				{isAgency && ( // agency user will see the agency row
-					<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
-						<div className='font-light'>
-							{agency.length > 1 ? "Agencies" : "Agency"}
+		<div className='w-full h-full'>
+			<div className='z-0 grid grid-rows-2 h-full p-2 md:p-8 lg:p-16 pt-5 md:pt-10'>
+				<div className=''>
+					<div className='text-xl font-extrabold text-blue-600 tracking-wider'>Account</div>
+					{isAgency && ( // agency user will see the agency row
+						<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
+							<div className='font-light'>
+								{agency.length > 1 ? "Agencies" : "Agency"}
+							</div>
+							<div className='flex gap-2 my-2 tracking-normal items-center'>
+								<div className='font-light'>{agencyName}</div>
+							</div>
 						</div>
-						<div className='flex gap-2 my-2 tracking-normal items-center'>
-							<div className='font-light'>{agencyName}</div>
+					)}
+					<div className='flex flex-col md:flex-row justify-start md:justify-between mx-0 md:mx-6 my-6 tracking-normal items-stretch md:items-center'>
+						<div className='font-semibold text-sm md:font-light'>Email</div>
+						<div className='flex gap-2 my-2 tracking-normal items-center justify-between'>
+							<div className='font-light'>{user.email}</div>
+							<button
+								onClick={() => setEmailModal(true)}
+								className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl flex justify-self-end'>
+								Edit Email
+							</button>
 						</div>
 					</div>
-				)}
-				<div className='flex flex-col md:flex-row justify-start md:justify-between mx-0 md:mx-6 my-6 tracking-normal items-stretch md:items-center'>
-					<div className='font-semibold text-sm md:font-light'>Email</div>
-					<div className='flex gap-2 my-2 tracking-normal items-center justify-between'>
-						<div className='font-light'>{user.email}</div>
+					<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
+						<div className='font-light'>Reset Password</div>
 						<button
-							onClick={() => setEmailModal(true)}
-							className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl flex justify-self-end'>
-							Edit Email
+							onClick={() => setOpenModal(true)}
+							className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl'>
+							Edit Password
 						</button>
 					</div>
-				</div>
-				<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
-					<div className='font-light'>Reset Password</div>
-					<button
-						onClick={() => setOpenModal(true)}
-						className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl'>
-						Edit Password
-					</button>
-				</div>
-				<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
+					<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
 					<div className='font-light'>Logout</div>
 					<button
 						onClick={() => setLogoutModal(true)}
 						className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl'>
 						Logout
 					</button>
+					</div>
 				</div>
-				<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
+				<div className='self-end'>
+					<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
 					<div className='font-light'>Delete my account</div>
 					<button
 						onClick={() => setDeleteModal(true)}
 						className='bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl'>
 						Request Delete
 					</button>
+					</div>
 				</div>
 			</div>
 			{isAgency && ( // agency settings

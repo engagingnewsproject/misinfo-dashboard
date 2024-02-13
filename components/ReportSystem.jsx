@@ -422,7 +422,7 @@ const ReportSystem = ({
             </div>
             {reminderShow != false && reportSystem == 1 &&
                 <div className={style.viewWrapperCenter}>
-                    <Image src="/img/reminder.png" width={156} height={120} alt="reminderShow"/>
+                    <Image src="/img/reminder.png" width={156} height={120} alt="reminderShow" className='object-cover w-auto'/>
                     <div className="text-xl px-5 font-extrabold text-blue-600 tracking-wider">
                         {reportSystem == 1 ? t.reminderTitle : reportSystems[reportSystem]}
                     </div>
@@ -741,7 +741,7 @@ const ReportSystem = ({
                 {/* Thank you */}
                 {reportSystem == 7 &&
                 <div className={style.viewWrapper + ' items-center'}>
-                    <Image src="/img/reportSuccess.png" width={156} height={120} alt="report success"/>
+                    <Image src="/img/reportSuccess.png" width={156} height={120} alt="report success" className='object-cover w-auto'/>
                     <div className={style.sectionH1}>
                         {t.thanksTitle}
                     </div>

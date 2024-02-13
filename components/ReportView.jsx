@@ -77,17 +77,20 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 				</div>
 				{data['images'] && data['images'][0] ?
 					<div className={style.inputSingle}>
-						<div className={style.sectionH2}>
-							{t.reportHeaderImages}
-						</div>
-						{data['images'].map((image, i) => {
-						
-							return (
-								<div className="mr-2" key={i}>
-									<Image src={image} alt="image" width={200} height={200} priority={true} />
+						<div className='grid grid-cols-4 gap-4'>
+							<div className='col-span-full'>
+								<div className={style.sectionH2}>
+									{t.reportHeaderImages}
 								</div>
-							)
-						})}
+							</div>
+							{data['images'].map((image, i) => {
+								return (
+									<div className="grid-cols-subgrid" key={i}>
+										<Image src={image} alt="image" width={200} height={200} priority={true} className='object-cover w-auto'/>
+									</div>
+								)
+							})}
+						</div>
 					</div> :
 					<div className={style.inputSingle}>No images for this report</div>
 				}
