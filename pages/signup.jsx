@@ -25,7 +25,7 @@ const SignUp = () => {
     const [data, setData] = useState({
        name: '',
        email: '',
-       phoneNumber: '',
+       phone: '',
        password: '',
        confirmPW: '',
        contact: false
@@ -190,7 +190,7 @@ const SignUp = () => {
                       <div className="mb-1">Enter your email address.</div>
                     </div>}
                     <PhoneInput
-                        placeholder="Enter phone number"
+                        placeholder="Phone number (optional)"
                         value={data.phone}
                         country={'us'}
                         inputStyle={{width: "100%"}}
@@ -246,7 +246,7 @@ const SignUp = () => {
                             onChange={handleChecked}
                             autoComplete='contact'
                             />
-                      <label htmlFor="contact">I confirm that news agencies can contact me to follow up on my submitted reports.</label>
+                      <label for="contact">I agree that my local newsroom can contact me to follow-up on the reports I share</label>
 
                     </div>
 

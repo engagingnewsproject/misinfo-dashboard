@@ -141,8 +141,8 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
         isOpen={(windowSize[0] > 640 ? true : showNav)} onOpen={ ()=>handleOpenMenu()} onClose={() => shouldCloseMenu()}>
       <div className="fixed top-0 left-0 w-16">
         <div className="flex-col bg-white h-screen max-h-screen">
-          <div className="flex flex-col justify-between h-max max-h-max w-full">
-              <>
+          <div className="grid grid-rows-2 justify-between w-full h-full">
+              <div className=''>
                 <button 
                     onClick={() => setShowNav(!showNav)}
                     className={basicStyle + " sm:hidden tooltip-close"}>
@@ -197,8 +197,8 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
                         <Tooltip anchorSelect='.tooltip-create-report' place="bottom" delayShow={500}>Create Report</Tooltip>
                     </button>
                   }
-              </>
-              <>
+              </div>
+              <div className='self-end'>
                   <button
                     onClick={() => setTab(1)}
                     className={`${ basicStyle } ${ tab === 1 ? " text-indigo-500 bg-indigo-100" : "" } tooltip-profile`}>
@@ -211,7 +211,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
                       <IoHelpCircleOutline size={30}/>
                       <Tooltip anchorSelect='.tooltip-help' place="bottom" delayShow={500}>Help</Tooltip>
                   </button>}
-              </>
+              </div>
           </div>
       </div>
       </div>
