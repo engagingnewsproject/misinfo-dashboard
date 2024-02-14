@@ -16,7 +16,7 @@ const Toggle = ({ viewVal, setViewVal }) => {
     const rounded_left = " rounded-tl-lg rounded-bl-lg"
     const nonactive = "bg-white py-2 px-5 drop-shadow-lg text-sm font-light tracking-wide"
     return (
-    <div>
+    <div className='flex justify-center md:block'>
         <button id="overview"
             onClick={handleViewChanged} 
             className ={viewVal == "overview" ? active + rounded_left: nonactive + rounded_left}>
