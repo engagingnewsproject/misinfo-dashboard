@@ -38,8 +38,8 @@ const Headbar = ({ search, setSearch}) => {
 	}, [])
     return (
         <div className="w-full lg:w-full md:max-w-7xl lg:max-w-none">
-            <div className="flex py-4 px-12 md:pl-12 sm:px-3 sm:pl-20 md:px-5 lg:px-20 justify-center md:justify-between items-center">
-                <div className="flex">
+            <div className="grid grid-flow-row gap-2 md:flex md:justify-between py-4 px-14 sm:pl-12 items-center">
+                <div className="flex sm:justify-center">
                 {/* TODO: - agency can swap out their logo */}
                     <div className="flex justify-center">
                         {customClaims.agency && agencyLogo ? (
@@ -48,7 +48,7 @@ const Headbar = ({ search, setSearch}) => {
                             <Image src="/img/misinformation-app-logo.png" width={45} height={45} alt="image" style={{ width: '100%', height: 'auto' }}/>
                         )}
                     </div>
-                    <div className="text-md font-semibold px-4 m-auto tracking-wide">
+                    <div className="text-md font-semibold px-4 tracking-wide">
                         {customClaims.admin && (
                             <>
                                 Misinformation
@@ -67,7 +67,7 @@ const Headbar = ({ search, setSearch}) => {
                     </div>
                 </div>
                 {(customClaims.admin || customClaims.agency) &&
-                <form className="flex relative w-1/4 lg:max-w-xs" onChange={handleChange} onSubmit={handleSearch}>
+                <form className="flex relative md:w-2/4 lg:w-1/4 lg:max-w-xs" onChange={handleChange} onSubmit={handleSearch}>
                    
                     <input
                         className="shadow border-none rounded-xl w-full p-3 pr-11 text-xs text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
