@@ -1,0 +1,18 @@
+{
+    "welcome": "Welcome!",
+    "login": "Log In",
+    "forgot": "Forgot Password?",
+    "orloginwith":"- Or log in with -",
+    "create":"Create your account",
+    "email":"Email",
+    "username":"User name",
+    "password":"Password",
+    "confirmPassword":"Confirm password",
+    "signup":"Sign Up",
+    "noAccount": "Don't have an account?  ",
+    "haveAccount":"Have an account?    ",
+    "remember": "Remember me",
+    "select":"Select Language",
+    "change":"You can change the language in Settings Page after Logging in",
+    "continue":"Continue Login"
+  }
