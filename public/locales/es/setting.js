@@ -1,0 +1,10 @@
+export default {
+  settings: "Ajustes",
+  agencySelected: "Agencia seleccionada",
+  personal: "Información personal",
+  changeemail: "Cambiar tu correo electrónico",
+  logout: "Cerrar sesión",
+  areyousure:"¿Estás seguro de que quieres cerrar sesión?",
+  yes: "Si",
+  selectLanguage:"Seleccione su idioma preferido"
+};
