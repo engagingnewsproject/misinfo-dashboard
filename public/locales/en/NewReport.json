@@ -1,0 +1,33 @@
+{
+  "reminder": "Reminder",
+  "description":
+    "This system is only for reports of possible fake information at the local or state level.",
+  "example": "Example:",
+  "correct": "Flight prices sky-high in Austin.",
+  "incorrect": "US officially marks 1 million American deaths from Covid.",
+  "start": "Start",
+  "noShow": "Do not show this again.",
+  "share": "Share more information",
+  "title": "Add a Report Title",
+  "titleDescription": "Please provide a title for the potential misinformation",
+  "max": "(Max: 160 characters.)",
+  "detail": "Details",
+  "detailDescription":
+    "Please share as much as you can. We need at least one of the following: a link, a photo, or a detailed description.",
+  "linkFirst": "Link",
+  "linkSecond": "Second Link",
+  "image": "2. Image Upload",
+  "imageDescription":
+    "You can upload screenshots or photos of the potential misinformation",
+  "chooseFiles": "Choose files",
+  "detailed": "3. Detailed Description",
+  "detailedDescription":
+    "Please provide more details about the potential misinformation, such as where you saw it and what it said.",
+  "describe": "Describe in detail",
+  "submit": "Submit",
+  "titleRequired":"Title is required",
+  "alertTitle":"Alert",
+  "atLeast":"We need at least one of the following: a link, a photo, or a detailed description.",
+  "briefly":"Briefly describe",
+  "createReport": "Create"
+}

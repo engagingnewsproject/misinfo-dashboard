@@ -1,0 +1,8 @@
+ { 
+  "hello": "Bienvenido",
+  "report": "Reporte",
+  "potential": "Información que cree errónea",
+  "history": "Historial de reportes",
+  "noReports": "No tiene ningún reporte",
+  "startReporting":"Empezar a informar"
+}
