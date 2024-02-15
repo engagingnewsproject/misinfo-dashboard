@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useTransition } from 'react'
 import UpdatePwModal from './modals/UpdatePwModal'
 import UpdateEmailModal from './modals/UpdateEmailModal';
 import { useAuth } from '../context/AuthContext';
@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import ConfirmModal from './modals/ConfirmModal';
 import DeleteModal from './modals/DeleteModal';
 import { useRouter } from 'next/router'
+import LanguageSwitcher from './LanguageSwitcher';
 import {
 	collection,
 	getDocs,
@@ -25,6 +26,8 @@ import { db, auth } from "../config/firebase"
 import { State, City } from "country-state-city"
 import Select from "react-select"
 import Image from "next/image"
+import { useTranslation } from 'next-i18next';
+
 // Profile page that allows user to edit password or logout of their account
 const Profile = ({ customClaims }) => {
 	const {
@@ -37,6 +40,7 @@ const Profile = ({ customClaims }) => {
 		viewRole,
 		deleteUser
 	} = useAuth()
+  const {t} = useTranslation("Profile")
 	const [openModal, setOpenModal] = useState(false)
 	const [emailModal, setEmailModal] = useState(false)
 	const [logoutModal, setLogoutModal] = useState(false)
@@ -437,6 +441,11 @@ const handleDelete = async () => {
 						Logout
 					</button>
 					</div>
+          <div className="flex justify-between mx-0 md:mx-6 tracking-normal items-center">
+          <span className="text-blue-500 text-md font-bold py-2 px-2">{t("select")}</span>
+
+            <LanguageSwitcher/>
+          </div>
 				</div>
 				<div className='self-end'>
 					<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>

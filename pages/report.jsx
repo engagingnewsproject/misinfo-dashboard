@@ -9,6 +9,10 @@ import ReportLanding from "../components/ReportLanding"
 import ReportSystem from "../components/ReportSystem"
 import Profile from "../components/Profile"
 
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+
+
+
 const tabList = ['Report', 'Profile'];
 
 export const reportSystems = ['Report History', 'Reminder', 'Location', 'What', 'Where', 'Detail', 'Thank You'];
@@ -79,7 +83,7 @@ const Report = () => {
 		<div className={style.pageContainer}>
 			<Navbar tab={tab} setTab={setTab} onReportTabClick={handleReportTabClick}/>
 			<div className={style.container}>
-				<Headbar />
+				<Headbar  />
 				<div className={style.wrapper}>
 					{ tab == 0 && reportSystem == 0 && 
 					<ReportLanding 
@@ -93,7 +97,8 @@ const Report = () => {
 						onChangeCheckbox={handleChangeCheckbox}
 						onReminderStart={handleReminderStart}
 						onReportSystemPrevStep={handleReportSystemPrevStep}
-						disableReminder={disableReminder}/> }
+						disableReminder={disableReminder}
+            /> }
 					{tab == 0 && reportSystem > 0 && 
 					<ReportSystem 
 						reportSystem={reportSystem} 
@@ -103,7 +108,8 @@ const Report = () => {
 						onReminderStart={handleReminderStart}
 						onReportSystemPrevStep={handleReportSystemPrevStep}
 						disableReminder={disableReminder}
-						reminderShow={reminderShow} /> }
+						reminderShow={reminderShow} 
+            /> }
 					{tab == 1 && <Profile />}
 				</div>
 			</div>
@@ -112,3 +118,18 @@ const Report = () => {
 }
 
 export default Report
+
+
+
+/* Allows us to retrieve the json files from the pubic folder so that we can translate on the component pages*/
+export async function getStaticProps(context) {
+  // extract the locale identifier from the URL
+  const { locale } = context
+
+  return {
+    props: {
+      // pass the translation props to the page component
+      ...(await serverSideTranslations(locale, ['Home', 'Report', 'NewReport'])),
+    },
+  }
+}

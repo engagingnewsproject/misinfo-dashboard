@@ -8,6 +8,9 @@ import { IoChevronForward } from "react-icons/io5";
 import { auth } from '../config/firebase'
 import { useAuth } from '../context/AuthContext';
 
+import { useTranslation } from 'next-i18next';
+
+
 const ReportLanding = ({ 
 	onReportStartClick,
 	reportSystem, 
@@ -17,7 +20,22 @@ const ReportLanding = ({
 	reminderShow, 
 	setReminderShow, 
 	disableReminder, 
-	setDisableReminder }) => {
+	setDisableReminder,
+  translations }) => {
+
+
+  const { t } = useTranslation('Home');
+
+
+  // i18n.use(initReactI18next).init({
+  //   resources,
+  //   lng: "en",
+  //   fallbackLng: "en",
+  //   interpolation: {
+  //     escapeValue: false,
+  //   },
+  // });
+
 	const style = {
 		container: "z-0 flex-col lg:max-w-4xl",
 		headerWrap: 'flex pb-4 justify-between',
@@ -30,6 +48,9 @@ const ReportLanding = ({
 	const router = useRouter()
 	// Initialize authentication context
 	const { setCustomClaims } = useAuth()
+
+
+
 	// get current user's email
 	const userEmail = auth.currentUser.email
 	useEffect(()=> {
@@ -52,21 +73,21 @@ const ReportLanding = ({
 		<div className={style.container}>
 			{/* Headbar */}
 			<div className={style.headerWrap}>
-				<h2 className={style.header}>Hello</h2>
+				<h2 className={style.header}>{t("hello")}</h2>
 			</div>
 			<button onClick={onReportStartClick} className={style.buttonLg}>
 				<Image src="/img/report.png" width={200} height={120} alt="report" className='h-auto max-w-36 sm:h-auto'/>
 				<span className='flex flex-col text-left'>
-					<span className='flex items-center'>Report<IoChevronForward size={25}/></span>
-					<span className='text-xs'>Potential Misinformation</span>
+					<span className='flex items-center'>{t("report")}<IoChevronForward size={25}/></span>
+					<span className='text-xs'>{t("potential")}</span>
 				</span>
 			</button>
-			<h2 className={style.header}>Report History</h2>
+			<h2 className={style.header}>{t("history")}</h2>
 			<ReportList reportView={reportView} setReportView={setReportView} />
 			<button
 				onClick={onReportStartClick}
 				className={style.button}>
-				Start Reporting
+				{t("startReporting")}
 			</button>
 		</div>
 		)
