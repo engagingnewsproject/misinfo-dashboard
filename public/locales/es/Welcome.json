@@ -1,0 +1,19 @@
+{
+    "welcome": "Bienvenido!",
+    "login": "El login",
+    "forgot": "¿Olvidó su contraseña?",
+    "orloginwith": "- O inicie sesión con -",
+    "create":"Crea tu cuenta",
+    "username":"Nombre de usuario",
+    "email":"Correo electrónico",
+    "password":"Contraseña",
+    "confirmPassword":"Confirmar Contraseña",
+    "signup":"Inscribirse",
+    "haveAccount":"¿Tener una cuenta?    ",
+    "noAccount": "¿No tener una cuenta?    ",
+    "login.action":"Acceso",
+    "remember": "Recordarme",
+    "select":"Seleccione el idioma",
+    "change":"Puede cambiar el idioma en la página Configuración* después de iniciar sesión.",
+    "continue":"Continuar El login"
+  }
