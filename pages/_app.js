@@ -7,6 +7,7 @@ import '../styles/globals.css'
 import 'react-tooltip/dist/react-tooltip.css'
 
 // Define PWA metadata
+// https://medium.com/readytowork-org/implementing-pwa-in-the-next-13-application-3e46f6b3f6d8
 export const metadata = {
   title: "Misinformation",
   description: "Report misinformation in your location for submission to news agencies near that location.",
