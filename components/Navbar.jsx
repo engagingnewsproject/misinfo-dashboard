@@ -15,12 +15,14 @@ import {
   IoMenu
 } from "react-icons/io5";
 import { HiOutlineDocumentPlus } from "react-icons/hi2";
+import { MdFeedback } from "react-icons/md";
 import { Tooltip } from 'react-tooltip'
 import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
+import ContactHelpModal from './modals/ContactHelpModal'
 import { useAuth } from '../context/AuthContext'
 
-const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
+const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick, isOpen}) => {
 
   const [windowSize, setWindowSize] = useState([
     window.innerWidth,
@@ -32,6 +34,8 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
   const [helpModal, setHelpModal] = useState(false)
   const router = useRouter()
   const [newReportModal, setNewReportModal] = useState(false)
+  //for determining when to open ContactHelpModal
+  const [contactHelpModal, setContactHelpModal] = useState(false);
   const [update, setUpdate] = useState(false)
   const {customClaims, setCustomClaims} = useAuth()
   // Stores privilege role of the current user, and displays dashboard
@@ -211,6 +215,11 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
                         <IoHelpCircleOutline size={30}/>
                         <Tooltip anchorSelect='.tooltip-help' place="bottom" delayShow={500}>Help</Tooltip>
                     </button>}
+                    {(customClaims.admin || customClaims.agency) && <button
+                        onClick={()=>setContactHelpModal(true)}
+                        className={`${ basicStyle } tooltip-help`}>
+                        <MdFeedback size={30}/>
+                    </button>}
                 </div>
             </div>
  
@@ -218,8 +227,8 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick}) => {
       </div>
       </Menu>
       {helpModal && <HelpModal setHelpModal={setHelpModal}/>}
+      {contactHelpModal && <ContactHelpModal setContactHelpModal={setContactHelpModal}/>}
 
-   
       {newReportModal && (
 				<NewReport
 					setNewReportModal={setNewReportModal}

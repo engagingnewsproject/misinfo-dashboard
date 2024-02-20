@@ -11,6 +11,8 @@ import { getDoc, getDocs, doc, setDoc, collection, updateDoc, addDoc } from "fir
 import { getStorage, ref, getDownloadURL, uploadBytes, deleteObject, uploadBytesResumable } from 'firebase/storage';
 import csc from "country-state-city";
 import Select from "react-select";
+import { HiBugAnt, HiCake } from 'react-icons/hi2';
+import { firebaseConfig } from 'firebase-functions/v1';
 
 const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     // if (!open) return null
