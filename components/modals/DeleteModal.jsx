@@ -1,11 +1,15 @@
 import React, { useState } from "react"
 import { RiDeleteBin2Fill } from "react-icons/ri"
+import { useTranslation } from 'next-i18next';
+
 
 const DeleteModal = ({ func, title, subtitle, CTA, closeModal }) => {
 	const handleSubmit = (e) => {
 		e.preventDefault()
 		func()
 	}
+  const {t} = useTranslation("Profile")
+
 	return (
 		<div>
 			<div className='flex justify-center items-center z-[1900] absolute top-0 left-0 w-full h-full bg-black opacity-60'></div>
@@ -33,7 +37,7 @@ const DeleteModal = ({ func, title, subtitle, CTA, closeModal }) => {
 							<button
 								onClick={() => closeModal(false)}
 								className='bg-white hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline'>
-								Cancel
+								{t('cancel')}
 							</button>
 							<button
 								className='bg-blue-500 hover:bg-white text-white text-sm hover:text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline'
