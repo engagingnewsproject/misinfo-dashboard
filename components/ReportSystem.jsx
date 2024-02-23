@@ -11,6 +11,7 @@ import Link from "next/link"
 import moment from "moment";
 import Image from 'next/image'
 import Select from "react-select";
+import {  useTranslation } from 'next-i18next'
 
 const ReportSystem = ({ 
     tab, 
@@ -23,6 +24,10 @@ const ReportSystem = ({
     onReportSystemPrevStep,
     disableReminder
     }) => {
+
+    // used for Spanish translations
+    const {t} = useTranslation("NewReport")
+
     // console.log('disableReminder: '+disableReminder+' ||| reminderShow: '+reminderShow);
     const dbInstance = collection(db, 'reports');
     const { user } = useAuth()
@@ -57,48 +62,48 @@ const ReportSystem = ({
     // //
     // Text content
     // //
-    const t = {
-        reminderTitle: "Reminder",
-        reminderDescription:
-            "This system is only for reports of possible fake information at the local or state level.",
-        reminderExample: "Example:",
-        reminderCorrect: "Flight prices sky-high in Austin.",
-        reminderIncorrect: "US officially marks 1 million American deaths from Covid.",
-        reminderStart: "Start",
-        reminderNoShow: "Do not show this again.",
-        locationTitle: "Where are you located?",
-        agencyTitle: 'Which agency would you like to report to?',
-        topicTitle: 'What is the potential information about?',
-        sourceTitle: 'Where did you see the potential misinformation?',
-        share: "Share more information",
-        title: "Title *",
-        titleDescription: "Please provide a title for the potential misinformation",
-        max: "(Max: 160 characters.)",
-        detail: "Details *",
-        detailDescription:
-            "Please share as much as you can. We need at least one of the following: a link, a photo, or a detailed description.",
-        link: "Links",
-        image: "Image Upload",
-        imageDescription:
-            "You can upload screenshots or photos of the potential misinformation",
-        uploadImage: "Upload Images",
-        detailed: "Detailed Description",
-        detailedDescription:
-            "Please provide more details about the potential misinformation, such as where you saw it and what it said.",
-        describe: "Describe in detail",
-        submit: "Submit",
-        titleRequired:"Title is required",
-        alertTitle:"Alert",
-        atLeast:"We need at least one of the following: a link, a photo, or a detailed description.",
-        thanksTitle: 'Thank you',
-        thanksText: "We investigate as many reports as possible, although we aren't always able to get to everything. When we're able, we'd love to share the results of our investigation.",
-        thanksView:"View my Report",
-        viewReportTitle: 'Title',
-        viewReportLinks: 'Links',
-        viewReportImage: 'Image Upload',
-        viewReportDetails: 'Detail Description',
-        viewReportButton: 'View All Reports'
-    }
+    // const t = {
+    //     reminderTitle: "Reminder",
+    //     reminderDescription:
+    //         "This system is only for reports of possible fake information at the local or state level.",
+    //     reminderExample: "Example:",
+    //     reminderCorrect: "Flight prices sky-high in Austin.",
+    //     reminderIncorrect: "US officially marks 1 million American deaths from Covid.",
+    //     reminderStart: "Start",
+    //     reminderNoShow: "Do not show this again.",
+    //     locationTitle: "Where are you located?",
+    //     agencyTitle: 'Which agency would you like to report to?',
+    //     topicTitle: 'What is the potential information about?',
+    //     sourceTitle: 'Where did you see the potential misinformation?',
+    //     share: "Share more information",
+    //     title: "Title *",
+    //     titleDescription: "Please provide a title for the potential misinformation",
+    //     max: "(Max: 160 characters.)",
+    //     detail: "Details *",
+    //     detailDescription:
+    //         "Please share as much as you can. We need at least one of the following: a link, a photo, or a detailed description.",
+    //     link: "Links",
+    //     image: "Image Upload",
+    //     imageDescription:
+    //         "You can upload screenshots or photos of the potential misinformation",
+    //     uploadImage: "Upload Images",
+    //     detailed: "Detailed Description",
+    //     detailedDescription:
+    //         "Please provide more details about the potential misinformation, such as where you saw it and what it said.",
+    //     describe: "Describe in detail",
+    //     submit: "Submit",
+    //     titleRequired:"Title is required",
+    //     alertTitle:"Alert",
+    //     atLeast:"We need at least one of the following: a link, a photo, or a detailed description.",
+    //     thanksTitle: 'Thank you',
+    //     thanksText: "We investigate as many reports as possible, although we aren't always able to get to everything. When we're able, we'd love to share the results of our investigation.",
+    //     thanksView:"View my Report",
+    //     viewReportTitle: 'Title',
+    //     viewReportLinks: 'Links',
+    //     viewReportImage: 'Image Upload',
+    //     viewReportDetails: 'Detail Description',
+    //     viewReportButton: 'View All Reports'
+    // }
     
     // //
     // Styles
@@ -211,9 +216,9 @@ const ReportSystem = ({
     const handleSubmitClick = (e) => {
         e.preventDefault()
         if (!title) {
-            alert('Title is required')
+            alert(t('titleRequired'))
         } else if (images == '' && !detail && !link) {
-            alert('We need at least one of the following: a link, a photo, or a detailed description.')
+            alert(t('atLeast'))
         } else {
             if (images.length > 0) {
                 setUpdate(!update)
@@ -228,12 +233,12 @@ const ReportSystem = ({
         const allErrors = {}
         if (data.state == null) {
             console.log("state error")
-            allErrors.state = "Please enter a state."
+            allErrors.state = t('state')
         }
         if (data.city == null) {
             // Don't display the report, show an error message
             console.log("city error")
-            allErrors.city = "Please enter a city."
+            allErrors.city = t('city')
             if (data.state != null && City.getCitiesOfState(
                 data.state?.countryCode,
                 data.state?.isoCode
@@ -244,11 +249,11 @@ const ReportSystem = ({
         }
         if (selectedSource == '') {
             console.log("No source error")
-            allErrors.source = "Please enter a source."
+            allErrors.source = t('source')
         }
         if (selectedTopic == '') {
             console.log("No topic selected")
-            allErrors.topic = "Please enter a topic."
+            allErrors.topic = t('specify_topic')
         }
         if (images == '') {
             console.log('no images');
@@ -424,27 +429,27 @@ const ReportSystem = ({
                 <div className={style.viewWrapperCenter}>
                     <Image src="/img/reminder.png" width={156} height={120} alt="reminderShow" className='object-cover w-auto'/>
                     <div className="text-xl px-5 font-extrabold text-blue-600 tracking-wider">
-                        {reportSystem == 1 ? t.reminderTitle : reportSystems[reportSystem]}
+                        {reportSystem == 1 ? t('reminder') : reportSystems[reportSystem]}
                     </div>
-                    <div>{t.reminderDescription}</div>
-                    <div>{t.reminderExample}</div>
+                    <div>{t('description')}</div>
+                    <div>{t('example')}</div>
                     <div className='flex flex-col gap-2'>
                         <div className='flex gap-3'>
                             <BiCheckCircle size={25} color='green' />
-                            {t.reminderCorrect}
+                            {t('correct')}
                         </div>
                         <div className='flex gap-3'>
                             <BiXCircle size={25} color='red' />
-                            {t.reminderIncorrect}
+                            {t('incorrect')}
                         </div>
                     </div>
-                    <button onClick={onReminderStart} className={style.button}>{t.reminderStart}</button>
+                    <button onClick={onReminderStart} className={style.button}>{t('start')}</button>
                     <div className='flex items-center justify-center gap-2'>
                         <input 
                         onChange={onChangeCheckbox} 
                         checked={disableReminder}
                         type="checkbox" id="noShow" name="noShow" />
-                        <label htmlFor="noShow">{t.reminderNoShow}</label>
+                        <label htmlFor="noShow">{t('noShow')}</label>
                     </div>
                 </div>
             }
@@ -454,14 +459,14 @@ const ReportSystem = ({
                     {reportSystem == 2 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>
-                            {t.locationTitle}
+                            {t('location')}
                         </div>
                         {/* State */}
                         <Select
                             className={style.inputSelect}
                             id="state"
                             type="text"
-                            placeholder="State"
+                            placeholder={t('state_text')}
                             isSearchable={isSearchable}
                             value={data.state}
                             options={State.getStatesOfCountry(data.country)}
@@ -483,7 +488,7 @@ const ReportSystem = ({
                                 className={style.inputSelect}
                                 id="city"
                                 type="text"
-                                placeholder="City"
+                                placeholder={t('city_text')}
                                 value={data.city}
                                 options={City.getCitiesOfState(
                                     data.state?.countryCode,
@@ -516,7 +521,7 @@ const ReportSystem = ({
                     {/* Agency */}
                     {reportSystem == 3 &&
                     <div className={style.viewWrapper}>
-                        <div className={style.sectionH1}>{t.agencyTitle}</div>
+                        <div className={style.sectionH1}>{t('which_agency')}</div>
                         {agencies.map((agency, i) => (
                             <>
                             <label key={i+'-'+agency} className={agency === selectedAgency ? style.inputRadioChecked : style.inputRadio}>
@@ -546,7 +551,7 @@ const ReportSystem = ({
                     {/* Topic tag */}
                     {reportSystem == 4 &&
                     <div className={style.viewWrapper}>
-                            <div className={style.sectionH1}>{t.topicTitle}</div>
+                            <div className={style.sectionH1}>{t('about')}</div>
                             {[...allTopicsArr.filter(topic => topic !== "Other/Otro"), ...allTopicsArr.filter(topic => topic === "Other/Otro")].map((topic, i) => (
                             <>
                             <label key={i+'-'+topic} className={topic === selectedTopic ? style.inputRadioChecked : style.inputRadio}>
@@ -570,7 +575,7 @@ const ReportSystem = ({
                         {showOtherTopic && (
                                             <div className="">
                                             <div className="text-zinc-500">
-                                                Custom topic
+                                                {t('custom_topic')}
                                                 </div>
                                                 <input
                                                     id="topic-other"
@@ -596,7 +601,7 @@ const ReportSystem = ({
                     {/* Source tag */}
                     {reportSystem == 5 &&
                     <div className={style.viewWrapper}>
-                        <div className={style.sectionH1}>{t.sourceTitle}</div>
+                        <div className={style.sectionH1}>{t('where')}</div>
                         {[...sources.filter(source => source !== "Other/Otro"), ...sources.filter(source => source === "Other/Otro")].map((source, i) => (
                             <>
                             <label key={i+'-'+source} className={source === selectedSource ? style.inputRadioChecked : style.inputRadio}>
@@ -618,7 +623,7 @@ const ReportSystem = ({
                         {showOtherSource && (
                                             <div className="">
                                             <div className="text-zinc-500">
-                                                Custom source
+                                                {t('custom_source')}
                                                 </div>
                                                 <input
                                                     id="topic-other"
@@ -643,17 +648,17 @@ const ReportSystem = ({
                     {reportSystem == 6 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>
-                        {t.share}
+                        {t('share')}
                         </div>
                         <div className="flex gap-2 flex-col">
                             <div className={style.sectionH2}>
-                                {t.title}
+                                {t('title_text')}
                             </div>
                             <div>
-                                {t.titleDescription}
+                                {t('provide_title')}
                             </div>
                             <div className={style.sectionSub}>
-                                {t.max}
+                                {t('max')}
                             </div>
                             {/* Title input */}
                             {/*
@@ -667,18 +672,18 @@ const ReportSystem = ({
                                 className={style.inputSingle}
                                 id="title"
                                 type="text"
-                                placeholder="Briefly describe"
+                                placeholder={t('briefly')}
                                 onChange={(e) => setTitle(e.target.value)}
                                 value={title}
                             />
                             <div className={style.sectionH2}>
-                                {t.detail}
+                                {t('detail')}
                             </div>
                             <div>
-                                {t.detailDescription}
+                                {t('detailDescription')}
                             </div>
                             <div className={style.sectionH2}>
-                                {t.link}
+                                {t('linkFirst')}
                             </div>
                             <input
                                 className={style.inputSingle}
@@ -699,13 +704,13 @@ const ReportSystem = ({
                                 />
                             }
                             <div className={style.sectionH2}>
-                                {t.image}
+                                {t('image')}
                             </div>
                             <div>
-                                {t.imageDescription}
+                                {t('imageDescription')}
                             </div>
                             <label className="block">
-                                <span className="sr-only">Choose files</span>
+                                <span className="sr-only">{t('choose_files')}</span>
                                 <input className={style.inputImage} 
                                 id="multiple_files" 
                                 type="file" 
@@ -716,23 +721,23 @@ const ReportSystem = ({
                                 />
                             </label>
                             <div className={style.sectionH2}>
-                            {t.detailed}
+                            {t('detailed')}
                             </div>
                             <div>
-                            {t.detailedDescription}
+                            {t('detailedDescription')}
                             </div>
                             <textarea
                             className={style.inputTextarea}
                             id="detail"
                             type="text"
-                            placeholder={t.describe}
+                            placeholder={t('describe')}
                             onChange={(e) => setDetail(e.target.value)}
                             value={detail}
                             rows="5"
                             ></textarea>
                             {/* onClick={() => setReportSystem(7)}  */}
                             <button onClick={handleSubmitClick} className={style.button} type="submit">
-                            Submit
+                            {t('submit')}
                             </button>
                         </div>
                     </div>
@@ -743,11 +748,11 @@ const ReportSystem = ({
                 <div className={style.viewWrapper + ' items-center'}>
                     <Image src="/img/reportSuccess.png" width={156} height={120} alt="report success" className='object-cover w-auto'/>
                     <div className={style.sectionH1}>
-                        {t.thanksTitle}
+                        {t('thankyou')}
                     </div>
-                    <div className='text-center'>{t.thanksText}</div>
+                    <div className='text-center'>{t('thanksText')}</div>
                     <button onClick={() => setReportSystem(reportSystem + 1)} className={style.button}>
-                        {t.thanksView}
+                        {t('view')}
                     </button>
                 </div>
                 }
@@ -757,21 +762,21 @@ const ReportSystem = ({
                     {/* Title */}
                     <div className={style.inputSingle}>
                         <div className={style.sectionH2}>
-                            {t.viewReportTitle}
+                            {t('title_text')}
                         </div>
                         {title}
                     </div>
                     {/* Links */}
                     <div className={style.inputSingle}>
                         <div className={style.sectionH2}>
-                            {t.viewReportLinks}
+                            {t('links')}
                         </div>
-                        {(link || secondLink != '') ? <>{link}<br></br>{secondLink}</> : `No links added.`}
+                        {(link || secondLink != '') ? <>{link}<br></br>{secondLink}</> : t('noLinks')}
                     </div>
                     {/* Image upload */}
                     <div className={style.inputSingle}>
                         <div className={style.sectionH2}>
-                            {t.viewReportImage}
+                            {t('image')}
                         </div>
                             <div className="flex w-full overflow-y-auto">
                                 {imageURLs.map((image, i) => {
@@ -788,12 +793,12 @@ const ReportSystem = ({
                     {/* Details */}
                     <div className={style.inputSingle}>
                         <div className={style.sectionH2}>
-                            {t.viewReportDetails}
+                            {t('detailed')}
                         </div>
                         {detail ? detail : `No description provided.`}
                     </div>
                     <button onClick={() => setReportSystem(0)} className={style.button}>
-                        {t.viewReportButton}
+                        {t('view')}
                     </button>
                 </div>
                 }

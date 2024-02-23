@@ -54,11 +54,11 @@ const Login = () => {
 			// Login error occurred, handle and display it
 			console.error("Login error:", error)
 			if (error.code === "auth/user-not-found") {
-				setError("An account was not found with the provided email.")
+				setError(t("not_found"))
 			} else if (error.code === "auth/wrong-password") {
-				setError("The password is incorrect.")
+				setError(t("incorrect"))
 			} else {
-				setError("An error occurred when logging in.")
+				setError(t("error"))
 			}
     }
     setLoading(false)
