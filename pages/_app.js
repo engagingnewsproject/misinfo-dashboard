@@ -5,6 +5,7 @@ import { AuthContextProvider } from '../context/AuthContext'
 import Head from 'next/head'
 import '../styles/globals.css'
 import 'react-tooltip/dist/react-tooltip.css'
+import { appWithTranslation } from 'next-i18next';
 
 // Define PWA metadata
 export const metadata = {
@@ -96,13 +97,16 @@ function MyApp({ Component, pageProps }) {
       </Head>
       <div className="bg-sky-100 w-full h-full overflow-y-auto">
         <div className='w-screen h-screen content-center'>
+
           { noAuthRequired.includes(router.pathname) ? (
             <Component {...pageProps} />
           ) : (
             <ProtectedRoute>
               <Component {...pageProps} />
+
             </ProtectedRoute>
           ) }
+
         </div>
       </div>
     </AuthContextProvider>
@@ -110,4 +114,4 @@ function MyApp({ Component, pageProps }) {
   )
 }
 
-export default MyApp
+export default appWithTranslation(MyApp)
