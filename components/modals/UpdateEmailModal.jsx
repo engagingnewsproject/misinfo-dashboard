@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from 'next-i18next';
 
 const UpdateEmailModal = ({ setEmailModal }) => {
+    const {t} = useTranslation("Profile")
 
     const { user, updateUserEmail } = useAuth()
     const [updateSuccess, setUpdateSuccess] = useState(false)
@@ -33,7 +35,8 @@ const UpdateEmailModal = ({ setEmailModal }) => {
                     e.stopPropagation()
                 }}>
                     <div className="flex justify-between w-full mb-5">
-                        <div className="text-md font-bold text-blue-600 tracking-wide">{updateSuccess ? "Email updated" : "Reset Email"}</div>
+                        <div className="text-md font-bold text-blue-600 tracking-wide">{updateSuccess ? t('emailUpdated'): t('resetEmail')}</div>
+                        {/* TODO: Change here */}
                         <button onClick={() => setEmailModal(false)} className="text-gray-800">
                             <IoClose size={25}/>
                         </button>
@@ -44,7 +47,7 @@ const UpdateEmailModal = ({ setEmailModal }) => {
                                 className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 id="currentEmail"
                                 type="email"
-                                placeholder="Current Email"
+                                placeholder={t('currentEmail')}
                                 required
                                 value={data.currentEmail}
                                 onChange={handleChange}
@@ -55,20 +58,20 @@ const UpdateEmailModal = ({ setEmailModal }) => {
                                 className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 id="newEmail"
                                 type="email"
-                                placeholder="New Email"
+                                placeholder={t('newEmail')}
                                 required
                                 value={data.newEmail}
                                 onChange={handleChange}
                                 />
                         </div>
-                        {data.newEmail.length > 0 && data.newEmail.length < 8 && <span className="text-red-500 text-sm font-light">New email must be @email.</span>}
+                        {data.newEmail.length > 0 && data.newEmail.length < 8 && <span className="text-red-500 text-sm font-light">{t('incorrectEmail')}.</span>}
                         
                         <div className="mt-6">
                             <button
                                 disabled={!data.newEmail || data.newEmail.length > 0 && data.newEmail.length < 8}
                                 className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
                                 type="submit">
-                                Reset
+                                {t('resetEmail')}
                             </button>
                         </div>
                     </form>

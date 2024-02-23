@@ -3,10 +3,14 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import { db, auth } from '../config/firebase'
-
-
+import LanguageSwitcher from '../components/LanguageSwitcher'
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 const Login = () => {
   const router = useRouter()
+
+  const { t } = useTranslation('Welcome');
+
   const { user, login, verifyEmail } = useAuth()
   const [data, setData] = useState({
     email: '',
@@ -21,9 +25,6 @@ const Login = () => {
     // Prefetch the dashboard page
     router.prefetch('/dashboard')
   }, [router])
-
-
-  
 
   const handleLogin = async (e) => {
 		e.preventDefault()
@@ -53,11 +54,11 @@ const Login = () => {
 			// Login error occurred, handle and display it
 			console.error("Login error:", error)
 			if (error.code === "auth/user-not-found") {
-				setError("An account was not found with the provided email.")
+				setError(t("not_found"))
 			} else if (error.code === "auth/wrong-password") {
-				setError("The password is incorrect.")
+				setError(t("incorrect"))
 			} else {
-				setError("An error occurred when logging in.")
+				setError(t("error"))
 			}
     }
     setLoading(false)
@@ -80,7 +81,7 @@ const Login = () => {
                         className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         id="email"
                         type="text"
-                        placeholder="Email"
+                        placeholder={t("email")}
                         required
                         value={data.email}
                         onChange={handleChange}
@@ -92,7 +93,7 @@ const Login = () => {
                         className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 mb-1 leading-tight focus:outline-none focus:shadow-outline"
                         id="password"
                         type="password"
-                        placeholder="Password"
+                        placeholder={t("password")}
                         required 
                         value={data.password}
                         onChange={handleChange}
@@ -110,28 +111,49 @@ const Login = () => {
 									          <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />	
                           </svg>
                               
-                          : "Log In" }
+                          : t("login") }
                     </button>
                     <div className="flex items-center justify-between">
                         <div className="content-center">
                             <input type="checkbox" name='remember-me' className="form-checkbox rounded-sm border-transparent focus:border-transparent focus:ring-0" onChange={handleChange} />
-                            <span className="text-sm p-2">Remember me</span>
+                            <span className="text-sm p-2">{t("remember")}</span>
                         </div>
                         <Link href="/resetPassword" className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
-                            Forgot Password?
+                          {t('forgot')}
+
                         </Link>
                     </div>
+         
                 </div>
             </form>
             <p className="text-center text-gray-500 text-sm">
-                Don't have an account?
+                {t("noAccount")}
                 <Link href="/signup" className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
-                    Sign Up
+                    {t('signup')}
                 </Link>
             </p>
-        </div>
-    </div>
+                {/* <View> */}
+          <div className="flex justify-between items-center p-6 gap-1">
+            <span className="text-blue-500 text-md uppercase font-bold py-2 px-2">{t("select")}</span>
+            <LanguageSwitcher/>
+          </div>
+
+      </div>
+
+  </div>
   )
 }
 
-export default Login
+export default Login;
+
+export async function getStaticProps(context) {
+  // extract the locale identifier from the URL
+  const { locale } = context
+
+  return {
+    props: {
+      // pass the translation props to the page component
+      ...(await serverSideTranslations(locale, ['Welcome'])),
+    },
+  }
+}

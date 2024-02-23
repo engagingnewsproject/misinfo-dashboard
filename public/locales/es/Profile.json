@@ -1,0 +1,32 @@
+{
+  "settings": "Ajustes",
+  "agencySelected": "Agencia seleccionada",
+  "personal": "Información personal",
+  "changeemail": "Cambiar tu correo electrónico",
+  "logout": "Cerrar sesión",
+  "areyousure":"¿Estás seguro de que quieres cerrar sesión?",
+  "yes": "Si",
+  "selectLanguage":"Seleccione su idioma preferido",
+  "resetPassword": "Restablecer contraseña",
+  "resetEmail": "Restablecer correo electrónico",
+  "editEmail": "Editar correo electrónico",
+  "editPassword": "Editar contraseña",
+  "currentEmail": "Correo electrónico actual",
+  "newEmail": "Nuevo correo electrónico",
+  "delete": "Borrar mi cuenta",
+  "request": "Solicitar eliminación",
+  "currentPassword": "Contraseña actual",
+  "newPassword": "Nueva contraseña",
+  "confirmPassword": "Confirmar nueva contraseña",
+  "account": "Cuenta",
+  "deleteAccount":"¿Estás seguro de que quieres eliminar tu cuenta?",
+  "email": "Correo Electrónico",
+  "successUpdatePassword": "Contraseña actualiza",
+  "emailUpdated": "Correo electrónico actualizado",
+  "incorrectEmail": "El nuevo correo electrónico debe ser @correo.",
+  "agencies": "Agencias",
+  "agency": "Agencia",
+  "cancel": "Cancelar"
+
+
+}

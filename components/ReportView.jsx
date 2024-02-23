@@ -3,9 +3,11 @@ import { IoMdArrowRoundBack } from 'react-icons/io'
 import { doc, onSnapshot } from "firebase/firestore"
 import { db } from '../config/firebase'
 import Image from 'next/image'
+import {  useTranslation } from 'next-i18next'
 
 const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,reportId,setReportId }) => {
 	const [data, setData ] = useState([])
+  const {t} = useTranslation("NewReport")
 
 	// //
 	// Data
@@ -24,15 +26,6 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 	// //
 	// Text content
 	// //
-	const t = {
-		reportHeaderTitle: 'Title',
-		reportHeaderLinks: 'Links',
-		reportHeaderImages: 'Images',
-		reportHeaderDetails: 'Detail Description',
-		reportHeaderLocation: 'Location',
-		reportHeaderDate: 'Date',
-		buttonBack: 'Back to All Reports',
-	}
 
 	// //
 	// Styles
@@ -62,7 +55,7 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 				{/* Title */}
 				<div className={style.inputSingle}>
 					<div className={style.sectionH2}>
-						{t.reportHeaderTitle}
+						{t('title_text')}
 					</div>
 					{/* TODO finish adding all data + a back to reports list button */}
 					{data['title']}
@@ -70,7 +63,7 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 				{/* Links */}
 				<div className={style.inputSingle}>
 					<div className={style.sectionH2}>
-						{t.reportHeaderLinks}
+						{t('links')}
 					</div>
 					{ data['link'] !== '' && <div>{data['link']}</div> }
 					{ data['secondLink'] !== '' && <div>{data['secondLink']}</div> }
@@ -80,7 +73,7 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 						<div className='grid grid-cols-4 gap-4'>
 							<div className='col-span-full'>
 								<div className={style.sectionH2}>
-									{t.reportHeaderImages}
+									{t('image_text')}
 								</div>
 							</div>
 							{data['images'].map((image, i) => {
@@ -92,18 +85,18 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 							})}
 						</div>
 					</div> :
-					<div className={style.inputSingle}>No images for this report</div>
+					<div className={style.inputSingle}>{t('noImages')}</div>
 				}
 				{/* Details */}
 				<div className={style.inputSingle}>
 					<div className={style.sectionH2}>
-						{t.reportHeaderDetails}
+						{t('details')}
 					</div>
-					{data['detail'] ? data['detail'] : `No description provided.`}
+					{data['detail'] ? data['detail'] : t('noDescription')}
 				</div>
 				<div className={style.inputSingle}>
 					<div className={style.sectionH2}>
-						{t.reportHeaderLocation}
+						{t('location_text')}
 					</div>
 					{data['city']+`, `+data['state']}
 				</div>
