@@ -276,12 +276,12 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         const allErrors = {}
         if (data.state == null) {
             console.log("state error")
-            allErrors.state = "Please enter a state."
+            allErrors.state = t("state")
         }
         if (data.city == null) {
             // Don't display the report, show an error message
             console.log("city error")
-            allErrors.city = "Please enter a city."
+            allErrors.city = t("city")
             if (data.state != null && City.getCitiesOfState(
                 data.state?.countryCode,
                 data.state?.isoCode
@@ -292,11 +292,11 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
         }
         if (selectedSource == '') {
             console.log("No source error")
-            allErrors.source = "Please enter a source."
+            allErrors.source = t("source")
         }
         if (selectedTopic == '') {
             console.log("No topic selected")
-            allErrors.topic = "Please enter a topic."
+            allErrors.topic = t("specify_topic")
         }
         if (images == '') {
             console.log('no images');
@@ -365,7 +365,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                 {/* <div onClick={handleNewReportModalClose} className="flex overflow-y-auto justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full"> */}
                     <div onClick={(e) => {e.stopPropagation()}} className={`flex-col justify-center items-center bg-white md:w-8/12 lg:w-6/12 h-auto rounded-2xl py-10 px-10 z-50`}>
                         <div className="flex justify-between w-full mb-5">
-                            <div className="text-md font-bold text-blue-600 tracking-wide">Add New Report</div>
+                            <div className="text-md font-bold text-blue-600 tracking-wide">{t("add_report")}</div>
                             <button onClick={handleNewReportModalClose} className="text-gray-800">
                                 <IoClose size={25}/>
                             </button>
@@ -377,7 +377,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     id="state"
                                     type="text"
                                     required
-                                    placeholder="Select the State"
+                                    placeholder={t("state_text")}
                                     value={data.state}
                                     options={State.getStatesOfCountry(data.country)}
                                     getOptionLabel={(options) => {
@@ -399,7 +399,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="city"
                                     type="text"
-                                    placeholder="Select the City"
+                                    placeholder={t("city_text")}
                                     value={data.city}
                                     options={City.getCitiesOfState(
                                     data.state?.countryCode,
@@ -422,7 +422,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                         id="agency-selection"
                                         type="text"
-                                        placeholder="Agency"
+                                        placeholder={t("agency")}
                                         options={agencies.map(agency => ({ label: agency, value: agency }))}
                                         onChange={handleAgencyChange}
                                         value={selectedAgency.agency}
@@ -436,7 +436,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="title"
                                     type="text"
-                                    placeholder="Add a Report Title"
+                                    placeholder={t("add_title")}
                                     required
                                     onChange={handleTitleChange}
                                     value={title}
@@ -449,7 +449,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                         id="topic-selection"
                                         type="text"
-                                        placeholder="Topic"
+                                        placeholder={t("topic")}
                                         options={allTopicsArr.map(topic => ({ label: topic, value: topic }))}
                                         onChange={handleTopicChange}
                                         value={selectedTopic.topic}
@@ -460,13 +460,13 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         {showOtherTopic && (
                                             <div className="flex">
                                             <div className="mt-4 mb-0.5 text-zinc-500 pr-3">
-                                                Custom topic
+                                                {t("custom_topic")}
                                                 </div>
                                                 <input
                                                     id="topic-other"
                                                     className="rounded shadow-md border-zinc-400 w-60"
                                                     type="text"
-                                                    placeholder="Please specify the topic."
+                                                    placeholder={t("specify_topic")}
                                                     onChange={handleOtherTopicChange}
                                                     value={otherTopic}
                                                     style={{ fontSize: '14px' }}
@@ -494,13 +494,13 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     {showOtherSource && (
                                             <div className="flex">
                                             <div className="mt-4 mb-0.5 text-zinc-500 pr-3">
-                                                Custom source
+                                                {t("custom_source")}
                                                 </div>
                                                 <input
                                                     id="source-other"
                                                     className="rounded shadow-md border-zinc-400 w-60"
                                                     type="text"
-                                                    placeholder="Please specify the source."
+                                                    placeholder={t("source")}
                                                     onChange={handleOtherSourceChange}
                                                     value={otherSource}
                                                     style={{ fontSize: '14px' }}
@@ -529,7 +529,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                         id="secondLink"
                                         type="text"
-                                        placeholder={t("linkSecond")}
+                                        placeholder={t("second_link")}
                                         onChange={(e) => setSecondLink(e.target.value)}
                                         value={secondLink}
                                         />
@@ -547,7 +547,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                 </div>
                                 <div className="mt-4 mb-0.5">
                                     <label className="block">
-                                        <span className="sr-only">{t("chooseFiles")}</span>
+                                        <span className="sr-only">{t("choose_files")}</span>
                                         <input className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer" 
                                         id="multiple_files" 
                                         type="file" 

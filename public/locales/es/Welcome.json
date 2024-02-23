@@ -4,6 +4,7 @@
     "forgot": "¿Olvidó su contraseña?",
     "orloginwith": "- O inicie sesión con -",
     "create":"Crea tu cuenta",
+    "name": "Nombre",
     "username":"Nombre de usuario",
     "email":"Correo electrónico",
     "password":"Contraseña",
@@ -11,9 +12,15 @@
     "signup":"Inscribirse",
     "haveAccount":"¿Tener una cuenta?    ",
     "noAccount": "¿No tener una cuenta?    ",
-    "login.action":"Acceso",
-    "remember": "Recordarme",
+    "login_action":"Acceso",
+    "remember": "Acuérdate de mí",
     "select":"Seleccione el idioma",
     "change":"Puede cambiar el idioma en la página Configuración* después de iniciar sesión.",
-    "continue":"Continuar El login"
+    "continue":"Continuar El login",
+    "incorrect":"La contraseña es incorrecta.",
+    "not_found": "No se encontró una cuenta con el correo electrónico proporcionado.",
+    "error": "Se ha producido un error al iniciar sesión.",
+    "phone": "Numero de teléfono (opcional)",
+    "contact": "Acepto que mi redacción local pueda contactarme para dar seguimiento a los informes que comparto.",
+    "password_error": "Las contraseñas no coinciden."
   }
