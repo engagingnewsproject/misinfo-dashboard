@@ -107,13 +107,19 @@ With proper permissions access [Firebase Console](https://console.firebase.googl
 
 [Syncing a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line) || [Netlify dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview) || [Live Dashboard](https://misinfo-dashboard.netlify.app/dashboard) || [ENP Prod Repo](https://github.com/engagingnewsproject/misinfo-dashboard-prod)
 
-Once the caet-saga repo's `main` branch is approved and working push to `prod`:
+Once the caet-saga repo's `main` branch is approved and working push to `prod`.
 
 1.  Push main to the prod repo
 
     `git push prod main`
     
 2.  Verify your push is working without errors on the [Netlify Dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview)
+
+If you do not have the `prod` remote repo set up run:
+
+```
+git remote add prod https://github.com/engagingnewsproject/misinfo-dashboard-prod.git
+```
 
 ## [Misinfo Dashboard Documentation](http://localhost:5000/o/tmOnCbkSzYuWj7EVbFqg/s/h5B8zKreIfyiUKOT1awO/)
 
