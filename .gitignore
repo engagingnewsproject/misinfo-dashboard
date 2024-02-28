@@ -36,8 +36,8 @@ Brewfile
 .vscode/settings.json
 
 # firebase
-firebase-debug.log
 firestore-debug.log
+functions/firestore-debug.log
 ui-debug.log
 
 # Auto Generated PWA files
