@@ -31,7 +31,7 @@ yarn-error.log*
 # vercel
 .vercel
 .vscode/launch.json
-.env
+# .env
 Brewfile
 .vscode/settings.json
 
