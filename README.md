@@ -1,4 +1,5 @@
-### [Misinfo Dashboard Documentation](https://center-for-media-engagement.gitbook.io/misinfo-dashboard/)
+# Misinfo Dashboard
+
 [![Netlify Status](https://api.netlify.com/api/v1/badges/fdc485eb-e749-4f9d-8b5d-6db9afd8ee8f/deploy-status)](https://app.netlify.com/sites/misinfo-dashboard/deploys)
 
 This project is based off of the Next.js framework to learn more about Next.js, take a look at the following resources:
