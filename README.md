@@ -11,6 +11,8 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
+In order to be authenticated with the Firebase Project you must have a `.env` file with the Firebase credentials. Reach out to the project lead (currently [Luke](https://github.com/luukee)).
+
 First, run the development server:
 
 ```bash
@@ -99,7 +101,7 @@ git remote add prod https://github.com/engagingnewsproject/misinfo-dashboard-pro
 
 #### Links
 
-[Syncing a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line) || [Netlify dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview) || [Live Dashboard](https://misinfo-dashboard.netlify.app/dashboard) || [ENP Prod Repo](https://github.com/engagingnewsproject/misinfo-dashboard-prod) || [Misinfo Dashboard Documentation](http://localhost:5000/o/tmOnCbkSzYuWj7EVbFqg/s/h5B8zKreIfyiUKOT1awO/)
+[Syncing a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line) || [Netlify dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview) || [ENP Prod Repo](https://github.com/engagingnewsproject/misinfo-dashboard-prod) || [Misinfo Dashboard Documentation](http://localhost:5000/o/tmOnCbkSzYuWj7EVbFqg/s/h5B8zKreIfyiUKOT1awO/)
 
 <!-- TODO: fix netlify deployment issue with yarn file -->
 ## Usefull Tools
