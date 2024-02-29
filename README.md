@@ -85,7 +85,7 @@ With proper permissions access Firebase Console or Firebase Cloud Console.
 
 # Push to Netlify live site
 
-To sync with the [Engaging News Project's misinfo-dashboard-prod](https://github.com/engagingnewsproject/misinfo-dashboard-prod/settings) repo once the caet-saga repo's `main` branch is approved and working.
+To sync with the [Engaging News Project's misinfo-dashboard-prod](https://github.com/engagingnewsproject/misinfo-dashboard-prod) repo once the caet-saga repo's `main` branch is approved and working.
 
 1.  Push main to the prod repo
 
