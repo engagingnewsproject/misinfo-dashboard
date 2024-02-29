@@ -70,7 +70,6 @@ const Dashboard = () => {
             { tab == 2 && (customClaims.admin || customClaims.agency) && <Settings customClaims={customClaims} />}
             { tab == 3 && (customClaims.admin || customClaims.agency) && <Users customClaims={customClaims}/>}
             { tab == 4 && (customClaims.admin) && <Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />}
-            <LanguageSwitcher/>
 
             </div>
 
