@@ -441,23 +441,15 @@ const handleDelete = async () => {
 						{t("logout")}
 					</button>
 					</div>
-          <div className="flex justify-between mx-0 md:mx-6 tracking-normal items-center">
-          <span className="text-blue-500 text-md font-bold py-2 px-2">{t("selectLanguage")}</span>
+          {/* Hides the language toggle for admin and agencies*/}
+          {!isAgency && !isAdmin && 
+            <div className="flex justify-between mx-0 md:mx-6 tracking-normal items-center">
+              <span className="text-blue-500 text-md font-bold py-2 px-2">{t("selectLanguage")}</span>
 
-            <LanguageSwitcher/>
-          </div>
+              <LanguageSwitcher/>
+            </div>
+            }
 				</div>
-				<div className='self-end'>
-					<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
-					<div className='font-light'>{t("delete")}</div>
-					<button
-						onClick={() => setDeleteModal(true)}
-						className='bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl'>
-            {t("request")}
-					</button>
-					</div>
-				</div>
-			</div>
 			{isAgency && ( // agency settings
 				<div className='z-0 flex-col p-16 pt-10 bg-slate-100'>
 					<div className='text-xl font-extrabold text-blue-600 tracking-wider'>
@@ -646,6 +638,19 @@ const handleDelete = async () => {
 					</div>
 				</div>
 			)}
+      
+      <div className='self-end'>
+        <div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
+        <div className='font-light'>{t("delete")}</div>
+        <button
+          onClick={() => setDeleteModal(true)}
+          className='bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl'>
+          {t("request")}
+        </button>
+        </div>
+      </div>
+      </div>
+
 			{openModal && <UpdatePwModal setOpenModal={setOpenModal} />}
 			{emailModal && <UpdateEmailModal setEmailModal={setEmailModal} />}
 			{logoutModal && (
