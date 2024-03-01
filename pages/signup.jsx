@@ -251,7 +251,7 @@ const SignUp = () => {
                             onChange={handleChecked}
                             autoComplete='contact'
                             />
-                      <label for="contact">{t("contact")}</label>
+                      <label htmlFor="contact">{t("contact")}</label>
 
                     </div>
 
