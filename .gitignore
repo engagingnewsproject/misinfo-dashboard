@@ -37,6 +37,7 @@ Brewfile
 
 # firebase
 firestore-debug.log
+firebase-debug.log
 functions/firestore-debug.log
 ui-debug.log
 
