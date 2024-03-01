@@ -37,18 +37,18 @@ const Headbar = ({ search, setSearch}) => {
         getData()
 	}, [])
     return (
-        <div className="w-full">
-            <div className="flex py-4 px-12 sm:px-10 justify-between items-center">
-                <div className="flex">
+        <div className="w-full lg:w-full md:max-w-7xl lg:max-w-none">
+            <div className="grid grid-flow-row gap-2 md:flex md:justify-between py-4 px-14 sm:pl-12 items-center">
+                <div className="flex sm:justify-center">
                 {/* TODO: - agency can swap out their logo */}
                     <div className="flex justify-center">
                         {customClaims.agency && agencyLogo ? (
                             <Image src={agencyLogo} width={100} height={100} alt="image" style={{ width: '100%', height: 'auto' }}/>
                          ) : (
-                            <div className="w-10 h-10 font-extralight rounded-full tracking-widest flex justify-center text-sm items-center text-white bg-blue-500">M</div>
+                            <Image src="/img/misinformation-app-logo.png" width={45} height={45} alt="image" style={{ width: '100%', height: 'auto' }}/>
                         )}
                     </div>
-                    <div className="text-md font-semibold px-4 m-auto tracking-wide">
+                    <div className="text-md font-semibold px-4 tracking-wide">
                         {customClaims.admin && (
                             <>
                                 Misinformation
@@ -67,7 +67,7 @@ const Headbar = ({ search, setSearch}) => {
                     </div>
                 </div>
                 {(customClaims.admin || customClaims.agency) &&
-                <form className="flex relative w-1/4" onChange={handleChange} onSubmit={handleSearch}>
+                <form className="flex relative md:w-2/4 lg:w-1/4 lg:max-w-xs" onChange={handleChange} onSubmit={handleSearch}>
                    
                     <input
                         className="shadow border-none rounded-xl w-full p-3 pr-11 text-xs text-gray-700 leading-tight focus:outline-none focus:shadow-outline"

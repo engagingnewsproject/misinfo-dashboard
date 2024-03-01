@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../context/AuthContext'
+import { useTranslation } from 'next-i18next';
 
 const UpdatePwModal = ({ setOpenModal }) => {
+    const {t} = useTranslation("Profile")
 
     const { user, updateUserPassword } = useAuth()
     const [updateSuccess, setUpdateSuccess] = useState(false)
@@ -34,7 +36,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                     e.stopPropagation()
                 }}>
                     <div className="flex justify-between w-full mb-5">
-                        <div className="text-md font-bold text-blue-600 tracking-wide">{updateSuccess ? "Password updated" : "Reset Password"}</div>
+                        <div className="text-md font-bold text-blue-600 tracking-wide">{updateSuccess ? t('passwordUpdated') : t('resetPassword')}</div>
                         <button onClick={() => setOpenModal(false)} className="text-gray-800">
                             <IoClose size={25}/>
                         </button>
@@ -45,7 +47,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                                 className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 id="currentPassword"
                                 type="password"
-                                placeholder="Current Password"
+                                placeholder={t('currentPassword')}
                                 required
                                 value={data.currentPassword}
                                 onChange={handleChange}
@@ -56,7 +58,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                                 className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 id="newPassword"
                                 type="password"
-                                placeholder="New Password"
+                                placeholder={t('newPassword')}
                                 required
                                 value={data.newPassword}
                                 onChange={handleChange}
@@ -68,7 +70,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                                 className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 id="confirmNewPW"
                                 type="password"
-                                placeholder="Confirm New Password"
+                                placeholder={t('confirmPassword')}
                                 required
                                 value={data.confirmNewPW}
                                 onChange={handleChange}
@@ -80,7 +82,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                                 disabled={data.newPassword !== data.confirmNewPW || data.newPassword.length > 0 && data.newPassword.length < 8}
                                 className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
                                 type="submit">
-                                Reset
+                                {t('resetPassword')}
                             </button>
                         </div>
                     </form>

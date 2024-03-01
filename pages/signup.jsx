@@ -6,12 +6,21 @@ import {isSignInWithEmailLink, signInWithEmailLink, signOut, createUserWithEmail
 import { doc, setDoc, collection, addDoc, arrayUnion} from '@firebase/firestore'
 import { db, auth } from '../config/firebase'
 import Select from "react-select";
+import PhoneInput from 'react-phone-input-2'
+import LanguageSwitcher from '../components/LanguageSwitcher'
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import 'react-phone-input-2/lib/style.css'
+
 import { Country, State, City }  from 'country-state-city';
 
 import moment from 'moment'
+import { RiContactsBookLine } from 'react-icons/ri'
 
 const SignUp = () => {
     const router = useRouter()
+    const { t } = useTranslation('Welcome');
+
     const [signUpError, setSignUpError] = useState("")
 
     const { user, signup, verifyEmail, addAgencyRole, setPassword } = useAuth()
@@ -21,8 +30,10 @@ const SignUp = () => {
     const [data, setData] = useState({
        name: '',
        email: '',
+       phone: '',
        password: '',
-       confirmPW: ''
+       confirmPW: '',
+       contact: false
     })
     
     const addMobileUser = (privilege) => {
@@ -37,9 +48,11 @@ const SignUp = () => {
             setDoc(doc(db, "mobileUsers", uid), {
                 name: data.name,
                 email: data.email,
+                phone: (data.phone ? data.phone : ""),
                 joiningDate: moment().utc().unix(),
                 isBanned: false,
-                userRole: privilege
+                userRole: privilege,
+                contact: data.contact
             });
             // console.log("user was added with uid" + uid)
         } else {
@@ -61,10 +74,6 @@ const SignUp = () => {
 
           try {
               if (isAgency) {
-
-                
-                
-
 
                 // Sees if agency already exists -if it does, adds user to the agency's user list
                   signInWithEmailLink(auth, data.email, window.location.href).then((result) =>{
@@ -114,6 +123,7 @@ const SignUp = () => {
                 signup(data.name, data.email, data.password)
 									.then((userCredential) => {
 										setSignUpError("")
+                    addMobileUser("User")
 										router.push('/verifyEmail');
 									})
 									.catch((error) => {
@@ -142,13 +152,25 @@ const SignUp = () => {
         setData({ ...data, [e.target.id]: e.target.value})
     }
 
+    const handleChecked = (e) => {
+      console.log(e.target.checked)
+
+      setData({...data, contact: e.target.checked})
+    }
+
+
+    const handlePhoneNumber = (number) => {
+      console.log(number)
+      setData({...data, phone: number})
+
+    }
     return (
         <div className="w-screen h-screen flex justify-center items-center">
             <div className="w-full max-w-sm font-light">
                 <div className="flex justify-center mb-4">
                     <div className="w-24 h-24 font-extralight rounded-full tracking-widest flex justify-center items-center text-white bg-blue-500">MOODY</div>
                 </div>
-                <form className="px-8 pt-6 pb-4 mb-4" onChange={handleChange} onSubmit={handleSignUp}>
+                <form className="px-8 pt-6 pb-4 mb-4"  onSubmit={handleSignUp}>
                     <div className="mb-4">
                         {/* Only allows user to select team name. Agencies had already had their name selected. */}  
                         {!isAgency &&       
@@ -156,7 +178,7 @@ const SignUp = () => {
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="name"
                             type="text"
-                            placeholder="Name"
+                            placeholder={t("name")}
                             required
                             value={data.name}
                             onChange={handleChange}
@@ -172,17 +194,25 @@ const SignUp = () => {
                       <p className="text-lg font-bold text-blue-600 tracking-wider pt-2">Account Creation</p>
                       <div className="mb-1">Enter your email address.</div>
                     </div>}
+                    <PhoneInput
+                        placeholder={t("phone")}
+                        value={data.phone}
+                        country={'us'}
+                        inputStyle={{width: "100%"}}
 
-                    <input
-                            className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="email"
-                            type="text"
-                            placeholder="Email"
-                            required
-                            value={data.email}
-                            onChange={handleChange}
-                            autoComplete='email'
-                            />
+                        onChange={handlePhoneNumber}/>
+                    </div>
+                    <div className="mb-4">
+                      <input
+                        className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="email"
+                        type="text"
+                        placeholder={t("email")}
+                        required
+                        value={data.email}
+                        onChange={handleChange}
+                        autoComplete='email'
+                        />
                     </div>
                     <div className="mb-1">
                       {isAgency && 
@@ -191,7 +221,7 @@ const SignUp = () => {
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="password"
                             type="password"
-                            placeholder="Password"
+                            placeholder={t("password")}
                             required 
                             value={data.password}
                             onChange={handleChange}
@@ -204,14 +234,28 @@ const SignUp = () => {
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="confirmPW"
                             type="password"
-                            placeholder="Confirm Password"
+                            placeholder={t("confirmPassword")}
                             required 
                             value={data.confirmPW}
                             onChange={handleChange}
                             autoComplete='new-password'
                             />
                     </div>
-                    {data.password !== data.confirmPW && <span className="text-red-500 text-sm font-light">Passwords don't match</span>}
+                    <div className="mb-1">
+                      <input
+                            className="shadow border-white rounded-md mx-1"
+                            id="contact"
+                            type="checkbox"
+                            value={data.contact}
+                            checked={data.contact}
+                            onChange={handleChecked}
+                            autoComplete='contact'
+                            />
+                      <label for="contact">{t("contact")}</label>
+
+                    </div>
+
+                    {data.password !== data.confirmPW && <span className="text-red-500 text-sm font-light">{t("password_error")}</span>}
                     {signUpError && <div className="text-red-500 text-sm font-normal pt-3">{signUpError}</div>}
              
                     <div className="flex-col items-center content-center mt-7">
@@ -219,19 +263,37 @@ const SignUp = () => {
                         disabled={data.password !== data.confirmPW} 
                         className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" 
                         type="submit">
-                            Sign Up
+                           {t("signup")}
                         </button>
                     </div>
                 </form>
                 <p className="text-center text-gray-500 text-sm">
-                    Already have an account?
+                    {t("haveAccount")}
                     <Link href="/login" className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
-                        Log In
+                        {t("login_action")}
                     </Link>
                 </p>
+                <div className="flex justify-between items-center p-6 gap-1">
+              <span className="text-blue-500 text-md uppercase font-bold py-2 px-2">{t("select")}</span>
+              <LanguageSwitcher/>
+               </div>
             </div>
+          
         </div>
     )
 }
 
 export default SignUp
+
+
+export async function getStaticProps(context) {
+  // extract the locale identifier from the URL
+  const { locale } = context
+
+  return {
+    props: {
+      // pass the translation props to the page component
+      ...(await serverSideTranslations(locale, ['Welcome'])),
+    },
+  }
+}

@@ -177,9 +177,7 @@ const Users = () => {
 		// Set the state variable agenciesArray with the new array
 		setAgenciesArray(newAgenciesArray);
 	};
-	
-	// TODO: AGENCIES SELECTOR: need to get the selctor populated with the agency names for an admin user to choose
-	
+		
 	useEffect(() => {
 		getData();
 	}, []);
