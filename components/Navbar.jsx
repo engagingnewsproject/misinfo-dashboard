@@ -97,7 +97,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick, isOpen}) 
     },
     bmMenuWrap: {
       width: '64px',
-
+      top: '0'
     },
     bmMenu: {
       width: '64px'
@@ -114,7 +114,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick, isOpen}) 
     },
     bmOverlay: {
       background: 'rgba(0, 0, 0, 0.3)',
-      top: '0 px',
+      top: '0',
       right: '0 px'
     }
   }
@@ -143,86 +143,85 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick, isOpen}) 
         styles={styles}
         customBurgerIcon={ false }
         isOpen={(windowSize[0] > 640 ? true : showNav)} onOpen={ ()=>handleOpenMenu()} onClose={() => shouldCloseMenu()}>
-      <div className="fixed top-0 left-0 w-16 h-screen">
-        <div className="flex-col bg-white h-full">
-            <div className="grid content-between w-full h-full">
-                <div>
-                  <button 
-                      onClick={() => setShowNav(!showNav)}
-                      className={basicStyle + " sm:hidden tooltip-close"}>
-                      <IoClose size={30}/>
-                    <Tooltip anchorSelect='.tooltip-close' place='bottom' delayShow={500}>Collapse menu</Tooltip>
-                  </button> 
-                    {(customClaims.admin || customClaims.agency) &&
-                      <button // Home/Reports view
-                        onClick={() => setTab(0)}
-                        className={`${ basicStyle } ${ tab === 0 ? "text-indigo-500 bg-indigo-100" : "" } tooltip-home`}>
-                        <IoHomeOutline size={30}/>
-                        <Tooltip anchorSelect='.tooltip-home' place="bottom" delayShow={500}>Home</Tooltip>
-                      </button>
-                    }
-                    {customClaims.admin &&
-                      <button // Agencies
-                        onClick={() => setTab(4)}
-                        className={`${ basicStyle } ${ tab === 4 ? "text-indigo-500 bg-indigo-100" : "" } tooltip-agencies`}>
-                        <IoBusinessOutline size={30}/>
-                        <Tooltip anchorSelect='.tooltip-agencies' place="bottom" delayShow={500}>Agencies</Tooltip>
-                      </button>
-                    }
-                    {(customClaims.agency ||customClaims.admin) &&
-                      <button // Tags
-                        onClick={() => setTab(2)}
-                        className={`${ basicStyle } ${ tab === 2 ? " text-indigo-500 bg-indigo-100" : "" } tooltip-tags`}>
-                        <IoPricetagsOutline size={30}/>
-                        <Tooltip anchorSelect='.tooltip-tags' place="bottom" delayShow={500}>Tagging Systems</Tooltip>
-                      </button>
-                    }
-                    {customClaims.agency && // if admin user or agency user show the add report & users icons
-                      <button //  Agency user create report
-                          onClick={handleNewReportModal}
-                          className={`${basicStyle} tooltip-new-report`}>
-                          <IoAddCircleOutline size={30}/>
-                          <Tooltip anchorSelect='.tooltip-new-report' place="bottom" delayShow={500}>New Report</Tooltip>
-                      </button>
-                    } 
-                    { (customClaims.admin || customClaims.agency) &&
-                      <button // Users
-                        onClick={() => setTab(3)}
-                        className={`${ basicStyle } ${ tab === 3 ? " text-indigo-500 bg-indigo-100" : "" } tooltip-users`}>
-                        <IoPeopleOutline size={30}/>
-                        <Tooltip anchorSelect='.tooltip-users' place="bottom" delayShow={500}>Users</Tooltip>
-                      </button>
-                    }
-                    { (!customClaims.admin && !customClaims.agency) &&
-                      <button // General User create report
-                          onClick={onReportTabClick}
-                          className={basicStyle}>
-                          <HiOutlineDocumentPlus size={30}/>
-                          <Tooltip anchorSelect='.tooltip-create-report' place="bottom" delayShow={500}>Create Report</Tooltip>
-                      </button>
-                    }
-                </div>
-                <div>
-                    <button
-                      onClick={() => setTab(1)}
-                      className={`${ basicStyle } ${ tab === 1 ? " text-indigo-500 bg-indigo-100" : "" } tooltip-profile`}>
-                      <IoPersonOutline size={30}/>
-                      <Tooltip anchorSelect='.tooltip-profile' place="bottom" delayShow={500}>Profile</Tooltip>
+      <div className="fixed top-0 left-0 w-16">
+        <div className="flex-col bg-white h-screen max-h-screen">
+          <div className="grid grid-rows-2 justify-between w-full h-full">
+              <div className=''>
+                <button 
+                    onClick={() => setShowNav(!showNav)}
+                    className={basicStyle + " sm:hidden tooltip-close"}>
+                    <IoClose size={30}/>
+                  <Tooltip anchorSelect='.tooltip-close' place='bottom' delayShow={500}>Collapse menu</Tooltip>
+                </button> 
+                  {(customClaims.admin || customClaims.agency) &&
+                    <button // Home/Reports view
+                      onClick={() => setTab(0)}
+                      className={`${ basicStyle } ${ tab === 0 ? "text-indigo-500 bg-indigo-100" : "" } tooltip-home`}>
+                      <IoHomeOutline size={30}/>
+                      <Tooltip anchorSelect='.tooltip-home' place="bottom" delayShow={500}>Home</Tooltip>
                     </button>
-                    {(customClaims.admin || customClaims.agency) && <button
-                        onClick={()=>setHelpModal(true)}
-                        className={`${ basicStyle } tooltip-help`}>
-                        <IoHelpCircleOutline size={30}/>
-                        <Tooltip anchorSelect='.tooltip-help' place="bottom" delayShow={500}>Help</Tooltip>
-                    </button>}
-                    {(customClaims.admin || customClaims.agency) && <button
-                        onClick={()=>setContactHelpModal(true)}
-                        className={`${ basicStyle } tooltip-help`}>
-                        <MdFeedback size={30}/>
-                    </button>}
-                </div>
-            </div>
- 
+                  }
+                  {customClaims.admin &&
+                    <button // Agencies
+                      onClick={() => setTab(4)}
+                      className={`${ basicStyle } ${ tab === 4 ? "text-indigo-500 bg-indigo-100" : "" } tooltip-agencies`}>
+                      <IoBusinessOutline size={30}/>
+                      <Tooltip anchorSelect='.tooltip-agencies' place="bottom" delayShow={500}>Agencies</Tooltip>
+                    </button>
+                  }
+                  {(customClaims.agency ||customClaims.admin) &&
+                    <button // Tags
+                      onClick={() => setTab(2)}
+                      className={`${ basicStyle } ${ tab === 2 ? " text-indigo-500 bg-indigo-100" : "" } tooltip-tags`}>
+                      <IoPricetagsOutline size={30}/>
+                      <Tooltip anchorSelect='.tooltip-tags' place="bottom" delayShow={500}>Tagging Systems</Tooltip>
+                    </button>
+                  }
+                  {customClaims.agency && // if admin user or agency user show the add report & users icons
+                    <button //  Agency user create report
+                        onClick={handleNewReportModal}
+                        className={`${basicStyle} tooltip-new-report`}>
+                        <IoAddCircleOutline size={30}/>
+                        <Tooltip anchorSelect='.tooltip-new-report' place="bottom" delayShow={500}>New Report</Tooltip>
+                    </button>
+                  } 
+                  { (customClaims.admin || customClaims.agency) &&
+                    <button // Users
+                      onClick={() => setTab(3)}
+                      className={`${ basicStyle } ${ tab === 3 ? " text-indigo-500 bg-indigo-100" : "" } tooltip-users`}>
+                      <IoPeopleOutline size={30}/>
+                      <Tooltip anchorSelect='.tooltip-users' place="bottom" delayShow={500}>Users</Tooltip>
+                    </button>
+                  }
+                  { (!customClaims.admin && !customClaims.agency) &&
+                    <button // General User create report
+                        onClick={onReportTabClick}
+                        className={basicStyle}>
+                        <HiOutlineDocumentPlus size={30}/>
+                        <Tooltip anchorSelect='.tooltip-create-report' place="bottom" delayShow={500}>Create Report</Tooltip>
+                    </button>
+                  }
+              </div>
+              <div className='self-end'>
+                  <button
+                    onClick={() => setTab(1)}
+                    className={`${ basicStyle } ${ tab === 1 ? " text-indigo-500 bg-indigo-100" : "" } tooltip-profile`}>
+                    <IoPersonOutline size={30}/>
+                    <Tooltip anchorSelect='.tooltip-profile' place="bottom" delayShow={500}>Profile</Tooltip>
+                  </button>
+                  {(customClaims.admin || customClaims.agency) && <button
+                      onClick={()=>setHelpModal(true)}
+                      className={`${ basicStyle } tooltip-help`}>
+                      <IoHelpCircleOutline size={30}/>
+                      <Tooltip anchorSelect='.tooltip-help' place="bottom" delayShow={500}>Help</Tooltip>
+                  </button>}
+                  {(customClaims.admin || customClaims.agency) && <button
+                      onClick={()=>setContactHelpModal(true)}
+                      className={`${ basicStyle } tooltip-help`}>
+                      <MdFeedback size={30}/>
+                  </button>}
+              </div>
+          </div>
       </div>
       </div>
       </Menu>

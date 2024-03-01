@@ -1,21 +1,23 @@
-import React, {useState} from "react"
-import { Switch } from '@headlessui/react'
+import React, { useState, useEffect } from "react"
+import { db } from "../../config/firebase"
+import { doc, updateDoc } from "firebase/firestore"
+import Switch from "react-switch"
 
 const TestModal = ({
-	// report
 	report,
-	// modal
 	setTestModalShow,
-	// labels
 	activeLabels,
 	selectedLabel,
 	onLabelChange,
-	// read/unread
-	enabled,
-	setEnabled,
-	// form submit
+	checked,
+	onReadChange,
 	onFormSubmit,
 }) => {
+
+	useEffect(() => {
+		console.log(checked)
+	}, [onReadChange])
+	
 	const modal = {
 		wrap: "fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto",
 		inner:
@@ -26,32 +28,21 @@ const TestModal = ({
 
 	return (
 		<div className={modal.wrap} onClick={() => setTestModalShow(false)}>
-			<div
-				className={modal.inner}
-				onClick={(e) => {
-					e.stopPropagation()
-				}}>
+			<div className={modal.inner}>
 				<div className={modal.content}>
 					<h2>{report.title}</h2>
 					<form onSubmit={onFormSubmit}>
-						<Switch
-							checked={enabled}
-							onChange={setEnabled}
-							className={`${
-								enabled ? "bg-blue-600" : "bg-gray-200"
-							} relative inline-flex h-6 w-11 items-center rounded-full`}>
-							<span className='sr-only'>Enable notifications</span>
-							<span
-								className={`${
-									enabled ? "translate-x-6" : "translate-x-1"
-								} inline-block h-4 w-4 transform rounded-full bg-white transition`}
+						<span
+							onClick={(e) => {
+								e.stopPropagation()
+							}}>
+							<Switch
+								onChange={(checked) => onReadChange(report.id, checked)}
+								checked={checked}
 							/>
-						</Switch>
-						<select
-							id='labels'
-							onChange={onLabelChange}
-							value={selectedLabel}
-							className='text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none'>
+							<p>read {checked ? "yes" : "no"}.</p>
+						</span>
+						<select id='labels' onChange={onLabelChange} value={selectedLabel}>
 							<option value=''>Choose a label</option>
 							{activeLabels.map((label, i) => (
 								<option value={label} key={i}>
@@ -59,7 +50,7 @@ const TestModal = ({
 								</option>
 							))}
 						</select>
-						<button type='submit'>Close</button>
+						<button type="button">Submit</button>
 					</form>
 				</div>
 			</div>

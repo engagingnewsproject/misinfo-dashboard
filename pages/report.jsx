@@ -9,6 +9,10 @@ import ReportLanding from "../components/ReportLanding"
 import ReportSystem from "../components/ReportSystem"
 import Profile from "../components/Profile"
 
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+
+
+
 const tabList = ['Report', 'Profile'];
 
 export const reportSystems = ['Report History', 'Reminder', 'Location', 'What', 'Where', 'Detail', 'Thank You'];
@@ -71,15 +75,15 @@ const Report = () => {
   const style = {
 		button: 'w-80 self-center mt-4 shadow bg-blue-600 hover:bg-gray-100 text-sm text-white py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
 		pageContainer: 'h-full w-full pt-4',
-		container: 'pl-2 sm:pl-12',
-		wrapper: 'w-full h-full flex flex-col py-4 px-3 md:px-12 mb-5 overflow-visible'
+		container: 'md:pl-12 lg:pl-2 h-auto',
+		wrapper: 'wrapper w-full h-full flex flex-col py-4 px-5 lg:px-20 mb-5 sm:pl-20 md:pl-12 lg:overflow-visible'
 	}
 
   return (
 		<div className={style.pageContainer}>
 			<Navbar tab={tab} setTab={setTab} onReportTabClick={handleReportTabClick}/>
 			<div className={style.container}>
-				<Headbar />
+				<Headbar  />
 				<div className={style.wrapper}>
 					{ tab == 0 && reportSystem == 0 && 
 					<ReportLanding 
@@ -93,7 +97,8 @@ const Report = () => {
 						onChangeCheckbox={handleChangeCheckbox}
 						onReminderStart={handleReminderStart}
 						onReportSystemPrevStep={handleReportSystemPrevStep}
-						disableReminder={disableReminder}/> }
+						disableReminder={disableReminder}
+            /> }
 					{tab == 0 && reportSystem > 0 && 
 					<ReportSystem 
 						reportSystem={reportSystem} 
@@ -103,7 +108,8 @@ const Report = () => {
 						onReminderStart={handleReminderStart}
 						onReportSystemPrevStep={handleReportSystemPrevStep}
 						disableReminder={disableReminder}
-						reminderShow={reminderShow} /> }
+						reminderShow={reminderShow} 
+            /> }
 					{tab == 1 && <Profile />}
 				</div>
 			</div>
@@ -112,3 +118,18 @@ const Report = () => {
 }
 
 export default Report
+
+
+
+/* Allows us to retrieve the json files from the pubic folder so that we can translate on the component pages*/
+export async function getStaticProps(context) {
+  // extract the locale identifier from the URL
+  const { locale } = context
+
+  return {
+    props: {
+      // pass the translation props to the page component
+      ...(await serverSideTranslations(locale, ['Home', 'Report', 'NewReport', "Profile"])),
+    },
+  }
+}

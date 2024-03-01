@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useTransition } from 'react'
 import UpdatePwModal from './modals/UpdatePwModal'
 import UpdateEmailModal from './modals/UpdateEmailModal';
 import { useAuth } from '../context/AuthContext';
 // import { auth } from 'firebase-admin';
 import ConfirmModal from './modals/ConfirmModal';
+import DeleteModal from './modals/DeleteModal';
 import { useRouter } from 'next/router'
+import LanguageSwitcher from './LanguageSwitcher';
 import {
 	collection,
 	getDocs,
@@ -24,6 +26,8 @@ import { db, auth } from "../config/firebase"
 import { State, City } from "country-state-city"
 import Select from "react-select"
 import Image from "next/image"
+import { useTranslation } from 'next-i18next';
+
 // Profile page that allows user to edit password or logout of their account
 const Profile = ({ customClaims }) => {
 	const {
@@ -34,10 +38,13 @@ const Profile = ({ customClaims }) => {
 		addAdminRole,
 		addAgencyRole,
 		viewRole,
+		deleteUser
 	} = useAuth()
+  const {t} = useTranslation("Profile")
 	const [openModal, setOpenModal] = useState(false)
 	const [emailModal, setEmailModal] = useState(false)
 	const [logoutModal, setLogoutModal] = useState(false)
+	const [deleteModal, setDeleteModal] = useState(false)
 	const [agency, setAgency] = useState([])
 	const [agencyName, setAgencyName] = useState("")
 	const [agencyId, setAgencyId] = useState("")
@@ -313,6 +320,25 @@ const Profile = ({ customClaims }) => {
 			router.push("/login")
 		})
 	}
+	// Delete
+const handleDelete = async () => {
+  const uidToDelete = user.accountId;
+  
+  // Validate UID
+  if (!uidToDelete || typeof uidToDelete !== 'string' || uidToDelete.length > 128) {
+    console.error('Invalid UID:', uidToDelete);
+    return; // Abort deletion
+  }
+	await deleteUser({ uid: uidToDelete })
+    .then(() => {
+      console.log('User deletion successful');
+      router.push("/login");
+    })
+    .catch((error) => {
+      console.error('Error deleting user:', error);
+    });
+};
+
 
 	useEffect(() => { // Get data once we know if the user is an agency or not
     if (user) {
@@ -374,49 +400,56 @@ const Profile = ({ customClaims }) => {
 	},[])
 	
 	return (
-		<div className='w-full h-auto'>
-			<div className='z-0 flex-col p-16 pt-10'>
-				<div className='text-xl font-extrabold text-blue-600 tracking-wider'>
-					Account
-				</div>
-				{isAgency && ( // agency user will see the agency row
-					<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
-						<div className='font-light'>
-							{agency.length > 1 ? "Agencies" : "Agency"}
+		<div className='w-full h-full'>
+			<div className='z-0 grid grid-rows-2 h-full p-2 md:p-8 lg:p-16 pt-5 md:pt-10'>
+				<div className=''>
+					<div className='text-xl font-extrabold text-blue-600 tracking-wider'>{t('account')}</div>
+					{isAgency && ( // agency user will see the agency row
+						<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
+							<div className='font-light'>
+								{agency.length > 1 ? "Agencies" : "Agency"}
+							</div>
+							<div className='flex gap-2 my-2 tracking-normal items-center'>
+								<div className='font-light'>{agencyName}</div>
+							</div>
 						</div>
-						<div className='flex gap-2 my-2 tracking-normal items-center'>
-							<div className='font-light'>{agencyName}</div>
+					)}
+					<div className='flex flex-col md:flex-row justify-start md:justify-between mx-0 md:mx-6 my-6 tracking-normal items-stretch md:items-center'>
+						<div className='font-semibold text-sm md:font-light'>{t('email')}</div>
+						<div className='flex gap-2 my-2 tracking-normal items-center justify-between'>
+							<div className='font-light'>{user.email}</div>
+							<button
+								onClick={() => setEmailModal(true)}
+								className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl flex justify-self-end'>
+								{t("editEmail")}
+							</button>
 						</div>
 					</div>
-				)}
-				<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
-					<div className='font-light'>Email</div>
-					<div className='flex gap-2 my-2 tracking-normal items-center'>
-						<div className='font-light'>{user.email}</div>
+					<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
+						<div className='font-light'>{t("resetPassword")}</div>
 						<button
-							onClick={() => setEmailModal(true)}
+							onClick={() => setOpenModal(true)}
 							className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl'>
-							Edit Email
+							{t('editPassword')}
 						</button>
 					</div>
-				</div>
-				<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
-					<div className='font-light'>Reset Password</div>
-					<button
-						onClick={() => setOpenModal(true)}
-						className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl'>
-						Edit Password
-					</button>
-				</div>
-				<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
-					<div className='font-light'>Logout</div>
+					<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
+					<div className='font-light'>{t("logout")}</div>
 					<button
 						onClick={() => setLogoutModal(true)}
 						className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl'>
-						Logout
+						{t("logout")}
 					</button>
+					</div>
+          {/* Hides the language toggle for admin and agencies*/}
+          {!isAgency && !isAdmin && 
+            <div className="flex justify-between mx-0 md:mx-6 tracking-normal items-center">
+              <span className="text-blue-500 text-md font-bold py-2 px-2">{t("selectLanguage")}</span>
+
+              <LanguageSwitcher/>
+            </div>
+            }
 				</div>
-			</div>
 			{isAgency && ( // agency settings
 				<div className='z-0 flex-col p-16 pt-10 bg-slate-100'>
 					<div className='text-xl font-extrabold text-blue-600 tracking-wider'>
@@ -590,7 +623,9 @@ const Profile = ({ customClaims }) => {
 							</div>
 							<div className='flex justify-end items-center'>
 								{showUpdateMessage && (
-									<div className='transition-opacity opacity-100'>Agency updated</div>
+									<div className='transition-opacity opacity-100'>
+										Agency updated
+									</div>
 								)}
 								<button
 									onClick={handleSubmitClick}
@@ -603,15 +638,37 @@ const Profile = ({ customClaims }) => {
 					</div>
 				</div>
 			)}
+      
+      <div className='self-end'>
+        <div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
+        <div className='font-light'>{t("delete")}</div>
+        <button
+          onClick={() => setDeleteModal(true)}
+          className='bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl'>
+          {t("request")}
+        </button>
+        </div>
+      </div>
+      </div>
+
 			{openModal && <UpdatePwModal setOpenModal={setOpenModal} />}
 			{emailModal && <UpdateEmailModal setEmailModal={setEmailModal} />}
 			{logoutModal && (
 				<ConfirmModal
 					func={handleLogout}
-					title='Are you sure you want to log out?'
+					title={t("areyousure")}
 					subtitle=''
-					CTA='Log out'
+					CTA={t("logout")}
 					closeModal={setLogoutModal}
+				/>
+			)}
+			{deleteModal && (
+				<DeleteModal
+					func={handleDelete}
+					title={t("deleteAccount")}
+					subtitle=''
+					CTA={t("delete")}
+					closeModal={setDeleteModal}
 				/>
 			)}
 		</div>
