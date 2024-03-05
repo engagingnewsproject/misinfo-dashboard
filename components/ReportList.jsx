@@ -8,8 +8,10 @@ import {
 	where
 } from "firebase/firestore"
 import { db } from "../config/firebase"
+import { useTranslation } from "next-i18next"
 
 const ReportList = ({reportView, setReportView}) => {
+  const {t} = useTranslation("Home")
 	const [reports, setReports] = useState([])
 	const [reportId, setReportId] = useState('')
 	const { user } = useAuth()
@@ -68,7 +70,7 @@ const ReportList = ({reportView, setReportView}) => {
 							</button>
 					)
 				})}
-				{reports == 0 && <div>No reports yet.</div>}
+				{reports == 0 && <div>{t("noReports")}</div>}
 			</div>
 		}
 		{reportView == 1 &&

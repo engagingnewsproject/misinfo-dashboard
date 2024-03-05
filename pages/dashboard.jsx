@@ -9,8 +9,8 @@ import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
 import Agencies from '../components/Agencies'
 import { db, auth } from '../config/firebase'
-
-
+import LanguageSwitcher from '../components/LanguageSwitcher'
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 const tabList = ['Home', 'Profile', 'Settings', 'Users', 'Agencies', 'ReportSettings'];
 
 const Dashboard = () => {
@@ -70,9 +70,24 @@ const Dashboard = () => {
             { tab == 2 && (customClaims.admin || customClaims.agency) && <Settings customClaims={customClaims} />}
             { tab == 3 && (customClaims.admin || customClaims.agency) && <Users customClaims={customClaims}/>}
             { tab == 4 && (customClaims.admin) && <Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />}
+
             </div>
+
         </div>
     )
 }
 
 export default Dashboard
+
+/* Allows us to retrieve the json files from the pubic folder so that we can translate on the component pages*/
+export async function getStaticProps(context) {
+  // extract the locale identifier from the URL
+  const { locale } = context
+
+  return {
+    props: {
+      // pass the translation props to the page component
+      ...(await serverSideTranslations(locale, ['Home', 'Report', 'NewReport', 'Profile'])),
+    },
+  }
+}

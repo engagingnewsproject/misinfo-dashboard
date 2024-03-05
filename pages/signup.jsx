@@ -7,6 +7,9 @@ import { doc, setDoc, collection, addDoc, arrayUnion} from '@firebase/firestore'
 import { db, auth } from '../config/firebase'
 import Select from "react-select";
 import PhoneInput from 'react-phone-input-2'
+import LanguageSwitcher from '../components/LanguageSwitcher'
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import 'react-phone-input-2/lib/style.css'
 
 import { Country, State, City }  from 'country-state-city';
@@ -16,6 +19,8 @@ import { RiContactsBookLine } from 'react-icons/ri'
 
 const SignUp = () => {
     const router = useRouter()
+    const { t } = useTranslation('Welcome');
+
     const [signUpError, setSignUpError] = useState("")
 
     const { user, signup, verifyEmail, addAgencyRole, setPassword } = useAuth()
@@ -173,7 +178,7 @@ const SignUp = () => {
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="name"
                             type="text"
-                            placeholder="Name"
+                            placeholder={t("name")}
                             required
                             value={data.name}
                             onChange={handleChange}
@@ -190,7 +195,7 @@ const SignUp = () => {
                       <div className="mb-1">Enter your email address.</div>
                     </div>}
                     <PhoneInput
-                        placeholder="Phone number (optional)"
+                        placeholder={t("phone")}
                         value={data.phone}
                         country={'us'}
                         inputStyle={{width: "100%"}}
@@ -202,7 +207,7 @@ const SignUp = () => {
                         className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         id="email"
                         type="text"
-                        placeholder="Email"
+                        placeholder={t("email")}
                         required
                         value={data.email}
                         onChange={handleChange}
@@ -216,7 +221,7 @@ const SignUp = () => {
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="password"
                             type="password"
-                            placeholder="Password"
+                            placeholder={t("password")}
                             required 
                             value={data.password}
                             onChange={handleChange}
@@ -229,7 +234,7 @@ const SignUp = () => {
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="confirmPW"
                             type="password"
-                            placeholder="Confirm Password"
+                            placeholder={t("confirmPassword")}
                             required 
                             value={data.confirmPW}
                             onChange={handleChange}
@@ -246,11 +251,11 @@ const SignUp = () => {
                             onChange={handleChecked}
                             autoComplete='contact'
                             />
-                      <label for="contact">I agree that my local newsroom can contact me to follow-up on the reports I share</label>
+                      <label for="contact">{t("contact")}</label>
 
                     </div>
 
-                    {data.password !== data.confirmPW && <span className="text-red-500 text-sm font-light">Passwords don't match</span>}
+                    {data.password !== data.confirmPW && <span className="text-red-500 text-sm font-light">{t("password_error")}</span>}
                     {signUpError && <div className="text-red-500 text-sm font-normal pt-3">{signUpError}</div>}
              
                     <div className="flex-col items-center content-center mt-7">
@@ -258,19 +263,37 @@ const SignUp = () => {
                         disabled={data.password !== data.confirmPW} 
                         className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" 
                         type="submit">
-                            Sign Up
+                           {t("signup")}
                         </button>
                     </div>
                 </form>
                 <p className="text-center text-gray-500 text-sm">
-                    Already have an account?
+                    {t("haveAccount")}
                     <Link href="/login" className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
-                        Log In
+                        {t("login_action")}
                     </Link>
                 </p>
+                <div className="flex justify-between items-center p-6 gap-1">
+              <span className="text-blue-500 text-md uppercase font-bold py-2 px-2">{t("select")}</span>
+              <LanguageSwitcher/>
+               </div>
             </div>
+          
         </div>
     )
 }
 
 export default SignUp
+
+
+export async function getStaticProps(context) {
+  // extract the locale identifier from the URL
+  const { locale } = context
+
+  return {
+    props: {
+      // pass the translation props to the page component
+      ...(await serverSideTranslations(locale, ['Welcome'])),
+    },
+  }
+}
