@@ -10,6 +10,7 @@ module.exports = {
   i18n: {
     locales: ['en', 'es'],
     defaultLocale: 'en',
+    debug: false
   },
     /** To avoid issues when deploying to some paas (vercel...) */
 
