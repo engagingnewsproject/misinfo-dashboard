@@ -137,7 +137,6 @@ const handleChange = (e) => {
                             </button>
                         </div>
                         <form onChange={handleChange} onSubmit={handleContactHelp}>
-                            
                             <div className="mt-4 mb-0.5">
                                 <input
                                     className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -150,7 +149,6 @@ const handleChange = (e) => {
                                     />
                             </div>
                             
-                      
                             <div className="mt-4 mb-0.5">
                                 <input
                                     className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
