@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useTransition } from 'react'
 import UpdatePwModal from './modals/UpdatePwModal'
 import UpdateEmailModal from './modals/UpdateEmailModal';
 import { useAuth } from '../context/AuthContext';
@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import ConfirmModal from './modals/ConfirmModal';
 import DeleteModal from './modals/DeleteModal';
 import { useRouter } from 'next/router'
+import LanguageSwitcher from './LanguageSwitcher';
 import {
 	collection,
 	getDocs,
@@ -25,6 +26,8 @@ import { db, auth } from "../config/firebase"
 import { State, City } from "country-state-city"
 import Select from "react-select"
 import Image from "next/image"
+import { useTranslation } from 'next-i18next';
+
 // Profile page that allows user to edit password or logout of their account
 const Profile = ({ customClaims }) => {
 	const {
@@ -37,6 +40,7 @@ const Profile = ({ customClaims }) => {
 		viewRole,
 		deleteUser
 	} = useAuth()
+  const {t} = useTranslation("Profile")
 	const [openModal, setOpenModal] = useState(false)
 	const [emailModal, setEmailModal] = useState(false)
 	const [logoutModal, setLogoutModal] = useState(false)
@@ -399,7 +403,7 @@ const handleDelete = async () => {
 		<div className='w-full h-full'>
 			<div className='z-0 grid grid-rows-2 h-full p-2 md:p-8 lg:p-16 pt-5 md:pt-10'>
 				<div className=''>
-					<div className='text-xl font-extrabold text-blue-600 tracking-wider'>Account</div>
+					<div className='text-xl font-extrabold text-blue-600 tracking-wider'>{t('account')}</div>
 					{isAgency && ( // agency user will see the agency row
 						<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
 							<div className='font-light'>
@@ -411,44 +415,41 @@ const handleDelete = async () => {
 						</div>
 					)}
 					<div className='flex flex-col md:flex-row justify-start md:justify-between mx-0 md:mx-6 my-6 tracking-normal items-stretch md:items-center'>
-						<div className='font-semibold text-sm md:font-light'>Email</div>
+						<div className='font-semibold text-sm md:font-light'>{t('email')}</div>
 						<div className='flex gap-2 my-2 tracking-normal items-center justify-between'>
 							<div className='font-light'>{user.email}</div>
 							<button
 								onClick={() => setEmailModal(true)}
 								className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl flex justify-self-end'>
-								Edit Email
+								{t("editEmail")}
 							</button>
 						</div>
 					</div>
 					<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
-						<div className='font-light'>Reset Password</div>
+						<div className='font-light'>{t("resetPassword")}</div>
 						<button
 							onClick={() => setOpenModal(true)}
 							className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl'>
-							Edit Password
+							{t('editPassword')}
 						</button>
 					</div>
 					<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
-					<div className='font-light'>Logout</div>
+					<div className='font-light'>{t("logout")}</div>
 					<button
 						onClick={() => setLogoutModal(true)}
 						className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl'>
-						Logout
+						{t("logout")}
 					</button>
 					</div>
+          {/* Hides the language toggle for admin and agencies*/}
+          {!isAgency && !isAdmin && 
+            <div className="flex justify-between mx-0 md:mx-6 tracking-normal items-center">
+              <span className="text-blue-500 text-md font-bold py-2 px-2">{t("selectLanguage")}</span>
+
+              <LanguageSwitcher/>
+            </div>
+            }
 				</div>
-				<div className='self-end'>
-					<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
-					<div className='font-light'>Delete my account</div>
-					<button
-						onClick={() => setDeleteModal(true)}
-						className='bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl'>
-						Request Delete
-					</button>
-					</div>
-				</div>
-			</div>
 			{isAgency && ( // agency settings
 				<div className='z-0 flex-col p-16 pt-10 bg-slate-100'>
 					<div className='text-xl font-extrabold text-blue-600 tracking-wider'>
@@ -637,23 +638,36 @@ const handleDelete = async () => {
 					</div>
 				</div>
 			)}
+      
+      <div className='self-end'>
+        <div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
+        <div className='font-light'>{t("delete")}</div>
+        <button
+          onClick={() => setDeleteModal(true)}
+          className='bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl'>
+          {t("request")}
+        </button>
+        </div>
+      </div>
+      </div>
+
 			{openModal && <UpdatePwModal setOpenModal={setOpenModal} />}
 			{emailModal && <UpdateEmailModal setEmailModal={setEmailModal} />}
 			{logoutModal && (
 				<ConfirmModal
 					func={handleLogout}
-					title='Are you sure you want to log out?'
+					title={t("areyousure")}
 					subtitle=''
-					CTA='Log out'
+					CTA={t("logout")}
 					closeModal={setLogoutModal}
 				/>
 			)}
 			{deleteModal && (
 				<DeleteModal
 					func={handleDelete}
-					title='Are you sure you want to delete your account?'
+					title={t("deleteAccount")}
 					subtitle=''
-					CTA='Delete'
+					CTA={t("delete")}
 					closeModal={setDeleteModal}
 				/>
 			)}
