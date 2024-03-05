@@ -226,7 +226,12 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick, isOpen}) 
       </div>
       </Menu>
       {helpModal && <HelpModal setHelpModal={setHelpModal}/>}
-      {contactHelpModal && <ContactHelpModal setContactHelpModal={setContactHelpModal}/>}
+      {/* {contactHelpModal && (
+        <ContactHelpModal 
+          setContactHelpModal={setContactHelpModal}
+          handleContactHelpSubmit={handleContactHelpSubmit}
+        />
+      )} */}
 
       {newReportModal && (
 				<NewReport
