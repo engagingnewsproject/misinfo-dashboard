@@ -108,6 +108,26 @@ git remote add prod https://github.com/engagingnewsproject/misinfo-dashboard-pro
 
 [Chrome React Developer Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi) || [VS Code React-Native snippets](https://marketplace.visualstudio.com/items?itemName=dsznajder.es7-react-js-snippets) || [VS Code Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
 
+#### Sync with the caet-saga repo
+
+* [Syncing a fork branch from the command line](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line)
+* [Netlify dashboard for CME Misinfo Dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview)
+* [Live CME Misinfo Dashboard](https://misinfo-dashboard.netlify.app/dashboard)
+
+1.  Fetch the branches and their respective commits from the upstream repository
+
+    `git fetch upstream`
+2.  Check out your fork's local default branch
+
+    `git checkout main`
+3.  Merge the changes from the upstream default branch
+
+    `git merge upstream/main`
+4.  Push your changes
+
+    `git push origin main`
+
+
 # Docs
 
 #### [Edit Misinfo Dashboard Documentation GitBook](https://app.gitbook.com/o/tmOnCbkSzYuWj7EVbFqg/s/h5B8zKreIfyiUKOT1awO/)
