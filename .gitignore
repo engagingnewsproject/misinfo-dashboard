@@ -38,6 +38,7 @@ Brewfile
 
 # firebase
 firestore-debug.log
+firebase-debug.log
 functions/firestore-debug.log
 ui-debug.log
 
@@ -49,3 +50,4 @@ public/workbox-*.js.map
 public/worker-*.js.map
 # Local Netlify folder
 .netlify
+
