@@ -11,9 +11,11 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
+Clone this repo to a local directory and run `yarn install` from the root to install dependencies. *do not use `npm install` because using this install command will create a `package-lock.json` file & Netlify will throw errors if `package-lock.json` is included in the repo.
+
 In order to be authenticated with the Firebase Project you must have a `.env` file with the Firebase credentials. Reach out to the project lead (currently [Luke](https://github.com/luukee)).
 
-First, run the development server:
+Run the development server:
 
 ```bash
 npm run dev
@@ -108,25 +110,26 @@ git remote add prod https://github.com/engagingnewsproject/misinfo-dashboard-pro
 
 [Chrome React Developer Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi) || [VS Code React-Native snippets](https://marketplace.visualstudio.com/items?itemName=dsznajder.es7-react-js-snippets) || [VS Code Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
 
-#### Sync with the caet-saga repo
+#### Project Lead: Sync with the caet-saga repo
 
-* [Syncing a fork branch from the command line](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line)
-* [Netlify dashboard for CME Misinfo Dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview)
-* [Live CME Misinfo Dashboard](https://misinfo-dashboard.netlify.app/dashboard)
+Fetch upstream branch from caet-saga into the CME misinfo-dashboard-production repo's `dev` branch to validate changes on the misinfo-dev site. Then from CME misinfo-dashboard-production repo create a pull request to merge the `dev` branch into `main`.
 
 1.  Fetch the branches and their respective commits from the upstream repository
 
     `git fetch upstream`
-2.  Check out your fork's local default branch
+2.  Check out your fork's local `dev` branch
 
-    `git checkout main`
-3.  Merge the changes from the upstream default branch
+    `git checkout dev`
+3.  Merge the changes from the upstream default(`main`) branch
 
     `git merge upstream/main`
-4.  Push your changes
+4.  Push your changes to the CME `dev` branch
 
-    `git push origin main`
+    `git push origin dev`
+    
+5.  If everything looks good on the dev site go to CME's misinfo-dashboard-production repo & create a pull request to merge `dev` into `main`. If all checks pass complete the pull request.
 
+Links: [Syncing fork branch](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line) | [Netlify dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview)
 
 # Docs
 
