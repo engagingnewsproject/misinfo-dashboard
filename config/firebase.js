@@ -4,6 +4,8 @@ import { getAuth, connectAuthEmulator } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage,connectStorageEmulator } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
+import { getPerformance } from "firebase/performance";
+
 // UNCOMMENT "connectFunctionsEmulator" BELOW: enable connection to firebase functions emulator
 // connectFunctionsEmulator
 import {
@@ -34,6 +36,14 @@ export const functions = getFunctions(app);
 export const analytics = () => {
   if (typeof window !== "undefined") {
     return getAnalytics(app)
+  } else {
+    return null
+  }
+}
+// Initialize Performance Monitoring and get a reference to the service
+export const perf = () => {
+  if (typeof window !== "undefined") {
+    return getPerformance(app)
   } else {
     return null
   }
