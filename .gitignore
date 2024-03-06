@@ -51,3 +51,4 @@ public/worker-*.js.map
 # Local Netlify folder
 .netlify
 
+public/sw.js.map
