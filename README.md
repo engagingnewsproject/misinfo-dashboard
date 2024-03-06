@@ -25,16 +25,24 @@ Next, to run the app on the emulator and import the db testing data, in a new te
 firebase emulators:start --import=./emulator-data
 ``` 
 
-The Firebase Emulator should boot up and provide you an emulator link `View Emulator UI at`. Open that link and add yourself as a user under the Authentication tab. You only need to provide a name, email and password when adding a general user. For more info see [Emulator Docs](https://firebase.google.com/docs/emulator-suite/connect_and_prototype?database=Firestore).
+The Firebase Emulator should boot up and provide you an emulator link `View Emulator UI at`. Open that link to view the Emulator UI:
 
-You can also assign a role to another user you add (reccommended) in the Custom Claims input:
+
+#### 4. Add yourself as a user under the Emulator Authentication tab. 
+
+You only need to provide a name, email and password when adding a general user. You can also assign roles to other users you add in the _"Custom Claims"_ input:
 - Admin role: `{"admin":true}`
 - Agency role: `{"agency":true}`
+
+You can also signup like a normal user at the Login/Signup page. Once you have signed up 
+
+- Open the link printed out in your Emulator terminal window. _all you need to do is open the link_
+- Now you can return to your initial Signup tab and login with the credentials you signed up with.
 
 Emulator UI:
 ![emulator-ui](https://media.github.austin.utexas.edu/user/3619/files/1012c2ee-b9b2-4529-8914-2e0455af9bda)
 
-#### 4. Start dev server
+#### 5. Start dev server
 
 To boot up the development server run:
 
