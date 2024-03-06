@@ -124,6 +124,18 @@ Fetch upstream branch from caet-saga into the CME misinfo-dashboard-production r
 
     `git push origin dev`
     
+    ** If you get a `remote: error: File firestore-debug.log is 102.65 MB; this exceeds GitHub's file size limit of 100.00 MB` run these commands:
+    
+      `git lfs install` - make sure git large file storage is installed
+      
+      `git lfs track "firestore-debug.log"` - to track the large file
+      
+      `git lfs migrate import --include="firestore-debug.log" --everything` - convert the file types to LFS
+      
+      `git lfs ls-files` - to list files
+      
+      `git lfs checkout` -  files can be repopulated with their full expected contents [lfs docs](https://github.com/git-lfs/git-lfs/blob/main/docs/man/git-lfs-migrate.adoc?utm_source=gitlfs_site&utm_medium=doc_man_migrate_link&utm_campaign=gitlfs#examples)
+    
 5.  If everything looks good on the dev site go to CME's misinfo-dashboard-production repo & create a pull request to merge `dev` into `main`. If all checks pass complete the pull request.
 
 Links: [Syncing fork branch](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line) | [Netlify dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview)
