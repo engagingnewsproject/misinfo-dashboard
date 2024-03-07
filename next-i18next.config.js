@@ -6,11 +6,10 @@
 const path = require('path')
 
 module.exports = {
-  debug: process.env.NODE_ENV === 'development',
+  // debug: process.env.NODE_ENV === 'development',
   i18n: {
     locales: ['en', 'es'],
-    defaultLocale: 'en',
-    debug: false
+    defaultLocale: 'en'
   },
     /** To avoid issues when deploying to some paas (vercel...) */
 
