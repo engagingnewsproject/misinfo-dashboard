@@ -22,7 +22,7 @@ import HelpModal from './modals/HelpModal'
 import ContactHelpModal from './modals/ContactHelpModal'
 import { useAuth } from '../context/AuthContext'
 
-const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick, isOpen}) => {
+const Navbar = ({tab, setTab, handleNewReportSubmit, handleContactHelpSubmit, onReportTabClick, isOpen}) => {
 
   const [windowSize, setWindowSize] = useState([
     window.innerWidth,
@@ -215,23 +215,24 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, onReportTabClick, isOpen}) 
                       <IoHelpCircleOutline size={30}/>
                       <Tooltip anchorSelect='.tooltip-help' place="bottom" delayShow={500}>Help</Tooltip>
                   </button>}
-                  {(customClaims.admin || customClaims.agency) && <button
+                  <button
                       onClick={()=>setContactHelpModal(true)}
-                      className={`${ basicStyle } tooltip-help`}>
+                      className={`${ basicStyle } tooltip-contact-us-for-help`}>
                       <MdFeedback size={30}/>
-                  </button>}
+                      <Tooltip anchorSelect='.tooltip-contact-us-for-help' place="bottom" delayShow={500}>Contact for Help</Tooltip>
+                  </button>
               </div>
           </div>
       </div>
       </div>
       </Menu>
       {helpModal && <HelpModal setHelpModal={setHelpModal}/>}
-      {/* {contactHelpModal && (
+      {contactHelpModal && (
         <ContactHelpModal 
           setContactHelpModal={setContactHelpModal}
           handleContactHelpSubmit={handleContactHelpSubmit}
         />
-      )} */}
+      )}
 
       {newReportModal && (
 				<NewReport
