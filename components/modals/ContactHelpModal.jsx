@@ -33,7 +33,9 @@ const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
       message: message,
       images: imageURLs
     }).then(() => {
-      handleContactHelpSubmit();
+        null
+      //handleContactHelpSubmit();
+      //let's add handling for admins here later...
     })
     
 }
@@ -96,9 +98,11 @@ const handleContactHelpClose = async (e) => {
 const handleSubmitButton = (e) => {
   e.preventDefault()
   if (!subject) {
-      alert('Subject is required')
+      alert('Subject is required') 
+  } else if (!message){
+    alert('Message is required') 
   } else if (images == '') {
-      alert('We need at least one image.')
+      alert('We need at least one screenshot.')
   } else {
       if (images.length > 0) {
           setUpdate(!update)
