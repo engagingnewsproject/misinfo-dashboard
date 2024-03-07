@@ -28,6 +28,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [detail, setDetail] = useState("")
     // Image upload
 
+    const [userData, setUserData] = useData([])
     const [imageList, setImageList] = useState([])
     // Get a reference to the storage service, which is used to create references in your storage bucket
     const storage = getStorage();
@@ -54,7 +55,11 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const [errors, setErrors] = useState({})
 
     const {t} = useTranslation("NewReport")
+    const getUserData = () => {
 
+    getDoc(doc(db, "mobileUsers", user.uid)).then((mobileRef) => 
+      setUserData(mobileRef.data()))
+    }
     const saveReport = (imageURLs) => {
         addDoc(dbInstance, {
             userID: user.accountId,
@@ -312,6 +317,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     // On mount, grab all the possible topic choices
     // to add to drop down list
     useEffect(() => {
+        getUserData()
         getAllAgencies()
         getAllTopics()
         getAllSources()
@@ -326,9 +332,11 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             // build an array of agency names
 			var arr = []
 			agencyRef.forEach((doc) => {
-				arr.push(
-					doc.data()['name']
-				)
+        if (doc.data()['state'] == userData?.state) {
+          arr.push(
+            doc.data()['name']
+          ) 
+      }
 			})
             // set the agencies state with the agency names
 			setAgencies(arr)

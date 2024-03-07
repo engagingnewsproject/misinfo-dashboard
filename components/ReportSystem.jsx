@@ -33,6 +33,8 @@ const ReportSystem = ({
     const { user } = useAuth()
     const [data, setData] = useState({ country: "US", state: null, city: null })
     const [isSearchable, setIsSearchable] = useState(true);
+    const [userData, setUserData] = useData([])
+
     const storage = getStorage();
     const [reportId, setReportId] = useState('')
     const imgPicker = useRef(null)
@@ -162,7 +164,12 @@ const ReportSystem = ({
     const getData = async() => {
         const docRef = await getDoc(doc(db, "reports", user.uid))
     }
-    
+
+    const getUserData = () => {
+
+      getDoc(doc(db, "mobileUsers", user.uid)).then((mobileRef) => 
+        setUserData(mobileRef.data()))
+      }
     async function getAllAgencies() {
         // Get agency collection docs
         const agencyRef = await getDocs(collection(db, "agency"));
@@ -170,9 +177,12 @@ const ReportSystem = ({
             // build an array of agency names
 			var arr = []
 			agencyRef.forEach((doc) => {
-				arr.push(
-					doc.data()['name']
-				)
+        if (doc.data()['state'] == userData?.state) {
+          console.log("here")
+          arr.push(
+            doc.data()['name']
+          ) 
+      }
 			})
             // set the agencies state with the agency names
 			setAgencies(arr)
@@ -403,6 +413,8 @@ const ReportSystem = ({
     // On page load (mount), update the tags from firebase
     useEffect(() => {
         getData()
+        getUserData()
+
         getAllAgencies()
         getAllTopics()
         getAllSources()

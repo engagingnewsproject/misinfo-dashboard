@@ -19,7 +19,7 @@ import { RiContactsBookLine } from 'react-icons/ri'
 
 const SignUp = () => {
     const router = useRouter()
-    const { t } = useTranslation('Welcome');
+    const { t } = useTranslation(['Welcome', 'NewReport']);
 
     const [signUpError, setSignUpError] = useState("")
 
@@ -33,9 +33,12 @@ const SignUp = () => {
        phone: '',
        password: '',
        confirmPW: '',
+       city:'', 
+       state:'',
        contact: false
     })
-    
+    const [errors, setErrors] = useState({})
+
     const addMobileUser = (privilege) => {
         // Get user object
         const user = auth.currentUser;
@@ -68,7 +71,25 @@ const SignUp = () => {
         if (data.password.length < 8) {
           return
       }
+        const allErrors = {}
+        if (data.state == null) {
+            console.log("state error")
+            allErrors.state = t("NewReport:state")
+        }
+        if (data.city == null) {
+            // Don't display the report, show an error message
+            console.log("city error")
+            allErrors.city = t("NewReport:city")
+            if (data.state != null && City.getCitiesOfState(
+                data.state?.countryCode,
+                data.state?.isoCode
+                ).length == 0) {
+                    console.log("No cities here")
+                    delete allErrors.city
+            }
+        }
 
+        setErrors(allErrors)
 
         // console.log("should be given agency privilege " + isAgency)
 
@@ -149,7 +170,15 @@ const SignUp = () => {
     }
 
     const handleChange = (e) => {
-        setData({ ...data, [e.target.id]: e.target.value})
+       setData({ ...data, [e.target.id]: e.target.value})
+    }
+    
+    const handleStateChange = (e) => {
+      setData(data=>({...data, state: e, city: null })) 
+      
+  }
+    const handleCityChange = (e) => {
+      setData(data=>({...data,city: e !== null ? e : null })) 
     }
 
     const handleChecked = (e) => {
@@ -202,6 +231,53 @@ const SignUp = () => {
 
                         onChange={handlePhoneNumber}/>
                     </div>
+
+                    <div className="mt-4 mb-1">
+                    <div className="mt-4 mb-0.5">
+                                <Select
+                                    className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="state"
+                                    type="text"
+                                    required
+                                    placeholder={t("NewReport:state_text")}
+                                    value={data.state}
+                                    options={State.getStatesOfCountry("US")}
+                                    getOptionLabel={(options) => {
+                                    return options["name"];
+                                    }}
+                                    getOptionValue={(options) => {
+                                    return options["name"];
+                                    }}                                
+                                    label="state"
+                                    onChange={handleStateChange}
+                                    />
+                                {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)}    
+
+                            </div>
+
+
+                            <div className="mt-4 mb-0.5">
+                                <Select
+                                    className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="city"
+                                    type="text"
+                                    placeholder={t("NewReport:city_text")}
+                                    value={data.city}
+                                    options={City.getCitiesOfState(
+                                    data.state?.countryCode,
+                                    data.state?.isoCode
+                                    )}
+                                    getOptionLabel={(options) => {
+                                    return options["name"];
+                                    }}
+                                    getOptionValue={(options) => {
+                                    return options["name"];
+                                    }}                                 
+                                    onChange={handleCityChange}
+                                    />
+                                    {errors.city && data.city === null &&  (<span className="text-red-500">{errors.city}</span>)}
+                            </div>
+                    </div>
                     <div className="mb-4">
                       <input
                         className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -241,6 +317,8 @@ const SignUp = () => {
                             autoComplete='new-password'
                             />
                     </div>
+
+
                     <div className="mb-1">
                       <input
                             className="shadow border-white rounded-md mx-1"
@@ -293,7 +371,7 @@ export async function getStaticProps(context) {
   return {
     props: {
       // pass the translation props to the page component
-      ...(await serverSideTranslations(locale, ['Welcome'])),
+      ...(await serverSideTranslations(locale, ['Welcome',  'Report', 'NewReport'])),
     },
   }
 }
