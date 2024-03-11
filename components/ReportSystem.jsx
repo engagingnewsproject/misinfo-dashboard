@@ -798,7 +798,7 @@ const ReportSystem = ({
                         {detail ? detail : `No description provided.`}
                     </div>
                     <button onClick={() => setReportSystem(0)} className={style.button}>
-                        {t('view')}
+                        {t('backReports')}
                     </button>
                 </div>
                 }
