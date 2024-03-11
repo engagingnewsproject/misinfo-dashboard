@@ -33,7 +33,7 @@ const ReportSystem = ({
     const { user } = useAuth()
     const [data, setData] = useState({ country: "US", state: null, city: null })
     const [isSearchable, setIsSearchable] = useState(true);
-    const [userData, setUserData] = useData([])
+    const [userData, setUserData] = useState([])
 
     const storage = getStorage();
     const [reportId, setReportId] = useState('')
@@ -534,6 +534,7 @@ const ReportSystem = ({
                     {reportSystem == 3 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>{t('which_agency')}</div>
+                       
                         {agencies.map((agency, i) => (
                             <>
                             <label key={i+'-'+agency} className={agency === selectedAgency ? style.inputRadioChecked : style.inputRadio}>
