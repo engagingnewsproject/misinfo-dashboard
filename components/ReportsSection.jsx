@@ -852,7 +852,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 										/>
 										<button
 											onClick={() =>
-												handleReportDelete(Object.keys(reportObj)[0])
+												handleReportDelete(reportId)
 											}
 											data-tip='Delete report'
 											className={style.icon}>
