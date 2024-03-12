@@ -507,7 +507,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		setDeleteModal(true)
 	}
 	const handleDelete = async (e) => {
-		e.preventDefault()
 		const docRef = doc(db, "reports", reportModalId)
 		deleteDoc(docRef)
 			.then(() => {
@@ -852,7 +851,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 										/>
 										<button
 											onClick={() =>
-												handleReportDelete(Object.keys(reportObj)[0])
+												handleReportDelete(reportId)
 											}
 											data-tip='Delete report'
 											className={style.icon}>
