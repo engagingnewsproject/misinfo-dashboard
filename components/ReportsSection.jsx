@@ -507,7 +507,6 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		setDeleteModal(true)
 	}
 	const handleDelete = async (e) => {
-		e.preventDefault()
 		const docRef = doc(db, "reports", reportModalId)
 		deleteDoc(docRef)
 			.then(() => {
