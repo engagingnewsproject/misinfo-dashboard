@@ -28,11 +28,11 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
 
 # vercel
 .vercel
 .vscode/launch.json
-.env
 Brewfile
 .vscode/settings.json
 
@@ -48,7 +48,7 @@ public/worker-*.js
 public/sw.js.map
 public/workbox-*.js.map
 public/worker-*.js.map
+
 # Local Netlify folder
 .netlify
 
-public/sw.js.map
