@@ -32,9 +32,7 @@ yarn-error.log*
 
 # vercel
 .vercel
-.vscode/launch.json
 Brewfile
-.vscode/settings.json
 
 # firebase
 firestore-debug.log
