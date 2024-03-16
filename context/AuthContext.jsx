@@ -10,6 +10,7 @@ import {
     deleteUser,
     sendSignInLinkToEmail,
     sendEmailVerification,
+    EmailAuthProvider
 } from 'firebase/auth'
 
 
@@ -178,8 +179,9 @@ export const AuthContextProvider = ({children}) => {
     }
 
     const updateUserPassword = (auth, currentPassword, newPassword) => {
-        reauthenticateWithCredential(auth, user.email, currentPassword).then(() => {
-            return updatePassword(auth, newPassword)
+        const credential = EmailAuthProvider.credential(user.email, currentPassword)
+        reauthenticateWithCredential(auth.currentUser, credential).then(() => {
+            return updatePassword(auth.currentUser, newPassword)
         }).catch((error) => {
             return error
         })
