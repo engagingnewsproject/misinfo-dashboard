@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../context/AuthContext'
 import { useTranslation } from 'next-i18next';
+import { auth } from '../../config/firebase'
 
 const UpdatePwModal = ({ setOpenModal }) => {
     const {t} = useTranslation("Profile")
@@ -20,8 +21,13 @@ const UpdatePwModal = ({ setOpenModal }) => {
 
     const handleUpdatePW = async (e) => {
         e.preventDefault()
-        const result = await updateUserPassword(user, data.currentPassword, data.newPassword)
-        setUpdateSuccess(true)
+        try {
+            const result = await updateUserPassword(auth, data.currentPassword, data.newPassword)
+            setUpdateSuccess(true)
+        } catch (error) {
+            console.log(error)
+            console.log("There has been an error with changing the pass")
+        }
     }
 
     return (
