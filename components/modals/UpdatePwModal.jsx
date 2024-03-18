@@ -2,12 +2,14 @@ import React, { useState } from 'react'
 import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../context/AuthContext'
 import { useTranslation } from 'next-i18next';
+import { auth } from '../../config/firebase'
 
 const UpdatePwModal = ({ setOpenModal }) => {
     const {t} = useTranslation("Profile")
 
     const { user, updateUserPassword } = useAuth()
     const [updateSuccess, setUpdateSuccess] = useState(false)
+    const [incorrectPassword, setIncorrectPassword] = useState(false)
     const [data, setData] = useState({
         currentPassword: '',
         newPassword: '',
@@ -20,8 +22,15 @@ const UpdatePwModal = ({ setOpenModal }) => {
 
     const handleUpdatePW = async (e) => {
         e.preventDefault()
-        const result = await updateUserPassword(user, data.currentPassword, data.newPassword)
-        setUpdateSuccess(true)
+        try {
+            const result = await updateUserPassword(auth, data.currentPassword, data.newPassword)
+            setUpdateSuccess(true)
+            setIncorrectPassword(false)
+        } catch (error) {
+            setUpdateSuccess(false)
+            setIncorrectPassword(true)
+        }
+        
     }
 
     return (
@@ -42,7 +51,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                         </button>
                     </div>
                     <form onChange={handleChange} onSubmit={handleUpdatePW}>
-                        <div className="mb-4">
+                        <div className={incorrectPassword ? 'mb-0' : 'mb-4'}>
                             <input
                                 className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 id="currentPassword"
@@ -53,6 +62,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                                 onChange={handleChange}
                                 />
                         </div>
+                        {incorrectPassword && <span className="text-red-500 text-sm font-light">Incorrect password</span>}
                         <div className="mb-0.5">
                             <input
                                 className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
