@@ -25,6 +25,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
         try {
             const result = await updateUserPassword(auth, data.currentPassword, data.newPassword)
             setUpdateSuccess(true)
+            setIncorrectPassword(false)
         } catch (error) {
             setUpdateSuccess(false)
             setIncorrectPassword(true)
@@ -50,7 +51,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                         </button>
                     </div>
                     <form onChange={handleChange} onSubmit={handleUpdatePW}>
-                        <div className="mb-4">
+                        <div className={incorrectPassword ? 'mb-0' : 'mb-4'}>
                             <input
                                 className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 id="currentPassword"
