@@ -180,11 +180,14 @@ export const AuthContextProvider = ({children}) => {
 
     const updateUserPassword = (auth, currentPassword, newPassword) => {
         const credential = EmailAuthProvider.credential(user.email, currentPassword)
-        reauthenticateWithCredential(auth.currentUser, credential).then(() => {
-            return updatePassword(auth.currentUser, newPassword)
-        }).catch((error) => {
-            return error
+        return new Promise((resolve, reject) => {
+          reauthenticateWithCredential(auth.currentUser, credential).then(() => {
+            resolve(updatePassword(auth.currentUser, newPassword))
+          }).catch((error) => {
+            reject(error)
+          })
         })
+        
     }
 
     const setPassword = async (newPassword) => {

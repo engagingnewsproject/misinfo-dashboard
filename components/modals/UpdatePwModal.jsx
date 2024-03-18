@@ -9,6 +9,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
 
     const { user, updateUserPassword } = useAuth()
     const [updateSuccess, setUpdateSuccess] = useState(false)
+    const [incorrectPassword, setIncorrectPassword] = useState(false)
     const [data, setData] = useState({
         currentPassword: '',
         newPassword: '',
@@ -25,9 +26,10 @@ const UpdatePwModal = ({ setOpenModal }) => {
             const result = await updateUserPassword(auth, data.currentPassword, data.newPassword)
             setUpdateSuccess(true)
         } catch (error) {
-            console.log(error)
-            console.log("There has been an error with changing the pass")
+            setUpdateSuccess(false)
+            setIncorrectPassword(true)
         }
+        
     }
 
     return (
@@ -59,6 +61,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                                 onChange={handleChange}
                                 />
                         </div>
+                        {incorrectPassword && <span className="text-red-500 text-sm font-light">Incorrect password</span>}
                         <div className="mb-0.5">
                             <input
                                 className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
