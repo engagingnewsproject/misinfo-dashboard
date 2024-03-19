@@ -95,6 +95,19 @@ function MyApp({ Component, pageProps }) {
         <meta property="og:site_name" content="Misinformation App" />
         <meta property="og:url" content="https://misinfo-dashboard.netlify.app" />
         <meta property="og:image" content="https://misinfo-dashboard.netlify.app/icons/apple-touch-icon.png" />
+        <script>
+        perfMetrics.onFirstInputDelay(function(delay, evt) {
+          ga('send', 'event', {
+            eventCategory: 'Perf Metrics',
+            eventAction: 'first-input-delay',
+            eventLabel: evt.type,
+            // Event values must be an integer.
+            eventValue: Math.round(delay),
+            // Exclude this event from bounce rate calculations.
+            nonInteraction: true,
+          })
+        })
+        </script>
       </Head>
       <div className="bg-sky-100 w-full h-full overflow-y-auto">
         <div className='w-screen h-screen content-center'>
