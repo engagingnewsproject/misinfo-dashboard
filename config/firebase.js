@@ -26,28 +26,26 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-export const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig)
+
+// Initialize Analytics and get a reference to the service
+let analytics = null; // Initialize to null
+
+// Check if window object is defined (client-side)
+if (typeof window !== 'undefined') {
+  // Initialize Analytics if running in the browser
+  analytics = getAnalytics(app);
+}
+
+export { app, analytics }
+
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 export const auth = getAuth(app);
 export const functions = getFunctions(app);
-// Initialize Analytics and get a reference to the service
-export const analytics = () => {
-  if (typeof window !== "undefined") {
-    return getAnalytics(app)
-  } else {
-    return null
-  }
-}
-// Initialize Performance Monitoring and get a reference to the service
-export const perf = () => {
-  if (typeof window !== "undefined") {
-    return getPerformance(app)
-  } else {
-    return null
-  }
-}
+
+
 // UNCOMMENT BELOW: enable connection to firebase functions emulator
 // connectFunctionsEmulator(functions,"127.0.0.1",5001)
 
