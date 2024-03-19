@@ -30,14 +30,15 @@ const app = initializeApp(firebaseConfig)
 
 // Initialize Analytics and get a reference to the service
 let analytics = null; // Initialize to null
-
+let perf = null;
 // Check if window object is defined (client-side)
 if (typeof window !== 'undefined') {
   // Initialize Analytics if running in the browser
   analytics = getAnalytics(app);
+  perf = getPerformance(app);
 }
 
-export { app, analytics }
+export { app, analytics, perf }
 
 export const db = getFirestore(app);
 export const storage = getStorage(app);
