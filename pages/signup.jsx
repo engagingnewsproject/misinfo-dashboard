@@ -137,7 +137,7 @@ const SignUp = () => {
 
 
               }
-              
+              analytics.logEvent('sign_up', { method: 'email' }); // Log 'login' event
           } catch (err) {
               
               if (err.message == "Firebase: Error (auth/email-already-in-use).") {
