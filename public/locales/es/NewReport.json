@@ -69,6 +69,8 @@
   "upload": "Puedes subir capturas de pantalla o fotografías de la posible desinformación.",
   "agency":"Agencia",
   "topic": "Tema",
+  "noAgencies":"There are no participating newsrooms in this area.",
+
   "thanksText": "Investigamos tantas denuncias como sea posible, aunque no siempre podemos llegar a todas."
 
 }
