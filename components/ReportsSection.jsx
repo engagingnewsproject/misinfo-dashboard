@@ -67,12 +67,18 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	const [refresh, setRefresh] = useState(false)
 
 	useEffect(() => {
+		// console.log(customClaims)
 		if (customClaims.admin) {
 			setIsAgency(false)
 		} else if (customClaims.agency) {
 			setIsAgency(true)
 		}
 	}, [])
+	
+	// useEffect(() => {
+	// 	console.log(customClaims.agency)
+	// }, [isAgency])
+	
 
 	// On page load (mount) or new report submitted, get the reports from firebase
 	useEffect(() => {
@@ -362,11 +368,11 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	} // end handleReportModalShow
 
 	// On click of a report list item set it as read.
-	useEffect(() => {
-		if (reportRead === false) {
-			handleChangeRead(reportModalId, true)
-		}
-	}, [reportModalShow])
+	// useEffect(() => {
+	// 	if (reportRead === false) {
+	// 		handleChangeRead(reportModalId, true)
+	// 	}
+	// }, [reportModalShow])
 	
 	// list item handle read change
 	const handleChangeRead = async (reportId,checked) => {
