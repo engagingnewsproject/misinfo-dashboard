@@ -37,9 +37,9 @@ const Headbar = ({ search, setSearch}) => {
         getData()
 	}, [])
     return (
-        <div className="w-full lg:w-full md:max-w-7xl lg:max-w-none">
-            <div className="grid grid-flow-row gap-2 md:flex md:justify-between py-4 px-14 sm:pl-12 items-center">
-                <div className="flex sm:justify-center">
+
+            <div className="grid grid-cols-5 md:grid-cols-12 md:pl-12 lg:px-20">
+                <div className="col-start-2 md:col-start-1 col-span-4 flex items-center pt-3">
                 {/* TODO: - agency can swap out their logo */}
                     <div className="flex justify-center">
                         {customClaims.agency && agencyLogo ? (
@@ -84,7 +84,7 @@ const Headbar = ({ search, setSearch}) => {
                 </form>
                 } 
             </div>
-        </div>
+
     )
 }
 
