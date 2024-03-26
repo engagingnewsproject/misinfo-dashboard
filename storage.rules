@@ -3,11 +3,11 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     match /{allPaths=**} {
-      // Allow read access for everyone (unauthenticated) during development
-      allow read: if request.auth == null && request.origin == "http://localhost:3000";
+      // Allow read access only for authenticated users
+      allow read: if request.auth != null;
       
-      // Restrict write access to authenticated users
-      allow write, read: if request.auth != null;
+      // Allow write access only for authenticated users
+      allow write: if request.auth != null;
     }
   }
 }
