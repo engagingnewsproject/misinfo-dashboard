@@ -19,6 +19,7 @@ package-lock.json
 # misc
 .DS_Store
 *.pem
+/.vscode/
 
 # debug
 npm-debug.log*
@@ -28,13 +29,11 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
 
 # vercel
 .vercel
-.vscode/launch.json
-.env
 Brewfile
-.vscode/settings.json
 
 # firebase
 firestore-debug.log
@@ -48,6 +47,6 @@ public/worker-*.js
 public/sw.js.map
 public/workbox-*.js.map
 public/worker-*.js.map
+
 # Local Netlify folder
 .netlify
-
