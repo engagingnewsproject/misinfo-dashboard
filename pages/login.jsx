@@ -2,10 +2,12 @@ import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
+import { analytics } from '../config/firebase'
 import { db, auth } from '../config/firebase'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+
 const Login = () => {
   const router = useRouter()
 
@@ -50,6 +52,7 @@ const Login = () => {
 				await verifyEmail(auth.currentUser)
 				await router.push("/verifyEmail")
 			}
+      analytics.logEvent('login', { method: 'email' }); // Log 'login' event
 		} catch (error) {
 			// Login error occurred, handle and display it
 			console.error("Login error:", error)
