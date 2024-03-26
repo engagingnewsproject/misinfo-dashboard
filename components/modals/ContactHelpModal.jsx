@@ -164,7 +164,7 @@ const handleChange = (e) => {
                                     value={message}
                                     />
                             </div>
-                            
+                            <div className="text-sm font-bold text-blue-600 tracking-wide mt-4">Upload screenshots</div>
                             <div className="mt-4 mb-0.5">
                                 <label className="block">
                                     <span className="sr-only">Choose files</span>
@@ -194,7 +194,7 @@ const handleChange = (e) => {
                                     className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
                                     onClick={handleSubmitButton}
                                     type="submit">
-                                    Create
+                                    Submit
                                 </button>
                             </div>
                         </form>
