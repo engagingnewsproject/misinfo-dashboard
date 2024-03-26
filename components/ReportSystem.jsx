@@ -459,74 +459,9 @@ const ReportSystem = ({
             }
             <div className={style.viewWrapper}>
                 <form onChange={handleChange} onSubmit={handleNewReport} className={style.form}>
-                    {/* Location */}
-                    {reportSystem == 2 &&
-                    <div className={style.viewWrapper}>
-                        <div className={style.sectionH1}>
-                            {t('location')}
-                        </div>
-                        {/* State */}
-                        <Select
-                            className={style.inputSelect}
-                            id="state"
-                            type="text"
-                            placeholder={t('state_text')}
-                            isSearchable={isSearchable}
-                            value={data.state}
-                            options={State.getStatesOfCountry(data.country)}
-                            getOptionLabel={(options) => {
-                            return options["name"];
-                            }}
-                            getOptionValue={(options) => {
-                            return options["name"];
-                            }}                                
-                            label="state"
-                            onChange={(value => {
-                            setData(data=>({...data, state: value, city: null })) 
-                            })}
-                        />
-                        {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)}
-                        {/* City */}
-                        {data.state != null && 
-                            <Select
-                                className={style.inputSelect}
-                                id="city"
-                                type="text"
-                                placeholder={t('city_text')}
-                                value={data.city}
-                                options={City.getCitiesOfState(
-                                    data.state?.countryCode,
-                                    data.state?.isoCode
-                                )}
-                                getOptionLabel={(options) => {
-                                return options["name"];
-                                }}
-                                getOptionValue={(options) => {
-                                return options["name"];
-                                }}                                 
-                                onChange={
-                                    (value => {
-                                        setData(data=>({
-                                            ...data,
-                                            city: value !== null ? value : null
-                                        })) 
-                                    })
-                                }
-                            />
-                        }
-                        {errors.city && data.city === null &&  (<span className="text-red-500">{errors.city}</span>)}
-                        {City.getCitiesOfState(
-                                    data.state?.countryCode,
-                                    data.state?.isoCode
-                                ) && data.city != null && 
-                            <button onClick={() => setReportSystem(reportSystem + 1)} className={style.sectionIconButtonWrap}>
-                                <BiRightArrowCircle size={40} className={style.sectionIconButton}/>
-                            </button>
-                        }
-                    </div>
-                    }
+
                     {/* Agency */}
-                    {reportSystem == 3 &&
+                    {reportSystem == 2 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>{t('which_agency')}</div>
                         {agencies.length == 0 && t("noAgencies")}
@@ -557,7 +492,7 @@ const ReportSystem = ({
                     </div>
                     }
                     {/* Topic tag */}
-                    {reportSystem == 4 &&
+                    {reportSystem == 3 &&
                     <div className={style.viewWrapper}>
                             <div className={style.sectionH1}>{t('about')}</div>
                             {[...allTopicsArr.filter(topic => topic !== "Other/Otro"), ...allTopicsArr.filter(topic => topic === "Other/Otro")].map((topic, i) => (
@@ -607,7 +542,7 @@ const ReportSystem = ({
                     </div>
                     }
                     {/* Source tag */}
-                    {reportSystem == 5 &&
+                    {reportSystem == 4 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>{t('where')}</div>
                         {[...sources.filter(source => source !== "Other/Otro"), ...sources.filter(source => source === "Other/Otro")].map((source, i) => (
@@ -653,7 +588,7 @@ const ReportSystem = ({
                     }
                     {/* TODO: add agency dropdown */}
                     {/* Details */}
-                    {reportSystem == 6 &&
+                    {reportSystem == 5 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>
                         {t('share')}
@@ -752,7 +687,7 @@ const ReportSystem = ({
                     }
                 </form>
                 {/* Thank you */}
-                {reportSystem == 7 &&
+                {reportSystem == 6 &&
                 <div className={style.viewWrapper + ' items-center'}>
                     <Image src="/img/reportSuccess.png" width={156} height={120} alt="report success" className='object-cover w-auto'/>
                     <div className={style.sectionH1}>
@@ -765,7 +700,7 @@ const ReportSystem = ({
                 </div>
                 }
                 {/* View Report */}
-                {reportSystem == 8 &&
+                {reportSystem == 7 &&
                 <div className={style.viewWrapper}>
                     {/* Title */}
                     <div className={style.inputSingle}>
