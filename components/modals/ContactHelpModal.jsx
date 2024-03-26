@@ -127,81 +127,77 @@ const handleChange = (e) => {
 }, [update]);
 
   return (
-    <div className="bk-white h-full w-full">
-            <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-[1200]">
-            <div 
-                onClick={handleContactHelpClose} 
-                className={`flex overflow-y-auto justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full`}>
-                {/* <div onClick={handleNewReportModalClose} className="flex overflow-y-auto justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full"> */}
-                    <div onClick={(e) => {e.stopPropagation()}} className={`flex-col justify-center items-center bg-white md:w-8/12 lg:w-6/12 h-auto rounded-2xl py-10 px-10 z-50`}>
-                        <div className="flex justify-between w-full mb-5">
-                            <div className="text-md font-bold text-blue-600 tracking-wide">Contact Help Form</div>
-                            <button onClick={handleContactHelpClose} className="text-gray-800">
-                                <IoClose size={25}/>
-                            </button>
-                        </div>
-                        <form onChange={handleChange} onSubmit={handleContactHelp}>
-                            <div className="mt-4 mb-0.5">
-                                <input
-                                    className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="subject"
-                                    type="text"
-                                    placeholder="Add a subject"
-                                    required
-                                    onChange={handleSubjectChange}
-                                    value={subject}
-                                    />
-                            </div>
-                            
-                            <div className="mt-4 mb-0.5">
-                                <input
-                                    className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="message"
-                                    type="text"
-                                    placeholder="Add a message"
-                                    required
-                                    onChange={handleMessageChange}
-                                    value={message}
-                                    />
-                            </div>
-                            <div className="text-sm font-bold text-blue-600 tracking-wide mt-4">Upload screenshots</div>
-                            <div className="mt-4 mb-0.5">
-                                <label className="block">
-                                    <span className="sr-only">Choose files</span>
-                                    <input className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer" 
-                                    id="multiple_files" 
-                                    type="file" 
-                                    multiple 
-                                    accept="image/*" 
-                                    // onChange={(e) => {onImageChange(e) }}
-                                    onChange={(e) => {
-                                        handleImageChange(e)
-                                    }}
-                                    ref={imgPicker}
-                                    />
-                                </label>
-                                <div className="flex shrink-0 mt-2 space-x-2">
-                                    {imageURLs.map((url, i) => (
-                                    <div className='relative'>
-                                        <Image src={url} key={i} width={100} height={100} alt={`image-upload-${i}`}/>
-                                    </div>
-                                    ))}
-                                </div>
-                            </div>
-                          
-                            <div className="mt-3 sm:mt-6">
-                                <button
-                                    className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
-                                    onClick={handleSubmitButton}
-                                    type="submit">
-                                    Submit
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+    <div className="fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto">
+        <div 
+            onClick={handleContactHelpClose} 
+            className={`flex overflow-y-auto justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full`}>
+            <div onClick={(e) => {e.stopPropagation()}} className={`flex-col justify-center items-center bg-white md:w-8/12 lg:w-6/12 h-auto rounded-2xl py-10 px-10 z-50`}>
+                <div className="flex justify-between w-full mb-5">
+                    <div className="text-md font-bold text-blue-600 tracking-wide">Contact Help Form</div>
+                    <button onClick={handleContactHelpClose} className="text-gray-800">
+                        <IoClose size={25}/>
+                    </button>
                 </div>
+                <form onChange={handleChange} onSubmit={handleContactHelp}>
+                    <div className="mt-4 mb-0.5">
+                        <input
+                            className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="subject"
+                            type="text"
+                            placeholder="Add a subject"
+                            required
+                            onChange={handleSubjectChange}
+                            value={subject}
+                            />
+                    </div>
+                    
+                    <div className="mt-4 mb-0.5">
+                        <textarea
+                            class="peer h-full min-h-[200px] resize-none border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight px-3 py-2.5 focus:outline-none focus:shadow-outline transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 disabled:resize-none disabled:border-0 disabled:bg-blue-gray-50"
+                            id="message"
+                            type="text"
+                            placeholder="Add a message"
+                            required
+                            onChange={handleMessageChange}
+                            value={message}></textarea>
+                    </div>
+                    <div className="text-sm font-bold text-blue-600 tracking-wide mt-4">Upload screenshots</div>
+                    <div className="mt-4 mb-0.5">
+                        <label className="block">
+                            <span className="sr-only">Choose files</span>
+                            <input className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer" 
+                            id="multiple_files" 
+                            type="file" 
+                            multiple 
+                            accept="image/*" 
+                            // onChange={(e) => {onImageChange(e) }}
+                            onChange={(e) => {
+                                handleImageChange(e)
+                            }}
+                            ref={imgPicker}
+                            />
+                        </label>
+                        <div className="flex shrink-0 mt-2 space-x-2">
+                            {imageURLs.map((url, i) => (
+                            <div className='relative'>
+                                <Image src={url} key={i} width={100} height={100} alt={`image-upload-${i}`}/>
+                            </div>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <div className="mt-3 sm:mt-6">
+                        <button
+                            className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                            onClick={handleSubmitButton}
+                            type="submit">
+                            Submit
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
   );
 };
 
