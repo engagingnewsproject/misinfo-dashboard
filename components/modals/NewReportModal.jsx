@@ -187,8 +187,12 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     const addNewTag = (tag, source) => {
         let topicArr = list
         let sourceArr = sourceList
-        topicArr.push(tag)
-        sourceArr.push(source)
+        if (!topicArr.includes(tag)) {
+            topicArr.push(tag)
+        }
+        if (!sourceArr.includes(source)) {
+            sourceArr.push(source)
+        }
         setList(topicArr)
         setSourceList(sourceArr)
         updateTopicTags(list, user, sourceList)
