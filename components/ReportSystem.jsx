@@ -3,7 +3,7 @@ import { reportSystems } from '../pages/report';
 import { IoMdArrowRoundBack } from 'react-icons/io'
 import { BiCheckCircle, BiXCircle, BiRightArrowCircle } from "react-icons/bi";
 import { setDoc, getDoc, doc, addDoc, collection, getDocs } from "firebase/firestore"; 
-import { getStorage, ref, getDownloadURL, uploadBytes, deleteObject, uploadBytesResumable } from 'firebase/storage';
+import { getStorage, ref, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
 import { useAuth } from '../context/AuthContext'
 import { db } from '../config/firebase'
 import { State, City }  from 'country-state-city';
@@ -268,7 +268,7 @@ const ReportSystem = ({
     
     // Image upload (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js, https://www.youtube.com/watch?v=S4zaZvM8IeI)
     const handleImageChange = (e) => {
-        console.log('handle image change run');
+console.log('handle image change run');
         for (let i = 0; i < e.target.files.length; i++) {
             const newImage = e.target.files[i];
             setImages((prevState) => [...prevState, newImage]);
@@ -276,33 +276,92 @@ const ReportSystem = ({
         }
     };
     
-    // Image upload to firebase
+    // Function to handle the upload of images to Firebase Storage
     const handleUpload = () => {
+        // Array to store promises for each upload task
         const promises = [];
-        images.map((image) => {
-            const storageRef = ref(storage, `report_${new Date().getTime().toString()}.png`)
-            const uploadTask = uploadBytesResumable(storageRef, image)
-            promises.push(uploadTask);
-            uploadTask.on( "state_changed",
-                (snapshot) => {
-                    // console.log(snapshot);
-                },
-                (error) => {
-                    console.log(error);
-                },
-                () => {
-                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                        // console.log('File available at', downloadURL);
-                        setImageURLs(
-                            (prev) => [...prev, downloadURL]
-                        )
-                    });
-                }
-            );
+    
+        // Iterate through each image
+        images.map(async (image) => {
+            // Check if the image is in HEIC format and window object is available (client-side)
+            if (image.type === "image/heic" && typeof window !== "undefined") {
+                // Convert HEIC image to JPEG format
+                const jpegImage = await convertToJPEG(image);
+    
+                // Generate unique file name with .jpg extension
+                const fileName = `report_${new Date().getTime()}.jpg`;
+    
+                // Create a reference to the storage location with the file name
+                const storageRef = ref(storage, fileName);
+    
+                // Upload the JPEG image to Firebase Storage
+                const uploadTask = uploadBytesResumable(storageRef, jpegImage);
+    
+                // Add the upload task to the promises array
+                promises.push(uploadTask);
+    
+                // Handle the upload task (monitor progress and completion)
+                handleUploadTask(uploadTask);
+            } else {
+                // If the image is not in HEIC format or window object is not available
+                // Extract file extension from the image name
+                const fileExtension = image.name.split(".").pop().toLowerCase();
+    
+                // Generate unique file name with original extension
+                const fileName = `report_${new Date().getTime()}.${fileExtension}`;
+    
+                // Create a reference to the storage location with the file name
+                const storageRef = ref(storage, fileName);
+    
+                // Upload the image to Firebase Storage
+                const uploadTask = uploadBytesResumable(storageRef, image);
+    
+                // Add the upload task to the promises array
+                promises.push(uploadTask);
+    
+                // Handle the upload task (monitor progress and completion)
+                handleUploadTask(uploadTask);
+            }
         });
-
-        Promise.all(promises)
-        .catch((err) => console.log(err));
+    
+        // Wait for all upload tasks to complete and catch any errors
+        Promise.all(promises).catch((err) => console.log(err));
+    };
+    
+    // Function to convert HEIC image to JPEG format
+    const convertToJPEG = async (heicImage) => {
+        // Import the heic2any library dynamically
+        const heic2any = await import("heic2any");
+    
+        // Convert the HEIC image to JPEG format
+        return await heic2any.default({ blob: heicImage, toType: "image/jpeg" });
+    };
+    
+    // Function to handle upload task (monitor progress and completion)
+    const handleUploadTask = (uploadTask) => {
+        // Monitor the state changes of the upload task
+        uploadTask.on(
+            "state_changed",
+            (snapshot) => {
+                // Progress callback (optional)
+                // console.log(snapshot);
+            },
+            (error) => {
+                // Error callback (if any)
+                console.log(error);
+            },
+            () => {
+                // Completion callback (when upload is successful)
+                // Get the download URL of the uploaded file
+                getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                    // Log the download URL (optional)
+                    // console.log('File available at', downloadURL);
+    
+                    // Update the state with the download URL (to display or use later)
+                    setImageURLs((prev) => [...prev, downloadURL]);
+                });
+            }
+        );
     };
 
     const handleTopicChange = (e) => {
@@ -522,20 +581,18 @@ const ReportSystem = ({
                     {reportSystem == 3 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>{t('which_agency')}</div>
-                        {agencies.map((agency, i) => (
-                            <>
-                            <label key={i+'-'+agency} className={agency === selectedAgency ? style.inputRadioChecked : style.inputRadio}>
+                        {agencies.map((agency, i = self.crypto.randomUUID()) => (
+                            <label key={i} className={agency === selectedAgency ? style.inputRadioChecked : style.inputRadio}>
                             {/* Agency Input */}
                             <input
-                            className="absolute opacity-0"
-                            id='agency'
-                            type="radio"
-                            checked={selectedAgency === agency}
-                            onChange={(e) => setSelectedAgency(e.target.value)}
-                            value={agency}
+                                className="absolute opacity-0"
+                                id='agency'
+                                type="radio"
+                                checked={selectedAgency === agency}
+                                onChange={(e) => setSelectedAgency(e.target.value)}
+                                value={agency}
                             />
                             {agency}</label>
-                            </>
                         ))}
                         {errors.agency && selectedAgency === '' &&  (<span className="text-red-500">{errors.agency}</span>)}
                         {selectedAgency != '' && 
@@ -551,43 +608,41 @@ const ReportSystem = ({
                     {/* Topic tag */}
                     {reportSystem == 4 &&
                     <div className={style.viewWrapper}>
-                            <div className={style.sectionH1}>{t('about')}</div>
-                            {[...allTopicsArr.filter(topic => topic !== "Other/Otro"), ...allTopicsArr.filter(topic => topic === "Other/Otro")].map((topic, i) => (
-                            <>
+                        <div className={style.sectionH1}>{t('about')}</div>
+                        {[...allTopicsArr.filter(topic => topic !== "Other/Otro"), ...allTopicsArr.filter(topic => topic === "Other/Otro")].map((topic, i) => (
                             <label key={i+'-'+topic} className={topic === selectedTopic ? style.inputRadioChecked : style.inputRadio}>
                             {/* Topic Tag Input */}
                             <input
-                            className="absolute opacity-0"
-                            id='topic'
-                            type="radio"
-                            checked={selectedTopic === topic}
-                            onChange={
-                                // create a custom function 
-                                // (e) => setSelectedTopic(e.target.value)
-                                handleTopicChange
-                            }
-                            value={topic}
+                                className="absolute opacity-0"
+                                id='topic'
+                                type="radio"
+                                checked={selectedTopic === topic}
+                                onChange={
+                                    // create a custom function 
+                                    // (e) => setSelectedTopic(e.target.value)
+                                    handleTopicChange
+                                }
+                                value={topic}
                             />
                             {topic}</label>
-                            </>
                         ))}
                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
                         {showOtherTopic && (
-                                            <div className="">
-                                            <div className="text-zinc-500">
-                                                {t('custom_topic')}
-                                                </div>
-                                                <input
-                                                    id="topic-other"
-                                                    className="rounded shadow-md border-zinc-400 w-full"
-                                                    type="text"
-                                                    placeholder="Please specify the topic."
-                                                    onChange={handleOtherTopicChange}
-                                                    value={otherTopic}
-                                                    style={{ fontSize: '14px' }}
-                                                />
-                                                </div>
-                                        )}
+                            <div className="">
+                            <div className="text-zinc-500">
+                                {t('custom_topic')}
+                                </div>
+                            <input
+                                id="topic-other"
+                                className="rounded shadow-md border-zinc-400 w-full"
+                                type="text"
+                                placeholder="Please specify the topic."
+                                onChange={handleOtherTopicChange}
+                                value={otherTopic}
+                                style={{ fontSize: '14px' }}
+                            />
+                            </div>
+                        )}
                         {selectedTopic != '' && 
                             <button 
                             onClick={() => setReportSystem(reportSystem + 1)} 
@@ -602,9 +657,8 @@ const ReportSystem = ({
                     {reportSystem == 5 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>{t('where')}</div>
-                        {[...sources.filter(source => source !== "Other/Otro"), ...sources.filter(source => source === "Other/Otro")].map((source, i) => (
-                            <>
-                            <label key={i+'-'+source} className={source === selectedSource ? style.inputRadioChecked : style.inputRadio}>
+                        {[...sources.filter(source => source !== "Other/Otro"), ...sources.filter(source => source === "Other/Otro")].map((source, i=self.crypto.randomUUID()) => (
+                            <label key={i} className={source === selectedSource ? style.inputRadioChecked : style.inputRadio}>
                             {/* Source tag input */}
                             <input
                             className="absolute opacity-0"
@@ -617,7 +671,6 @@ const ReportSystem = ({
                             value={source}
                             />
                             {source}</label>
-                            </>
                         ))}
                         {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
                         {showOtherSource && (
@@ -779,11 +832,11 @@ const ReportSystem = ({
                             {t('image')}
                         </div>
                             <div className="flex w-full overflow-y-auto">
-                                {imageURLs.map((image, i) => {
+                                {imageURLs.map((image, i = self.crypto.randomUUID()) => {
                                     return (
                                         <div className="flex mr-2" key={i}>
                                             <Link href={image} target="_blank">
-                                                <Image src={image} width={100} height={100} alt="image"/>
+                                                <Image src={image} width={100} height={100} className='w-auto' alt="image"/>
                                             </Link>
                                         </div>
                                     )
