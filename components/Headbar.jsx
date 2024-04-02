@@ -38,8 +38,9 @@ const Headbar = ({ search, setSearch}) => {
 	}, [])
     return (
 
-            <div className="grid grid-cols-5 md:grid-cols-12 md:pl-12 lg:px-20">
-                <div className="col-start-2 md:col-start-1 col-span-4 flex items-center pt-3">
+            <div className="w-full grid grid-cols-12 pb-5 md:flex md:flex-row md:px-12 md:justify-between md:items-center">
+            {/* <div className="grid grid-cols-5 md:grid-cols-12 md:pl-12 lg:px-20"> */}
+                <div className="col-start-3 col-span-9 md:col-start-1 flex items-center pt-3">
                 {/* TODO: - agency can swap out their logo */}
                     <div className="flex justify-center">
                         {customClaims.agency && agencyLogo ? (
@@ -67,7 +68,7 @@ const Headbar = ({ search, setSearch}) => {
                     </div>
                 </div>
                 {(customClaims.admin || customClaims.agency) &&
-                <form className="flex relative md:w-2/4 lg:w-1/4 lg:max-w-xs" onChange={handleChange} onSubmit={handleSearch}>
+                <form className="col-start-3 col-span-8 mt-5 flex relative md:w-2/4 lg:w-1/4 lg:max-w-xs" onChange={handleChange} onSubmit={handleSearch}>
                    
                     <input
                         className="shadow border-none rounded-xl w-full p-3 pr-11 text-xs text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
