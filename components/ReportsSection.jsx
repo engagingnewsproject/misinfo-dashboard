@@ -363,7 +363,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 
 	// On click of a report list item set it as read.
 	useEffect(() => {
-		if (reportRead === false) {
+		if (reportModalShow !== false && reportRead === false) {
 			handleChangeRead(reportModalId, true)
 		}
 	}, [reportModalShow])
