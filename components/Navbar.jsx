@@ -12,10 +12,10 @@ import {
   IoHelpCircleOutline,
   IoBusinessOutline,
   IoClose,
-  IoMenu
+  IoMenu,
+  IoChatboxEllipsesOutline
 } from "react-icons/io5";
 import { HiOutlineDocumentPlus } from "react-icons/hi2";
-import { MdFeedback } from "react-icons/md";
 import { Tooltip } from 'react-tooltip'
 import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
@@ -218,7 +218,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, handleContactHelpSubmit, on
                   <button
                       onClick={()=>setContactHelpModal(true)}
                       className={`${ basicStyle } tooltip-contact-us-for-help`}>
-                      <MdFeedback size={30}/>
+                      <IoChatboxEllipsesOutline size={30}/>
                       <Tooltip anchorSelect='.tooltip-contact-us-for-help' place="bottom" delayShow={500}>Contact for Help</Tooltip>
                   </button>
               </div>
