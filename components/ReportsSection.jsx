@@ -349,7 +349,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		// Get report submission user info
 		// const mobileUserRef = doc(db,"mobileUsers",docRef.data().userID);
 		// const docSnap = await getDoc(mobileUserRef);
-
+		
 		const mUserRef = doc(db, "mobileUsers", docRef.data().userID)
 		const docSnap = await getDoc(mUserRef)
 
@@ -361,6 +361,13 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		setReportModalShow(true)
 	} // end handleReportModalShow
 
+	// On click of a report list item set it as read.
+	useEffect(() => {
+		if (reportModalShow !== false && reportRead === false) {
+			handleChangeRead(reportModalId, true)
+		}
+	}, [reportModalShow])
+	
 	// list item handle read change
 	const handleChangeRead = async (reportId,checked) => {
 		console.log(reportId, checked)
@@ -374,13 +381,15 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		await updateDoc(docRef, { read: checked })
 	}
 	// modal item read change
+	// function runs when report modal is displayed 
+	// and user clicks the read/unread toggle
 	const handleChangeReadModal = async (reportId,checked) => {
 		console.log(reportId, checked)
 		const docRef = doc(db,"reports",reportId)
 		await updateDoc(docRef,{ read: checked })
 		setUpdate(!update)
 	}
-
+	
 	
 	const handleReadToggled = async (reportId) => {
 		const report = reports.filter(

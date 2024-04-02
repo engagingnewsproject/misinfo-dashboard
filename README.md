@@ -27,6 +27,7 @@ firebase emulators:start --import=./emulator-data
 
 The Firebase Emulator should boot up and provide you an emulator link `View Emulator UI at`. Open that link to view the Emulator UI:
 
+![emulator-ui](https://media.github.austin.utexas.edu/user/3619/files/1012c2ee-b9b2-4529-8914-2e0455af9bda)
 
 #### 4. Add yourself as a user under the Emulator Authentication tab. 
 
@@ -38,9 +39,6 @@ You can also signup like a normal user at the Login/Signup page. Once you have s
 
 - Open the link printed out in your Emulator terminal window. _all you need to do is open the link_
 - Now you can return to your initial Signup tab and login with the credentials you signed up with.
-
-Emulator UI:
-![emulator-ui](https://media.github.austin.utexas.edu/user/3619/files/1012c2ee-b9b2-4529-8914-2e0455af9bda)
 
 #### 5. Start dev server
 
