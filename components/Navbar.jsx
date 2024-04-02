@@ -203,23 +203,23 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, handleContactHelpSubmit, on
                   }
               </div>
               <div className='self-end'>
-                  <button
-                    onClick={() => setTab(1)}
-                    className={`${ basicStyle } ${ tab === 1 ? " text-indigo-500 bg-indigo-100" : "" } tooltip-profile`}>
-                    <IoPersonOutline size={30}/>
-                    <Tooltip anchorSelect='.tooltip-profile' place="bottom" delayShow={500}>Profile</Tooltip>
-                  </button>
-                  {(customClaims.admin || customClaims.agency) && <button
-                      onClick={()=>setHelpModal(true)}
-                      className={`${ basicStyle } tooltip-help`}>
-                      <IoHelpCircleOutline size={30}/>
-                      <Tooltip anchorSelect='.tooltip-help' place="bottom" delayShow={500}>Help</Tooltip>
-                  </button>}
+                {(customClaims.admin || customClaims.agency) && <button
+                  onClick={()=>setHelpModal(true)}
+                  className={`${ basicStyle } tooltip-help`}>
+                  <IoHelpCircleOutline size={30}/>
+                  <Tooltip anchorSelect='.tooltip-help' place="bottom" delayShow={500}>Help</Tooltip>
+                </button>}
                   <button
                       onClick={()=>setContactHelpModal(true)}
                       className={`${ basicStyle } tooltip-contact-us-for-help`}>
                       <IoChatboxEllipsesOutline size={30}/>
                       <Tooltip anchorSelect='.tooltip-contact-us-for-help' place="bottom" delayShow={500}>Contact for Help</Tooltip>
+                  </button>
+                  <button
+                    onClick={() => setTab(1)}
+                    className={`${ basicStyle } ${ tab === 1 ? " text-indigo-500 bg-indigo-100" : "" } tooltip-profile`}>
+                    <IoPersonOutline size={30}/>
+                    <Tooltip anchorSelect='.tooltip-profile' place="bottom" delayShow={500}>Profile</Tooltip>
                   </button>
               </div>
           </div>
