@@ -51,6 +51,7 @@ const UpdateEmailModal = ({ setEmailModal }) => {
                                 required
                                 value={data.currentEmail}
                                 onChange={handleChange}
+                                autocomplete="email"
                                 />
                         </div>
                         <div className="mb-0.5">
@@ -62,6 +63,7 @@ const UpdateEmailModal = ({ setEmailModal }) => {
                                 required
                                 value={data.newEmail}
                                 onChange={handleChange}
+                                autocomplete="email"
                                 />
                         </div>
                         {data.newEmail.length > 0 && data.newEmail.length < 8 && <span className="text-red-500 text-sm font-light">{t('incorrectEmail')}.</span>}
