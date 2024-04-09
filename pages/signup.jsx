@@ -207,8 +207,7 @@ const SignUp = () => {
                         inputStyle={{width: "100%"}}
                         onChange={handlePhoneNumber}/>
                     </div>
-                    <div className="mt-4 mb-1">
-                    <div className="mt-4 mb-0.5">
+                    <div className="mb-4">
                                 <Select
                                     className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="state"
@@ -229,7 +228,7 @@ const SignUp = () => {
                                 {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)}    
                             </div>
 
-                            <div className="mt-4 mb-0.5">
+                            <div className="mb-4">
                                 <Select
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="city"
@@ -250,7 +249,6 @@ const SignUp = () => {
                                     />
                                     {errors.city && data.city === null &&  (<span className="text-red-500">{errors.city}</span>)}
                             </div>
-                    </div>
                     <div className="mb-4">
                       <input
                         className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
