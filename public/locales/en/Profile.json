@@ -26,5 +26,10 @@
   "incorrectEmail": "New email must be @email.",
   "agencies": "Agencies",
   "agency": "Agency",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "location": "Location updated",
+  "updateLocation": "Update location",
+  "cancelChanges": "Cancel changes",
+  "editLocation": "Edit Location"
+
 }
