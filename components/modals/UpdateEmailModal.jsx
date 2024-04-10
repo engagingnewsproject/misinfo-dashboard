@@ -23,7 +23,7 @@ const UpdateEmailModal = ({ setEmailModal }) => {
     const handleUpdateEmail = async (e) => {
         e.preventDefault()
         try {
-            const result = await updateUserEmail(auth, data.newEmail, data.currentPassword, data.currentEmail)
+            const result = await updateUserEmail(auth, data.newEmail, data.currentPassword)
             setUpdateSuccess(true)
             setIncorrectPassword(false)
         } catch (error) {
