@@ -3,6 +3,7 @@ import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../context/AuthContext'
 import { useTranslation } from 'next-i18next';
 import { auth } from '../../config/firebase'
+import { MdOutlineRemoveRedEye } from "react-icons/md"; // <MdOutlineRemoveRedEye />
 
 const UpdatePwModal = ({ setOpenModal }) => {
     const {t} = useTranslation("Profile")
@@ -10,13 +11,27 @@ const UpdatePwModal = ({ setOpenModal }) => {
     const { user, updateUserPassword } = useAuth()
     const [updateSuccess, setUpdateSuccess] = useState(false)
     const [incorrectPassword, setIncorrectPassword] = useState(false)
+    // password show/hide
+    const [password, setPassword] = useState("")
+    const [type, setType] = useState('password')
+    const [icon, setIcon] = useState(false)
     const [data, setData] = useState({
         currentPassword: '',
         newPassword: '',
         confirmNewPW: ''
     })
-    
+      // handle the toggle between the hide password (eyeOff icon) and the show password (eye icon)
+    const handleTogglePass = () => {
+        if (type==='password'){
+            setIcon(true);
+            setType('text')
+        } else {
+            setIcon(false)
+            setType('password')
+        }
+    }
     const handleChange = (e) => {
+        setPassword(e.target.value)
         setData({ ...data, [e.target.id]: e.target.value})
     }
 
@@ -51,23 +66,28 @@ const UpdatePwModal = ({ setOpenModal }) => {
                         </button>
                     </div>
                     <form onChange={handleChange} onSubmit={handleUpdatePW}>
-                        <div className={incorrectPassword ? 'mb-0' : 'mb-4'}>
+                        <div className={`flex ${incorrectPassword ? 'mb-0' : 'mb-4'}`}>
                             <input
                                 className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 id="currentPassword"
-                                type="password"
+                                type={type}
+                                name='current password'
                                 placeholder={t('currentPassword')}
                                 required
                                 value={data.currentPassword}
                                 onChange={handleChange}
                                 />
+                                <span class="flex justify-around items-center" onClick={handleTogglePass}>
+                                    <MdOutlineRemoveRedEye className='absolute mr-10' />
+                                </span>
                         </div>
                         {incorrectPassword && <span className="text-red-500 text-sm font-light">Incorrect password</span>}
-                        <div className="mb-0.5">
+                        <div className="mb-0.5 flex">
                             <input
                                 className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 id="newPassword"
-                                type="password"
+                                type={type}
+                                name='new password'
                                 placeholder={t('newPassword')}
                                 required
                                 value={data.newPassword}
@@ -79,7 +99,8 @@ const UpdatePwModal = ({ setOpenModal }) => {
                             <input
                                 className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 id="confirmNewPW"
-                                type="password"
+                                type={type}
+                                name="confirm password"
                                 placeholder={t('confirmPassword')}
                                 required
                                 value={data.confirmNewPW}
