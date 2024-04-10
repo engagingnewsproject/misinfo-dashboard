@@ -2,25 +2,34 @@ import React, { useState } from 'react'
 import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../context/AuthContext'
 import { useTranslation } from 'next-i18next';
+import { auth } from '../../config/firebase'
 
 const UpdateEmailModal = ({ setEmailModal }) => {
     const {t} = useTranslation("Profile")
 
     const { user, updateUserEmail } = useAuth()
     const [updateSuccess, setUpdateSuccess] = useState(false)
+    const [incorrectPassword, setIncorrectPassword] = useState(false)
     const [data, setData] = useState({
         currentEmail: '',
-        newEmail: ''
+        newEmail: '',
+        currentPassword: ''
     })
     
     const handleChange = (e) => {
         setData({ ...data, [e.target.id]: e.target.value})
     }
 
-    const handleUpdatePW = async (e) => {
+    const handleUpdateEmail = async (e) => {
         e.preventDefault()
-        const result = await updateUserEmail(user, data.currentEmail, data.newEmail)
-        setUpdateSuccess(true)
+        try {
+            const result = await updateUserEmail(auth, data.newEmail, data.currentPassword, data.currentEmail)
+            setUpdateSuccess(true)
+            setIncorrectPassword(false)
+        } catch (error) {
+            setUpdateSuccess(false)
+            setIncorrectPassword(true)
+        }
     }
 
     return (
@@ -41,7 +50,7 @@ const UpdateEmailModal = ({ setEmailModal }) => {
                             <IoClose size={25}/>
                         </button>
                     </div>
-                    <form onChange={handleChange} onSubmit={handleUpdatePW}>
+                    <form onChange={handleChange} onSubmit={handleUpdateEmail}>
                         <div className="mb-4">
                             <input
                                 className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -54,6 +63,18 @@ const UpdateEmailModal = ({ setEmailModal }) => {
                                 autocomplete="email"
                                 />
                         </div>
+                        <div className={incorrectPassword ? 'mb-0' : 'mb-4'}>
+                            <input
+                                className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="currentPassword"
+                                type="password"
+                                placeholder="Verify password"
+                                required
+                                value={data.currentPassword}
+                                onChange={handleChange}
+                                />
+                        </div>
+                        {incorrectPassword && <span className="text-red-500 text-sm font-light">Incorrect password</span>}
                         <div className="mb-0.5">
                             <input
                                 className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"

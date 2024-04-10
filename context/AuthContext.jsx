@@ -5,6 +5,7 @@ import {
     signInWithEmailAndPassword,
     reauthenticateWithCredential,
     updatePassword,
+    updateEmail,
     signOut,
     sendPasswordResetEmail,
     deleteUser,
@@ -190,6 +191,19 @@ export const AuthContextProvider = ({children}) => {
         
     }
 
+    const updateUserEmail = (auth, newEmail, currentPassword) => {
+      const credential = EmailAuthProvider.credential(user.email, currentPassword)
+      return new Promise((resolve, reject) => {
+        reauthenticateWithCredential(auth.currentUser, credential).then(() => {
+          resolve(updateEmail(auth.currentUser, newEmail))
+        }).catch((error) => {
+          console.log(error)
+          reject(error)
+
+        })
+      })
+    }
+
     const setPassword = async (newPassword) => {
       console.log(newPassword)
       console.log(user?.email)
@@ -231,7 +245,7 @@ export const AuthContextProvider = ({children}) => {
     }
  
     return (
-        <AuthContext.Provider value={{ user, customClaims, setCustomClaims, login, signup, logout, resetPassword, deleteAdminUser, updateUserPassword, setPassword, verifyEmail, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole, getUserByEmail, deleteUser }}>
+        <AuthContext.Provider value={{ user, customClaims, setCustomClaims, login, signup, logout, resetPassword, deleteAdminUser, updateUserPassword, updateUserEmail, setPassword, verifyEmail, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole, getUserByEmail, deleteUser }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )
