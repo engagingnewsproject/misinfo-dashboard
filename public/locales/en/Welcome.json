@@ -22,5 +22,11 @@
     "error": "An error occurred when logging in.",
     "phone": "Phone number (optional)",
     "contact": "I agree that my local newsroom can contact me to follow-up on the reports I share",
-    "password_error": "Passwords don’t match."
+    "password_error": "Passwords don’t match.",
+    "contactHelp": "Contact help form",
+    "addSubject":"Add a subject",
+    "addMessage":"Add a message",
+    "uploadScreenshot": "Upload screenshots",
+    "choose_files": "Choose files"
+
   }

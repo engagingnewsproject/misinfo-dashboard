@@ -12,6 +12,8 @@ import moment from "moment";
 import Image from 'next/image'
 import Select from "react-select";
 import {  useTranslation } from 'next-i18next'
+import $ from 'jquery'; 
+
 
 const ReportSystem = ({ 
     tab, 
@@ -36,7 +38,7 @@ const ReportSystem = ({
     const storage = getStorage();
     const [reportId, setReportId] = useState('')
     const imgPicker = useRef(null)
-    const [images, setImages] = useState([])
+    const [image, setImage] = useState([])
     const [imageURLs, setImageURLs] = useState([]);
     const [update, setUpdate] = useState(false)
     const [title, setTitle] = useState("")
@@ -124,7 +126,7 @@ const ReportSystem = ({
         inputCheckboxWrap: 'flex',
         inputRadio: 'bg-blue-600 flex rounded-lg p-2 text-white justify-center checked:bg-blue-500',
         inputRadioChecked: 'bg-blue-800 flex rounded-lg p-2 text-white justify-center checked:bg-blue-500',
-        inputImage: 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
+        inputImage: 'block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-transparent hover:file:bg-blue-100 file:cursor-pointer',
         inputTextarea: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
         button: 'w-80 self-center mt-4 shadow bg-blue-600 hover:bg-gray-100 text-sm text-white py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
     }
@@ -217,10 +219,10 @@ const ReportSystem = ({
         e.preventDefault()
         if (!title) {
             alert(t('titleRequired'))
-        } else if (images == '' && !detail && !link) {
+        } else if (image == '' && !detail && !link) {
             alert(t('atLeast'))
         } else {
-            if (images.length > 0) {
+            if (image.length > 0) {
                 setUpdate(!update)
             }
             saveReport(imageURLs)
@@ -255,7 +257,7 @@ const ReportSystem = ({
             console.log("No topic selected")
             allErrors.topic = t('specify_topic')
         }
-        if (images == '') {
+        if (image == '') {
             console.log('no images');
         }
         setErrors(allErrors)
@@ -268,62 +270,62 @@ const ReportSystem = ({
     
     // Image upload (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js, https://www.youtube.com/watch?v=S4zaZvM8IeI)
     const handleImageChange = (e) => {
-console.log('handle image change run');
-        for (let i = 0; i < e.target.files.length; i++) {
-            const newImage = e.target.files[i];
-            setImages((prevState) => [...prevState, newImage]);
-            setUpdate(!update)
-        }
+        console.log(e.target.files[0])
+        setImage(e.target.files[0])
+        setUpdate(true)
     };
     
     // Function to handle the upload of images to Firebase Storage
-    const handleUpload = () => {
+    const handleUpload  = () => {
         // Array to store promises for each upload task
         const promises = [];
-    
         // Iterate through each image
-        images.map(async (image) => {
-            // Check if the image is in HEIC format and window object is available (client-side)
-            if (image.type === "image/heic" && typeof window !== "undefined") {
-                // Convert HEIC image to JPEG format
-                const jpegImage = await convertToJPEG(image);
-    
-                // Generate unique file name with .jpg extension
-                const fileName = `report_${new Date().getTime()}.jpg`;
-    
-                // Create a reference to the storage location with the file name
-                const storageRef = ref(storage, fileName);
-    
-                // Upload the JPEG image to Firebase Storage
-                const uploadTask = uploadBytesResumable(storageRef, jpegImage);
-    
-                // Add the upload task to the promises array
-                promises.push(uploadTask);
-    
-                // Handle the upload task (monitor progress and completion)
-                handleUploadTask(uploadTask);
-            } else {
-                // If the image is not in HEIC format or window object is not available
-                // Extract file extension from the image name
-                const fileExtension = image.name.split(".").pop().toLowerCase();
-    
-                // Generate unique file name with original extension
-                const fileName = `report_${new Date().getTime()}.${fileExtension}`;
-    
-                // Create a reference to the storage location with the file name
-                const storageRef = ref(storage, fileName);
-    
-                // Upload the image to Firebase Storage
-                const uploadTask = uploadBytesResumable(storageRef, image);
-    
-                // Add the upload task to the promises array
-                promises.push(uploadTask);
-    
-                // Handle the upload task (monitor progress and completion)
-                handleUploadTask(uploadTask);
-            }
-        });
-    
+        
+        // Check if the image is in HEIC format and window object is available (client-side)
+        if (image?.type === "image/heic" && typeof window !== "undefined") {
+            // Convert HEIC image to JPEG format
+            convertToJPEG(image).then((jpegImage) => {
+
+          
+            // Generate unique file name with .jpg extension
+            const fileName = `report_${new Date().getTime()}.jpg`;
+
+            // Create a reference to the storage location with the file name
+            const storageRef = ref(storage, fileName);
+
+            // Upload the JPEG image to Firebase Storage
+            const uploadTask = uploadBytesResumable(storageRef, jpegImage);
+
+            // Add the upload task to the promises array
+            promises.push(uploadTask);
+
+            // Handle the upload task (monitor progress and completion)
+            handleUploadTask(uploadTask);
+           });
+
+        } else {
+            // If the image is not in HEIC format or window object is not available
+            // Extract file extension from the image name
+            const fileExtension = image.name.split(".").pop().toLowerCase();
+
+            // Generate unique file name with original extension
+            const fileName = `report_${new Date().getTime()}.${fileExtension}`;
+
+            // Create a reference to the storage location with the file name
+            const storageRef = ref(storage, fileName);
+
+            // Upload the image to Firebase Storage
+            const uploadTask = uploadBytesResumable(storageRef, image);
+
+            // Add the upload task to the promises array
+            promises.push(uploadTask);
+           
+            // Handle the upload task (monitor progress and completion)
+            handleUploadTask(uploadTask)
+        }
+          
+        setUpdate(false)
+
         // Wait for all upload tasks to complete and catch any errors
         Promise.all(promises).catch((err) => console.log(err));
     };
@@ -344,7 +346,8 @@ console.log('handle image change run');
             "state_changed",
             (snapshot) => {
                 // Progress callback (optional)
-                // console.log(snapshot);
+                console.log(snapshot);
+
             },
             (error) => {
                 // Error callback (if any)
@@ -355,14 +358,18 @@ console.log('handle image change run');
                 // Get the download URL of the uploaded file
                 getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                     // Log the download URL (optional)
-                    // console.log('File available at', downloadURL);
-    
-                    // Update the state with the download URL (to display or use later)
-                    setImageURLs((prev) => [...prev, downloadURL]);
+                    console.log('File available at', downloadURL);
+                     const newURLs = [...imageURLs];
+                     newURLs.push(downloadURL)
+                   
+                    // // Update the state with the download URL (to display or use later)
+                     setImageURLs(newURLs);
                 });
             }
         );
     };
+
+
 
     const handleTopicChange = (e) => {
         setSelectedTopic(e.target.value)
@@ -513,7 +520,7 @@ console.log('handle image change run');
                 </div>
             }
             <div className={style.viewWrapper}>
-                <form onChange={handleChange} onSubmit={handleNewReport} className={style.form}>
+                <div className={style.form}>
                     {/* Location */}
                     {reportSystem == 2 &&
                     <div className={style.viewWrapper}>
@@ -762,17 +769,32 @@ console.log('handle image change run');
                             <div>
                                 {t('imageDescription')}
                             </div>
-                            <label className="block">
-                                <span className="sr-only">{t('choose_files')}</span>
-                                <input className={style.inputImage} 
-                                id="multiple_files" 
-                                type="file" 
-                                multiple 
-                                accept="image/*" 
-                                onChange={handleImageChange}
-                                ref={imgPicker}
-                                />
-                            </label>
+                            <div className="mt-4 mb-0.5">
+                                    <label className="block">
+                                        <button className="block w-full mr-4 py-2 px-4 rounded-full border-none text-sm font-semibold  bg-sky-100 text-blue-500 hover:bg-blue-100 cursor-pointer">
+                                        <label for="multiple_files">{t("choose_files")}</label></button>
+                                        <input className="hidden" 
+                                        name="files[]"
+                                        id="multiple_files" 
+                                        type="file" 
+                                        multiple 
+                                        accept="image/*" 
+                                        title=""
+                                        // onChange={(e) => {onImageChange(e) }}
+                                        onChange={handleImageChange}
+                                        ref={imgPicker}
+                                        />
+                                    </label>
+                                    <div className="flex shrink-0 mt-2 space-x-2">
+                                        {imageURLs.map((url, i) => (
+                                        <div className='relative'>
+                                            <Image src={url} key={i} width={100} height={100} alt={`image-upload-${i}`}/>
+                                            {/* TODO: delete file after upload */}
+                                            {/* <IoClose size={15} color='white' className='absolute top-0 right-0' onClick={handleImageDelete}/> */}
+                                        </div>
+                                        ))}
+                                    </div>
+                                </div>
                             <div className={style.sectionH2}>
                             {t('detailed')}
                             </div>
@@ -789,13 +811,13 @@ console.log('handle image change run');
                             rows="5"
                             ></textarea>
                             {/* onClick={() => setReportSystem(7)}  */}
-                            <button onClick={handleSubmitClick} className={style.button} type="submit">
+                            <button onClick={handleNewReport} className={style.button} type="submit">
                             {t('submit')}
                             </button>
                         </div>
                     </div>
                     }
-                </form>
+                </div>
                 {/* Thank you */}
                 {reportSystem == 7 &&
                 <div className={style.viewWrapper + ' items-center'}>

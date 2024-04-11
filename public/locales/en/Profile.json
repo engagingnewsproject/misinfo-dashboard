@@ -26,5 +26,8 @@
   "incorrectEmail": "New email must be @email.",
   "agencies": "Agencies",
   "agency": "Agency",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "uploadScreenshot": "Subir capturas de pantalla"
+
+
 }
