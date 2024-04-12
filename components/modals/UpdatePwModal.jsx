@@ -77,7 +77,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                                 value={data.currentPassword}
                                 onChange={handleChange}
                                 />
-                                <span class="flex justify-around items-center" onClick={handleTogglePass}>
+                                <span className="flex justify-around items-center" onClick={handleTogglePass}>
                                     <MdOutlineRemoveRedEye className='absolute mr-10' />
                                 </span>
                         </div>
