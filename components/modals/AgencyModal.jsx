@@ -86,7 +86,10 @@ const handleImageChange = (e) => {
     for (const userEmail of addAgencyUsers) {
       if (!tempUsersArr.includes(userEmail)) {
         tempUsersArr.push(userEmail)
-      }
+      } else {
+				setSendEmail(`${userEmail} is already an admin for this agency.`)
+				break
+			}
       await sendSignIn(userEmail)
       setSendEmail("Sign-in link was sent.")
 
