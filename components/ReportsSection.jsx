@@ -94,62 +94,74 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 			)
 			// Fetch user's 'agency' name. . .
 			const querySnapshot = await getDocs(q)
-			querySnapshot.forEach((doc) => {
-				agencyName = doc.data()["name"]
-			})
-			// & only fetch reports with the user's 'agency' name
-			const agencyReports = query(
-				reportsCollection,
-				where("agency", "==", agencyName)
-			)
-			snapshot = await getDocs(agencyReports)
-
+			// Check if any documents were found
+			if (querySnapshot && !querySnapshot.empty) {
+				querySnapshot.forEach((doc) => {
+					agencyName = doc.data()["name"]
+				})
+				// & only fetch reports with the user's 'agency' name
+				const agencyReports = query(
+					reportsCollection,
+					where("agency", "==", agencyName)
+				)
+				snapshot = await getDocs(agencyReports)
+			} else {
+				// Handle case where no agency was found for the user
+				console.log("No reports found for the agency")
+				// You might want to set snapshot to an empty array or handle this case differently
+			}
 			// Displays all reports for admin user
 		} else {
 			snapshot = await getDocs(reportsCollection)
 		}
 
 		try {
-			var arr = []
-			snapshot.forEach((doc) => {
-				arr.push({
-					data: doc.data(),
-					id: doc.id,
-					read: doc.data().read,
-				})
-			})
-			setReports(arr)
-			// Initialize reportsRead with read status of each report
-			// const initialReportsRead = arr.reduce((acc,report) => {
-			// 	acc[report.id] = report.read // Use report ID as key and read status as value
-			// 	return acc
-			// }, {})
-			// // Set reportsRead state
-			// setReportsRead(initialReportsRead)
-
-			if (readFilter !== "All") {
-				arr = arr.filter((reportObj) => {
-					return Object.values(reportObj)[0].read.toString() === readFilter
-				})
-			}
-			setFilteredReports(arr)
-			setLoadedReports(
-				arr.filter((reportObj) => {
-					const report = Object.values(reportObj)[0]
-						return (
-							report["createdDate"].toDate() >=
-							new Date(
-								new Date().setDate(new Date().getDate() - reportWeek * 7)
-							)
-						)
+			if (snapshot && !snapshot.empty) {
+				var arr = []
+				snapshot.forEach((doc) => {
+					arr.push({
+						data: doc.data(),
+						id: doc.id,
+						read: doc.data().read,
 					})
-					.sort((objA, objB) =>
-						Object.values(objA)[0]["createdDate"] >
-						Object.values(objB)[0]["createdDate"]
-							? -1
-							: 1
-					)
-			)
+				})
+				setReports(arr)
+				// Initialize reportsRead with read status of each report
+				// const initialReportsRead = arr.reduce((acc,report) => {
+				// 	acc[report.id] = report.read // Use report ID as key and read status as value
+				// 	return acc
+				// }, {})
+				// // Set reportsRead state
+				// setReportsRead(initialReportsRead)
+
+				if (readFilter !== "All") {
+					arr = arr.filter((reportObj) => {
+						return Object.values(reportObj)[0].read.toString() === readFilter
+					})
+				}
+				setFilteredReports(arr)
+				setLoadedReports(
+					arr.filter((reportObj) => {
+						const report = Object.values(reportObj)[0]
+							return (
+								report["createdDate"].toDate() >=
+								new Date(
+									new Date().setDate(new Date().getDate() - reportWeek * 7)
+								)
+							)
+						})
+						.sort((objA, objB) =>
+							Object.values(objA)[0]["createdDate"] >
+							Object.values(objB)[0]["createdDate"]
+								? -1
+								: 1
+						)
+				)
+			} else {
+				// Handle case where no agency was found for the user
+				console.log("Snapshot empty: No reports found for this agency")
+				// You might want to set snapshot to an empty array or handle this case differently
+			}
 		} catch (error) {
 			console.log(error)
 		}
@@ -798,82 +810,88 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 						</tr>
 					</thead>
 					<tbody>
-						{/*Infinite scroll for the reports to load more reports when user scrolls to bottom*/}
-						{loadedReports.slice(0, endIndex).map((reportObj, key) => {
-							const report = Object.values(reportObj)[0]
-							// console.log(report)
-							const posted = report["createdDate"]
-								.toDate()
-								.toLocaleString("en-US", dateOptions)
-								.replace(/,/g, "")
-								.replace("at","")
-							const reportId = Object.values(reportObj)[1]
-							const reportIdKey = reportId + "-" + key
-							return (
-								<tr
-									onClick={() =>
-										handleReportModalShow(reportId)
-									}
-									className='border-b transition duration-300 ease-in-out hover:bg-indigo-100 dark:border-indigo-100 dark:hover:bg-indigo-100'
-									key={key}>
-									<td scope='row' className={column.data}>
-										{report.title}
-									</td>
-									<td className={column.data_center}>{posted}</td>
-									<td className={column.data_center}>-</td>
-									<td className={column.data_center}>{report.topic}</td>
-									<td className={column.data_center}>{report.hearFrom}</td>
-									<td className={column.data_center}>
-										{/* Change label tooltip */}
-										{/* <ReactTooltip
-												id="labelTooltip"
-												place="top"
-												type="light"
-												effect="solid"
-												delayShow={500}
-											/> */}
-										<div
-											className={!report.label ? label.default : label.special}
-											data-tip='Change label'
-											data-for='labelTooltip'>
-											{report.label || "None"}
-										</div>
-									</td>
-									<td
-										className={column.data_center}
-										onClick={(e) => e.stopPropagation()}>
-										
-										<Switch
-											onChange={(checked) =>
-												handleChangeRead(reportId, checked)
-											}
-											checked={reportsRead[reportId]}
-											onColor='#2563eb'
-											offColor='#e5e7eb'
-											uncheckedIcon={false}
-											checkedIcon={false}
-											height={23}
-											width={43}
-											className={`${
-												report.read ? "bg-blue-600" : "bg-gray-200"
-											} relative inline-flex h-6 w-11 items-center rounded-full`}
-										/>
-										<button
-											onClick={() =>
-												handleReportDelete(reportId)
-											}
-											data-tip='Delete report'
-											className={style.icon}>
-											<IoTrash
-												size={20}
-												className='ml-4 fill-gray-400 hover:fill-red-600'
-											/>
-											{/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
-										</button>
-									</td>
+						{/* Check if loadedReports is empty */}
+						{loadedReports.length === 0 ? (
+								<tr>
+										<td colSpan="7" className="text-center">No reports</td>
 								</tr>
-							)
-						})}
+						) : (
+							loadedReports.slice(0, endIndex).map((reportObj, key) => {
+								const report = Object.values(reportObj)[0]
+								// console.log(report)
+								const posted = report["createdDate"]
+									.toDate()
+									.toLocaleString("en-US", dateOptions)
+									.replace(/,/g, "")
+									.replace("at","")
+								const reportId = Object.values(reportObj)[1]
+								const reportIdKey = reportId + "-" + key
+								return (
+									<tr
+										onClick={() =>
+											handleReportModalShow(reportId)
+										}
+										className='border-b transition duration-300 ease-in-out hover:bg-indigo-100 dark:border-indigo-100 dark:hover:bg-indigo-100'
+										key={key}>
+										<td scope='row' className={column.data}>
+											{report.title}
+										</td>
+										<td className={column.data_center}>{posted}</td>
+										<td className={column.data_center}>-</td>
+										<td className={column.data_center}>{report.topic}</td>
+										<td className={column.data_center}>{report.hearFrom}</td>
+										<td className={column.data_center}>
+											{/* Change label tooltip */}
+											{/* <ReactTooltip
+													id="labelTooltip"
+													place="top"
+													type="light"
+													effect="solid"
+													delayShow={500}
+												/> */}
+											<div
+												className={!report.label ? label.default : label.special}
+												data-tip='Change label'
+												data-for='labelTooltip'>
+												{report.label || "None"}
+											</div>
+										</td>
+										<td
+											className={column.data_center}
+											onClick={(e) => e.stopPropagation()}>
+											
+											<Switch
+												onChange={(checked) =>
+													handleChangeRead(reportId, checked)
+												}
+												checked={reportsRead[reportId]}
+												onColor='#2563eb'
+												offColor='#e5e7eb'
+												uncheckedIcon={false}
+												checkedIcon={false}
+												height={23}
+												width={43}
+												className={`${
+													report.read ? "bg-blue-600" : "bg-gray-200"
+												} relative inline-flex h-6 w-11 items-center rounded-full`}
+											/>
+											<button
+												onClick={() =>
+													handleReportDelete(reportId)
+												}
+												data-tip='Delete report'
+												className={style.icon}>
+												<IoTrash
+													size={20}
+													className='ml-4 fill-gray-400 hover:fill-red-600'
+												/>
+												{/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
+											</button>
+										</td>
+									</tr>
+								)
+							})
+						)}
 					</tbody>
 				</table>
 				{reportModalShow && (

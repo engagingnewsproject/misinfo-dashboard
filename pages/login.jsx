@@ -86,8 +86,15 @@ const Login = () => {
   }
 
   const handleChange = (e) => {
+    console.log("Before state update:", data); // Log state before update
     setPassword(e.target.value)
-    setData({ ...data, [e.target.id]: e.target.value})
+    // setData({ ...data, [e.target.id]: e.target.value})
+    const { id, value } = e.target;
+    setData(prevData => ({
+      ...prevData,
+      [id]: value
+    }));
+    console.log("After state update:", data); // Log state after update
   }
 
 
