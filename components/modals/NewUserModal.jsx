@@ -59,7 +59,7 @@ const NewUserModal = ({
 							placeholder="New User Email"
 							value={newUserEmail}
 							onChange={onNewUserEmail}
-							autoComplete='nope'
+							autoComplete='email'
 							/>
 							{errors.email ? (
 								<p className="error">
