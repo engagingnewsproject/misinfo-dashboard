@@ -199,8 +199,10 @@ const handleDelete = async (e) => {
 		// TODO: Check for any errors
 		const allErrors = {}
 		setErrors(allErrors)
-		console.log(e.target.value);
-		console.log(allErrors.length + "Error array length")
+		// console.log(e.target.value);
+		if (allErrors > 0) {
+			console.log(Object.keys(allErrors).length + " Error array length");
+		}
 	}
 	// Handler: On agency admin user change
 	const handleAgencyUserChange = async (e) => {

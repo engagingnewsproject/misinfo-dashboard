@@ -86,7 +86,10 @@ const handleImageChange = (e) => {
     for (const userEmail of addAgencyUsers) {
       if (!tempUsersArr.includes(userEmail)) {
         tempUsersArr.push(userEmail)
-      }
+      } else {
+				setSendEmail(`${userEmail} is already an admin for this agency.`)
+				break
+			}
       await sendSignIn(userEmail)
       setSendEmail("Sign-in link was sent.")
 
@@ -263,8 +266,8 @@ const handleImageChange = (e) => {
 							<div className={style.modal_form_label}>Agency admin users</div>
 
 							<div className={style.modal_form_data}>
-								{agencyUsersArr.map(txt => 
-                  <div className="grid grid-cols-2 py-1">
+								{agencyUsersArr.map((txt, i = self.crypto.randomUUID()) => 
+                  <div className="grid grid-cols-2 py-1" key={i}>
                     <div className="flex">
                       <button onClick={()=>handleDeleteAdmin(txt)} className={style.modal_delete}>
 								        <IoClose size={16}/>
