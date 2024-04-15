@@ -10,6 +10,7 @@ import {
 	onSnapshot,
 	query,
 	where,
+	addDoc,
 } from "firebase/firestore"
 import { db, auth } from "../config/firebase"
 import {Tooltip} from "react-tooltip"
@@ -17,6 +18,8 @@ import { IoTrash } from "react-icons/io5"
 import InfiniteScroll from "react-infinite-scroll-component"
 import ConfirmModal from "./modals/ConfirmModal"
 import EditUserModal from "./modals/EditUserModal"
+import NewUserModal from './modals/NewUserModal'
+import { FaPlus } from 'react-icons/fa'
 // adelgado@freepress.com prior userID: 6PCpGTofClOv9FSvFgo3l9zHBTB2
 // Profile page that allows the user to edit password or logout of their account
 const Users = () => {
@@ -26,10 +29,8 @@ const Users = () => {
 		addAdminRole,
 		addAgencyRole,
 		addUserRole,
+		sendSignIn,
 		customClaims,
-		setCustomClaims,
-		getUserByEmail,
-		viewRole
 	} = useAuth()
 
 	// State variables for managing user data
@@ -48,7 +49,63 @@ const Users = () => {
 	const [banned, setBanned] = useState("")
 	const [userEditModal, setUserEditModal] = useState(null)
 	const [userId, setUserId] = useState(null)
-	const [update,setUpdate] = useState(false)
+	const [update,setUpdate] = useState('')
+	
+	// Add new user
+	// Add new user
+	// Add new user
+	const [newUserModal, setNewUserModal] = useState(false)
+	const [data, setData] = useState({
+		email: '',
+ })
+	const [newUserEmail, setNewUserEmail] = useState('')
+	const [errors, setErrors] = useState({})
+	
+	const saveUser = () => { // Save new user
+		const dbInstance = collection(db, 'mobileUsers')
+		addDoc(dbInstance, {
+			email: newUserEmail,
+		}).then(async() => {
+			try {
+				
+			} catch (err) {
+				
+			} finally {
+				
+			}
+		})
+	}
+	
+	const handleAddNewUserModal = (e) => {
+		e.preventDefault()
+		setNewUserModal(true)
+	}
+	
+	const handleAddNewUserFormSubmit = async (e) => {
+		e.preventDefault()
+		await sendSignIn(newUserEmail)
+		setUpdate(!update)
+		// check form id
+		// if (e.target.id == 'newUserModal') { // NEW AGENCY
+		// 	saveUser()
+			setNewUserModal(false)
+		// } else if (e.target.id == 'userModal') { // EXISTING AGENCY
+		// 	handleUserUpdate(e)
+		// }
+	}
+	// Handler: new user NAME
+	const handleNewUserName = (e) => {
+		e.preventDefault()
+		setNewUserName(e.target.value)
+	}
+		// Handler: new agency EMAIL
+	const handleNewUserEmail = (e) => {
+			e.preventDefault()
+			setNewUserEmail(e.target.value)
+		}
+	// END Add new user
+	// END Add new user
+	// END Add new user
 	const dateOptions = {
 		day: "2-digit",
 		year: "numeric",
@@ -66,6 +123,13 @@ const Users = () => {
 	}
 	const style = {
 		icon: "hover:fill-cyan-700",
+		section_container: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
+		section_wrapper: 'flex flex-col h-full',
+		section_header: 'flex justify-between ml-10 md:mx-0 py-5',
+		section_title: 'text-xl font-extrabold text-blue-600 tracking-wider',
+		section_filtersWrap: 'p-0 px-4 md:p-4 md:py-0 md:px-4 flex items-center',
+		table_main: 'min-w-full bg-white rounded-xl p-1',
+		button: 'flex items-center shadow ml-auto bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
 	}
 
 	// Function to fetch user data from Firebase
@@ -356,140 +420,148 @@ const Users = () => {
 		setUserEditModal(false)
 		setUpdate(!update)
 	}
-
+	
 	// Data fetch on update
 	useEffect(() => {
 		getData()
 	},[update])
 
 	return (
-		<div className='w-full h-full flex flex-col py-5'>
-			<div
-				className='w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto'
-				id='scrollableDiv'>
-				<div className='flex flex-col pb-5 md:justify-start'>
+		<div className={style.section_container}>
+			<div className={style.section_wrapper}>
+				<div className={style.section_header}>
+					<div className={style.section_title}>
 					{customClaims.admin ? (
-						<span className='text-xs'>{agencyName}</span>
-					) : (
-						<span className='text-xs'>All Agency</span>
-					)}
-					<div className='text-center md:text-left text-lg font-bold text-blue-600 tracking-wider pb-2 md:pb-0'>
-						Users
+							<span className='text-xs'>{agencyName}</span>
+						) : (
+							<span className='text-xs'>All Agency</span>
+						)}
+						<div className='text-center md:text-left text-lg font-bold text-blue-600 tracking-wider pb-2 md:pb-0'>
+							Users
+						</div>
+					</div>
+					<div className={style.section_filtersWrap}>
+						<button className={style.button} onClick={handleAddNewUserModal}>
+							<FaPlus className="text-blue-600 mr-2" size={12}/>
+							Add User
+						</button>
 					</div>
 				</div>
-				<div className='flex flex-col h-full'>
-					<InfiniteScroll
-						className='overflow-x-auto'
-						dataLength={endIndex}
-						inverse={false}
-						scrollableTarget='scrollableDiv'>
-						<table className='min-w-full bg-white rounded-xl p-1'>
-							<thead className='border-b dark:border-indigo-100 bg-slate-100'>
-								<tr>
-									<th scope='col' className={tableHeading.default}>
-										Name
-									</th>
-									<th scope='col' className={tableHeading.default_center}>
-										Email
-									</th>
-									{customClaims.admin && (
+				<div className={style.table_main}>
+					<div className='flex flex-col h-full'>
+						<InfiniteScroll
+							className='overflow-x-auto'
+							dataLength={endIndex}
+							inverse={false}
+							scrollableTarget='scrollableDiv'>
+							<table className='min-w-full bg-white rounded-xl p-1'>
+								<thead className='border-b dark:border-indigo-100 bg-slate-100'>
+									<tr>
+										<th scope='col' className={tableHeading.default}>
+											Name
+										</th>
 										<th scope='col' className={tableHeading.default_center}>
-											Agency
+											Email
 										</th>
-									)}
-									<th scope='col' className={tableHeading.default_center}>
-										Join Date
-									</th>
-									{customClaims.admin && (
+										{customClaims.admin && (
+											<th scope='col' className={tableHeading.default_center}>
+												Agency
+											</th>
+										)}
 										<th scope='col' className={tableHeading.default_center}>
-											Role
+											Join Date
 										</th>
-									)}
-									<th scope='col' className={tableHeading.default_center}>
-										Banned
-									</th>
-									{customClaims.admin && (
-										<th
-											scope='col'
-											colSpan={2}
-											className={tableHeading.default_center}>
-											Delete
+										{customClaims.admin && (
+											<th scope='col' className={tableHeading.default_center}>
+												Role
+											</th>
+										)}
+										<th scope='col' className={tableHeading.default_center}>
+											Banned
 										</th>
-									)}
-								</tr>
-							</thead>
-							<tbody>
-								{loadedMobileUsers.map((userObj, key) => {
-									// Directly access user details and user ID
-									const userId = userObj.id;
-									const listUser = userObj.data;
-									let posted = listUser.joiningDate
-									// Get list user agency uid & display agency name
-									posted = posted * 1000
-									posted = new Date(posted)
-									posted = posted.toLocaleString("en-US", dateOptions)
-									return (
-										<tr
-											className='border-b transition duration-300 ease-in-out dark:border-indigo-100'
-											key={key}
-											onClick={
-												customClaims.admin
-													? () => handleEditUser(listUser, userId)
-													: undefined
-											}>
-											{/* Name */}
-											<td scope='row' className={column.data}>
-												{listUser.name}
-											</td>
-											{/* TODO: add geopoint fields as a column in table. */}
-											{/* Email */}
-											<td className={column.data_center}>{listUser.email}</td>
-											{/* Agency */}
-											{customClaims.admin && (
+										{customClaims.admin && (
+											<th
+												scope='col'
+												colSpan={2}
+												className={tableHeading.default_center}>
+												Delete
+											</th>
+										)}
+									</tr>
+								</thead>
+								<tbody>
+									{loadedMobileUsers.map((userObj, key) => {
+										// Directly access user details and user ID
+										const userId = userObj.id;
+										const listUser = userObj.data;
+										let posted = listUser.joiningDate
+										// Get list user agency uid & display agency name
+										posted = posted * 1000
+										posted = new Date(posted)
+										posted = posted.toLocaleString("en-US", dateOptions)
+										return (
+											<tr
+												className='border-b transition duration-300 ease-in-out dark:border-indigo-100'
+												key={key}
+												onClick={
+													customClaims.admin
+														? () => handleEditUser(listUser, userId)
+														: undefined
+												}>
+												{/* Name */}
+												<td scope='row' className={column.data}>
+													{listUser.name}
+												</td>
+												{/* TODO: add geopoint fields as a column in table. */}
+												{/* Email */}
+												<td className={column.data_center}>{listUser.email}</td>
+												{/* Agency */}
+												{customClaims.admin && (
+													<td className={column.data_center}>
+													{listUser.agencyName}
+													</td>
+												)}
+												{/* Joined date */}
+												<td className={column.data_center}>{posted}</td>
+												{/* Role */}
+												{customClaims.admin && (
+													<td className={column.data_center}>
+														{listUser.userRole}
+													</td>
+												)}
+												{/* Banned */}
 												<td className={column.data_center}>
-												{listUser.agencyName}
+													{(userObj.data.isBanned && "yes") || "no"}
 												</td>
-											)}
-											{/* Joined date */}
-											<td className={column.data_center}>{posted}</td>
-											{/* Role */}
-											{customClaims.admin && (
-												<td className={column.data_center}>
-													{listUser.userRole}
-												</td>
-											)}
-											{/* Banned */}
-											<td className={column.data_center}>
-												{(userObj.data.isBanned && "yes") || "no"}
-											</td>
-											{/* Delete */}
-											{customClaims.admin && (
-												<td
-													className={column.data_center}
-													onClick={(e) => e.stopPropagation()}>
-													<button
-														onClick={() => handleMobileUserDelete(userId)}
-														className={`${style.icon} tooltip-delete-user`}>
-														<IoTrash
-															size={20}
-															className='ml-4 fill-gray-400 hover:fill-red-600'
-														/>
-														<Tooltip
-															anchorSelect=".tooltip-delete-user"
-															place='top'
-															delayShow={500}
-														>Delete User</Tooltip>
-													</button>
-												</td>
-											)}
-										</tr>
-									)
-								})}
-							</tbody>
-						</table>
-					</InfiniteScroll>
-					<div className='mt-2 self-end text-xs'>
-						Total users: {loadedMobileUsers.length}
+												{/* Delete */}
+												{customClaims.admin && (
+													<td
+														className={column.data_center}
+														onClick={(e) => e.stopPropagation()}>
+														<button
+															onClick={() => handleMobileUserDelete(userId)}
+															className={`${style.icon} tooltip-delete-user`}>
+															<IoTrash
+																size={20}
+																className='ml-4 fill-gray-400 hover:fill-red-600'
+															/>
+															<Tooltip
+																anchorSelect=".tooltip-delete-user"
+																place='top'
+																delayShow={500}
+															>Delete User</Tooltip>
+														</button>
+													</td>
+												)}
+											</tr>
+										)
+									})}
+								</tbody>
+							</table>
+						</InfiniteScroll>
+						<div className='mt-2 self-end text-xs'>
+							Total users: {loadedMobileUsers.length}
+						</div>
 					</div>
 				</div>
 			</div>
@@ -533,6 +605,18 @@ const Users = () => {
 					onFormSubmit={handleFormSubmit}
 				/>
 			)}
+			{newUserModal && 
+				<NewUserModal 
+				setNewUserModal={setNewUserModal}
+				// newUserName={newUserName}
+				// onNewUserName={handleNewUserName}
+				newUserEmail={newUserEmail}
+				onNewUserEmail={handleNewUserEmail}
+				// onNewAgencyState={handleNewAgencyState}
+				// onNewAgencyCity={handleNewAgencyCity}
+				onFormSubmit={handleAddNewUserFormSubmit} 
+				errors={errors}
+			/>}
 		</div>
 	)
 }
