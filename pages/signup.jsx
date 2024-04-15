@@ -39,7 +39,7 @@ const SignUp = () => {
     const addMobileUser = (privilege) => {
         // Get user object
         const user = auth.currentUser;
-        console.log(user)
+     
         if (user) {
             // Set user uid
             // console.log("adding mobile user")
@@ -73,7 +73,7 @@ const SignUp = () => {
         // console.log("should be given agency privilege " + isAgency)
 
           try {
-              // if (isAgency) {
+              if (isAgency) {
 
                 // Sees if agency already exists -if it does, adds user to the agency's user list
                   signInWithEmailLink(auth, data.email, window.location.href).then((result) =>{
@@ -112,31 +112,31 @@ const SignUp = () => {
                     }
                   })
 
-                  // const userCredential = await auth.currentUser.linkWithCredential(result.credential);
+                  const userCredential = await auth.currentUser.linkWithCredential(result.credential);
 
                   verifyEmail(auth.currentUser).then((verified) => {
                     // Handle email verification logic
                     // ...
                   });
                 
-              // } else {
-              //   signup(data.name, data.email, data.password)
-							// 		.then(() => {
-							// 			setSignUpError("")
-              //       addMobileUser("User")
-							// 			router.push('/verifyEmail');
-							// 		})
-							// 		.catch((error) => {
-							// 			if (error.code === "auth/email-already-in-use") {
-							// 				setSignUpError("The entered email is already in use.")
-							// 			} else {
-							// 				setSignUpError(error.message)
-							// 			}
-							// 			console.error(error)
-							// 		})
+              } else {
+                signup(data.name, data.email, data.password)
+									.then(() => {
+										setSignUpError("")
+                    addMobileUser("User")
+										router.push('/verifyEmail');
+									})
+									.catch((error) => {
+										if (error.code === "auth/email-already-in-use") {
+											setSignUpError("The entered email is already in use.")
+										} else {
+											setSignUpError(error.message)
+										}
+										console.error(error)
+									})
 
 
-              // }
+              }
               // analytics.logEvent('sign_up', { method: 'email' }); // Log 'login' event
           } catch (err) {
               
@@ -172,25 +172,27 @@ const SignUp = () => {
                 </div>
                 <form className="px-8 pt-6 pb-4 mb-4"  onSubmit={handleSignUp}>
                     <div className="mb-4">
-                        <input
-                          className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                          id="name"
-                          type="text"
-                          placeholder={t("name")}
-                          required
-                          value={data.name}
-                          onChange={handleChange}
-                          autoComplete=''
-                          />
+                      {!isAgency && 
+                          <input
+                            className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="name"
+                            type="text"
+                            placeholder={t("name")}
+                            required
+                            value={data.name}
+                            onChange={handleChange}
+                            autoComplete=''
+                            />
+                      }
                     </div>
                     <div className="mb-4">
               
                           {/* TODO: {agency && Instructions for an agency to sign up */}
-                    {/* {isAgency && 
+                    {isAgency && 
                     <div>
                       <p className="text-lg font-bold text-blue-600 tracking-wider pt-2">Account Creation</p>
                       <div className="mb-1">Enter your email address.</div>
-                    </div>} */}
+                    </div>}
                     <PhoneInput
                         placeholder={t("phone")}
                         value={data.phone}
@@ -212,8 +214,8 @@ const SignUp = () => {
                         />
                     </div>
                     <div className="mb-1">
-                      {/* {isAgency && 
-                        <div className="mb-1">Create a secure password for your account.</div>} */}
+                      {isAgency && 
+                        <div className="mb-1">Create a secure password for your account.</div>}
                         <input
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="password"
