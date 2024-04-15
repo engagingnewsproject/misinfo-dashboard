@@ -17,7 +17,7 @@ import { IoTrash } from "react-icons/io5"
 import InfiniteScroll from "react-infinite-scroll-component"
 import ConfirmModal from "./modals/ConfirmModal"
 import EditUserModal from "./modals/EditUserModal"
-
+// adelgado@freepress.com prior userID: 6PCpGTofClOv9FSvFgo3l9zHBTB2
 // Profile page that allows the user to edit password or logout of their account
 const Users = () => {
 	// Initialize authentication context
@@ -190,7 +190,7 @@ const Users = () => {
 
 	// Function to handle user deletion
 	const handleDelete = async (e) => {
-		e.preventDefault()
+		// e.preventDefault()
 		const docRef = doc(db, "mobileUsers", userId);
 		deleteDoc(docRef)
 			.then(() => {
