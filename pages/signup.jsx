@@ -11,7 +11,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher'
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import 'react-phone-input-2/lib/style.css'
-
+import { MdOutlineRemoveRedEye } from "react-icons/md";
 import { Country, State, City }  from 'country-state-city';
 
 import moment from 'moment'
@@ -60,7 +60,6 @@ const SignUp = () => {
         }
     }
 
-
     const handleSignUp = async (e) => {
         e.preventDefault()
         // console.log("signing up")
@@ -85,7 +84,7 @@ const SignUp = () => {
                     auth.currentUser.reload().then(() => {
 
                     const promise3 = setPassword(data.password)
-
+                    setPass(e.target.value)
                     Promise.all([promise1, promise2, promise3]).then((values) => {
                       
                       // console.log(auth.currentUser.email)
@@ -158,12 +157,25 @@ const SignUp = () => {
       setData({...data, contact: e.target.checked})
     }
 
-
     const handlePhoneNumber = (number) => {
       console.log(number)
       setData({...data, phone: number})
-
     }
+    // password show/hide
+    const [pass, setPass] = useState("")
+    const [type, setType] = useState('password')
+    const [icon, setIcon] = useState(false)
+    // handle the toggle between the hide password (eyeOff icon) and the show password (eye icon)
+    const handleTogglePass = (e) => {
+      if (type === 'password'){
+        setIcon(true);
+        setType('text')
+      } else {
+        setIcon(false)
+        setType('password')
+      }
+    }
+    
     return (
         <div className="w-screen h-screen flex justify-center items-center">
             <div className="w-full max-w-sm font-light">
@@ -186,24 +198,16 @@ const SignUp = () => {
                       }
                     </div>
                     <div className="mb-4">
-              
-                          {/* TODO: {agency && Instructions for an agency to sign up */}
-                    {isAgency && 
-                    <div>
-                      <p className="text-lg font-bold text-blue-600 tracking-wider pt-2">Account Creation</p>
-                      <div className="mb-1">Enter your email address.</div>
-                    </div>}
                     <PhoneInput
                         placeholder={t("phone")}
                         value={data.phone}
                         country={'us'}
                         inputStyle={{width: "100%"}}
-
                         onChange={handlePhoneNumber}/>
                     </div>
                     <div className="mb-4">
                       <input
-                        className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        className={`${isAgency && 'mb-1 '}shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
                         id="email"
                         type="text"
                         placeholder={t("email")}
@@ -212,27 +216,36 @@ const SignUp = () => {
                         onChange={handleChange}
                         autoComplete='email'
                         />
-                    </div>
-                    <div className="mb-1">
                       {isAgency && 
-                        <div className="mb-1">Create a secure password for your account.</div>}
+                        <div className="mb-1 text-sm italic">** Must be the email you were sent the invite.</div>
+                      }
+                    </div>
+                    <>
+                      {isAgency && 
+                        <div className="mb-1 text-sm italic">Create a secure password for your account.</div>
+                      }
+                      <div className="mb-1 flex">
                         <input
-                            className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            className={`${isAgency && 'mb-1 '}shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
                             id="password"
-                            type="password"
+                            type={type}
                             placeholder={t("password")}
                             required 
                             value={data.password}
                             onChange={handleChange}
                             autoComplete='new-password'
                             />
-                    </div>
+                        <span className="flex justify-around items-center" onClick={handleTogglePass}>
+                          <MdOutlineRemoveRedEye className='absolute mr-10' />
+                        </span>
+                      </div>
+                    </>
                     {data.password.length > 0 && data.password.length < 8 && <span className="text-red-500 text-sm font-light">Password must be atleast 8 characters</span>}
                     <div className="mt-4 mb-1">
                         <input
                             className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="confirmPW"
-                            type="password"
+                            type={type}
                             placeholder={t("confirmPassword")}
                             required 
                             value={data.confirmPW}
