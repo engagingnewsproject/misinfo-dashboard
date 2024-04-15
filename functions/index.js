@@ -54,10 +54,11 @@ exports.addAgencyRole = functions.https.onCall((data,context) => {
     return admin.auth().setCustomUserClaims(user.uid,{ agency: true })
 
     // callback for frontend if success
-  }).then(() => {
-    return {
-      message: "Success! ${data.email} has been made an admin"
-    }
+  }).then((result) => {
+    console.log(result.data.message); // Display the message in the console
+    // return {
+    //   message: "Success! ${data.email} has been made an agency admin"
+    // }
 
     // callback if there is an error
   }).catch(err => {

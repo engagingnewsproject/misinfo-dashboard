@@ -20,11 +20,8 @@ import { RiContactsBookLine } from 'react-icons/ri'
 const SignUp = () => {
     const router = useRouter()
     const { t } = useTranslation('Welcome');
-
     const [signUpError, setSignUpError] = useState("")
-
     const { user, signup, verifyEmail, addAgencyRole, setPassword } = useAuth()
-
     // Determines if current user has the privilege to sign up as an agency
     const isAgency = isSignInWithEmailLink(auth, window.location.href)
     const [data, setData] = useState({
@@ -35,12 +32,16 @@ const SignUp = () => {
        confirmPW: '',
        contact: false
     })
+    // password show/hide
+    const [pass, setPass] = useState("")
+    const [type, setType] = useState('password')
+    const [icon, setIcon] = useState(false)
     
     const addMobileUser = (privilege) => {
         // Get user object
         const user = auth.currentUser;
      
-        if (user) {
+        // if (user) {
             // Set user uid
             // console.log("adding mobile user")
             const uid = user.uid;
@@ -55,15 +56,13 @@ const SignUp = () => {
                 contact: data.contact
             });
             // console.log("user was added with uid" + uid)
-        } else {
+        // } else {
             // console.log('no user');
-        }
+        // }
     }
 
     const handleSignUp = async (e) => {
         e.preventDefault()
-        // console.log("signing up")
-
         if (data.password.length < 8) {
           return
       }
@@ -154,7 +153,6 @@ const SignUp = () => {
 
     const handleChecked = (e) => {
       console.log(e.target.checked)
-
       setData({...data, contact: e.target.checked})
     }
 
@@ -162,10 +160,6 @@ const SignUp = () => {
       console.log(number)
       setData({...data, phone: number})
     }
-    // password show/hide
-    const [pass, setPass] = useState("")
-    const [type, setType] = useState('password')
-    const [icon, setIcon] = useState(false)
     // handle the toggle between the hide password (eyeOff icon) and the show password (eye icon)
     const handleTogglePass = (e) => {
       if (type === 'password'){
