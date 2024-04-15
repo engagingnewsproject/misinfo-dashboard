@@ -188,11 +188,7 @@ const SignUp = () => {
                     <div className="mb-4">
               
                           {/* TODO: {agency && Instructions for an agency to sign up */}
-                    {isAgency && 
-                    <div>
-                      <p className="text-lg font-bold text-blue-600 tracking-wider pt-2">Account Creation</p>
-                      <div className="mb-1">Enter your email address.</div>
-                    </div>}
+
                     <PhoneInput
                         placeholder={t("phone")}
                         value={data.phone}
@@ -203,7 +199,7 @@ const SignUp = () => {
                     </div>
                     <div className="mb-4">
                       <input
-                        className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        className={`${isAgency && 'mb-1 '}shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
                         id="email"
                         type="text"
                         placeholder={t("email")}
@@ -212,20 +208,24 @@ const SignUp = () => {
                         onChange={handleChange}
                         autoComplete='email'
                         />
+                      {isAgency && 
+                        <div className="mb-1 text-sm italic">** Must be the email you were sent the invite.</div>
+                      }
                     </div>
                     <div className="mb-1">
-                      {isAgency && 
-                        <div className="mb-1">Create a secure password for your account.</div>}
-                        <input
-                            className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="password"
-                            type="password"
-                            placeholder={t("password")}
-                            required 
-                            value={data.password}
-                            onChange={handleChange}
-                            autoComplete='new-password'
-                            />
+                      <input
+                          className={`${isAgency && 'mb-1 '}shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
+                          id="password"
+                          type="password"
+                          placeholder={t("password")}
+                          required 
+                          value={data.password}
+                          onChange={handleChange}
+                          autoComplete='new-password'
+                          />
+                    {isAgency && 
+                      <div className="mb-1 text-sm italic">Create a secure password for your account.</div>
+                    }
                     </div>
                     {data.password.length > 0 && data.password.length < 8 && <span className="text-red-500 text-sm font-light">Password must be atleast 8 characters</span>}
                     <div className="mt-4 mb-1">
