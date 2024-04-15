@@ -73,7 +73,7 @@ const SignUp = () => {
 
           try {
               if (isAgency) {
-
+                console.log(`${isAgency} is agency (handleSignUp)`)
                 // Sees if agency already exists -if it does, adds user to the agency's user list
                   signInWithEmailLink(auth, data.email, window.location.href).then((result) =>{
                     const promise2 = addAgencyRole({email: data.email});
@@ -119,6 +119,7 @@ const SignUp = () => {
                   });
                 
               } else {
+                console.log(`${isAgency} NOT agency (handleSignUp)`)
                 signup(data.name, data.email, data.password)
 									.then(() => {
 										setSignUpError("")
