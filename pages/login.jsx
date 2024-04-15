@@ -52,19 +52,19 @@ const Login = () => {
       // Login successful, check if email is verified
       if (auth.currentUser?.emailVerified) {
         const idTokenResult = await auth.currentUser.getIdTokenResult()
-        console.log("Claims:", idTokenResult.claims)
+        // console.log("Claims:", idTokenResult.claims)
 
         // Redirect user based on their role
         if (idTokenResult.claims.admin || idTokenResult.claims.agency) {
-          console.log("Redirecting to dashboard...")
+          // console.log("Redirecting to dashboard...")
           await router.push("/dashboard")
         } else {
-          console.log("Redirecting to report page...")
+          // console.log("Redirecting to report page...")
           await router.push("/report")
         }
       } else {
         // Email not verified, send verification email and redirect
-        console.log("Email not verified. Sending verification email...")
+        // console.log("Email not verified. Sending verification email...")
         await verifyEmail(auth.currentUser)
         await router.push("/verifyEmail")
       }
@@ -73,7 +73,7 @@ const Login = () => {
       }
     } catch (error) {
       // Login error occurred, handle and display it
-      console.error("Login error:", error)
+      // console.error("Login error:", error)
       if (error.code === "auth/user-not-found") {
         setError(t("not_found"))
       } else if (error.code === "auth/wrong-password") {
@@ -86,7 +86,7 @@ const Login = () => {
   }
 
   const handleChange = (e) => {
-    console.log("Before state update:", data); // Log state before update
+    // console.log("Before state update:", data); // Log state before update
     setPassword(e.target.value)
     // setData({ ...data, [e.target.id]: e.target.value})
     const { id, value } = e.target;
@@ -94,7 +94,7 @@ const Login = () => {
       ...prevData,
       [id]: value
     }));
-    console.log("After state update:", data); // Log state after update
+    // console.log("After state update:", data); // Log state after update
   }
 
 
