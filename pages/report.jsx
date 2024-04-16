@@ -1,13 +1,24 @@
 import React, { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import { useAuth } from "../context/AuthContext"
-import { auth } from "../config/firebase"
 // Components
 import Navbar from "../components/Navbar"
 import Headbar from "../components/Headbar"
 import ReportLanding from "../components/ReportLanding"
 import ReportSystem from "../components/ReportSystem"
 import Profile from "../components/Profile"
+import LocationModal from '../components/modals/LocationModal'
+// For location modal
+import {
+	collection,
+	getDocs,
+	getDoc,
+	query,
+	where,
+	updateDoc,
+	doc,
+} from "@firebase/firestore"
+import { db, auth } from "../config/firebase"
 
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 
@@ -26,6 +37,10 @@ const Report = () => {
 
 	const [disableReminder, setDisableReminder] = useState(false)
 	const [reminderShow, setReminderShow] = useState(true)
+
+
+  const [userData, setUserData] = useState(null)
+  const [locationModal, setLocationModal] = useState(false)
 	
 	const handleChangeCheckbox = (e) => {
 			setDisableReminder(e.target.checked)
@@ -56,8 +71,15 @@ const Report = () => {
 		}
   
 	useEffect(() => {
+    getDoc(doc(db, "mobileUsers", user.accountId)).then((mobileRef) => {
+      setUserData(mobileRef.data())
+      if (mobileRef.data()?.state == null) {
+        setLocationModal(true)
+      }
+    })
 		auth.currentUser.getIdTokenResult()
 			.then((idTokenResult) => {
+
 				if (!!idTokenResult.claims.admin) {
 					setCustomClaims({admin: true})
 				} else if (!!idTokenResult.claims.agency) {
@@ -69,6 +91,19 @@ const Report = () => {
 			})
 	}, [])
 	
+
+  useEffect(()=> {
+    if (!locationModal) {
+      getDoc(doc(db, "mobileUsers", user.accountId)).then((mobileRef) => {
+        setUserData(mobileRef.data())
+        if (mobileRef.data()?.state == null) {
+          setLocationModal(true)
+        } else {
+          setLocationModal(false)
+        }
+      })
+    }
+  }, [locationModal])
 	// //
 	// Styles
 	// //
@@ -111,6 +146,7 @@ const Report = () => {
 						reminderShow={reminderShow} 
             /> }
 					{tab == 1 && <Profile />}
+          {locationModal && (<LocationModal setLocationModal = {setLocationModal}/> )}
 				</div>
 			</div>
 		</div>

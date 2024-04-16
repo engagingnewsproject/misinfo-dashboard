@@ -247,7 +247,6 @@ const SignUp = () => {
                                     }}                                 
                                     onChange={handleCityChange}
                                     />
-                                    {errors.city && data.city === null &&  (<span className="text-red-500">{errors.city}</span>)}
                             </div>
                     <div className="mb-4">
                       <input

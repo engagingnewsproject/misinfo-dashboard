@@ -30,7 +30,9 @@
   "location": "Ubicación actualizada.",
   "updateLocation": "Actualizar ubicación",
   "cancelChanges": "Cancelar cambios",
-  "editLocation": "Editar Ubicación"
+  "editLocation": "Editar Ubicación",
+  "addLocation":"Selecciona una ubicación"
+
 
 
 }
