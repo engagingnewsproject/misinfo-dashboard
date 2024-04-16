@@ -53,3 +53,4 @@ public/worker-*.js.map
 
 # extensions
 extensions/firestore-send-email.env
+functions/.runtimeconfig.json
