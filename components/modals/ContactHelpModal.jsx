@@ -25,21 +25,32 @@ const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
   const [images, setImages] = useState([])
   const [imageURLs, setImageURLs] = useState([]);
 
-  const saveContactHelp = (imageURLs) => {
-    addDoc(dbInstance, {
-      userID: user.accountId,
-      createdDate: moment().toDate(),
-      subject: subject,
-      message: message,
-      images: imageURLs
-    }).then(() => {
-        null
-      //handleContactHelpSubmit();
-      //let's add handling for admins here later...
-    })
-    
-}
+  const saveContactHelp = async () => {
+    try {
+        const email = user.email; // Fetch the user's email from the user object
+        const data = {
+            userID: user.accountId,
+            email: email, // Include the user's email in the data
+            createdDate: moment().toDate(),
+            subject: subject,
+            message: message,
+            images: imageURLs
+        };
+        await addDoc(dbInstance, data);
+        setContactHelpModal(false);
+        clearForm();
+    } catch (error) {
+        console.error('Error saving contact help:', error);
+    }
+    };
 
+		const clearForm = () => {
+			setSubject('');
+			setMessage('');
+			setImages([]);
+			setImageURLs([]);
+	};
+		
   const handleImageChange = (e) => {
     console.log('handle image change run');
         for (let i = 0; i < e.target.files.length; i++) {
