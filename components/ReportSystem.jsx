@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect, useRef } from 'react'
 import { reportSystems } from '../pages/report';
 import { IoMdArrowRoundBack } from 'react-icons/io'
 import { BiCheckCircle, BiXCircle, BiRightArrowCircle } from "react-icons/bi";
 import { setDoc, getDoc, doc, addDoc, collection, getDocs } from "firebase/firestore"; 
-import { getStorage, ref, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
+import { getStorage, ref, getDownloadURL, uploadBytes, deleteObject, uploadBytesResumable } from 'firebase/storage';
 import { useAuth } from '../context/AuthContext'
 import { db } from '../config/firebase'
 import { State, City }  from 'country-state-city';
@@ -12,7 +13,7 @@ import moment from "moment";
 import Image from 'next/image'
 import Select from "react-select";
 import {  useTranslation } from 'next-i18next'
-
+import { RiPrinterLine } from 'react-icons/ri';
 const ReportSystem = ({ 
     tab, 
     setTab, 
@@ -24,15 +25,14 @@ const ReportSystem = ({
     onReportSystemPrevStep,
     disableReminder
     }) => {
-
     // used for Spanish translations
     const {t} = useTranslation("NewReport")
-
     // console.log('disableReminder: '+disableReminder+' ||| reminderShow: '+reminderShow);
     const dbInstance = collection(db, 'reports');
     const { user } = useAuth()
     const [data, setData] = useState({ country: "US", state: null, city: null })
     const [isSearchable, setIsSearchable] = useState(true);
+    const [userData, setUserData] = useState(null)
     const storage = getStorage();
     const [reportId, setReportId] = useState('')
     const imgPicker = useRef(null)
@@ -58,7 +58,6 @@ const ReportSystem = ({
     const [sourceList, setSourceList] = useState([])
     const [active, setActive] = useState([])
     const [activeSources, setActiveSources] = useState([])
-
     // //
     // Text content
     // //
@@ -128,7 +127,6 @@ const ReportSystem = ({
         inputTextarea: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
         button: 'w-80 self-center mt-4 shadow bg-blue-600 hover:bg-gray-100 text-sm text-white py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline'
     }
-
     // //
     // Save Report
     // //
@@ -162,23 +160,32 @@ const ReportSystem = ({
     const getData = async() => {
         const docRef = await getDoc(doc(db, "reports", user.uid))
     }
-    
+    const getUserData = async() => {
+      await getDoc(doc(db, "mobileUsers", user.accountId)).then((mobileRef) => 
+        setUserData(mobileRef.data()))
+      }
     async function getAllAgencies() {
         // Get agency collection docs
         const agencyRef = await getDocs(collection(db, "agency"));
-		try {
+    try {
             // build an array of agency names
-			var arr = []
-			agencyRef.forEach((doc) => {
-				arr.push(
-					doc.data()['name']
-				)
-			})
+      var arr = []
+      agencyRef.forEach((doc) => {
+        console.log("doc state is " +doc.data()['state'] )
+        console.log(userData)
+        console.log("user location is " +userData?.state?.name )
+        if (doc.data()['state'] == userData?.state?.name) {
+          console.log("here")
+          arr.push(
+            doc.data()['name'] 
+          ) 
+      }
+      })
             // set the agencies state with the agency names
-			setAgencies(arr)
-		} catch (error) {
-			console.log(error)
-		}
+      setAgencies(arr)
+    } catch (error) {
+      console.log(error)
+    }
     }
     
     // Get topics
@@ -260,7 +267,6 @@ const ReportSystem = ({
         }
         setErrors(allErrors)
         console.log(allErrors.length + "Error array length")
-
         if (Object.keys(allErrors).length == 0) {
             handleSubmitClick(e)
         }
@@ -268,7 +274,7 @@ const ReportSystem = ({
     
     // Image upload (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js, https://www.youtube.com/watch?v=S4zaZvM8IeI)
     const handleImageChange = (e) => {
-console.log('handle image change run');
+        console.log('handle image change run');
         for (let i = 0; i < e.target.files.length; i++) {
             const newImage = e.target.files[i];
             setImages((prevState) => [...prevState, newImage]);
@@ -276,94 +282,33 @@ console.log('handle image change run');
         }
     };
     
-    // Function to handle the upload of images to Firebase Storage
+    // Image upload to firebase
     const handleUpload = () => {
-        // Array to store promises for each upload task
         const promises = [];
-    
-        // Iterate through each image
-        images.map(async (image) => {
-            // Check if the image is in HEIC format and window object is available (client-side)
-            if (image.type === "image/heic" && typeof window !== "undefined") {
-                // Convert HEIC image to JPEG format
-                const jpegImage = await convertToJPEG(image);
-    
-                // Generate unique file name with .jpg extension
-                const fileName = `report_${new Date().getTime()}.jpg`;
-    
-                // Create a reference to the storage location with the file name
-                const storageRef = ref(storage, fileName);
-    
-                // Upload the JPEG image to Firebase Storage
-                const uploadTask = uploadBytesResumable(storageRef, jpegImage);
-    
-                // Add the upload task to the promises array
-                promises.push(uploadTask);
-    
-                // Handle the upload task (monitor progress and completion)
-                handleUploadTask(uploadTask);
-            } else {
-                // If the image is not in HEIC format or window object is not available
-                // Extract file extension from the image name
-                const fileExtension = image.name.split(".").pop().toLowerCase();
-    
-                // Generate unique file name with original extension
-                const fileName = `report_${new Date().getTime()}.${fileExtension}`;
-    
-                // Create a reference to the storage location with the file name
-                const storageRef = ref(storage, fileName);
-    
-                // Upload the image to Firebase Storage
-                const uploadTask = uploadBytesResumable(storageRef, image);
-    
-                // Add the upload task to the promises array
-                promises.push(uploadTask);
-    
-                // Handle the upload task (monitor progress and completion)
-                handleUploadTask(uploadTask);
-            }
+        images.map((image) => {
+            const storageRef = ref(storage, `report_${new Date().getTime().toString()}.png`)
+            const uploadTask = uploadBytesResumable(storageRef, image)
+            promises.push(uploadTask);
+            uploadTask.on( "state_changed",
+                (snapshot) => {
+                    // console.log(snapshot);
+                },
+                (error) => {
+                    console.log(error);
+                },
+                () => {
+                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                        // console.log('File available at', downloadURL);
+                        setImageURLs(
+                            (prev) => [...prev, downloadURL]
+                        )
+                    });
+                }
+            );
         });
-    
-        // Wait for all upload tasks to complete and catch any errors
-        Promise.all(promises).catch((err) => console.log(err));
+        Promise.all(promises)
+        .catch((err) => console.log(err));
     };
-    
-    // Function to convert HEIC image to JPEG format
-    const convertToJPEG = async (heicImage) => {
-        // Import the heic2any library dynamically
-        const heic2any = await import("heic2any");
-    
-        // Convert the HEIC image to JPEG format
-        return await heic2any.default({ blob: heicImage, toType: "image/jpeg" });
-    };
-    
-    // Function to handle upload task (monitor progress and completion)
-    const handleUploadTask = (uploadTask) => {
-        // Monitor the state changes of the upload task
-        uploadTask.on(
-            "state_changed",
-            (snapshot) => {
-                // Progress callback (optional)
-                // console.log(snapshot);
-            },
-            (error) => {
-                // Error callback (if any)
-                console.log(error);
-            },
-            () => {
-                // Completion callback (when upload is successful)
-                // Get the download URL of the uploaded file
-                getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                    // Log the download URL (optional)
-                    // console.log('File available at', downloadURL);
-    
-                    // Update the state with the download URL (to display or use later)
-                    setImageURLs((prev) => [...prev, downloadURL]);
-                });
-            }
-        );
-    };
-
     const handleTopicChange = (e) => {
         setSelectedTopic(e.target.value)
         if (e.target.value === "Other/Otro") {
@@ -372,7 +317,6 @@ console.log('handle image change run');
             setShowOtherTopic(false)
         }
     }
-
     const handleSourceChangeOther = (e) => {
         setSelectedSource(e.target.value)
         if (e.target.value === "Other/Otro") {
@@ -381,17 +325,14 @@ console.log('handle image change run');
             setShowOtherSource(false)
         }
     }
-
     const handleOtherTopicChange = (e) => {
         setOtherTopic(e.target.value)
         setSelectedTopic(e.target.value)
     }
-
     const handleOtherSourceChange = (e) => {
         setOtherSource(e.target.value)
         setSelectedSource(e.target.value)
     }
-
     const addNewTag = (tag, source) => {
         let topicArr = list
         let sourceArr = sourceList
@@ -401,7 +342,6 @@ console.log('handle image change run');
         setSourceList(sourceArr)
         updateTopicTags(list, user, sourceList)
     }
-
     const updateTopicTags = async(topicList, user, sourceList) => {
         const docRef = await getDoc(doc(db, "tags", user.uid))
         const updatedDocRef = await setDoc(doc(db, "tags", user.uid), {
@@ -417,7 +357,6 @@ console.log('handle image change run');
         });
         return updatedDocRef
     }
-
     const getTopicList = async() => {
         try {
             const docRef = await getDoc(doc(db, "tags", user.uid))
@@ -434,7 +373,6 @@ console.log('handle image change run');
             console.log(error)
         }
     }
-
     const getSourceList = async() => {
         try {
             const docRef = await getDoc(doc(db, "tags", user.uid))
@@ -461,13 +399,20 @@ console.log('handle image change run');
     // //
     // On page load (mount), update the tags from firebase
     useEffect(() => {
-        getData()
+        getUserData()
+        console.log("here")
+        console.log(userData)
+    }, [])
+    useEffect(()=> {
+      console.log("here")
+      if (userData) {
         getAllAgencies()
         getAllTopics()
         getAllSources()
         getTopicList()
         getSourceList()
-    }, [])
+      }
+    }, [userData]);
     
     useEffect(() => {
         if (update) {
@@ -514,85 +459,26 @@ console.log('handle image change run');
             }
             <div className={style.viewWrapper}>
                 <form onChange={handleChange} onSubmit={handleNewReport} className={style.form}>
-                    {/* Location */}
+
+                    {/* Agency */}
                     {reportSystem == 2 &&
                     <div className={style.viewWrapper}>
-                        <div className={style.sectionH1}>
-                            {t('location')}
-                        </div>
-                        {/* State */}
-                        <Select
-                            className={style.inputSelect}
-                            id="state"
-                            type="text"
-                            placeholder={t('state_text')}
-                            isSearchable={isSearchable}
-                            value={data.state}
-                            options={State.getStatesOfCountry(data.country)}
-                            getOptionLabel={(options) => {
-                            return options["name"];
-                            }}
-                            getOptionValue={(options) => {
-                            return options["name"];
-                            }}                                
-                            label="state"
-                            onChange={(value => {
-                            setData(data=>({...data, state: value, city: null })) 
-                            })}
-                        />
-                        {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)}
-                        {/* City */}
-                        {data.state != null && 
-                            <Select
-                                className={style.inputSelect}
-                                id="city"
-                                type="text"
-                                placeholder={t('city_text')}
-                                value={data.city}
-                                options={City.getCitiesOfState(
-                                    data.state?.countryCode,
-                                    data.state?.isoCode
-                                )}
-                                getOptionLabel={(options) => {
-                                return options["name"];
-                                }}
-                                getOptionValue={(options) => {
-                                return options["name"];
-                                }}                                 
-                                onChange={
-                                    (value => {
-                                        setData(data=>({
-                                            ...data,
-                                            city: value !== null ? value : null
-                                        })) 
-                                    })
-                                }
-                            />
-                        }
-                        {errors.city && data.city === null &&  (<span className="text-red-500">{errors.city}</span>)}
-                        {data.city != null && 
-                            <button onClick={() => setReportSystem(reportSystem + 1)} className={style.sectionIconButtonWrap}>
-                                <BiRightArrowCircle size={40} className={style.sectionIconButton}/>
-                            </button>
-                        }
-                    </div>
-                    }
-                    {/* Agency */}
-                    {reportSystem == 3 &&
-                    <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>{t('which_agency')}</div>
-                        {agencies.map((agency, i = self.crypto.randomUUID()) => (
-                            <label key={i} className={agency === selectedAgency ? style.inputRadioChecked : style.inputRadio}>
+                        {agencies.length == 0 && t("noAgencies")}
+                        {agencies.map((agency, i) => (
+                            <>
+                            <label key={i+'-'+agency} className={agency === selectedAgency ? style.inputRadioChecked : style.inputRadio}>
                             {/* Agency Input */}
                             <input
-                                className="absolute opacity-0"
-                                id='agency'
-                                type="radio"
-                                checked={selectedAgency === agency}
-                                onChange={(e) => setSelectedAgency(e.target.value)}
-                                value={agency}
+                            className="absolute opacity-0"
+                            id='agency'
+                            type="radio"
+                            checked={selectedAgency === agency}
+                            onChange={(e) => setSelectedAgency(e.target.value)}
+                            value={agency}
                             />
                             {agency}</label>
+                            </>
                         ))}
                         {errors.agency && selectedAgency === '' &&  (<span className="text-red-500">{errors.agency}</span>)}
                         {selectedAgency != '' && 
@@ -606,43 +492,45 @@ console.log('handle image change run');
                     </div>
                     }
                     {/* Topic tag */}
-                    {reportSystem == 4 &&
+                    {reportSystem == 3 &&
                     <div className={style.viewWrapper}>
-                        <div className={style.sectionH1}>{t('about')}</div>
-                        {[...allTopicsArr.filter(topic => topic !== "Other/Otro"), ...allTopicsArr.filter(topic => topic === "Other/Otro")].map((topic, i) => (
+                            <div className={style.sectionH1}>{t('about')}</div>
+                            {[...allTopicsArr.filter(topic => topic !== "Other/Otro"), ...allTopicsArr.filter(topic => topic === "Other/Otro")].map((topic, i) => (
+                            <>
                             <label key={i+'-'+topic} className={topic === selectedTopic ? style.inputRadioChecked : style.inputRadio}>
                             {/* Topic Tag Input */}
                             <input
-                                className="absolute opacity-0"
-                                id='topic'
-                                type="radio"
-                                checked={selectedTopic === topic}
-                                onChange={
-                                    // create a custom function 
-                                    // (e) => setSelectedTopic(e.target.value)
-                                    handleTopicChange
-                                }
-                                value={topic}
+                            className="absolute opacity-0"
+                            id='topic'
+                            type="radio"
+                            checked={selectedTopic === topic}
+                            onChange={
+                                // create a custom function 
+                                // (e) => setSelectedTopic(e.target.value)
+                                handleTopicChange
+                            }
+                            value={topic}
                             />
                             {topic}</label>
+                            </>
                         ))}
                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
                         {showOtherTopic && (
-                            <div className="">
-                            <div className="text-zinc-500">
-                                {t('custom_topic')}
-                                </div>
-                            <input
-                                id="topic-other"
-                                className="rounded shadow-md border-zinc-400 w-full"
-                                type="text"
-                                placeholder="Please specify the topic."
-                                onChange={handleOtherTopicChange}
-                                value={otherTopic}
-                                style={{ fontSize: '14px' }}
-                            />
-                            </div>
-                        )}
+                                            <div className="">
+                                            <div className="text-zinc-500">
+                                                {t('custom_topic')}
+                                                </div>
+                                                <input
+                                                    id="topic-other"
+                                                    className="rounded shadow-md border-zinc-400 w-full"
+                                                    type="text"
+                                                    placeholder="Please specify the topic."
+                                                    onChange={handleOtherTopicChange}
+                                                    value={otherTopic}
+                                                    style={{ fontSize: '14px' }}
+                                                />
+                                                </div>
+                                        )}
                         {selectedTopic != '' && 
                             <button 
                             onClick={() => setReportSystem(reportSystem + 1)} 
@@ -654,11 +542,12 @@ console.log('handle image change run');
                     </div>
                     }
                     {/* Source tag */}
-                    {reportSystem == 5 &&
+                    {reportSystem == 4 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>{t('where')}</div>
-                        {[...sources.filter(source => source !== "Other/Otro"), ...sources.filter(source => source === "Other/Otro")].map((source, i=self.crypto.randomUUID()) => (
-                            <label key={i} className={source === selectedSource ? style.inputRadioChecked : style.inputRadio}>
+                        {[...sources.filter(source => source !== "Other/Otro"), ...sources.filter(source => source === "Other/Otro")].map((source, i) => (
+                            <>
+                            <label key={i+'-'+source} className={source === selectedSource ? style.inputRadioChecked : style.inputRadio}>
                             {/* Source tag input */}
                             <input
                             className="absolute opacity-0"
@@ -671,6 +560,7 @@ console.log('handle image change run');
                             value={source}
                             />
                             {source}</label>
+                            </>
                         ))}
                         {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
                         {showOtherSource && (
@@ -698,7 +588,7 @@ console.log('handle image change run');
                     }
                     {/* TODO: add agency dropdown */}
                     {/* Details */}
-                    {reportSystem == 6 &&
+                    {reportSystem == 5 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>
                         {t('share')}
@@ -797,7 +687,7 @@ console.log('handle image change run');
                     }
                 </form>
                 {/* Thank you */}
-                {reportSystem == 7 &&
+                {reportSystem == 6 &&
                 <div className={style.viewWrapper + ' items-center'}>
                     <Image src="/img/reportSuccess.png" width={156} height={120} alt="report success" className='object-cover w-auto'/>
                     <div className={style.sectionH1}>
@@ -810,7 +700,7 @@ console.log('handle image change run');
                 </div>
                 }
                 {/* View Report */}
-                {reportSystem == 8 &&
+                {reportSystem == 7 &&
                 <div className={style.viewWrapper}>
                     {/* Title */}
                     <div className={style.inputSingle}>
@@ -832,11 +722,11 @@ console.log('handle image change run');
                             {t('image')}
                         </div>
                             <div className="flex w-full overflow-y-auto">
-                                {imageURLs.map((image, i = self.crypto.randomUUID()) => {
+                                {imageURLs.map((image, i) => {
                                     return (
                                         <div className="flex mr-2" key={i}>
                                             <Link href={image} target="_blank">
-                                                <Image src={image} width={100} height={100} className='w-auto' alt="image"/>
+                                                <Image src={image} width={100} height={100} alt="image"/>
                                             </Link>
                                         </div>
                                     )
@@ -859,5 +749,4 @@ console.log('handle image change run');
         </div>
     )
 }
-
 export default ReportSystem
