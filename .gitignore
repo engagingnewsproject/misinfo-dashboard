@@ -50,3 +50,6 @@ public/worker-*.js.map
 
 # Local Netlify folder
 .netlify
+
+# extensions
+extensions/firestore-send-email.env
