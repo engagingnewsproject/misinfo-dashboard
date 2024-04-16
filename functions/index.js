@@ -1,5 +1,7 @@
 const functions = require('firebase-functions')
 const admin = require('firebase-admin')
+const sgMail = require('@sendgrid/mail')
+
 admin.initializeApp()
 
 exports.addUserRole = functions.https.onCall((data,context) => {
@@ -182,3 +184,68 @@ exports.deleteUser = functions.https.onCall(async (data, context) => {
 		return { success: false, message: "Error deleting user", error }
 	}
 })
+
+// Initialize SendGrid API with your SendGrid API key from environment variables
+sgMail.setApiKey(functions.config().sendgrid.api_key);
+
+// Firestore trigger to send email when a new document is added to helpRequests collection
+exports.sendHelpRequestEmail = functions.firestore.document('helpRequests/{requestId}')
+    .onCreate((snap, context) => {
+        // Get the data of the newly added document
+        const requestData = snap.data();
+
+        // Get the user's email from the data (adjust according to your data structure)
+        const userEmail = requestData.email;
+        
+        // Define recipients
+        const recipients = ['luke@lukecarlhartman.com', 'utengagement@gmail.com']; // Add more recipients as needed
+
+        // Send the email
+        return sendEmail(userEmail, recipients, requestData);
+    });
+    
+// Function to send email
+function sendEmail(email, recipients, requestData) {
+  // Check if email exists
+  if (!email) {
+      console.log("Email not provided");
+      return;
+  }
+
+  // Set up image data
+  let imageHTML = '';
+  if (requestData.images && requestData.images.length > 0) {
+      imageHTML = '<p><strong>Images:</strong></p>';
+      requestData.images.forEach((imageUrl, index) => {
+          imageHTML += `<p><img src="${imageUrl}" alt="Image ${index + 1}" style="max-width: 100%; height: auto;"></p>`;
+      });
+  }
+  // Set up message data
+    const msg = {
+        to: recipients,
+        from: 'luke@lukecarlhartman.com',
+        subject: 'New Help Request Submitted',
+        html: `
+            <p>Hello Misinfo Administrator,</p>
+            <p>A new help request has been submitted with the following details:</p>
+            <ul>
+                <li><strong>User ID:</strong> ${requestData.userID}</li>
+                <li><strong>Created Date:</strong> ${requestData.createdDate.toDate().toLocaleString()}</li>
+                <li><strong>Subject:</strong> ${requestData.subject}</li>
+                <li><strong>Message:</strong> ${requestData.message}</li>
+                <!-- Add other fields as needed -->
+            </ul>
+            ${imageHTML}
+            <p>Thank you.</p>
+        `
+    };
+
+  // Send email using SendGrid
+  return sgMail.send(msg)
+      .then(() => {
+          console.log("Email sent successfully");
+      })
+      .catch(error => {
+          console.error("Error sending email:", error.toString());
+      });
+}
