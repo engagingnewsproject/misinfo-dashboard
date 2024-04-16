@@ -27,6 +27,7 @@ import { State, City } from "country-state-city"
 import Select from "react-select"
 import Image from "next/image"
 import { useTranslation } from 'next-i18next';
+import { isNull } from 'util';
 
 // Profile page that allows user to edit password or logout of their account
 const Profile = ({ customClaims }) => {
@@ -63,6 +64,13 @@ const Profile = ({ customClaims }) => {
 	const [isSearchable, setIsSearchable] = useState(true)
 	const [errors, setErrors] = useState({})
 
+
+
+
+  // USER DATA
+const [userData, setUserData] = useState(null)
+const [userLocation, setUserLocation] = useState(null)
+const [showUserMessage, setShowUserMessage] = useState(false)
 	// IMAGES
 	const imgPicker = useRef(null)
 	const storage = getStorage()
@@ -169,6 +177,11 @@ const Profile = ({ customClaims }) => {
       } catch (error) {
         console.error("Error fetching agency data:", error)
       }
+    } else {
+        await getDoc(doc(db, "mobileUsers", user.accountId)).then((mobileRef) => {
+          setUserData(mobileRef.data())
+          setUserLocation({state: mobileRef.data()?.state, city:mobileRef.data()?.city })
+        })
     }
   }
 
@@ -218,6 +231,51 @@ const Profile = ({ customClaims }) => {
 	const handleAgencyCityChange = (e) => {
 		setData((data) => ({ ...data, city: e !== null ? e : null }))
 	}
+
+
+  // LOCATION CHANGE FOR USERS
+  const handleStateChange = (e) => {
+    setShowUserMessage(false)
+
+    setUserLocation(data=>({...data,state: e, city: null }))     
+}
+  const handleCityChange = (e) => {
+    setShowUserMessage(false)
+		setUserLocation((data) => ({ ...data, city: e !== null ? e : null }))
+  }
+
+
+
+  // handle location reset, delete changes for general users
+  const handleUserLocationReset = () => {
+    setShowUserMessage(false)
+    setUserLocation({ state: userData?.state, city: userData?.city }) 
+
+  }
+  // handle location change for users
+  const handleUserLocationChange = () => {
+		// STATE
+    const allErrors = {}
+
+		if (!userLocation.state) {
+			console.log(userLocation.state)
+			console.log("state error")
+			allErrors.userState = "Please enter a state."
+		}
+      //  no errors, update doc
+    else {
+      const userDoc = doc(db, "mobileUsers", user.accountId)
+      updateDoc(userDoc, {
+        state: userLocation?.state,
+        city: userLocation?.city,
+      }).then(() => {
+        // update state variables
+        setShowUserMessage(true)
+        getData();
+      })
+    }
+  }
+
 
 	// FORM SUMBMISSION
 	const handleSubmitClick = (e) => {
@@ -441,15 +499,89 @@ const handleDelete = async () => {
 						{t("logout")}
 					</button>
 					</div>
-          {/* Hides the language toggle for admin and agencies*/}
-          {!isAgency && !isAdmin && 
-            <div className="flex justify-between mx-0 md:mx-6 tracking-normal items-center">
-              <span className="text-blue-500 text-md font-bold py-2 px-2">{t("selectLanguage")}</span>
-
-              <LanguageSwitcher/>
-            </div>
-            }
+  
 				</div>
+
+        {/* USer Location Edit*/}
+        <div>
+          <div className="text-xl font-extrabold text-blue-600">
+            {t("editLocation")}
+          </div>
+   
+        <div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
+          <div className='flex flex-auto justify-between'>
+            <Select
+              className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="state"
+              type="text"
+              required
+              placeholder={t("NewReport:state_text")}
+              value={userLocation?.state}
+              options={State.getStatesOfCountry("US")}
+              getOptionLabel={(options) => {
+              return options["name"];
+              }}
+              getOptionValue={(options) => {
+              return options["name"];
+              }}                                
+              label="state"
+              onChange={handleStateChange}
+              />
+          
+            <Select
+              className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="city"
+              type="text"
+              placeholder={t("NewReport:city_text")}
+              value={userLocation?.city}
+              options={City.getCitiesOfState(
+              userLocation?.state?.countryCode,
+              userLocation?.state?.isoCode
+              )}
+              getOptionLabel={(options) => {
+              return options["name"];
+              }}
+              getOptionValue={(options) => {
+              return options["name"];
+              }}                                 
+              onChange={handleCityChange}
+              />
+              {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)} 
+
+          </div>
+          <div>
+            <button
+              onClick={handleUserLocationReset}
+              className={`${style.button} ml-2`}
+              type='submit'>
+                {t("cancelChanges")}
+            </button>
+            <button
+              onClick={handleUserLocationChange}
+              className={`${style.button} ml-2`}
+              type='submit'>
+               {t("updateLocation")}
+            </button>
+            <div>
+              {showUserMessage && (
+                      <div className='text-green-800 transition-opacity opacity-100 align-right'>
+                        {t("location")}
+                      </div>
+                    )}
+           
+            </div>
+        </div>
+      </div>
+      </div>
+
+      {/* Hides the language toggle for admin and agencies*/}
+
+      {!isAgency && !isAdmin && 
+          <div className="flex justify-between mx-0 md:mx-6 tracking-normal items-center">
+            <span className="text-blue-500 text-md font-bold py-2 px-2">{t("selectLanguage")}</span>
+            <LanguageSwitcher/>
+          </div>
+        }
 			{isAgency && ( // agency settings
 				<div className='z-0 flex-col p-16 pt-10 bg-slate-100'>
 					<div className='text-xl font-extrabold text-blue-600 tracking-wider'>
