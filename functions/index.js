@@ -198,7 +198,7 @@ exports.sendHelpRequestEmail = functions.firestore.document('helpRequests/{reque
         const userEmail = requestData.email;
         
         // Define recipients
-        const recipients = ['luke@lukecarlhartman.com', 'utengagement@gmail.com']; // Add more recipients as needed
+        const recipients = ['luke@lukecarlhartman.com', 'mediaengagement@austin.utexas.edu']; // Add more recipients as needed
 
         // Send the email
         return sendEmail(userEmail, recipients, requestData);
