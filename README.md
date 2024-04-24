@@ -6,7 +6,7 @@ This project project bootstrapped with [`create-next-app`](https://github.com/ve
 
 ## Already set up?
 
-Simple. Run two commands to run in separate terminal tabs:
+Simple. Run two commands in separate terminal tabs:
 
 ```
 firebase emulators:start --import=./emulator-data
