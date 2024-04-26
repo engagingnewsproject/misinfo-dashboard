@@ -110,43 +110,46 @@ const Report = () => {
   const style = {
 		button: 'w-80 self-center mt-4 shadow bg-blue-600 hover:bg-gray-100 text-sm text-white py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
 		pageContainer: 'h-full w-full pt-4',
-		container: 'md:pl-12 lg:pl-2 h-auto',
-		wrapper: 'wrapper w-full h-full flex flex-col py-4 px-5 lg:px-20 mb-5 sm:pl-20 md:pl-12 lg:overflow-visible'
+		container: 'pl-2 sm:pl-12',
+		wrapper: 'w-full h-full flex flex-col py-5',
+		content: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto'
 	}
 
   return (
 		<div className={style.pageContainer}>
 			<Navbar tab={tab} setTab={setTab} onReportTabClick={handleReportTabClick}/>
 			<div className={style.container}>
-				<Headbar  />
 				<div className={style.wrapper}>
-					{ tab == 0 && reportSystem == 0 && 
-					<ReportLanding 
-						onReportStartClick={handleReportStartClick}
-						reportSystem={reportSystem} 
-						setReportSystem={setReportSystem} 
-						setReminderShow={setReminderShow}
-						reminderShow={reminderShow} 
-						reportView={reportView} 
-						setReportView={setReportView} 
-						onChangeCheckbox={handleChangeCheckbox}
-						onReminderStart={handleReminderStart}
-						onReportSystemPrevStep={handleReportSystemPrevStep}
-						disableReminder={disableReminder}
-            /> }
-					{tab == 0 && reportSystem > 0 && 
-					<ReportSystem 
-						reportSystem={reportSystem} 
-						setReportSystem={setReportSystem}
-						setReminderShow={setReminderShow} 
-						onChangeCheckbox={handleChangeCheckbox}
-						onReminderStart={handleReminderStart}
-						onReportSystemPrevStep={handleReportSystemPrevStep}
-						disableReminder={disableReminder}
-						reminderShow={reminderShow} 
-            /> }
-					{tab == 1 && <Profile />}
-          {locationModal && (<LocationModal setLocationModal = {setLocationModal}/> )}
+					<Headbar  />
+					<div className={style.content}>
+						{ tab == 0 && reportSystem == 0 && 
+						<ReportLanding 
+							onReportStartClick={handleReportStartClick}
+							reportSystem={reportSystem} 
+							setReportSystem={setReportSystem} 
+							setReminderShow={setReminderShow}
+							reminderShow={reminderShow} 
+							reportView={reportView} 
+							setReportView={setReportView} 
+							onChangeCheckbox={handleChangeCheckbox}
+							onReminderStart={handleReminderStart}
+							onReportSystemPrevStep={handleReportSystemPrevStep}
+							disableReminder={disableReminder}
+							/> }
+						{tab == 0 && reportSystem > 0 && 
+						<ReportSystem 
+							reportSystem={reportSystem} 
+							setReportSystem={setReportSystem}
+							setReminderShow={setReminderShow} 
+							onChangeCheckbox={handleChangeCheckbox}
+							onReminderStart={handleReminderStart}
+							onReportSystemPrevStep={handleReportSystemPrevStep}
+							disableReminder={disableReminder}
+							reminderShow={reminderShow} 
+							/> }
+						{tab == 1 && <Profile />}
+						{locationModal && (<LocationModal setLocationModal = {setLocationModal}/> )}
+					</div>
 				</div>
 			</div>
 		</div>
