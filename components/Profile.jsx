@@ -456,10 +456,11 @@ const handleDelete = async () => {
 		}
 
 		fetchUserRoles()
+		console.log(customClaims)
 	},[])
 	
 	return (
-		<div className={`${(customClaims.admin || customClaims.agency) ? style.sectionContainer + ' p-12': style.sectionContainer}`}>
+		<div className={`${customClaims === null ? style.sectionContainer : style.sectionContainer + ' md:p-12'}`}>
 			<div className={style.sectionWrapper}>
 					<div className='text-xl font-extrabold text-blue-600 tracking-wider'>{t('account')}</div>
 					{isAgency && ( // agency user will see the agency row
