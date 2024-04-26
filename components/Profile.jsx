@@ -720,7 +720,7 @@ const handleDelete = async () => {
 														key={i}
 														width={100}
 														height={50}
-														className='inline'
+														className='inline w-auto'
 														alt={`image-upload-${i}`}
 													/>
 												))}
