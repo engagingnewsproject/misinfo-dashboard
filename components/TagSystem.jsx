@@ -94,8 +94,8 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
         setData(tagSystem, list, active, user)
     }
 
-    const deleteTag = (e) => {
-        e.preventDefault
+    const deleteTag = () => {
+        // e.preventDefault
         if (list.includes(selected)) {
             list.splice(list.indexOf(selected), 1)
         }
