@@ -130,7 +130,6 @@ const SignUp = () => {
                   });
                 
               } else {
-                console.log(`${isAgency} NOT agency (handleSignUp)`)
                 signup(data.name, data.email, data.password)
                   .then((userCredential) => {
                     setSignUpError("")
@@ -169,12 +168,11 @@ const SignUp = () => {
       setData(data=>({...data,city: e !== null ? e : null })) 
     }
     const handleChecked = (e) => {
-      console.log(e.target.checked)
       setData({...data, contact: e.target.checked})
     }
 
     const handlePhoneNumber = (number) => {
-      console.log(number)
+      // console.log(number)
       setData({...data, phone: number})
     }
     // handle the toggle between the hide password (eyeOff icon) and the show password (eye icon)
