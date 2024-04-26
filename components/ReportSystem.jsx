@@ -136,8 +136,8 @@ const ReportSystem = ({
         setReportId(newReportRef.id) // set report id
         setDoc(newReportRef, {
             userID: user.accountId,
-            state: data.state.name,
-            city: data.city == null ? "N/A" : data.city.name,
+            state: userData.state.name,
+            city: userData.city.name,
             agency: selectedAgency,
             title: title,
             link: link,
