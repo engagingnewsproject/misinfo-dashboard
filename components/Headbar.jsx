@@ -44,9 +44,9 @@ const Headbar = ({ search, setSearch}) => {
                 {/* TODO: - agency can swap out their logo */}
                     <div className="flex justify-center">
                         {customClaims.agency && agencyLogo ? (
-                            <Image src={agencyLogo} width={100} height={100} alt="image" style={{ width: '100%', height: 'auto' }}/>
+                            <Image src={agencyLogo} width={55} height={55} alt="agency logo" className='w-auto'/>
                          ) : (
-                            <Image src="/img/misinformation-app-logo.png" width={45} height={45} alt="image" style={{ width: '100%', height: 'auto' }}/>
+                            <Image src="/img/misinformation-app-logo.png" width={55} height={55} alt="agency logo" className='w-auto'/>
                         )}
                     </div>
                     <div className="text-md font-semibold px-4 tracking-wide">
