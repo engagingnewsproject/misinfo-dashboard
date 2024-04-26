@@ -171,11 +171,9 @@ const ReportSystem = ({
             // build an array of agency names
       var arr = []
       agencyRef.forEach((doc) => {
-        console.log("doc state is " +doc.data()['state'] )
-        console.log(userData)
-        console.log("user location is " +userData?.state?.name )
+        // console.log("doc state is " +doc.data()['state'] )
+        // console.log("user location is " +userData?.state?.name )
         if (doc.data()['state'] == userData?.state?.name) {
-          console.log("here")
           arr.push(
             doc.data()['name'] 
           ) 
@@ -400,11 +398,8 @@ const ReportSystem = ({
     // On page load (mount), update the tags from firebase
     useEffect(() => {
         getUserData()
-        console.log("here")
-        console.log(userData)
     }, [])
     useEffect(()=> {
-      console.log("here")
       if (userData) {
         getAllAgencies()
         getAllTopics()
