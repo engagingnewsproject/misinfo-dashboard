@@ -148,9 +148,6 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
     useEffect(() => {
         setSearch(selected)
     }, [selected])
-useEffect(() => {
-  console.log(customClaims)
-}, [])
 
     return (
         <div className="z-0 flex flex-col p-4 sm:p-16 h-full" onClick={(e) => {
@@ -239,7 +236,7 @@ useEffect(() => {
                 <div className="z-10 mt-12 pr-6">
                     {list.length == 0 ? 
                     <div className="grid bg-white w-full py-6 px-4 rounded-xl text-center items-center">
-                        <Image src="svgs/warning.svg" width={156} height={120} alt="warning"/>
+                        <Image src="svgs/warning.svg" width={156} height={120} className='w-auto' alt="warning"/>
                         <div className="py-3 text-sm">You have no tags right now</div>
                     </div>
                     : 

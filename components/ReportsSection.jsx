@@ -107,7 +107,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				snapshot = await getDocs(agencyReports)
 			} else {
 				// Handle case where no agency was found for the user
-				console.log("No reports found for the agency")
+				// console.log("No reports found for the agency")
 				// You might want to set snapshot to an empty array or handle this case differently
 			}
 			// Displays all reports for admin user
@@ -159,7 +159,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 				)
 			} else {
 				// Handle case where no agency was found for the user
-				console.log("Snapshot empty: No reports found for this agency")
+				// console.log("Snapshot empty: No reports found for this agency")
 				// You might want to set snapshot to an empty array or handle this case differently
 			}
 		} catch (error) {
