@@ -27,7 +27,6 @@ import { State, City } from "country-state-city"
 import Select from "react-select"
 import Image from "next/image"
 import { useTranslation } from 'next-i18next';
-import { isNull } from 'util';
 
 // Profile page that allows user to edit password or logout of their account
 const Profile = ({ customClaims }) => {
@@ -460,9 +459,8 @@ const handleDelete = async () => {
 	},[])
 	
 	return (
-		<div className={style.sectionContainer}>
+		<div className={`${(customClaims.admin || customClaims.agency) ? style.sectionContainer + ' p-12': style.sectionContainer}`}>
 			<div className={style.sectionWrapper}>
-				<div className=''>
 					<div className='text-xl font-extrabold text-blue-600 tracking-wider'>{t('account')}</div>
 					{isAgency && ( // agency user will see the agency row
 						<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
@@ -502,7 +500,6 @@ const handleDelete = async () => {
 					</button>
 					</div>
   
-				</div>
 
         {/* USer Location Edit*/}
         <div>
