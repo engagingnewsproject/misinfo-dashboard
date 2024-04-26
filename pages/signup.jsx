@@ -20,6 +20,7 @@ const SignUp = () => {
     const router = useRouter()
     const { t } = useTranslation(['Welcome', 'NewReport']);
     const [signUpError, setSignUpError] = useState("")
+    const [errors, setErrors] = useState({})
     const { user, signup, verifyEmail, addAgencyRole, setPassword } = useAuth()
     // Determines if current user has the privilege to sign up as an agency
     const isAgency = isSignInWithEmailLink(auth, window.location.href)
