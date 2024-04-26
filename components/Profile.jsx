@@ -456,7 +456,6 @@ const handleDelete = async () => {
 		}
 
 		fetchUserRoles()
-		console.log(customClaims)
 	},[])
 	
 	return (
