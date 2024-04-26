@@ -775,7 +775,7 @@ const handleDelete = async () => {
       
       <div className='self-end'>
         <div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
-        <div className='font-light'>{t("delete")}</div>
+        <div className='font-light mr-4'>{t("delete")}</div>
         <button
           onClick={() => setDeleteModal(true)}
           className='bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl'>
