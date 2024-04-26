@@ -146,7 +146,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, handleContactHelpSubmit, on
       <div className="fixed top-0 left-0 w-16">
         <div className="flex-col bg-white h-screen max-h-screen">
           <div className="grid grid-rows-2 justify-between w-full h-full">
-              <div className=''>
+              <div className='row-span-1'>
                 <button 
                     onClick={() => setShowNav(!showNav)}
                     className={basicStyle + " sm:hidden tooltip-close"}>
@@ -196,7 +196,7 @@ const Navbar = ({tab, setTab, handleNewReportSubmit, handleContactHelpSubmit, on
                   { (!customClaims.admin && !customClaims.agency) &&
                     <button // General User create report
                         onClick={onReportTabClick}
-                        className={basicStyle}>
+                        className={`${basicStyle} tooltip-create-report`}>
                         <HiOutlineDocumentPlus size={30}/>
                         <Tooltip anchorSelect='.tooltip-create-report' place="bottom" delayShow={500}>Create Report</Tooltip>
                     </button>
