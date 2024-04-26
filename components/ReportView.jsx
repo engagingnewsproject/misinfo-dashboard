@@ -33,8 +33,9 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 	const style = {
 		sectionWrapper: 'flex items-center',
 		sectionH2: 'text-blue-600 mb-2',
-		viewWrapper: 'flex flex-col gap-2 mt-8',
+		viewWrapper: 'flex flex-col gap-2 mt-2',
 		inputSingle: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 bg-white leading-tight focus:outline-none focus:shadow-outline',
+		buttonBack: 'hover:-translate-x-1 transition-transform'
 	}
 	
 	// const myArray = Object.values(data);
@@ -48,7 +49,7 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 		<>
 			<div className={style.viewWrapper}>
 				<div className={style.sectionWrapper}>
-					<button onClick={() => setReportView(0)}>
+					<button onClick={() => setReportView(0)} className={style.buttonBack}>
 						<IoMdArrowRoundBack size={25} />
 					</button>
 				</div>
