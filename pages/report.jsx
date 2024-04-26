@@ -112,7 +112,7 @@ const Report = () => {
 		pageContainer: 'h-full w-full pt-4',
 		container: 'pl-2 sm:pl-12',
 		wrapper: 'w-full h-full flex flex-col py-5',
-		content: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto'
+		content: 'w-full h-full flex flex-col px-3 md:px-12 py-5 md:py-0 mb-5 overflow-y-auto'
 	}
 
   return (
