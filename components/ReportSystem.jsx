@@ -126,7 +126,7 @@ const ReportSystem = ({
         inputImage: 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
         inputTextarea: 'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
         button: 'w-80 self-center mt-4 mb-8 shadow bg-blue-600 hover:bg-blue-500 text-sm text-white py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
-        buttonBack: 'hover:-translate-x-1 transition-transform'
+        buttonBack: 'hover:-translate-x-1 transition-transform md:px-4'
     }
     // //
     // Save Report

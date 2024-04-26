@@ -82,6 +82,8 @@ const [showUserMessage, setShowUserMessage] = useState(false)
   const [showUpdateMessage, setShowUpdateMessage] = useState(false);
 
 	const style = {
+		sectionContainer: 'w-full h-full flex flex-col mb-5 overflow-visible',
+		sectionWrapper: 'flex flex-col',
 		button:
 			"bg-blue-500 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
 		input:
@@ -458,8 +460,8 @@ const handleDelete = async () => {
 	},[])
 	
 	return (
-		<div className='w-full h-full'>
-			<div className='z-0 grid grid-rows-2 h-full p-2 md:p-8 lg:p-16 pt-5 md:pt-10'>
+		<div className={style.sectionContainer}>
+			<div className={style.sectionWrapper}>
 				<div className=''>
 					<div className='text-xl font-extrabold text-blue-600 tracking-wider'>{t('account')}</div>
 					{isAgency && ( // agency user will see the agency row
