@@ -310,7 +310,7 @@ const ReportSystem = ({
     };
     const handleTopicChange = (e) => {
         setSelectedTopic(e.target.value)
-        if (e.target.value === "Other/Otro") {
+        if (e.target.value === "Other") {
             setShowOtherTopic(true)
         } else {
             setShowOtherTopic(false)
@@ -318,7 +318,7 @@ const ReportSystem = ({
     }
     const handleSourceChangeOther = (e) => {
         setSelectedSource(e.target.value)
-        if (e.target.value === "Other/Otro") {
+        if (e.target.value === "Other") {
             setShowOtherSource(true)
         } else {
             setShowOtherSource(false)
@@ -491,7 +491,7 @@ const ReportSystem = ({
                     {reportSystem == 3 &&
                     <div className={style.viewWrapper}>
                             <div className={style.sectionH1}>{t('about')}</div>
-                            {[...allTopicsArr.filter(topic => topic !== "Other/Otro"), ...allTopicsArr.filter(topic => topic === "Other/Otro")].map((topic, i) => (
+                            {[...allTopicsArr.filter(topic => topic !== "Other"), ...allTopicsArr.filter(topic => topic === "Other")].map((topic, i) => (
                             <>
                             <label key={i+'-'+topic} className={topic === selectedTopic ? style.inputRadioChecked : style.inputRadio}>
                             {/* Topic Tag Input */}
@@ -507,7 +507,7 @@ const ReportSystem = ({
                             }
                             value={topic}
                             />
-                            {topic}</label>
+                            {t("topics."+topic)}</label>
                             </>
                         ))}
                         {errors.topic && selectedTopic === '' &&  (<span className="text-red-500">{errors.topic}</span>)}
@@ -520,7 +520,7 @@ const ReportSystem = ({
                                                     id="topic-other"
                                                     className="rounded shadow-md border-zinc-400 w-full"
                                                     type="text"
-                                                    placeholder="Please specify the topic."
+                                                    placeholder={t("specify_topic")}
                                                     onChange={handleOtherTopicChange}
                                                     value={otherTopic}
                                                     style={{ fontSize: '14px' }}
@@ -541,7 +541,7 @@ const ReportSystem = ({
                     {reportSystem == 4 &&
                     <div className={style.viewWrapper}>
                         <div className={style.sectionH1}>{t('where')}</div>
-                        {[...sources.filter(source => source !== "Other/Otro"), ...sources.filter(source => source === "Other/Otro")].map((source, i) => (
+                        {[...sources.filter(source => source !== "Other"), ...sources.filter(source => source === "Other")].map((source, i) => (
                             <>
                             <label key={i+'-'+source} className={source === selectedSource ? style.inputRadioChecked : style.inputRadio}>
                             {/* Source tag input */}
@@ -555,7 +555,8 @@ const ReportSystem = ({
                             }
                             value={source}
                             />
-                            {source}</label>
+                            {console.log(source)}
+                            {t("sources."+source)}</label>
                             </>
                         ))}
                         {errors.source && selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)}
