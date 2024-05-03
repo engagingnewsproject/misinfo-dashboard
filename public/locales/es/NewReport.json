@@ -70,7 +70,18 @@
   "agency":"Agencia",
   "topic": "Tema",
   "noAgencies":"There are no participating newsrooms in this area.",
-
+  "topics": {
+    "Health": "Salud",
+    "Weather": "Clima",
+    "Other": "Otro",
+    "Politics":"Política"
+  },
+  "sources": {
+  "Social": "Social",
+  "Newspaper": "Periódico",
+  "Website": "Sitio web",
+  "Other": "Otro"
+  },
   "thanksText": "Investigamos tantas denuncias como sea posible, aunque no siempre podemos llegar a todas."
 
 }

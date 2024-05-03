@@ -166,7 +166,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     
     const handleTopicChange = (e) => {
         setSelectedTopic(e.value)
-        if (e.value === "Other/Otro") {
+        if (e.value === t("Other")) {
             setShowOtherTopic(true)
         } else {
             setShowOtherTopic(false)
@@ -176,7 +176,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
 
     const handleSourceChangeOther = (e) => {
         setSelectedSource(e.value)
-        if (e.value === "Other/Otro") {
+        if (e.value === t("Other")) {
             setShowOtherSource(true)
         } else {
             setShowOtherSource(false)
@@ -204,8 +204,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             const { ['Topic']: tagsData } = docRef.data()
             setList(tagsData.list)
             tagsData.active.sort((a, b) => {
-                if (a === "Other") return 1; // Move "Other" to the end
-                if (b === "Other") return -1; // Move "Other" to the end
+                if (a === t("Other")) return 1; // Move "Other" to the end
+                if (b === t("Other")) return -1; // Move "Other" to the end
                 return a.localeCompare(b); // Default sorting for other elements
             });
             setActive(tagsData.active)
@@ -488,7 +488,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     id="source-selection"
                                     type="text"
                                     placeholder="Source"
-                                    options={allSourcesArr.map(source => ({ label: source, value: source }))}
+                                    options={allSourcesArr.map(source => ({ label: t(source), value: t(source) }))}
                                     onChange={handleSourceChangeOther}
                                     value={selectedSource.hearFrom}
                                     />
