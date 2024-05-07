@@ -23,7 +23,23 @@
       "port": 9099
     },
     "functions": {
-      "port": 5001
+      "port": 5001, 
+      "cors": [
+        {
+          "origin": [
+            "https://misinfo-dashboard.netlify.app",
+            "https://dev-misinfo-dashboard.netlify.app",
+            "http://localhost:3000"
+          ],
+          "method": [
+            "GET",
+            "PUT",
+            "POST",
+            "DELETE"
+          ],
+          "maxAgeSeconds": 3600
+        }
+      ]
     },
     "firestore": {
       "port": 8080
@@ -51,8 +67,9 @@
         "maxAgeSeconds": 3600
       }
     ]
-  },
+  },  
   "extensions": {
     "firestore-send-email": "firebase/firestore-send-email@0.1.32"
   }
+
 }

@@ -46,7 +46,8 @@ exports.addAdminRole = functions.https.onCall((data,context) => {
 })
 
 // Adds agency privilege to user based on email provided
-exports.addAgencyRole = functions.https.onCall((data,context) => {
+exports.addAgencyRole = functions.https.onCall(
+  (data,context) => {
   // get user and add custom claim to user
 
 
@@ -185,7 +186,7 @@ exports.deleteUser = functions.https.onCall(async (data, context) => {
 	}
 })
 
-// Initialize SendGrid API with your SendGrid API key from environment variables
+// // Initialize SendGrid API with your SendGrid API key from environment variables
 sgMail.setApiKey(functions.config().sendgrid.api_key);
 
 // Firestore trigger to send email when a new document is added to helpRequests collection
