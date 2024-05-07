@@ -90,8 +90,8 @@ const handleImageChange = (e) => {
 				setSendEmail(`${userEmail} is already an admin for this agency.`)
 				break
 			}
-      await sendSignIn(userEmail)
-      setSendEmail("Sign-in link was sent.")
+      // await sendSignIn(userEmail)
+      // setSendEmail("Sign-in link was sent.")
 
     }
     const agencyRef = doc(db, "agency", agencyId);
@@ -275,15 +275,15 @@ const handleImageChange = (e) => {
                       <p>{txt}</p>
 
                     </div>
-                    <div>
+                    {/* <div>
                       <button onClick={()=>sendAgencyLinks(txt)} className={style.modal_resend_button} type="submit">Resend link</button>
-                    </div> 
+                    </div>  */}
                   </div>)}
-                  {resendEmail && 
+                  {/* {resendEmail && 
                         <div className="flex py-2">
                           <p className={style.modal_notification_text}>{resendEmail}</p>                       
                           <span><button onClick={()=>setResendEmail("")} className={style.modal_dismiss_button} type="submit">Dismiss</button></span>
-                        </div>}
+                        </div>} */}
               </div>
               <div className={style.modal_form_label}>
                 Add agency user
@@ -303,12 +303,12 @@ const handleImageChange = (e) => {
                         Email should be at least 15 characters long
                         </p>
                         ) : null}
-                      <button onClick={handleAddAgencyUsers} className={style.modal_form_button} type="submit">Send sign-in link</button>
-                      {sendEmail && 
+                      <button onClick={handleAddAgencyUsers} className={style.modal_form_button} type="submit">Add agency user</button>
+                      {/* {sendEmail && 
                         <div className="flex py-2">
                           <p className={style.modal_notification_text}>{sendEmail}</p>                       
                           <span><button onClick={()=>setSendEmail("")} className={style.modal_dismiss_button} type="submit">Dismiss</button></span>
-                        </div>}
+                        </div>} */}
 
               </div>
 
