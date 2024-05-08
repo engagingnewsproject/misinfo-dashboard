@@ -461,325 +461,329 @@ const handleDelete = async () => {
 	return (
 		<div className={`${customClaims === null ? style.sectionContainer : style.sectionContainer + ' md:p-12'}`}>
 			<div className={style.sectionWrapper}>
-					<div className='text-xl font-extrabold text-blue-600 tracking-wider'>{t('account')}</div>
-					{isAgency && ( // agency user will see the agency row
-						<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
-							<div className='font-light'>
-								{agency.length > 1 ? "Agencies" : "Agency"}
-							</div>
-							<div className='flex gap-2 my-2 tracking-normal items-center'>
-								<div className='font-light'>{agencyName}</div>
-							</div>
+				<div className='text-xl font-extrabold text-blue-600 tracking-wider'>{t('account')}</div>
+				{isAgency && ( // agency user will see the agency row
+					<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
+						<div className='font-light'>
+							{agency.length > 1 ? "Agencies" : "Agency"}
 						</div>
-					)}
-					<div className='flex flex-col md:flex-row justify-start md:justify-between mx-0 md:mx-6 my-6 tracking-normal items-stretch md:items-center'>
-						<div className='font-semibold text-sm md:font-light'>{t('email')}</div>
-						<div className='flex gap-2 my-2 tracking-normal items-center justify-between'>
-							<div className='font-light'>{user.email}</div>
-							<button
-								onClick={() => setEmailModal(true)}
-								className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl flex justify-self-end'>
-								{t("editEmail")}
-							</button>
+						<div className='flex gap-2 my-2 tracking-normal items-center'>
+							<div className='font-light'>{agencyName}</div>
 						</div>
 					</div>
-					<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
-						<div className='font-light'>{t("resetPassword")}</div>
+				)}
+				<div className='flex flex-col md:flex-row justify-start md:justify-between mx-0 md:mx-6 my-6 tracking-normal items-stretch md:items-center'>
+					<div className='font-semibold text-sm md:font-light'>{t('email')}</div>
+					<div className='flex gap-2 my-2 tracking-normal items-center justify-between'>
+						<div className='font-light'>{user.email}</div>
 						<button
-							onClick={() => setOpenModal(true)}
-							className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl'>
-							{t('editPassword')}
+							onClick={() => setEmailModal(true)}
+							className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl flex justify-self-end'>
+							{t("editEmail")}
 						</button>
 					</div>
-					<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
+				</div>
+				<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
+					<div className='font-light'>{t("resetPassword")}</div>
+					<button
+						onClick={() => setOpenModal(true)}
+						className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl'>
+						{t('editPassword')}
+					</button>
+				</div>
+				<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
 					<div className='font-light'>{t("logout")}</div>
 					<button
 						onClick={() => setLogoutModal(true)}
 						className='bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl'>
 						{t("logout")}
 					</button>
-					</div>
+				</div>
   
 
         {/* USer Location Edit*/}
-        <div>
-          <div className="text-xl font-extrabold text-blue-600">
-            {t("editLocation")}
-          </div>
-   
-        <div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
-          <div className='flex flex-auto justify-between'>
-            <Select
-              className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="state"
-              type="text"
-              required
-              placeholder={t("NewReport:state_text")}
-              value={userLocation?.state}
-              options={State.getStatesOfCountry("US")}
-              getOptionLabel={(options) => {
-              return options["name"];
-              }}
-              getOptionValue={(options) => {
-              return options["name"];
-              }}                                
-              label="state"
-              onChange={handleStateChange}
-              />
-          
-            <Select
-              className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="city"
-              type="text"
-              placeholder={t("NewReport:city_text")}
-              value={userLocation?.city}
-              options={City.getCitiesOfState(
-              userLocation?.state?.countryCode,
-              userLocation?.state?.isoCode
-              )}
-              getOptionLabel={(options) => {
-              return options["name"];
-              }}
-              getOptionValue={(options) => {
-              return options["name"];
-              }}                                 
-              onChange={handleCityChange}
-              />
-              {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)} 
-
-          </div>
-          <div>
-            <button
-              onClick={handleUserLocationReset}
-              className={`${style.button} ml-2`}
-              type='submit'>
-                {t("cancelChanges")}
-            </button>
-            <button
-              onClick={handleUserLocationChange}
-              className={`${style.button} ml-2`}
-              type='submit'>
-               {t("updateLocation")}
-            </button>
-            <div>
-              {showUserMessage && (
-                      <div className='text-green-800 transition-opacity opacity-100 align-right'>
-                        {t("location")}
-                      </div>
-                    )}
-           
-            </div>
-        </div>
-      </div>
-      </div>
-
-      {/* Hides the language toggle for admin and agencies*/}
-
-      {!isAgency && !isAdmin && 
-          <div className="flex justify-between mx-0 md:mx-6 tracking-normal items-center">
-            <span className="text-blue-500 text-md font-bold py-2 px-2">{t("selectLanguage")}</span>
-            <LanguageSwitcher/>
-          </div>
-        }
-			{isAgency && ( // agency settings
-				<div className='z-0 flex-col p-16 pt-10 bg-slate-100'>
-					<div className='text-xl font-extrabold text-blue-600 tracking-wider'>
-						Agency Settings
+				<div>
+					<div className="text-xl font-extrabold text-blue-600">
+						{t("editLocation")}
 					</div>
-					<div className='w-full h-auto'>
-						<form
-							// onSubmit={handleFormSubmit}
-							id='agencyDesign'
-							className='flex flex-col'>
-							<div className='mt-4 mb-4 grid gap-4'>
-								<div className='grid grid-cols-4 items-center'>
-									<div className='col-span-1'>Agency Name</div>
-									<div className='col-span-3'>
-										<input
-											id='agency_name'
-											onChange={handleAgencyNameChange}
-											placeholder='Agency name'
-											type='text'
-											className={style.input}
-											defaultValue={agencyName}
-										/>
-										{agencyName === "" && (
-											<span className='text-red-500 text-xs'>
-												{errors.name}
-											</span>
-										)}
-									</div>
-								</div>
-								<div className='grid grid-cols-4 items-center'>
-									<div className='col-span-1'>Agency Location</div>
+		
+					<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
+						<div className='flex flex-auto justify-between'>
+							<Select
+								className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								id="state"
+								type="text"
+								required
+								placeholder={t("NewReport:state_text")}
+								value={userLocation?.state}
+								options={State.getStatesOfCountry("US")}
+								getOptionLabel={(options) => {
+								return options["name"];
+								}}
+								getOptionValue={(options) => {
+								return options["name"];
+								}}                                
+								label="state"
+								onChange={handleStateChange}
+								/>
+						
+							<Select
+								className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								id="city"
+								type="text"
+								placeholder={t("NewReport:city_text")}
+								value={userLocation?.city}
+								options={City.getCitiesOfState(
+								userLocation?.state?.countryCode,
+								userLocation?.state?.isoCode
+								)}
+								getOptionLabel={(options) => {
+								return options["name"];
+								}}
+								getOptionValue={(options) => {
+								return options["name"];
+								}}                                 
+								onChange={handleCityChange}
+								/>
+								{errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)} 
 
-									<div className='col-span-3 grid grid-cols-8 items-center bg-white rounded-md px-3'>
-										<div
-											className={`col-span-8 ${
-												editLocation === false
-													? " visible relative"
-													: " hidden absolute"
-											}`}
-											onClick={handleAgencyLocationChange}>
-											<div
-												className={
-													style.input
-												}>{`${agency["city"]}, ${agency["state"]}`}</div>
-										</div>
-										<Select
-											className={` col-start-1 row-start-1 col-span-3 ${
-												(style.inputSelect,
-												editLocation === true
-													? " visible relative"
-													: " hidden absolute ")
-											}`}
-											id='state'
-											type='text'
-											placeholder='State'
-											isSearchable={isSearchable}
-											value={data.state}
-											options={State.getStatesOfCountry(data.country)}
-											getOptionLabel={(options) => {
-												return options["name"]
-											}}
-											// isDisabled={editLocation === true ? `false` : `true`}
-											getOptionValue={(options) => {
-												return options["name"]
-											}}
-											label='state'
-											onChange={handleAgencyStateChange}
-										/>
-										{errors.state && data.state === null && (
-											<span className='text-red-500 text-xs col-start-1 col-span-3'>
-												{errors.state}
-											</span>
-										)}
-										<Select
-											className={`${
-												(style.inputSelect,
-												editLocation === true
-													? " visible relative"
-													: " hidden absolute")
-											} ml-4 p-3 col-start-4 col-span-3 row-start-1`}
-											id='city'
-											type='text'
-											placeholder='City'
-											value={data.city}
-											options={City.getCitiesOfState(
-												data.state?.countryCode,
-												data.state?.isoCode
+						</div>
+						<div>
+							<button
+								onClick={handleUserLocationReset}
+								className={`${style.button} ml-2`}
+								type='submit'>
+									{t("cancelChanges")}
+							</button>
+							<button
+								onClick={handleUserLocationChange}
+								className={`${style.button} ml-2`}
+								type='submit'>
+								{t("updateLocation")}
+							</button>
+							<div>
+								{showUserMessage && (
+												<div className='text-green-800 transition-opacity opacity-100 align-right'>
+													{t("location")}
+												</div>
 											)}
-											// isDisabled={editLocation === true ? `false` : `true`}
-											getOptionLabel={(options) => {
-												return options["name"]
-											}}
-											getOptionValue={(options) => {
-												return options["name"]
-											}}
-											onChange={handleAgencyCityChange}
-										/>
-										{errors.city && data.city === null && (
-											<span className='text-red-500 text-xs col-span-3 col-start-4'>
-												{errors.city}
-											</span>
-										)}
-										<div
-											className={`text-red-500 cursor-pointer col-start-7 row-start-1 col-auto${
-												editLocation === true
-													? " visible block"
-													: " hidden absolute"
-											}`}
-											onClick={handleAgencyLocationChange}>
-											Cancel
+						
+							</div>
+						</div>
+					</div>
+				</div>
+
+      	{/* Hides the language toggle for admin and agencies*/}
+				{!isAgency && !isAdmin && 
+					<div className="flex justify-between mx-0 my-6 tracking-normal items-center">
+						<div className="text-xl font-extrabold text-blue-600">
+							{t("selectLanguage")}
+						</div>
+						<div>
+							<LanguageSwitcher/>
+						</div>
+					</div>
+        }
+
+				{isAgency && ( // agency settings
+					<div className='z-0 flex-col p-16 pt-10 bg-slate-100'>
+						<div className='text-xl font-extrabold text-blue-600 tracking-wider'>
+							Agency Settings
+						</div>
+						<div className='w-full h-auto'>
+							<form
+								// onSubmit={handleFormSubmit}
+								id='agencyDesign'
+								className='flex flex-col'>
+								<div className='mt-4 mb-4 grid gap-4'>
+									<div className='grid grid-cols-4 items-center'>
+										<div className='col-span-1'>Agency Name</div>
+										<div className='col-span-3'>
+											<input
+												id='agency_name'
+												onChange={handleAgencyNameChange}
+												placeholder='Agency name'
+												type='text'
+												className={style.input}
+												defaultValue={agencyName}
+											/>
+											{agencyName === "" && (
+												<span className='text-red-500 text-xs'>
+													{errors.name}
+												</span>
+											)}
 										</div>
 									</div>
-								</div>
-								<div className='grid grid-cols-4 items-center'>
-									<div className='col-span-1'>Agency Logo</div>
-									{editLogo ? (
-										<div
-											className={`${style.inputSelect} bg-white col-span-3 flex items-center`}>
-											<label>
-												<span className='sr-only'>Choose agency logo</span>
-												<input
-													className={`${style.fileUploadButton}`}
-													id='multiple_files'
-													type='file'
-													accept='image/*'
-													onChange={handleImageChange}
-													ref={imgPicker}
-												/>
-												{errors.images && images === null && (
-													<span className='text-red-500'>{errors.images}</span>
-												)}
-											</label>
-											<div className='col-span-2'>
-												{imageURLs.map((url, i = self.crypto.randomUUID()) => (
-													<Image
-														src={url}
-														key={i}
-														width={100}
-														height={50}
-														className='inline w-auto'
-														alt={`image-upload-${i}`}
-													/>
-												))}
-											</div>
+									<div className='grid grid-cols-4 items-center'>
+										<div className='col-span-1'>Agency Location</div>
+
+										<div className='col-span-3 grid grid-cols-8 items-center bg-white rounded-md px-3'>
 											<div
-												className='text-red-500 cursor-pointer'
-												onClick={handleLogoEdit}>
+												className={`col-span-8 ${
+													editLocation === false
+														? " visible relative"
+														: " hidden absolute"
+												}`}
+												onClick={handleAgencyLocationChange}>
+												<div
+													className={
+														style.input
+													}>{`${agency["city"]}, ${agency["state"]}`}</div>
+											</div>
+											<Select
+												className={` col-start-1 row-start-1 col-span-3 ${
+													(style.inputSelect,
+													editLocation === true
+														? " visible relative"
+														: " hidden absolute ")
+												}`}
+												id='state'
+												type='text'
+												placeholder='State'
+												isSearchable={isSearchable}
+												value={data.state}
+												options={State.getStatesOfCountry(data.country)}
+												getOptionLabel={(options) => {
+													return options["name"]
+												}}
+												// isDisabled={editLocation === true ? `false` : `true`}
+												getOptionValue={(options) => {
+													return options["name"]
+												}}
+												label='state'
+												onChange={handleAgencyStateChange}
+											/>
+											{errors.state && data.state === null && (
+												<span className='text-red-500 text-xs col-start-1 col-span-3'>
+													{errors.state}
+												</span>
+											)}
+											<Select
+												className={`${
+													(style.inputSelect,
+													editLocation === true
+														? " visible relative"
+														: " hidden absolute")
+												} ml-4 p-3 col-start-4 col-span-3 row-start-1`}
+												id='city'
+												type='text'
+												placeholder='City'
+												value={data.city}
+												options={City.getCitiesOfState(
+													data.state?.countryCode,
+													data.state?.isoCode
+												)}
+												// isDisabled={editLocation === true ? `false` : `true`}
+												getOptionLabel={(options) => {
+													return options["name"]
+												}}
+												getOptionValue={(options) => {
+													return options["name"]
+												}}
+												onChange={handleAgencyCityChange}
+											/>
+											{errors.city && data.city === null && (
+												<span className='text-red-500 text-xs col-span-3 col-start-4'>
+													{errors.city}
+												</span>
+											)}
+											<div
+												className={`text-red-500 cursor-pointer col-start-7 row-start-1 col-auto${
+													editLocation === true
+														? " visible block"
+														: " hidden absolute"
+												}`}
+												onClick={handleAgencyLocationChange}>
 												Cancel
 											</div>
 										</div>
-									) : (
-										<div
-											className={`${style.inputSelect} bg-white col-span-3`}
-											onClick={handleLogoEdit}>
-											{agencyLogo.map((image, i) => {
-												return (
-													<div className='flex mr-2' key={i}>
+									</div>
+									<div className='grid grid-cols-4 items-center'>
+										<div className='col-span-1'>Agency Logo</div>
+										{editLogo ? (
+											<div
+												className={`${style.inputSelect} bg-white col-span-3 flex items-center`}>
+												<label>
+													<span className='sr-only'>Choose agency logo</span>
+													<input
+														className={`${style.fileUploadButton}`}
+														id='multiple_files'
+														type='file'
+														accept='image/*'
+														onChange={handleImageChange}
+														ref={imgPicker}
+													/>
+													{errors.images && images === null && (
+														<span className='text-red-500'>{errors.images}</span>
+													)}
+												</label>
+												<div className='col-span-2'>
+													{imageURLs.map((url, i = self.crypto.randomUUID()) => (
 														<Image
-															src={image}
-															width={70}
-															height={100}
-															className='w-auto'
-															alt='image'
+															src={url}
+															key={i}
+															width={100}
+															height={50}
+															className='inline w-auto'
+															alt={`image-upload-${i}`}
 														/>
-													</div>
-												)
-											})}
+													))}
+												</div>
+												<div
+													className='text-red-500 cursor-pointer'
+													onClick={handleLogoEdit}>
+													Cancel
+												</div>
+											</div>
+										) : (
+											<div
+												className={`${style.inputSelect} bg-white col-span-3`}
+												onClick={handleLogoEdit}>
+												{agencyLogo.map((image, i) => {
+													return (
+														<div className='flex mr-2' key={i}>
+															<Image
+																src={image}
+																width={70}
+																height={100}
+																className='w-auto'
+																alt='image'
+															/>
+														</div>
+													)
+												})}
+											</div>
+										)}
+									</div>
+								</div>
+								<div className='flex justify-end items-center'>
+									{showUpdateMessage && (
+										<div className='transition-opacity opacity-100'>
+											Agency updated
 										</div>
 									)}
+									<button
+										onClick={handleSubmitClick}
+										className={`${style.button} ml-2`}
+										type='submit'>
+										Update Agency
+									</button>
 								</div>
-							</div>
-							<div className='flex justify-end items-center'>
-								{showUpdateMessage && (
-									<div className='transition-opacity opacity-100'>
-										Agency updated
-									</div>
-								)}
-								<button
-									onClick={handleSubmitClick}
-									className={`${style.button} ml-2`}
-									type='submit'>
-									Update Agency
-								</button>
-							</div>
-						</form>
+							</form>
+						</div>
+					</div>
+				)}
+      
+				<div className='self-end'>
+					<div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
+					<div className='font-light mr-4'>{t("delete")}</div>
+					<button
+						onClick={() => setDeleteModal(true)}
+						className='bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl'>
+						{t("request")}
+					</button>
 					</div>
 				</div>
-			)}
-      
-      <div className='self-end'>
-        <div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
-        <div className='font-light mr-4'>{t("delete")}</div>
-        <button
-          onClick={() => setDeleteModal(true)}
-          className='bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl'>
-          {t("request")}
-        </button>
-        </div>
-      </div>
       </div>
 
 			{openModal && <UpdatePwModal setOpenModal={setOpenModal} />}
