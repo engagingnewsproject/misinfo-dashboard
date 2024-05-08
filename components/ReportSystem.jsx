@@ -58,51 +58,6 @@ const ReportSystem = ({
     const [sourceList, setSourceList] = useState([])
     const [active, setActive] = useState([])
     const [activeSources, setActiveSources] = useState([])
-    // //
-    // Text content
-    // //
-    // const t = {
-    //     reminderTitle: "Reminder",
-    //     reminderDescription:
-    //         "This system is only for reports of possible fake information at the local or state level.",
-    //     reminderExample: "Example:",
-    //     reminderCorrect: "Flight prices sky-high in Austin.",
-    //     reminderIncorrect: "US officially marks 1 million American deaths from Covid.",
-    //     reminderStart: "Start",
-    //     reminderNoShow: "Do not show this again.",
-    //     locationTitle: "Where are you located?",
-    //     agencyTitle: 'Which agency would you like to report to?',
-    //     topicTitle: 'What is the potential information about?',
-    //     sourceTitle: 'Where did you see the potential misinformation?',
-    //     share: "Share more information",
-    //     title: "Title *",
-    //     titleDescription: "Please provide a title for the potential misinformation",
-    //     max: "(Max: 160 characters.)",
-    //     detail: "Details *",
-    //     detailDescription:
-    //         "Please share as much as you can. We need at least one of the following: a link, a photo, or a detailed description.",
-    //     link: "Links",
-    //     image: "Image Upload",
-    //     imageDescription:
-    //         "You can upload screenshots or photos of the potential misinformation",
-    //     uploadImage: "Upload Images",
-    //     detailed: "Detailed Description",
-    //     detailedDescription:
-    //         "Please provide more details about the potential misinformation, such as where you saw it and what it said.",
-    //     describe: "Describe in detail",
-    //     submit: "Submit",
-    //     titleRequired:"Title is required",
-    //     alertTitle:"Alert",
-    //     atLeast:"We need at least one of the following: a link, a photo, or a detailed description.",
-    //     thanksTitle: 'Thank you',
-    //     thanksText: "We investigate as many reports as possible, although we aren't always able to get to everything. When we're able, we'd love to share the results of our investigation.",
-    //     thanksView:"View my Report",
-    //     viewReportTitle: 'Title',
-    //     viewReportLinks: 'Links',
-    //     viewReportImage: 'Image Upload',
-    //     viewReportDetails: 'Detail Description',
-    //     viewReportButton: 'View All Reports'
-    // }
     
     // //
     // Styles
@@ -719,11 +674,11 @@ const ReportSystem = ({
                             {t('image')}
                         </div>
                             <div className="flex w-full overflow-y-auto">
-                                {imageURLs.map((image, i) => {
+                                {imageURLs.map((image, i = self.crypto.randomUUID()) => {
                                     return (
                                         <div className="flex mr-2" key={i}>
                                             <Link href={image} target="_blank">
-                                                <Image src={image} width={100} height={100} alt="image"/>
+                                                <Image src={image} width={100} height={100} alt="image" className='object-cover w-auto'/>
                                             </Link>
                                         </div>
                                     )

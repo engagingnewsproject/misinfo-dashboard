@@ -51,5 +51,9 @@ public/worker-*.js.map
 .netlify
 
 # extensions
-extensions/firestore-send-email.env
+extensions/*
 functions/.runtimeconfig.json
+functions/sendgrid.env
+functions/node_modules
+extensions/firestore-send-email-6bt9.env
+functions/sendgrid.env
