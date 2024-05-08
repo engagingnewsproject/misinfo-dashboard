@@ -23,7 +23,7 @@
       "port": 9099
     },
     "functions": {
-      "port": 5001, 
+      "port": 5001,
       "cors": [
         {
           "origin": [
@@ -67,9 +67,8 @@
         "maxAgeSeconds": 3600
       }
     ]
-  },  
+  },
   "extensions": {
-    "firestore-send-email": "firebase/firestore-send-email@0.1.32"
+    "firestore-send-email-6bt9": "firebase/firestore-send-email@0.1.33"
   }
-
 }
