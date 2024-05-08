@@ -1,64 +1,139 @@
 # Misinfo Dashboard
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/fdc485eb-e749-4f9d-8b5d-6db9afd8ee8f/deploy-status)](https://app.netlify.com/sites/misinfo-dashboard/deploys)
+[![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)](https://react.dev/)
+[![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Firebase](https://img.shields.io/badge/firebase-a08021?style=for-the-badge&logo=firebase&logoColor=ffcd34)](https://firebase.google.com/)
+[![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Netlify](https://img.shields.io/badge/netlify-%23000000.svg?style=for-the-badge&logo=netlify&logoColor=#00C7B7)](https://app.netlify.com/sites/misinfo-dashboard/deploys)
 
 This project project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) of the [Next.js](https://nextjs.org/) framework. To learn more about Next.js features and API, take a look at [Next.js Documentation](https://nextjs.org/docs).
 
+## Already set up?
+
+Simple. Run two commands in separate terminal tabs:
+
+```
+firebase emulators:start --import=./emulator-data
+```
+
+and...
+
+```
+yarn dev
+```
+
+Not set up? Keep reading...
+
 ## Getting Started
 
-#### 1. Clone
+### 1. Clone repo
 
-Clone this repo to a local directory and run `yarn install` from the root to install dependencies. 
-  > do not use `npm install` because using this install command will create a `package-lock.json` file which Netlify, that serves the live site, does not support.
+First step! Clone this repo into a local directory (ex. `~/username/sites/`) on your machine.
 
-#### 2. Add `.env` file at project root
+- From the command line in your project root run:
 
-In order to be authenticated with the Firebase Project you must have the `.env` file with the Firebase credentials at the root of your project. Reach out to the project lead (currently [Luke](https://github.com/luukee)) to get the `.env` file contents.
+    ```
+    git clone https://github.com/engagingnewsproject/misinfo-dashboard.git
+    ```
+ 
+### 2. Install Packages
 
-#### 3. Run Firebase Emulator
+Install/update [`yarn`](https://yarnpkg.com/) package manager on your machine ([installation docs](https://yarnpkg.com/getting-started/install))
+  
+- Start by enabling [Corepack](https://yarnpkg.com/corepack), if it isn't already; this will add the `yarn` binary to your PATH:
 
-> If you have not installed firebase tools to run the emulator run `npm install -g firebase-tools`.
+    ```
+    corepack enable
+    ```
 
-Next, to run the app on the emulator and import the db testing data, in a new terminal window run 
+- From the root of the project install dependencies by running:
+        
+    ```
+    yarn install
+    ```
+  
+    > _**Why not `npm install`?** Glad you asked! [Netlify](https://www.netlify.com/), the service that hosts the dashboard, will not allow us to upload updates because `npm install` creates a `package-lock.json` file. Netlify doesn't like `package-lock.json` files._
 
-```bash
+### 3. Add Firebase configuration
+
+In order to be authenticated with the Firebase Project you must have the `.env` file (which contains the Firebase credentials) at the root of your project. To get the contents of the `.env` file reach out to the project lead (currently [Luke](https://github.com/luukee)).
+
+### 4. Install and run Firebase Emulator
+
+Firebase Emulator is included in the [Firebase Tools](https://www.npmjs.com/package/firebase-tools) package. You can install Firebase Tools by running:
+
+```
+curl -sL firebase.tools | bash
+```
+
+Next, to run the app on the emulator and import the testing db data, in a _new_ terminal tab run: 
+
+```
 firebase emulators:start --import=./emulator-data
 ``` 
 
-The Firebase Emulator should boot up and provide you an emulator link `View Emulator UI at`. Open that link to view the Emulator UI:
+> _If you get `command not found` you might have to be added as a user for the Firebase project. Contact the lead developer to do this for you. Or contact mediaengagement@austin.utexas.edu_
+
+The Firebase Emulator should boot up and provide you an emulator link (look for `View Emulator UI at` in your command line output). 
+
+Open that link to view the Emulator UI:
 
 ![emulator-ui](https://media.github.austin.utexas.edu/user/3619/files/1012c2ee-b9b2-4529-8914-2e0455af9bda)
 
-#### 4. Add yourself as a user under the Emulator Authentication tab. 
 
-You only need to provide a name, email and password when adding a general user. You can also assign roles to other users you add in the _"Custom Claims"_ input:
-- Admin role: `{"admin":true}`
-- Agency role: `{"agency":true}`
+### 5. Add yourself as a user via the "Emulator Authentication" tab. 
 
-You can also signup like a normal user at the Login/Signup page. Once you have signed up 
+#### Two options:
 
-- Open the link printed out in your Emulator terminal window. _all you need to do is open the link_
-- Now you can return to your initial Signup tab and login with the credentials you signed up with.
+1. Option one: Manually add yourself
 
-#### 5. Start dev server
+   From the Firebase Emulator UI select the "Emulator Authentication" tab and click "Add user". Only required fields are: `name`, `email` and `password`. Change your role? see _Available user roles_ below.
+
+2. Option two: Sign up.
+
+   You can also signup like a normal user at the Login/Signup page. Once you have signed up:
+
+    - Open the link printed out in your Emulator terminal window. 
+      - **_all you need to do is open the link._ Once you've opened the link close the tab and...
+    - Return to your initial Signup tab and login with the credentials you signed up with. Change your role? see _Available user roles_ below.
+
+#### Available user roles:
+
+- *General User:*
+    
+    No additional configuration required.
+    
+- *Agency User:*
+
+    In the "Custom Claims" input enter `{"agency":true}` & save.
+
+- *Admin User:*
+
+    In the "Custom Claims" input enter `{"admin":true}` & save.
+    
+### 6. Start dev server
 
 To boot up the development server run:
 
-```bash
-npm run dev
-# or
-yarn dev
 ```
+yarn dev
+# or
+npm run dev
+```
+
+> _If you open `http://localhost:3000` and you see the "unhandled error" `FirebaseError: Failed to get document because the client is offline.` this means you have not started the Firebase Emulator. Return to step #4 to Install and run the Firebase Emulator._
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. If you have the emulator running you will see a banner `Running in emulator mode. Do not use with production credentials.` at the bottom of your screen as well as Console log messages letting you know that the emulator is running:
 
 ![emulator-running](https://media.github.austin.utexas.edu/user/3619/files/fa9f1c63-1f3a-4dd2-b0d3-2ca3ab6b86f0)
 
-> NOTE: You will have a lot of windows/tabs open while developing:
-- > 1 terminal tab for `npm run dev`, 
+> NOTE: You will have 2 terminal tabs running while developing:
+- > 1 terminal tab for `yarn dev` (or `npm run dev`), 
 - > 1 terminal tab for `firebase emulators:start --import=./emulator-data`. 
-- > 1 browser tab for `localhost:3000`, 
-- > 1 browser tab for `Emulator UI`
+
+> NOTE: You will also have 2 browser tabs open while developing:
+- > 1 browser tab for `localhost:3000` (actual misinfo dashboard), 
+- > 1 browser tab for "Firebase Emulator Suite" 
 
 Develop away! And good luck :)
 

@@ -37,10 +37,10 @@ const ReportLanding = ({
   // });
 
 	const style = {
-		container: "z-0 flex-col lg:max-w-4xl",
+		container: "z-0 flex-col lg:max-w-4xl mb-12",
 		headerWrap: 'flex pb-4 justify-between',
-		header: "text-center md:text-left text-xl font-bold text-blue-600 tracking-wider mt-2",
-		buttonLg: 'flex items-center justify-center gap-5 bg-blue-600 w-full hover:bg-blue-200 text-white font-normal py-2 px-6 border border-blue-600 rounded-xl',
+		header: "text-center md:text-left text-xl font-bold text-blue-600 tracking-wider",
+		buttonLg: 'flex items-center justify-center gap-5 bg-blue-600 w-full hover:bg-blue-500 text-white font-normal py-2 px-6 border border-blue-600 rounded-xl',
 		button: 'bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 mt-4 border border-blue-600 rounded-xl',
 		systemWrap: 'text-xl font-extrabold text-blue-600 tracking-wider mt-5'
 	}
@@ -76,19 +76,19 @@ const ReportLanding = ({
 				<h2 className={style.header}>{t("hello")}</h2>
 			</div>
 			<button onClick={onReportStartClick} className={style.buttonLg}>
-				<Image src="/img/report.png" width={200} height={120} alt="report" className='h-auto max-w-36 sm:h-auto' priority={true}/>
+				<Image src="/img/report.png" width={200} height={120} alt="report" className='h-auto max-w-36 sm:h-auto' priority={true} as="image" />
 				<span className='flex flex-col text-left'>
 					<span className='flex items-center'>{t("report")}<IoChevronForward size={25}/></span>
 					<span className='text-xs'>{t("potential")}</span>
 				</span>
 			</button>
-			<h2 className={style.header}>{t("history")}</h2>
+			<h2 className={`${style.header} my-4`}>{t("history")}</h2>
 			<ReportList reportView={reportView} setReportView={setReportView} />
-			<button
+			{/* <button
 				onClick={onReportStartClick}
 				className={style.button}>
 				{t("startReporting")}
-			</button>
+			</button> */}
 		</div>
 		)
 }

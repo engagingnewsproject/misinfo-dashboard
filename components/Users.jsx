@@ -161,7 +161,6 @@ const Users = () => {
 						// Set the agency state
 						setSelectedAgency(userData.data.agencyName)
 					}
-					console.log(mobileUsersArray)
 					mobileUsersArray.push(userData)
 				}
 				// need to itterate over the 'agency' collection 
@@ -428,11 +427,6 @@ const Users = () => {
 	useEffect(() => {
 		getData()
 	},[update])
-
-	useEffect(() => {
-		console.log("Loaded Mobile Users:", loadedMobileUsers);
-		// This will log the loadedMobileUsers state variable whenever it changes
-	}, [loadedMobileUsers]);
 	
 	return (
 		<div className={style.section_container}>

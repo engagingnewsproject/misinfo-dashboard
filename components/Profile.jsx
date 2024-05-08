@@ -27,7 +27,6 @@ import { State, City } from "country-state-city"
 import Select from "react-select"
 import Image from "next/image"
 import { useTranslation } from 'next-i18next';
-import { isNull } from 'util';
 
 // Profile page that allows user to edit password or logout of their account
 const Profile = ({ customClaims }) => {
@@ -82,6 +81,8 @@ const [showUserMessage, setShowUserMessage] = useState(false)
   const [showUpdateMessage, setShowUpdateMessage] = useState(false);
 
 	const style = {
+		sectionContainer: 'w-full h-full flex flex-col mb-5 overflow-visible',
+		sectionWrapper: 'flex flex-col',
 		button:
 			"bg-blue-500 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
 		input:
@@ -458,9 +459,8 @@ const handleDelete = async () => {
 	},[])
 	
 	return (
-		<div className='w-full h-full'>
-			<div className='z-0 grid grid-rows-2 h-full p-2 md:p-8 lg:p-16 pt-5 md:pt-10'>
-				<div className=''>
+		<div className={`${customClaims === null ? style.sectionContainer : style.sectionContainer + ' md:p-12'}`}>
+			<div className={style.sectionWrapper}>
 					<div className='text-xl font-extrabold text-blue-600 tracking-wider'>{t('account')}</div>
 					{isAgency && ( // agency user will see the agency row
 						<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
@@ -500,7 +500,6 @@ const handleDelete = async () => {
 					</button>
 					</div>
   
-				</div>
 
         {/* USer Location Edit*/}
         <div>
@@ -721,7 +720,7 @@ const handleDelete = async () => {
 														key={i}
 														width={100}
 														height={50}
-														className='inline'
+														className='inline w-auto'
 														alt={`image-upload-${i}`}
 													/>
 												))}
@@ -773,7 +772,7 @@ const handleDelete = async () => {
       
       <div className='self-end'>
         <div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
-        <div className='font-light'>{t("delete")}</div>
+        <div className='font-light mr-4'>{t("delete")}</div>
         <button
           onClick={() => setDeleteModal(true)}
           className='bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl'>

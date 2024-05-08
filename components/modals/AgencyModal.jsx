@@ -219,7 +219,6 @@ const handleImageChange = (e) => {
 	useEffect(() => {
 		if (update) {
 			handleUpload()
-			console.log(images)
 		}
 	}, [update]);
 	
@@ -322,7 +321,7 @@ const handleImageChange = (e) => {
 										{logo.map((image, i) => {
 											return (
 												<div className="flex mr-2" key={i}>
-													<Image src={`${image}`} width={100} height={100} alt="image"/>
+													<Image src={`${image}`} width={100} height={100} className="w-auto" alt="agency image"/>
 												</div>
 											)
 										})}

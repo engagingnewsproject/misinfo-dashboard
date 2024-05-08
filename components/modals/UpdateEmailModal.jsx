@@ -72,6 +72,7 @@ const UpdateEmailModal = ({ setEmailModal }) => {
                                 required
                                 value={data.currentPassword}
                                 onChange={handleChange}
+                                autoComplete='current-password'
                                 />
                         </div>
                         {incorrectPassword && <span className="text-red-500 text-sm font-light">Incorrect password</span>}

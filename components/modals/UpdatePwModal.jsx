@@ -66,6 +66,15 @@ const UpdatePwModal = ({ setOpenModal }) => {
                         </button>
                     </div>
                     <form onChange={handleChange} onSubmit={handleUpdatePW}>
+                        <div className="flex flex-col mb-4">
+                            <label className='text-xs text-gray-400'>Email</label>
+                            <input
+                                className="border-none rounded-md w-full py-3 px-3 text-sm text-gray-400 leading-tight"
+                                value={user.email}
+                                disabled
+                                id="username"
+                                autoComplete='username'/>
+                        </div>
                         <div className={`flex ${incorrectPassword ? 'mb-0' : 'mb-4'}`}>
                             <input
                                 className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -76,6 +85,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                                 required
                                 value={data.currentPassword}
                                 onChange={handleChange}
+                                autoComplete='current-password'
                                 />
                                 <span className="flex justify-around items-center" onClick={handleTogglePass}>
                                     <MdOutlineRemoveRedEye className='absolute mr-10' />
@@ -92,6 +102,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                                 required
                                 value={data.newPassword}
                                 onChange={handleChange}
+                                autoComplete='new-password'
                                 />
                         </div>
                         {data.newPassword.length > 0 && data.newPassword.length < 8 && <span className="text-red-500 text-sm font-light">New password must be atleast 8 characters</span>}
@@ -105,6 +116,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                                 required
                                 value={data.confirmNewPW}
                                 onChange={handleChange}
+                                autoComplete='new-password'
                                 />
                         </div>
                         {data.newPassword !== data.confirmNewPW && <span className="text-red-500 text-sm font-light">Passwords don't match</span>}
