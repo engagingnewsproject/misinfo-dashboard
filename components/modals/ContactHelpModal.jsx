@@ -189,9 +189,9 @@ const handleChange = (e) => {
                             />
                         </label>
                         <div className="flex shrink-0 mt-2 space-x-2">
-                            {imageURLs.map((url, i) => (
-                            <div className='relative'>
-                                <Image src={url} key={i} width={100} height={100} alt={`image-upload-${i}`}/>
+                            {imageURLs.map((url, i = self.crypto.randomUUID()) => (
+                            <div className='relative' key={i}>
+                                <Image src={url} width={100} height={100} alt={`image-upload-${i}`}/>
                             </div>
                             ))}
                         </div>
