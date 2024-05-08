@@ -25,6 +25,7 @@ import InfiniteScroll from "react-infinite-scroll-component"
 import NewReport from "./modals/NewReportModal"
 import ReportModal from "./modals/ReportModal"
 import ConfirmModal from "./modals/ConfirmModal"
+import globalStyles from "../styles/globalStyles"
 
 const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) => {
 	const userId = localStorage.getItem("userId")
@@ -45,7 +46,7 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 	// Report modal states
 	const [report, setReport] = useState("")
 	const [reportModalShow, setReportModalShow] = useState(false)
-	const [reportModalId, setReportModalId] = useState(false)
+	const [reportModalId, setReportModalId] = useState("")
 	const [note, setNote] = useState("")
 	const [title, setTitle] = useState("")
 	const [detail, setDetail] = useState()
@@ -370,13 +371,15 @@ const handleUserSendEmail = (reportURI) => {
 		setReportModalShow(true)
 	} // end handleReportModalShow
 
-	// On click of a report list item set it as read.
 	useEffect(() => {
-		if (reportModalShow !== false && reportRead === false) {
+		if (reportModalShow && reportModalId) {
+		// Set report as read since someone clicked on it - so they read it
 			handleChangeRead(reportModalId, true)
+		} else {
+			setReportModalId('')
+			setReportModalShow(false)
 		}
-	}, [reportModalShow])
-	
+	}, [reportModalShow]) // this effect runs when the report modal is opened/closed
 	// list item handle read change
 	const handleChangeRead = async (reportId,checked) => {
 		console.log(reportId, checked)
@@ -612,37 +615,7 @@ const handleUserSendEmail = (reportURI) => {
 			reportsUnsubscribe()
 		}
 	}, [])
-	const dateOptions = {
-		day: "2-digit",
-		year: "numeric",
-		month: "short",
-		hour: "numeric",
-		minute: "numeric",
-	}
-	// Styles
-	const tableHeading = {
-		default: "px-3 py-1 text-sm font-semibold text-left tracking-wide",
-		default_center: "text-center p-2 text-sm font-semibold tracking-wide",
-		small: "",
-	}
-	const column = {
-		data: "whitespace-normal text-sm px-3 py-1 cursor-pointer",
-		data_center:
-			"whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 cursor-pointer text-center",
-	}
-	const label = {
-		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
-		special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl",
-	}
-	const style = {
-		icon: "hover:fill-cyan-700",
-	}
-	const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
-	const linkStyle = "font-light mb-1 text-sm underline underline-offset-1"
-	// Styling for dismiss button after refreshing reports section
-	const active =
-		"rounded-lg bg-blue-600 text-white py-1 px-2 drop-shadow-lg text-sm font-light tracking-wide"
-	
+
 	return (
 		<div className='flex flex-col h-full'>
 			<div className='flex flex-col md:flex-row py-5 md:justify-between'>
@@ -695,7 +668,7 @@ const handleUserSendEmail = (reportURI) => {
 							<div>
 								<span className='px-1'>Reports up to date.</span>
 								<button
-									className={active}
+									className={globalStyles.button.sm}
 									onClick={() => setReportsUpdated(false)}>
 									Dismiss
 								</button>
@@ -780,28 +753,28 @@ const handleUserSendEmail = (reportURI) => {
 				<table className='min-w-full bg-white rounded-xl p-1'>
 					<thead className='border-b dark:border-indigo-100 bg-slate-100'>
 						<tr>
-							<th scope='col' className={tableHeading.default}>
+							<th scope='col' className={globalStyles.tableHeading.default}>
 								Title
 							</th>
-							<th scope='col' className={tableHeading.default_center}>
+							<th scope='col' className={globalStyles.tableHeading.default_center}>
 								Date/Time
 							</th>
-							<th scope='col' className={tableHeading.default_center}>
+							<th scope='col' className={globalStyles.tableHeading.default_center}>
 								Candidates
 							</th>
-							<th scope='col' className={tableHeading.default_center}>
+							<th scope='col' className={globalStyles.tableHeading.default_center}>
 								Topic Tags
 							</th>
-							<th scope='col' className={tableHeading.default_center}>
+							<th scope='col' className={globalStyles.tableHeading.default_center}>
 								Sources
 							</th>
-							<th scope='col' className={tableHeading.default_center}>
+							<th scope='col' className={globalStyles.tableHeading.default_center}>
 								Labels
 							</th>
 							<th
 								scope='col'
 								colSpan={2}
-								className={tableHeading.default_center}>
+								className={globalStyles.tableHeading.default_center}>
 								Read/Unread
 							</th>
 						</tr>
@@ -818,7 +791,7 @@ const handleUserSendEmail = (reportURI) => {
 								// console.log(report)
 								const posted = report["createdDate"]
 									.toDate()
-									.toLocaleString("en-US", dateOptions)
+									.toLocaleString("en-US", globalStyles.dateOptions)
 									.replace(/,/g, "")
 									.replace("at","")
 								const reportId = Object.values(reportObj)[1]
@@ -830,14 +803,14 @@ const handleUserSendEmail = (reportURI) => {
 										}
 										className='border-b transition duration-300 ease-in-out hover:bg-indigo-100 dark:border-indigo-100 dark:hover:bg-indigo-100'
 										key={key}>
-										<td scope='row' className={column.data}>
+										<td scope='row' className={globalStyles.column.data}>
 											{report.title}
 										</td>
-										<td className={column.data_center}>{posted}</td>
-										<td className={column.data_center}>-</td>
-										<td className={column.data_center}>{report.topic}</td>
-										<td className={column.data_center}>{report.hearFrom}</td>
-										<td className={column.data_center}>
+										<td className={globalStyles.column.data_center}>{posted}</td>
+										<td className={globalStyles.column.data_center}>-</td>
+										<td className={globalStyles.column.data_center}>{report.topic}</td>
+										<td className={globalStyles.column.data_center}>{report.hearFrom}</td>
+										<td className={globalStyles.column.data_center}>
 											{/* Change label tooltip */}
 											{/* <ReactTooltip
 													id="labelTooltip"
@@ -847,14 +820,14 @@ const handleUserSendEmail = (reportURI) => {
 													delayShow={500}
 												/> */}
 											<div
-												className={!report.label ? label.default : label.special}
+												className={!report.label ? globalStyles.label.default : globalStyles.label.special}
 												data-tip='Change label'
 												data-for='labelTooltip'>
 												{report.label || "None"}
 											</div>
 										</td>
 										<td
-											className={column.data_center}
+											className={globalStyles.column.data_center}
 											onClick={(e) => e.stopPropagation()}>
 											
 											<Switch
@@ -877,7 +850,7 @@ const handleUserSendEmail = (reportURI) => {
 													handleReportDelete(reportId)
 												}
 												data-tip='Delete report'
-												className={style.icon}>
+												className={globalStyles.icon.hover}>
 												<IoTrash
 													size={20}
 													className='ml-4 fill-gray-400 hover:fill-red-600'
