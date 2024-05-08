@@ -53,5 +53,5 @@ public/worker-*.js.map
 # extensions
 extensions/*
 functions/.runtimeconfig.json
-# functions/sendgrid.env
+functions/sendgrid.env
 functions/node_modules
