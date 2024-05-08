@@ -40,6 +40,8 @@ const ReportModal = ({
 	onNoteChange,
 	onReportDelete,
 	changeStatus,
+	// send email
+	onUserSendEmail,
 	reportModalId,
 }) => {
 	const style = {
@@ -77,9 +79,9 @@ const ReportModal = ({
 		uri += reportURI
 		window.open(uri)
 	}
-	useEffect(() => {
-		console.log(report)
-	}, [])
+	// useEffect(() => {
+	// 	console.log(report)
+	// }, [])
 	
 	return (
 		<div
@@ -357,7 +359,7 @@ const ReportModal = ({
 								{/* Share */}
 								<button
 									className='flex flex-row text-sm bg-white px-4 mb-4 border-none text-black py-1 rounded-md shadow hover:shadow-none tooltip-share-report'
-									onClick={SendLinkByMail}
+									onClick={() => onUserSendEmail(`dashboard${reportURI}`)}
 									type='button'>
 									<BsShareFill className='my-1' size={15} />
 									<div className='px-3 py-1'>Share The Report</div>
