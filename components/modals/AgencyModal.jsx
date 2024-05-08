@@ -304,11 +304,11 @@ const handleImageChange = (e) => {
                         </p>
                         ) : null}
                       <button onClick={handleAddAgencyUsers} className={style.modal_form_button} type="submit">Add agency user</button>
-                      {/* {sendEmail && 
+                      {sendEmail && 
                         <div className="flex py-2">
                           <p className={style.modal_notification_text}>{sendEmail}</p>                       
                           <span><button onClick={()=>setSendEmail("")} className={style.modal_dismiss_button} type="submit">Dismiss</button></span>
-                        </div>} */}
+                        </div>}
 
               </div>
 

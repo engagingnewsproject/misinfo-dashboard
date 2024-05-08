@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 import Switch from "react-switch"
 import ButtonEmailSend from "../partials/ButtonEmailSend"
+import ShareReportModal from "../partials/modals/ShareReportModal"
 import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"
 import Link from "next/link"
 import Image from "next/image"
@@ -14,7 +15,7 @@ import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
 import { MdOutlineLocalPhone } from "react-icons/md";
 
 import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
-
+import { useTranslation } from 'next-i18next';
 const ReportModal = ({
 	// reportModalShow,
 	setReportModalShow,
@@ -42,7 +43,7 @@ const ReportModal = ({
 	onReportDelete,
 	changeStatus,
 	// send email
-	onUserSendEmail,
+	onButtonEmailSendClick,
 	reportModalId,
 }) => {
 	const style = {
@@ -60,29 +61,28 @@ const ReportModal = ({
 		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
 		special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl",
 	}
-
+	const {t} = useTranslation("ShareReport")
 	const reportURI = "/reports/" + reportModalId
 	const [images,setImages] = useState([])
-	// const [isReportRead, setIsReportRead] = useState(reportRead || false);
-
-	// useEffect(() => {
-	// 	setImages(report['images'])
-	// 	// console.log(images)
-	// }, [reportModalShow])
-	// function SendLinkByMail(href) {
-	// 	var subject = "Misinformation Report"
-	// 	var body = "Link to report:\r\n"
-	// 	body += window.location.href
-	// 	var uri = "mailto:?subject="
-	// 	uri += encodeURIComponent(subject)
-	// 	uri += "&body="
-	// 	uri += encodeURIComponent(body)
-	// 	uri += reportURI
-	// 	window.open(uri)
-	// }
-	// useEffect(() => {
-	// 	console.log(report)
-	// }, [])
+	const [shareReportModal, setShareReportModal] = useState(false)
+	const [email,setEmail] = useState()
+	
+	const handleShareModal = () => {
+		setShareReportModal(true)
+	}
+		// Function to handle email change
+	const handleEmailShareReport = (e) => {
+		e.preventDefault()
+		setEmail(e.target.value)
+	}
+	const handleShareReport = (e) => {
+		e.preventDefault()
+    const uri = `mailto:${email}`;
+    window.open(uri);
+	}
+	useEffect(() => {
+		console.log(email)
+	}, [email])
 	
 	return (
 		<div
@@ -358,7 +358,7 @@ const ReportModal = ({
 									)}
 								</div>
 								{/* Share */}
-								<ButtonEmailSend onUserSendEmail={() => onUserSendEmail(reportURI)} />
+								<ButtonEmailSend onButtonEmailSendClick={() => setShareReportModal(true)} />
 								{/* <button
 									className='flex flex-row text-sm bg-white px-4 mb-4 border-none text-black py-1 rounded-md shadow hover:shadow-none tooltip-share-report'
 									onClick={() => onUserSendEmail(`${reportURI}`)}
@@ -402,6 +402,17 @@ const ReportModal = ({
 					</form>
 				</div>
 			</div>
+			{shareReportModal && (
+				<ShareReportModal
+					func={handleShareModal}
+					title={t("shareReport")}
+					subtitle='Subtitle example text'
+					CTA={t("share")}
+					closeModal={setShareReportModal}
+					onEmailChange={handleEmailShareReport}
+					onSubmit={handleShareReport}
+				/>
+			)}
 		</div>
 	)
 }
