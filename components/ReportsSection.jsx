@@ -322,17 +322,12 @@ const ReportsSection = ({ search, newReportSubmitted, handleNewReportSubmit }) =
 		setReadFilter(e.target.value)
 	}
 
-function handleUserSendEmail(href) {
-    console.log(`share report btnClick ${href}`);
-    var subject = "Misinformation Report";
-    var body = "Link to report:\r\n" + window.location.href;
-
-    // Construct the mailto URI
-    var uri = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
-
-    // Open the user's email client
-    window.location.href = uri;
-}
+const handleUserSendEmail = (reportURI) => {
+    const subject = "Misinfo Report";
+    const body = `Link to report:\n${reportURI}`;
+    const uri = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(uri);
+};
 
 
 	const handleNewReportModal = (e) => {

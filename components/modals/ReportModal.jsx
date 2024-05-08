@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react"
 import Switch from "react-switch"
+import ButtonEmailSend from "../partials/ButtonEmailSend"
 import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"
 import Link from "next/link"
 import Image from "next/image"
@@ -7,7 +8,7 @@ import {Tooltip} from "react-tooltip";
 // icons
 import { RiMessage2Fill } from "react-icons/ri"
 import { BiEditAlt } from "react-icons/bi"
-import { BsShareFill } from "react-icons/bs"
+// import { BsShareFill } from "react-icons/bs"
 import { BiLinkExternal } from "react-icons/bi";
 import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
 import { MdOutlineLocalPhone } from "react-icons/md";
@@ -68,17 +69,17 @@ const ReportModal = ({
 	// 	setImages(report['images'])
 	// 	// console.log(images)
 	// }, [reportModalShow])
-	function SendLinkByMail(href) {
-		var subject = "Misinformation Report"
-		var body = "Link to report:\r\n"
-		body += window.location.href
-		var uri = "mailto:?subject="
-		uri += encodeURIComponent(subject)
-		uri += "&body="
-		uri += encodeURIComponent(body)
-		uri += reportURI
-		window.open(uri)
-	}
+	// function SendLinkByMail(href) {
+	// 	var subject = "Misinformation Report"
+	// 	var body = "Link to report:\r\n"
+	// 	body += window.location.href
+	// 	var uri = "mailto:?subject="
+	// 	uri += encodeURIComponent(subject)
+	// 	uri += "&body="
+	// 	uri += encodeURIComponent(body)
+	// 	uri += reportURI
+	// 	window.open(uri)
+	// }
 	// useEffect(() => {
 	// 	console.log(report)
 	// }, [])
@@ -357,9 +358,10 @@ const ReportModal = ({
 									)}
 								</div>
 								{/* Share */}
-								<button
+								<ButtonEmailSend onUserSendEmail={() => onUserSendEmail(reportURI)} />
+								{/* <button
 									className='flex flex-row text-sm bg-white px-4 mb-4 border-none text-black py-1 rounded-md shadow hover:shadow-none tooltip-share-report'
-									onClick={() => onUserSendEmail(`dashboard${reportURI}`)}
+									onClick={() => onUserSendEmail(`${reportURI}`)}
 									type='button'>
 									<BsShareFill className='my-1' size={15} />
 									<div className='px-3 py-1'>Share The Report</div>
@@ -369,7 +371,7 @@ const ReportModal = ({
 										delayShow={500}>
 										Share Report
 									</Tooltip>
-								</button>
+								</button> */}
 								{/* Save button */}
 								<div className='flex items-center justify-between justify-items-stretch'>
 									<div className='save-button w-full'>
