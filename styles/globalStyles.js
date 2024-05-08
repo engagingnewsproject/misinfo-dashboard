@@ -28,6 +28,13 @@ const globalStyles = {
   linkStyle: "font-light mb-1 text-sm underline underline-offset-1",
   button: {
     sm: "rounded-lg bg-blue-600 text-white py-1 px-2 drop-shadow-lg text-sm font-light tracking-wide",
+  },
+  page: {
+    wrap: "w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto"
+  },
+  heading: {
+    h1: "text-2xl font-extrabold text-blue-600 tracking-wider",
+    h2: "text-xl font-extrabold text-blue-600 tracking-wider"
   }
 };
 

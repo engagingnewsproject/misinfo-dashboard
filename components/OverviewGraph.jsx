@@ -1,7 +1,7 @@
 /* Displays pie chart for the trending topics from the past day, three days, and seven days. */
 import React from 'react'
 import { Chart } from "react-google-charts";
-
+import globalStyles from '../styles/globalStyles';
 const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayReports, numTopics}) => {
   
   // console.log(numTopics)
@@ -30,7 +30,7 @@ const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayRepor
   };
   return (
   <div>
-  <div className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">{getTodayDate()} Trending Topics</div>
+  <div className={`${globalStyles.heading.h1} text-center`}>{getTodayDate()} Trending Topics</div>
     <div className="grid grid-cols-1 grid-rows-3 mt-3 gap-y-4 md:grid md:grid-cols-3 md:grid-rows-1 md:mt-3 md:gap-x-4">
       <div className="col-span-1 bg-white rounded-xl mt-3 pr-2">
         <h1 className="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Yesterday's Reports</h1>
