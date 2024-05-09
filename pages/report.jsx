@@ -41,7 +41,7 @@ const Report = () => {
 
   const [userData, setUserData] = useState(null)
   const [locationModal, setLocationModal] = useState(false)
-	
+  
 	const handleChangeCheckbox = (e) => {
 			setDisableReminder(e.target.checked)
 	}
@@ -55,21 +55,28 @@ const Report = () => {
 	}
 
 	const handleReportSystemPrevStep = () => {
+		
 			if (reminderShow == false && reportSystem <= 2) {
-			setReportSystem(reportSystem == 0)         
+				setReportSystem(reportSystem == 0)         
 			} else{
-					setReportSystem(reportSystem - 1)
+				setReportSystem(reportSystem - 1)
 			}
 	}
 	
 	const handleReportStartClick = () => {
 			disableReminder ? setReportSystem(2) : setReportSystem(1)
-	}
-	
-	const handleReportTabClick = () => {
-		setTab(0) // TODO: need to force this 
-		}
+  }
   
+  const handleReportTabClick = () => {
+    if (reportSystem > 0) {
+      setReportSystem(0)
+      setTab(0)
+    } else {
+      setTab(0)
+    }
+    // TODO: need to figure out how to save the report progress 
+    // if a user clicks a link in the nav.
+  }
 	useEffect(() => {
     getDoc(doc(db, "mobileUsers", user.accountId)).then((mobileRef) => {
       setUserData(mobileRef.data())
@@ -117,7 +124,7 @@ const Report = () => {
 
   return (
 		<div className={style.pageContainer}>
-			<Navbar tab={tab} setTab={setTab} onReportTabClick={handleReportTabClick}/>
+			<Navbar tab={tab} setTab={setTab} onReportTabClick={handleReportTabClick} reportSystem={reportSystem} />
 			<div className={style.container}>
 				<div className={style.wrapper}>
 					<Headbar  />
@@ -136,7 +143,7 @@ const Report = () => {
 							onReportSystemPrevStep={handleReportSystemPrevStep}
 							disableReminder={disableReminder}
 							/> }
-						{tab == 0 && reportSystem > 0 && 
+						{tab == 0 && reportSystem >= 0 && 
 						<ReportSystem 
 							reportSystem={reportSystem} 
 							setReportSystem={setReportSystem}
