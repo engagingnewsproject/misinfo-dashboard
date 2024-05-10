@@ -10,6 +10,7 @@ import { AiOutlineFieldTime } from 'react-icons/ai'
 import SwitchRead from "../../../components/SwitchRead"
 import Link from "next/link"
 import Image from 'next/image';
+import globalStyles from '../../../styles/globalStyles';
 
 const ReportDetails = () => {
 	const userId = localStorage.getItem("userId")
@@ -23,7 +24,6 @@ const ReportDetails = () => {
 	const [activeLabels, setActiveLabels] = useState([])
 
 	const { reportId } = router.query
-	const headerStyle = "text-lg font-bold text-black tracking-wider mb-4"
 	const linkStyle = "font-light mb-1 text-sm underline underline-offset-1"
 
   // console.log('current URL 👉️', window.location.href);
@@ -117,7 +117,7 @@ const ReportDetails = () => {
 			<div className="grid grid-cols-2 gap-24">
 				<div className="left-side">
 					<div className="mb-2">
-						<div className={headerStyle}>Title</div>
+						<h6 className={`${globalStyles.heading.h2.black} mb-2`}>Title</h6>
             <div className="text-sm bg-white rounded-xl p-4">{info['title'] || <span className="italic text-gray-400">No Title</span>}</div>
 						</div>
           { reporterInfo &&
@@ -127,7 +127,7 @@ const ReportDetails = () => {
 							</div>
           </div>}
 					<div className="mb-8">
-						<div className={headerStyle}>Label</div>
+						<div className={globalStyles.heading.h2.black}>Label</div>
             <select id="labels" onChange={(e) => handleLabelChanged(e)} defaultValue={selectedLabel} className="text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none">
               <option value={selectedLabel ? selectedLabel : "none"}>{selectedLabel ? selectedLabel : 'Choose a label'}</option>
               {activeLabels.filter(label => label != selectedLabel).map((label, i) => {
@@ -158,7 +158,7 @@ const ReportDetails = () => {
 						</div>
 					</div>
 					<div className="mb-8">
-						<div className={headerStyle}>Link to the Information</div>
+						<div className={`${globalStyles.heading.h2.black} mb-2`}>Link to the Information</div>
 						<div className="flex flex-col">
               {info['link'] && <a className={linkStyle} target="_blank" rel="noreferrer" href={"//" + info['link']}>{info['link']}</a>}
               {info['secondLink'] && <a className={linkStyle} target="_blank" rel="noreferrer" href={"//" + info['secondLink']}>{info['secondLink']}</a>}
@@ -166,13 +166,13 @@ const ReportDetails = () => {
 						</div>
 					</div>
 					<div>
-						<div className={headerStyle}>Description</div>
+						<div className={`${globalStyles.heading.h2.black} mb-2`}>Description</div>
             <div className="font-light overflow-auto max-h-32">{info['detail']}</div>
 					</div>
 				</div>
 				<div className="right-side">
 					<div>
-						<div className={headerStyle}>Newsroom's Notes</div>
+						<div className={`${globalStyles.heading.h2.black} mb-2`}>Newsroom's Notes</div>
 						<textarea
 							id="notes"
 							onChange={handleNotesChange}
@@ -192,7 +192,7 @@ const ReportDetails = () => {
             </div>}
 					</div>
 					<div className="w-full mb-12">
-						<div className={headerStyle}>Images</div>
+						<div className={`${globalStyles.heading.h2.black} mb-2`}>Images</div>
 						{console.log(info['images'])}
             {info['images'] && info['images'][0] ?
 							<div className="flex">
