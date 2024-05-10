@@ -13,7 +13,7 @@ const Settings = () => {
     <div>
       {tagSystem == 0 ?
       <div className="z-0 flex-col p-16">
-        <div className={globalStyles.heading.h1}>Tagging Systems</div>
+        <div className={globalStyles.heading.h1.blue}>Tagging Systems</div>
         <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">Topic Tags</div>
             <button

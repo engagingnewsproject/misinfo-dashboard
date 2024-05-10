@@ -30,7 +30,7 @@ const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayRepor
   };
   return (
   <div>
-  <div className={`${globalStyles.heading.h1} text-center`}>{getTodayDate()} Trending Topics</div>
+  <div className={`${globalStyles.heading.h1.blue} text-center`}>{getTodayDate()} Trending Topics</div>
     <div className="grid grid-cols-1 grid-rows-3 mt-3 gap-y-4 md:grid md:grid-cols-3 md:grid-rows-1 md:mt-3 md:gap-x-4">
       <div className="col-span-1 bg-white rounded-xl mt-3 pr-2">
         <h1 className="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Yesterday's Reports</h1>

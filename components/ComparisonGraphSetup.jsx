@@ -104,7 +104,7 @@ const ComparisonGraphSetup = () => {
 
   return (
     <div className="relative h-full lg:h-1/2">
-      <h1 className={`${globalStyles.heading.h1} text-center`}>Compare Topic Reports</h1>
+      <h1 className={`${globalStyles.heading.h1.blue} text-center`}>Compare Topic Reports</h1>
               {/* Initial screen that appears when user selects the comparison view. Allows user to select three topics. */}
             {tab == 0 && 
               <div className="flex items-center justify-center md:ml-12">

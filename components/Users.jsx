@@ -439,7 +439,7 @@ const Users = () => {
 						) : (
 							<span className='text-xs'>All Agency</span>
 						)}
-						<div className={globalStyles.heading.h1}>
+						<div className={globalStyles.heading.h1.blue}>
 							Users
 						</div>
 					</div>
