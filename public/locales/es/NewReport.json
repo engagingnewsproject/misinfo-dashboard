@@ -15,7 +15,7 @@
   "detail": "Detalles",
   "detailDescription":
     "Por favor, especifique lo más que pueda. Necesitamos por lo menos: un enlace, una foto o una descripción detallada.",
-  "link": "Enlace",
+  "linkFirst": "Enlace",
   "links": "Enlaces",
   "image_text": "Imágenes",
   "linkSecond":"Enlace",

@@ -461,7 +461,7 @@ const handleDelete = async () => {
 	return (
 		<div className={`${customClaims === null ? globalStyles.page.wrap : globalStyles.page.wrap + ' md:p-12'}`}>
 			<div className={style.sectionWrapper}>
-				<div className={globalStyles.heading.h1}>{t('account')}</div>
+				<div className={globalStyles.heading.h1.blue}>{t('account')}</div>
 				{isAgency && ( // agency user will see the agency row
 					<div className='flex justify-between mx-6 my-6 tracking-normal items-center'>
 						<div className='font-light'>
