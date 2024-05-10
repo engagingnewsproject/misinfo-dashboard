@@ -616,7 +616,7 @@ const handleDelete = async () => {
 									<div className='col-span-3 grid grid-cols-8 items-center bg-white rounded-md px-3'>
 										<div
 											className={`col-span-8 ${
-												editLocation === false
+												editLocation === true
 													? " visible relative"
 													: " hidden absolute"
 											}`}
