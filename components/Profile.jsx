@@ -57,7 +57,7 @@ const Profile = ({ customClaims }) => {
 	const [agencyState, setAgencyState] = useState(null)
 	const [agencyCity, setAgencyCity] = useState(null)
 
-	const [editLocation, setEditLocation] = useState(false)
+	const [editLocation, setEditLocation] = useState(true)
 	const [location, setLocation] = useState([])
 	const [data, setData] = useState({ country: "US", state: null, city: null })
 	const [isSearchable, setIsSearchable] = useState(true)
