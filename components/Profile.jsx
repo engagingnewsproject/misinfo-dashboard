@@ -616,7 +616,7 @@ const handleDelete = async () => {
 									<div className='col-span-3 grid grid-cols-8 items-center bg-white rounded-md px-3'>
 										<div
 											className={`col-span-8 ${
-												editLocation === true
+												editLocation === false
 													? " visible relative"
 													: " hidden absolute"
 											}`}
@@ -642,7 +642,7 @@ const handleDelete = async () => {
 											getOptionLabel={(options) => {
 												return options["name"]
 											}}
-											// isDisabled={editLocation === true ? `false` : `true`}
+											isDisabled={editLocation === true ? `false` : `true`}
 											getOptionValue={(options) => {
 												return options["name"]
 											}}
