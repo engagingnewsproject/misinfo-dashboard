@@ -28,7 +28,11 @@ import Select from "react-select"
 import { useTranslation } from "next-i18next"
 import { RiPrinterLine } from "react-icons/ri"
 import ConfirmModal from "./modals/ConfirmModal"
-import { IoMdRefresh, IoIosInformationCircle } from "react-icons/io"
+import {
+	IoMdRefresh,
+	IoIosInformationCircle,
+	IoMdCheckmark,
+} from "react-icons/io"
 import { Tooltip } from "react-tooltip"
 import globalStyles from "../styles/globalStyles"
 
@@ -470,443 +474,438 @@ const ReportSystem = ({
 							{t("start")}
 						</button>
 						{/* DO NOT SHOW AGAIN CHECKBOX */}
-						<div class="inline-flex items-center">
-  <label class="relative flex items-center p-3 rounded-full cursor-pointer" htmlFor="check">
-    <input type="checkbox"
-      class="before:content[''] peer relative h-5 w-5 cursor-pointer appearance-none rounded-md border border-blue-gray-200 transition-all before:absolute before:top-2/4 before:left-2/4 before:block before:h-12 before:w-12 before:-translate-y-2/4 before:-translate-x-2/4 before:rounded-full before:bg-blue-gray-500 before:opacity-0 before:transition-opacity checked:border-gray-900 checked:bg-gray-900 checked:before:bg-gray-900 hover:before:opacity-10"
-      id="check" />
-    <span
-      class="absolute text-white transition-opacity opacity-0 pointer-events-none top-2/4 left-2/4 -translate-y-2/4 -translate-x-2/4 peer-checked:opacity-100">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"
-        stroke="currentColor" stroke-width="1">
-        <path fill-rule="evenodd"
-          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-          clip-rule="evenodd"></path>
-      </svg>
-    </span>
-  </label>
-  <label class="mt-px font-light text-gray-700 cursor-pointer select-none" htmlFor="check">
-    Remember Me
-  </label>
-</div> 
-						<div className='flex items-center justify-center gap-2'>
-							<input
-								onChange={onChangeCheckbox}
-								checked={disableReminder}
-								type='checkbox'
-								id='noShow'
-								name='noShow'
-							/>
-							<label htmlFor='noShow'>{t("noShow")}</label>
+						<div className='inline-flex items-center'>
+							<label
+								className='relative flex items-center p-3 rounded-full cursor-pointer'
+								htmlFor='check'>
+								<input
+									className="before:content[''] peer relative h-5 w-5 cursor-pointer appearance-none rounded-md border border-blue-gray-200 transition-all before:absolute before:top-2/4 before:left-2/4 before:block before:h-12 before:w-12 before:-translate-y-2/4 before:-translate-x-2/4 before:rounded-full before:bg-blue-gray-500 before:opacity-0 before:transition-opacity checked:border-gray-900 checked:bg-gray-900 checked:before:bg-gray-900 hover:before:opacity-10"
+									onChange={onChangeCheckbox}
+									checked={disableReminder}
+									type='checkbox'
+									id='noShow'
+									name='noShow'
+								/>
+								<span className='absolute text-white transition-opacity opacity-0 pointer-events-none top-2/4 left-2/4 -translate-y-2/4 -translate-x-2/4 peer-checked:opacity-100'>
+									<IoMdCheckmark />
+								</span>
+							</label>
+							<label
+								className='mt-px font-light text-gray-700 cursor-pointer select-none'
+								htmlFor='noShow'>
+								{t("noShow")}
+							</label>
 						</div>
 					</div>
 				)}
 			</>
-			{reportSystem >= 2 &&
-			<div className={globalStyles.form.wrap}>
-				<form
-					onChange={handleChange}
-					onSubmit={handleNewReport}
-					className={globalStyles.form.element}
-					ref={formRef}>
-					<>
-						{/* Agency */}
-						{reportSystem == 2 && (
-							<div className={globalStyles.form.viewWrapper}>
-								<div className={style.sectionH1}>{t("which_agency")}</div>
-								{agencies.length == 0 && t("noAgencies")}
-								{agencies.map((agency, i = self.crypto.randomUUID()) => (
-									<>
-										<label
-											key={i}
-											className={
-												agency === selectedAgency
-													? globalStyles.button.md_selected
-													: globalStyles.button.md
-											}>
-											{/* Agency Input */}
-											<input
-												className='absolute opacity-0'
-												id='agency'
-												type='radio'
-												checked={selectedAgency === agency}
-												onChange={(e) => setSelectedAgency(e.target.value)}
-												value={agency}
-											/>
-											{agency}
-										</label>
-									</>
-								))}
-								{errors.agency && selectedAgency === "" && (
-									<span className='text-red-500'>{errors.agency}</span>
-								)}
-								{selectedAgency != "" && (
-									<button
-										onClick={() => setReportSystem(reportSystem + 1)}
-										className={`${globalStyles.icon_wrap} self-end`}>
-										<BiRightArrowCircle
-											size={40}
-											className={globalStyles.icon.filled}
-										/>
-									</button>
-								)}
-							</div>
-						)}
-						{/* Topic tag */}
-						{reportSystem == 3 && (
-							<div className={globalStyles.form.viewWrapper}>
-								<div className={style.sectionH1}>{t("about")}</div>
-								{[
-									...allTopicsArr.filter((topic) => topic !== "Other"),
-									...allTopicsArr.filter((topic) => topic === "Other"),
-								].map((topic, i = self.crypto.randomUUID()) => (
-									<>
-										<label
-											key={i}
-											className={
-												topic === selectedTopic
-													? globalStyles.button.md_selected
-													: globalStyles.button.md
-											}>
-											{/* Topic Tag Input */}
-											<input
-												className='absolute opacity-0'
-												id='topic'
-												type='radio'
-												checked={selectedTopic === topic}
-												onChange={
-													// create a custom function
-													// (e) => setSelectedTopic(e.target.value)
-													handleTopicChange
-												}
-												value={topic}
-											/>
-											{t("topics." + topic)}
-										</label>
-									</>
-								))}
-								{errors.topic && selectedTopic === "" && (
-									<span className='text-red-500'>{errors.topic}</span>
-								)}
-								{showOtherTopic && (
-									<div className=''>
-										<div className='text-zinc-500'>{t("custom_topic")}</div>
-										<input
-											id='topic-other'
-											className='rounded shadow-md border-zinc-400 w-full'
-											type='text'
-											placeholder={t("specify_topic")}
-											onChange={handleOtherTopicChange}
-											value={otherTopic}
-											style={{ fontSize: "14px" }}
-										/>
-									</div>
-								)}
-								{selectedTopic != "" && (
-									<button
-										onClick={() => setReportSystem(reportSystem + 1)}
-										className={`${globalStyles.icon_wrap} self-end`}>
-										<BiRightArrowCircle
-											size={40}
-											className={globalStyles.icon.filled}
-										/>
-									</button>
-								)}
-							</div>
-						)}
-						{/* Source tag */}
-						{reportSystem == 4 && (
-							<div className={globalStyles.form.viewWrapper}>
-								<div className={style.sectionH1}>{t("where")}</div>
-								{[
-									...sources.filter((source) => source !== "Other"),
-									...sources.filter((source) => source === "Other"),
-								].map((source, i = self.crypto.randomUUID()) => (
-									<>
-										<label
-											key={i}
-											className={
-												source === selectedSource
-													? globalStyles.button.md_selected
-													: globalStyles.button.md
-											}>
-											{/* Source tag input */}
-											<input
-												className='absolute opacity-0'
-												id='source'
-												type='radio'
-												checked={selectedSource === source}
-												onChange={handleSourceChangeOther}
-												value={source}
-											/>
-											{console.log(source)}
-											{t("sources." + source)}
-										</label>
-									</>
-								))}
-								{errors.source && selectedSource === "" && (
-									<span className='text-red-500'>{errors.source}</span>
-								)}
-								{showOtherSource && (
-									<div className=''>
-										<div className='text-zinc-500'>{t("custom_source")}</div>
-										<input
-											id='topic-other'
-											className='rounded shadow-md border-zinc-400 w-full'
-											type='text'
-											placeholder='Please specify the source.'
-											onChange={handleOtherSourceChange}
-											value={otherSource}
-											style={{ fontSize: "14px" }}
-										/>
-									</div>
-								)}
-								{selectedSource != "" && (
-									<button
-										onClick={() => setReportSystem(reportSystem + 1)}
-										className={`${globalStyles.icon_wrap} self-end`}>
-										<BiRightArrowCircle
-											size={40}
-											className={globalStyles.icon.filled}
-										/>
-									</button>
-								)}
-							</div>
-						)}
-						{/* TODO: add agency dropdown */}
-						{/* Details */}
-						{reportSystem == 5 && (
-							<div className='flex flex-col gap-6 mb-1'>
-								<h1 className={globalStyles.heading.h1.black}>
-									{t("share")}
-								</h1>
-								{/* DESCRIPTION - details */}
-								<>
-									<h6 className={globalStyles.form.input_title}>
-										{t("detail")}
-									</h6>
-									<p className={globalStyles.p.default}>
-										{t("detailDescription")}
-									</p>
-								</>
-								{/* TITLE */}
-								<>
-									<h6 className={globalStyles.form.input_title}>
-										{t("title_text")}
-									</h6>
-									<div class='block'>
-										<div className={globalStyles.form.input_wrap}>
-											<input
-												id='title'
-												type='text'
-												className={globalStyles.input.input}
-												placeholder=' '
-												onChange={(e) => setTitle(e.target.value)}
-												value={title}
-											/>
-											<label className={globalStyles.input.label}>
-												{t("briefly")}
-											</label>
-										</div>
-										<p className={globalStyles.input.hint}>
-											<IoIosInformationCircle />
-											{t("provide_title")} <br />
-											{t("max")}
-										</p>
-									</div>
-								</>
-								{/* LINKS */}
-								<>
-									<h6 className={globalStyles.form.input_title}>
-										{t("links")}
-									</h6>
-									{/* Link 01 */}
-									<div class='block'>
-										<div
-											className={`${globalStyles.form.input_wrap} flex flex-col gap-2`}>
-											<input
-												className={globalStyles.input.input}
-												id='link'
-												type='text'
-												placeholder=' '
-												onChange={(e) => setLink(e.target.value)}
-												value={link}
-											/>
-											<label className={globalStyles.input.label}>
-												{t("linkFirst")}
-											</label>
-											{/* Link 02 */}
-											{link && (
-												<div className='relative h-10 w-full min-w-[200px]'>
-													<input
-														className={globalStyles.input.input}
-														id='secondLink'
-														type='text'
-														placeholder=' '
-														onChange={(e) => setSecondLink(e.target.value)}
-														value={secondLink}
-													/>
-													<label className={globalStyles.input.label}>
-														{t("linkFirst")}
-													</label>
-												</div>
-											)}
-										</div>
-										{/* Link 01 - info subtext */}
-										<p className={globalStyles.input.hint}>
-											<IoIosInformationCircle />
-											Example: https://
-										</p>
-									</div>
-								</>
-								{/* IMAGE UPLOAD */}
-								<>
-									<h6 className={globalStyles.form.input_title}>
-										{t("image")}
-									</h6>
-									<div className='block'>
-										<div className={globalStyles.form.input_wrap}>
-											<label className='block'>
-												<span className='sr-only'>{t("choose_files")}</span>
+			{reportSystem >= 2 && (
+				<div className={globalStyles.form.wrap}>
+					<form
+						onChange={handleChange}
+						onSubmit={handleNewReport}
+						className={globalStyles.form.element}
+						ref={formRef}>
+						<>
+							{/* Agency */}
+							{reportSystem == 2 && (
+								<div className={globalStyles.form.viewWrapper}>
+									<div className={style.sectionH1}>{t("which_agency")}</div>
+									{agencies.length == 0 && t("noAgencies")}
+									{agencies.map((agency, i = self.crypto.randomUUID()) => (
+										<>
+											<label
+												key={i}
+												className={
+													agency === selectedAgency
+														? globalStyles.button.md_selected
+														: globalStyles.button.md
+												}>
+												{/* Agency Input */}
 												<input
-													className={style.inputImage}
-													id='multiple_files'
-													type='file'
-													multiple
-													accept='image/*'
-													onChange={handleImageChange}
-													ref={imgPicker}
+													className='absolute opacity-0'
+													id='agency'
+													type='radio'
+													checked={selectedAgency === agency}
+													onChange={(e) => setSelectedAgency(e.target.value)}
+													value={agency}
 												/>
+												{agency}
 											</label>
-										</div>
-										<p className={globalStyles.input.hint}>
-											<IoIosInformationCircle />
-											{t("imageDescription")}
-										</p>
-									</div>
-								</>
-								{/* DESCRIBE IN DETAIL */}
-								<>
-									<h6 className={globalStyles.form.input_title}>{t("detailed")}</h6>
-									<div className='block'>
-										<div className='relative w-full min-w-[200px] mt-3'>
-											<textarea
-												className={style.inputTextarea}
-												id='detail'
-												placeholder=' '
-												onChange={(e) => setDetail(e.target.value)}
-												value={detail}
-												rows='6'></textarea>
-											<label className="before:content[' '] after:content[' '] pointer-events-none absolute left-0 -top-1.5 flex h-full w-full select-none text-[11px] font-normal leading-tight text-blue-gray-400 transition-all before:pointer-events-none before:mt-[6.5px] before:mr-1 before:box-border before:block before:h-1.5 before:w-2.5 before:rounded-tl-md before:border-t before:border-l before:border-blue-gray-200 before:transition-all after:pointer-events-none after:mt-[6.5px] after:ml-1 after:box-border after:block after:h-1.5 after:w-2.5 after:flex-grow after:rounded-tr-md after:border-t after:border-r after:border-blue-gray-200 after:transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:leading-[3.75] peer-placeholder-shown:text-blue-gray-500 peer-placeholder-shown:before:border-transparent peer-placeholder-shown:after:border-transparent peer-focus:text-[11px] peer-focus:leading-tight peer-focus:text-gray-900 peer-focus:before:border-t-2 peer-focus:before:border-l-2 peer-focus:before:border-gray-900 peer-focus:after:border-t-2 peer-focus:after:border-r-2 peer-focus:after:border-gray-900 peer-disabled:text-transparent peer-disabled:before:border-transparent peer-disabled:after:border-transparent peer-disabled:peer-placeholder-shown:text-blue-gray-500">
-												{t("describe")}
+										</>
+									))}
+									{errors.agency && selectedAgency === "" && (
+										<span className='text-red-500'>{errors.agency}</span>
+									)}
+									{selectedAgency != "" && (
+										<button
+											onClick={() => setReportSystem(reportSystem + 1)}
+											className={`${globalStyles.icon_wrap} self-end`}>
+											<BiRightArrowCircle
+												size={40}
+												className={globalStyles.icon.filled}
+											/>
+										</button>
+									)}
+								</div>
+							)}
+							{/* Topic tag */}
+							{reportSystem == 3 && (
+								<div className={globalStyles.form.viewWrapper}>
+									<div className={style.sectionH1}>{t("about")}</div>
+									{[
+										...allTopicsArr.filter((topic) => topic !== "Other"),
+										...allTopicsArr.filter((topic) => topic === "Other"),
+									].map((topic, i = self.crypto.randomUUID()) => (
+										<>
+											<label
+												key={i}
+												className={
+													topic === selectedTopic
+														? globalStyles.button.md_selected
+														: globalStyles.button.md
+												}>
+												{/* Topic Tag Input */}
+												<input
+													className='absolute opacity-0'
+													id='topic'
+													type='radio'
+													checked={selectedTopic === topic}
+													onChange={
+														// create a custom function
+														// (e) => setSelectedTopic(e.target.value)
+														handleTopicChange
+													}
+													value={topic}
+												/>
+												{t("topics." + topic)}
 											</label>
+										</>
+									))}
+									{errors.topic && selectedTopic === "" && (
+										<span className='text-red-500'>{errors.topic}</span>
+									)}
+									{showOtherTopic && (
+										<div className=''>
+											<div className='text-zinc-500'>{t("custom_topic")}</div>
+											<input
+												id='topic-other'
+												className='rounded shadow-md border-zinc-400 w-full'
+												type='text'
+												placeholder={t("specify_topic")}
+												onChange={handleOtherTopicChange}
+												value={otherTopic}
+												style={{ fontSize: "14px" }}
+											/>
 										</div>
-										<p className={globalStyles.textarea.hint}>
-											<IoIosInformationCircle />
-											{t("detailedDescription")}
+									)}
+									{selectedTopic != "" && (
+										<button
+											onClick={() => setReportSystem(reportSystem + 1)}
+											className={`${globalStyles.icon_wrap} self-end`}>
+											<BiRightArrowCircle
+												size={40}
+												className={globalStyles.icon.filled}
+											/>
+										</button>
+									)}
+								</div>
+							)}
+							{/* Source tag */}
+							{reportSystem == 4 && (
+								<div className={globalStyles.form.viewWrapper}>
+									<div className={style.sectionH1}>{t("where")}</div>
+									{[
+										...sources.filter((source) => source !== "Other"),
+										...sources.filter((source) => source === "Other"),
+									].map((source, i = self.crypto.randomUUID()) => (
+										<>
+											<label
+												key={i}
+												className={
+													source === selectedSource
+														? globalStyles.button.md_selected
+														: globalStyles.button.md
+												}>
+												{/* Source tag input */}
+												<input
+													className='absolute opacity-0'
+													id='source'
+													type='radio'
+													checked={selectedSource === source}
+													onChange={handleSourceChangeOther}
+													value={source}
+												/>
+												{console.log(source)}
+												{t("sources." + source)}
+											</label>
+										</>
+									))}
+									{errors.source && selectedSource === "" && (
+										<span className='text-red-500'>{errors.source}</span>
+									)}
+									{showOtherSource && (
+										<div className=''>
+											<div className='text-zinc-500'>{t("custom_source")}</div>
+											<input
+												id='topic-other'
+												className='rounded shadow-md border-zinc-400 w-full'
+												type='text'
+												placeholder='Please specify the source.'
+												onChange={handleOtherSourceChange}
+												value={otherSource}
+												style={{ fontSize: "14px" }}
+											/>
+										</div>
+									)}
+									{selectedSource != "" && (
+										<button
+											onClick={() => setReportSystem(reportSystem + 1)}
+											className={`${globalStyles.icon_wrap} self-end`}>
+											<BiRightArrowCircle
+												size={40}
+												className={globalStyles.icon.filled}
+											/>
+										</button>
+									)}
+								</div>
+							)}
+							{/* TODO: add agency dropdown */}
+							{/* Details */}
+							{reportSystem == 5 && (
+								<div className='flex flex-col gap-6 mb-1'>
+									<h1 className={globalStyles.heading.h1.black}>
+										{t("share")}
+									</h1>
+									{/* DESCRIPTION - details */}
+									<>
+										<h6 className={globalStyles.form.input_title}>
+											{t("detail")}
+										</h6>
+										<p className={globalStyles.p.default}>
+											{t("detailDescription")}
 										</p>
+									</>
+									{/* TITLE */}
+									<>
+										<h6 className={globalStyles.form.input_title}>
+											{t("title_text")}
+										</h6>
+										<div className='block'>
+											<div className={globalStyles.form.input_wrap}>
+												<input
+													id='title'
+													type='text'
+													className={globalStyles.input.input}
+													placeholder=' '
+													onChange={(e) => setTitle(e.target.value)}
+													value={title}
+												/>
+												<label className={globalStyles.input.label}>
+													{t("briefly")}
+												</label>
+											</div>
+											<p className={globalStyles.input.hint}>
+												<IoIosInformationCircle />
+												{t("provide_title")} <br />
+												{t("max")}
+											</p>
+										</div>
+									</>
+									{/* LINKS */}
+									<>
+										<h6 className={globalStyles.form.input_title}>
+											{t("links")}
+										</h6>
+										{/* Link 01 */}
+										<div className='block'>
+											<div
+												className={`${globalStyles.form.input_wrap} flex flex-col gap-2`}>
+												<input
+													className={globalStyles.input.input}
+													id='link'
+													type='text'
+													placeholder=' '
+													onChange={(e) => setLink(e.target.value)}
+													value={link}
+												/>
+												<label className={globalStyles.input.label}>
+													{t("linkFirst")}
+												</label>
+												{/* Link 02 */}
+												{link && (
+													<div className='relative h-10 w-full min-w-[200px]'>
+														<input
+															className={globalStyles.input.input}
+															id='secondLink'
+															type='text'
+															placeholder=' '
+															onChange={(e) => setSecondLink(e.target.value)}
+															value={secondLink}
+														/>
+														<label className={globalStyles.input.label}>
+															{t("linkFirst")}
+														</label>
+													</div>
+												)}
+											</div>
+											{/* Link 01 - info subtext */}
+											<p className={globalStyles.input.hint}>
+												<IoIosInformationCircle />
+												Example: https://
+											</p>
+										</div>
+									</>
+									{/* IMAGE UPLOAD */}
+									<>
+										<h6 className={globalStyles.form.input_title}>
+											{t("image")}
+										</h6>
+										<div className='block'>
+											<div className={globalStyles.form.input_wrap}>
+												<label className='block'>
+													<span className='sr-only'>{t("choose_files")}</span>
+													<input
+														className={style.inputImage}
+														id='multiple_files'
+														type='file'
+														multiple
+														accept='image/*'
+														onChange={handleImageChange}
+														ref={imgPicker}
+													/>
+												</label>
+											</div>
+											<p className={globalStyles.input.hint}>
+												<IoIosInformationCircle />
+												{t("imageDescription")}
+											</p>
+										</div>
+									</>
+									{/* DESCRIBE IN DETAIL */}
+									<>
+										<h6 className={globalStyles.form.input_title}>
+											{t("detailed")}
+										</h6>
+										<div className='block'>
+											<div className='relative w-full min-w-[200px] mt-3'>
+												<textarea
+													className={style.inputTextarea}
+													id='detail'
+													placeholder=' '
+													onChange={(e) => setDetail(e.target.value)}
+													value={detail}
+													rows='6'></textarea>
+												<label className="before:content[' '] after:content[' '] pointer-events-none absolute left-0 -top-1.5 flex h-full w-full select-none text-[11px] font-normal leading-tight text-blue-gray-400 transition-all before:pointer-events-none before:mt-[6.5px] before:mr-1 before:box-border before:block before:h-1.5 before:w-2.5 before:rounded-tl-md before:border-t before:border-l before:border-blue-gray-200 before:transition-all after:pointer-events-none after:mt-[6.5px] after:ml-1 after:box-border after:block after:h-1.5 after:w-2.5 after:flex-grow after:rounded-tr-md after:border-t after:border-r after:border-blue-gray-200 after:transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:leading-[3.75] peer-placeholder-shown:text-blue-gray-500 peer-placeholder-shown:before:border-transparent peer-placeholder-shown:after:border-transparent peer-focus:text-[11px] peer-focus:leading-tight peer-focus:text-gray-900 peer-focus:before:border-t-2 peer-focus:before:border-l-2 peer-focus:before:border-gray-900 peer-focus:after:border-t-2 peer-focus:after:border-r-2 peer-focus:after:border-gray-900 peer-disabled:text-transparent peer-disabled:before:border-transparent peer-disabled:after:border-transparent peer-disabled:peer-placeholder-shown:text-blue-gray-500">
+													{t("describe")}
+												</label>
+											</div>
+											<p className={globalStyles.textarea.hint}>
+												<IoIosInformationCircle />
+												{t("detailedDescription")}
+											</p>
+										</div>
+									</>
+									{/* SUBMIT BUTTON */}
+									<>
+										<button
+											onClick={handleSubmitClick}
+											className={globalStyles.button.md}
+											type='submit'>
+											{t("submit")}
+										</button>
+									</>
+								</div>
+							)}
+						</>
+					</form>
+					{/* Render the ConfirmModal component */}
+					{reportResetModal && (
+						<ConfirmModal
+							func={handleRefresh} // Pass the handleRefresh function to the ConfirmModal component
+							title='Are you sure you want to reset the report?'
+							subtitle='You cannot undo this action.'
+							CTA='Reset Report'
+							closeModal={() => setReportResetModal(false)}
+						/>
+					)}
+					<>
+						{/* Thank you */}
+						{reportSystem == 6 && (
+							<div className={globalStyles.form.viewWrapper + " items-center"}>
+								<Image
+									src='/img/reportSuccess.png'
+									width={156}
+									height={120}
+									alt='report success'
+									className='object-cover w-auto'
+								/>
+								<div className={style.sectionH1}>{t("thankyou")}</div>
+								<div className='text-center'>{t("thanksText")}</div>
+								<button
+									onClick={() => setReportSystem(reportSystem + 1)}
+									className={globalStyles.button.md}>
+									{t("view")}
+								</button>
+							</div>
+						)}
+						{/* View Report */}
+						{reportSystem == 7 && (
+							<div className={globalStyles.form.viewWrapper}>
+								{/* Title */}
+								<div className={style.inputSingle}>
+									<div className={style.sectionH2}>{t("title_text")}</div>
+									{title}
+								</div>
+								{/* Links */}
+								<div className={style.inputSingle}>
+									<div className={style.sectionH2}>{t("links")}</div>
+									{link || secondLink != "" ? (
+										<>
+											{link}
+											<br></br>
+											{secondLink}
+										</>
+									) : (
+										t("noLinks")
+									)}
+								</div>
+								{/* Image upload */}
+								<div className={style.inputSingle}>
+									<div className={style.sectionH2}>{t("image")}</div>
+									<div className='flex w-full overflow-y-auto'>
+										{imageURLs.map((image, i = self.crypto.randomUUID()) => {
+											return (
+												<div className='flex mr-2' key={i}>
+													<Link href={image} target='_blank'>
+														<Image
+															src={image}
+															width={100}
+															height={100}
+															alt='image'
+															className='object-cover w-auto'
+														/>
+													</Link>
+												</div>
+											)
+										})}
 									</div>
-								</>
-								{/* SUBMIT BUTTON */}
-								<>
-									<button
-										onClick={handleSubmitClick}
-										className={globalStyles.button.md}
-										type='submit'>
-										{t("submit")}
-									</button>
-								</>
+								</div>
+								{/* Details */}
+								<div className={style.inputSingle}>
+									<div className={style.sectionH2}>{t("detailed")}</div>
+									{detail ? detail : `No description provided.`}
+								</div>
+								<button
+									onClick={() => setReportSystem(0)}
+									className={globalStyles.button.md}>
+									{t("backReports")}
+								</button>
 							</div>
 						)}
 					</>
-				</form>
-				{/* Render the ConfirmModal component */}
-				{reportResetModal && (
-					<ConfirmModal
-						func={handleRefresh} // Pass the handleRefresh function to the ConfirmModal component
-						title='Are you sure you want to reset the report?'
-						subtitle='You cannot undo this action.'
-						CTA='Reset Report'
-						closeModal={() => setReportResetModal(false)}
-					/>
-				)}
-				<>
-					{/* Thank you */}
-					{reportSystem == 6 && (
-						<div className={globalStyles.form.viewWrapper + " items-center"}>
-							<Image
-								src='/img/reportSuccess.png'
-								width={156}
-								height={120}
-								alt='report success'
-								className='object-cover w-auto'
-							/>
-							<div className={style.sectionH1}>{t("thankyou")}</div>
-							<div className='text-center'>{t("thanksText")}</div>
-							<button
-								onClick={() => setReportSystem(reportSystem + 1)}
-								className={globalStyles.button.md}>
-								{t("view")}
-							</button>
-						</div>
-					)}
-					{/* View Report */}
-					{reportSystem == 7 && (
-						<div className={globalStyles.form.viewWrapper}>
-							{/* Title */}
-							<div className={style.inputSingle}>
-								<div className={style.sectionH2}>{t("title_text")}</div>
-								{title}
-							</div>
-							{/* Links */}
-							<div className={style.inputSingle}>
-								<div className={style.sectionH2}>{t("links")}</div>
-								{link || secondLink != "" ? (
-									<>
-										{link}
-										<br></br>
-										{secondLink}
-									</>
-								) : (
-									t("noLinks")
-								)}
-							</div>
-							{/* Image upload */}
-							<div className={style.inputSingle}>
-								<div className={style.sectionH2}>{t("image")}</div>
-								<div className='flex w-full overflow-y-auto'>
-									{imageURLs.map((image, i = self.crypto.randomUUID()) => {
-										return (
-											<div className='flex mr-2' key={i}>
-												<Link href={image} target='_blank'>
-													<Image
-														src={image}
-														width={100}
-														height={100}
-														alt='image'
-														className='object-cover w-auto'
-													/>
-												</Link>
-											</div>
-										)
-									})}
-								</div>
-							</div>
-							{/* Details */}
-							<div className={style.inputSingle}>
-								<div className={style.sectionH2}>{t("detailed")}</div>
-								{detail ? detail : `No description provided.`}
-							</div>
-							<button
-								onClick={() => setReportSystem(0)}
-								className={globalStyles.button.md}>
-								{t("backReports")}
-							</button>
-						</div>
-					)}
-				</>
-			</div>
-			}
+				</div>
+			)}
 		</div>
 	)
 }
