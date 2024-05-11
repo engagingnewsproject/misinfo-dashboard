@@ -64,7 +64,7 @@ const ShareReportModal = ({
 								{t("cancel")}
 							</button>
 							<button
-								className='bg-blue-500 hover:bg-white text-white text-sm hover:text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline'
+								className='bg-blue-600 hover:bg-white text-white text-sm hover:text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline'
 								type='submit'
 								autoFocus>
 								{CTA}

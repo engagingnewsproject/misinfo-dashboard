@@ -579,7 +579,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                             {reportState >= 6 &&
                             <div className="mt-3 sm:mt-6">
                                 <button
-                                    className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
                                     onClick={handleSubmitClick}
                                     type="submit">
                                     {t("createReport")}
