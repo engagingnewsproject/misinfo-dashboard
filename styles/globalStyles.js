@@ -7,10 +7,8 @@ const globalStyles = {
 		hour: "numeric",
 		minute: "numeric",
 	},
-	tableHeading: {
-		default: "px-3 py-1 text-sm font-semibold text-left tracking-wide",
-		default_center: "text-center p-2 text-sm font-semibold tracking-wide",
-		small: "",
+	table: {
+		heading: "border-b border-blue-gray-100 bg-blue-gray-50 p-4",
 	},
 	column: {
 		data: "whitespace-normal text-sm px-3 py-1 cursor-pointer",
@@ -26,19 +24,24 @@ const globalStyles = {
 			blue: "text-2xl font-extrabold text-blue-600 tracking-wider",
 			black: "text-2xl font-extrabold text-black-600 tracking-wider",
 		},
-    h2: {
-      blue: "text-xl block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-blue-600",
-      black: "text-xl block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-black-600",
-    },
-    h3: "text-lg block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-blue-600"
+		h2: {
+			blue: "text-xl block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-blue-600",
+			black:
+				"text-xl block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-black-600",
+		},
+		h3: "text-lg block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-blue-600",
 	},
 	form: {
-		wrap: "relative flex justify-center text-gray-700 bg-white shadow-none rounded-xl bg-clip-border",
+		wrap: "relative flex justify-center text-gray-700 bg-white shadow-none rounded-xl bg-clip-border min-h-[220px]",
 		element: "max-w-screen-lg mt-8 mb-2 w-96",
 		viewWrapper: "flex flex-col justify-center gap-2 mt-4 px-5",
-		input_title: "block -mb-3 font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-blue-600",
+		input_title:
+			"block -mb-3 font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-blue-600",
 		input_wrap: "relative h-11 w-full min-w-[200px]",
-	},
+  },
+  mdInput: {
+    hint: "mt-2 flex items-center gap-1 font-normal",
+  },
 	input: {
 		wrap: "relative w-full min-w-[200px] h-10",
 		input:
@@ -60,20 +63,22 @@ const globalStyles = {
 		label:
 			"before:content[' '] after:content[' '] pointer-events-none absolute left-0 -top-1.5 flex h-full w-full select-none text-[11px] font-normal leading-tight text-blue-gray-400 transition-all before:pointer-events-none before:mt-[6.5px] before:mr-1 before:box-border before:block before:h-1.5 before:w-2.5 before:rounded-tl-md before:border-t before:border-l before:border-blue-gray-200 before:transition-all after:pointer-events-none after:mt-[6.5px] after:ml-1 after:box-border after:block after:h-1.5 after:w-2.5 after:flex-grow after:rounded-tr-md after:border-t after:border-r after:border-blue-gray-200 after:transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:leading-[3.75] peer-placeholder-shown:text-blue-gray-500 peer-placeholder-shown:before:border-transparent peer-placeholder-shown:after:border-transparent peer-focus:text-[11px] peer-focus:leading-tight peer-focus:text-gray-900 peer-focus:before:border-t-2 peer-focus:before:border-l-2 peer-focus:before:border-gray-900 peer-focus:after:border-t-2 peer-focus:after:border-r-2 peer-focus:after:border-gray-900 peer-disabled:text-transparent peer-disabled:before:border-transparent peer-disabled:after:border-transparent peer-disabled:peer-placeholder-shown:text-blue-gray-500",
 		hint: "flex gap-1 mt-1 font-sans text-sm antialiased font-normal leading-relaxed text-gray-700",
-  },
-  checkbox: {
-    label: "mt-px font-light text-gray-700 cursor-pointer select-none",
-    input: "before:content[''] peer relative h-5 w-5 cursor-pointer appearance-none rounded-md border border-blue-gray-200 transition-all before:absolute before:top-2/4 before:left-2/4 before:block before:h-12 before:w-12 before:-translate-y-2/4 before:-translate-x-2/4 before:rounded-full before:bg-blue-gray-500 before:opacity-0 before:transition-opacity checked:border-gray-900 checked:bg-gray-900 checked:before:bg-gray-900 hover:before:opacity-10",
-    input_label: "relative flex items-center p-3 rounded-full cursor-pointer",
-    icon: "absolute text-white transition-opacity opacity-0 pointer-events-none top-2/4 left-2/4 -translate-y-2/4 -translate-x-2/4 peer-checked:opacity-100"
-  },
+	},
+	checkbox: {
+		label: "mt-px font-light text-gray-700 cursor-pointer select-none",
+		input:
+			"before:content[''] peer relative h-5 w-5 cursor-pointer appearance-none rounded-md border border-blue-gray-200 transition-all before:absolute before:top-2/4 before:left-2/4 before:block before:h-12 before:w-12 before:-translate-y-2/4 before:-translate-x-2/4 before:rounded-full before:bg-blue-gray-500 before:opacity-0 before:transition-opacity checked:border-gray-900 checked:bg-gray-900 checked:before:bg-gray-900 hover:before:opacity-10",
+		input_label: "relative flex items-center p-3 rounded-full cursor-pointer",
+		icon: "absolute text-white transition-opacity opacity-0 pointer-events-none top-2/4 left-2/4 -translate-y-2/4 -translate-x-2/4 peer-checked:opacity-100",
+	},
 	button: {
 		sm: "select-none rounded-lg bg-blue-600 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none",
-		md: "select-none rounded-lg bg-blue-600 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none",
+		md: "bg-blue-600 hover:bg-blue-700",
 		md_selected:
-			"select-none rounded-lg bg-blue-800 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none",
+			"select-none rounded-lg bg-blue-700 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none",
 		md_block:
-			"select-none rounded-lg bg-blue-600 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none block w-full",
+			"select-none rounded-lg bg-blue-600 hover:bg-blue-700 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none block w-full",
+		buttonBack: "hover:-translate-x-1 transition-transform md:px-4",
 	},
 	linkStyle: "font-light mb-1 text-sm underline underline-offset-1",
 	wrap: "relative align-middle select-none font-sans font-medium text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none w-8 max-w-[32px] h-8 max-h-[32px] rounded-lg text-xs bg-gray-900 text-white shadow-md shadow-gray-900/10 hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none",
@@ -82,9 +87,22 @@ const globalStyles = {
 			"fill-blue-600 transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2",
 		hover: "hover:fill-cyan-700",
 	},
+	icon_button: {
+		icon: "fill-blue-600",
+		button: "rounded-full border-blue-600",
+	},
 	page: {
 		wrap: "w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto",
 	},
+	inputTextarea:
+		"border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
+	inputImage:
+		"block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer",
+	inputSingle:
+		"border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 bg-white leading-tight focus:outline-none focus:shadow-outline",
+	viewWrapperCenter: "flex flex-col gap-2 mt-8 items-center",
+	sectionWrapper: "flex items-center",
+	sectionContainer: "w-full h-full flex flex-col mb-5 overflow-y-visible",
 }
 
 export default globalStyles
