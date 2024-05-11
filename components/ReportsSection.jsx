@@ -753,28 +753,28 @@ const handleUserSendEmail = (reportURI) => {
 				<table className='min-w-full bg-white rounded-xl p-1'>
 					<thead className='border-b dark:border-indigo-100 bg-slate-100'>
 						<tr>
-							<th scope='col' className={globalStyles.tableHeading.default}>
+							<th scope='col' className={globalStyles.table.heading}>
 								Title
 							</th>
-							<th scope='col' className={globalStyles.tableHeading.default_center}>
+							<th scope='col' className={globalStyles.table.heading}>
 								Date/Time
 							</th>
-							<th scope='col' className={globalStyles.tableHeading.default_center}>
+							<th scope='col' className={globalStyles.table.heading}>
 								Candidates
 							</th>
-							<th scope='col' className={globalStyles.tableHeading.default_center}>
+							<th scope='col' className={globalStyles.table.heading}>
 								Topic Tags
 							</th>
-							<th scope='col' className={globalStyles.tableHeading.default_center}>
+							<th scope='col' className={globalStyles.table.heading}>
 								Sources
 							</th>
-							<th scope='col' className={globalStyles.tableHeading.default_center}>
+							<th scope='col' className={globalStyles.table.heading}>
 								Labels
 							</th>
 							<th
 								scope='col'
 								colSpan={2}
-								className={globalStyles.tableHeading.default_center}>
+								className={globalStyles.table.heading}>
 								Read/Unread
 							</th>
 						</tr>
