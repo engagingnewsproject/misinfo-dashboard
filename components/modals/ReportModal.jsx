@@ -376,7 +376,7 @@ const ReportModal = ({
 								<div className='flex items-center justify-between justify-items-stretch'>
 									<div className='save-button w-full'>
 										<button
-											className='w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
+											className='w-full bg-blue-600 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
 											type='submit'>
 											Save
 										</button>

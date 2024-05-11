@@ -205,7 +205,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                 <div className="relative">
                 <form className="w-full mt-7 ml-2 relative" onChange={handleChange} onSubmit={handleSearch}>
                     <button 
-                    className="p-1 absolute right-1 top-1 bg-blue-500 text-white rounded-xl" 
+                    className="p-1 absolute right-1 top-1 bg-blue-600 text-white rounded-xl" 
                     type='submit'>
                         <AiOutlineSearch size={25}/>
                     </button>

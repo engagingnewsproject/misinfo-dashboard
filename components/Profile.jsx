@@ -84,7 +84,7 @@ const [showUserMessage, setShowUserMessage] = useState(false)
 		sectionContainer: 'w-full h-full flex flex-col mb-5 overflow-visible',
 		sectionWrapper: 'flex flex-col',
 		button:
-			"bg-blue-500 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
+			"bg-blue-600 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
 		input:
 			"text-md font-light bg-white rounded-xl p-4 border-none w-full focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none",
 		inputSelect:

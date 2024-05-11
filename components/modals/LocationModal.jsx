@@ -61,7 +61,7 @@ const LocationModal = ({ setLocationModal }) => {
 
     const style = {
       button:
-        "bg-blue-500 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
+        "bg-blue-600 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
       input:
         "text-md font-light bg-white rounded-xl p-4 border-none w-full focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none",
       inputSelect:
@@ -135,7 +135,7 @@ const LocationModal = ({ setLocationModal }) => {
                   <div className="mt-6">
                       <button
                           disabled={userLocation?.state == null}
-                          className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
                           type="submit">
                           {t("updateLocation")}
                       </button>
