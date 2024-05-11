@@ -22,19 +22,22 @@ const globalStyles = {
 	heading: {
 		h1: {
 			blue: "text-2xl font-extrabold text-blue-600 tracking-wider",
-			black: "text-2xl font-extrabold text-black-600 tracking-wider",
+			black: "text-2xl font-extrabold text-slate-200 tracking-wider",
 		},
 		h2: {
 			blue: "text-xl block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-blue-600",
 			black:
 				"text-xl block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-black-600",
 		},
-		h3: "text-lg block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-blue-600",
+    h3: {
+      blue: "text-blue-600 text-lg block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal",
+      black: "text-black-600 text-lg block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal",
+    }
 	},
 	form: {
-		wrap: "relative flex justify-center text-gray-700 bg-white shadow-none rounded-xl bg-clip-border min-h-[220px]",
-		element: "max-w-screen-lg mt-8 mb-2 w-96",
-		viewWrapper: "flex flex-col justify-center gap-2 mt-4 px-5",
+		wrap: "flex relative h-auto justify-center py-6 bg-white shadow-none rounded-xl bg-clip-border min-h-[220px]",
+		element: "max-w-screen-lg max-w-fit	p-4 sm:p-0 sm:mt-8 sm:mb-2 lg:w-96",
+		viewWrapper: "flex flex-col justify-center gap-2 mt-4 sm:px-5",
 		input_title:
 			"block -mb-3 font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-blue-600",
 		input_wrap: "relative h-11 w-full min-w-[200px]",
@@ -89,7 +92,8 @@ const globalStyles = {
 	},
 	icon_button: {
 		icon: "fill-blue-600",
-		button: "rounded-full border-blue-600",
+		icon_gray: "fill-slate-400",
+		button: "rounded-full border-blue-600 absolute top-4 right-4",
 	},
 	page: {
 		wrap: "w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto",

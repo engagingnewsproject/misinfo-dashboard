@@ -1,26 +1,43 @@
-const withMT = require("@material-tailwind/react/utils/withMT");
+const withMT = require("@material-tailwind/react/utils/withMT")
 
 module.exports = withMT({
-  content: [
-    "./pages/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
-  ],
+	content: [
+		"./pages/**/*.{js,ts,jsx,tsx}",
+		"./components/**/*.{js,ts,jsx,tsx}",
+	],
   theme: {
-    extend: {
-      colors: {
-        blue: {
-          '600': '#2563eb', // Override the default blue-600 color
-          // Optionally, you can define other shades of blue as well
-          '700': '#173ead',
-          // Add more shades as needed
-        },
-        sky: {
-          '100': '#e0f2fe'
-        }
-      },
+		fontFamily: {
+			sans: ["Helvetica", "Arial", "sans-serif"],
     },
-  },
-  plugins: [
-    require('@tailwindcss/forms')
-  ],
-});
+    button: {
+      styles: {
+        base: {
+          initial: {
+            fontFamily: ["Helvetica","Arial","sans-serif"],
+          }
+        }
+      }
+    },
+		extend: {
+			colors: {
+				blue: {
+					500: "#2563eb", // Override the default blue-600 color
+					600: "#2563eb", // Override the default blue-600 color
+					700: "#173ead",
+					// Add more shades as needed
+				},
+				sky: {
+					100: "#e0f2fe",
+				},
+			},
+			typography: {
+				DEFAULT: {
+					css: {
+						fontWeight: "bold", // Update the default font weight here
+					},
+				},
+			},
+		},
+	},
+	plugins: [require("@tailwindcss/forms")],
+})
