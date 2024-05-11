@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { reportSystems } from "../pages/report"
-import { IoMdArrowRoundBack } from "react-icons/io"
+import { IoMdArrowRoundBack, IoMdArrowRoundForward } from "react-icons/io"
 import { BiCheckCircle, BiXCircle, BiRightArrowCircle } from "react-icons/bi"
 import {
 	setDoc,
@@ -35,6 +35,15 @@ import {
 } from "react-icons/io"
 import { Tooltip } from "react-tooltip"
 import globalStyles from "../styles/globalStyles"
+import {
+	Button,
+	IconButton,
+	List,
+	ListItem,
+	Card,
+	Input,
+	Typography,
+} from "@material-tailwind/react"
 
 const ReportSystem = ({
 	tab,
@@ -49,7 +58,6 @@ const ReportSystem = ({
 }) => {
 	// used for Spanish translations
 	const { t } = useTranslation("NewReport")
-	// console.log('disableReminder: '+disableReminder+' ||| reminderShow: '+reminderShow);
 	const dbInstance = collection(db, "reports")
 	const { user } = useAuth()
 	const [data, setData] = useState({ country: "US", state: null, city: null })
@@ -83,40 +91,26 @@ const ReportSystem = ({
 	const [reportResetModal, setReportResetModal] = useState(false)
 	const [refresh, setRefresh] = useState(false)
 	const formRef = useRef(null)
-	// //
-	// Styles
-	// //
-	const style = {
-		sectionContainer: "w-full h-full flex flex-col mb-5 overflow-y-visible",
-		sectionWrapper: "flex items-center",
-		sectionH1: "text-2xl font-bold",
-		sectionH2: "text-blue-600",
-		sectionSub: "text-sm",
-		sectionIconButtonWrap: "self-end",
-		sectionIconButton: "fill-blue-600 hover:fill-blue-800",
-		form: "flex w-96 h-full justify-center self-center",
-		viewWrapper: "flex justify-center gap-2 mt-4 px-5",
-		viewWrapperCenter: "flex flex-col gap-2 mt-8 items-center",
-		inputSelect:
-			"border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
-		inputSingle:
-			"border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 bg-white leading-tight focus:outline-none focus:shadow-outline",
-		inputCheckboxWrap: "flex",
-		inputRadio:
-			"bg-blue-600 hover:bg-blue-500 flex rounded-lg p-2 text-white justify-center checked:bg-blue-500",
-		inputRadioChecked:
-			"bg-blue-800 flex rounded-lg p-2 text-white justify-center checked:bg-blue-500",
-		inputImage:
-			"block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer",
-		inputTextarea:
-			"border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
-		button:
-			"w-80 self-center mt-4 mb-8 shadow bg-blue-600 hover:bg-blue-500 text-sm text-white py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline",
-		buttonBack: "hover:-translate-x-1 transition-transform md:px-4",
-	}
-	// //
+
+	// On page load (mount), update the tags from firebase
+	useEffect(() => {
+		getUserData()
+	}, [])
+	useEffect(() => {
+		if (userData) {
+			getAllAgencies()
+			getAllTopics()
+			getAllSources()
+			getTopicList()
+			getSourceList()
+		}
+	}, [userData])
+	useEffect(() => {
+		if (update) {
+			handleUpload()
+		}
+	}, [update])
 	// Save Report
-	// //
 	const saveReport = (imageURLs) => {
 		const newReportRef = doc(collection(db, "reports"))
 		setReportId(newReportRef.id) // set report id
@@ -140,10 +134,7 @@ const ReportSystem = ({
 			addNewTag(selectedTopic, selectedSource)
 		})
 	}
-
-	// //
 	// Data
-	// //
 	const getData = async () => {
 		const docRef = await getDoc(doc(db, "reports", user.uid))
 	}
@@ -171,7 +162,6 @@ const ReportSystem = ({
 			console.log(error)
 		}
 	}
-
 	// Get topics
 	async function getAllTopics() {
 		const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
@@ -185,7 +175,6 @@ const ReportSystem = ({
 		})
 		setAllTopicsArr(topicsSorted)
 	}
-
 	// Get sources
 	async function getAllSources() {
 		const sourceDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
@@ -199,11 +188,7 @@ const ReportSystem = ({
 		})
 		setSources(sourcesSorted)
 	}
-
-	// //
 	// Handlers
-	// //
-
 	const handleSubmitClick = (e) => {
 		e.preventDefault()
 		if (!title) {
@@ -218,7 +203,6 @@ const ReportSystem = ({
 			setReportSystem(7)
 		}
 	}
-
 	const handleNewReport = async (e) => {
 		e.preventDefault()
 		const allErrors = {}
@@ -256,9 +240,10 @@ const ReportSystem = ({
 			handleSubmitClick(e)
 		}
 	}
-
-	// Image upload (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js, https://www.youtube.com/watch?v=S4zaZvM8IeI)
 	const handleImageChange = (e) => {
+		// Image upload:
+		// (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js,
+		// https://www.youtube.com/watch?v=S4zaZvM8IeI)
 		// console.log('handle image change run');
 		for (let i = 0; i < e.target.files.length; i++) {
 			const newImage = e.target.files[i]
@@ -266,9 +251,8 @@ const ReportSystem = ({
 			setUpdate(!update)
 		}
 	}
-
-	// Image upload to firebase
 	const handleUpload = () => {
+		// Image upload to firebase
 		const promises = []
 		images.map((image) => {
 			const storageRef = ref(
@@ -296,24 +280,26 @@ const ReportSystem = ({
 		Promise.all(promises).catch((err) => console.log(err))
 	}
 	const handleTopicChange = (e) => {
-		setSelectedTopic(e.target.value)
-		if (e.target.value === "Other") {
+		if (e.includes("Other")) {
+			setSelectedTopic("")
 			setShowOtherTopic(true)
 		} else {
 			setShowOtherTopic(false)
-		}
-	}
-	const handleSourceChangeOther = (e) => {
-		setSelectedSource(e.target.value)
-		if (e.target.value === "Other") {
-			setShowOtherSource(true)
-		} else {
-			setShowOtherSource(false)
+			setSelectedTopic(e)
 		}
 	}
 	const handleOtherTopicChange = (e) => {
 		setOtherTopic(e.target.value)
 		setSelectedTopic(e.target.value)
+	}
+	const handleSourceChange = (e) => {
+		if (e.includes("Other")) {
+			setSelectedSource("")
+			setShowOtherSource(true)
+		} else {
+			setShowOtherSource(false)
+			setSelectedSource(e)
+		}
 	}
 	const handleOtherSourceChange = (e) => {
 		setOtherSource(e.target.value)
@@ -373,34 +359,9 @@ const ReportSystem = ({
 			console.log(error)
 		}
 	}
-
 	const handleChange = (e) => {
 		// console.log('REPORT VALUE CHANGED: ' + e.target.id + ': ' + e.target.value);
 	}
-
-	// //
-	// Effects
-	// //
-	// On page load (mount), update the tags from firebase
-	useEffect(() => {
-		getUserData()
-	}, [])
-	useEffect(() => {
-		if (userData) {
-			getAllAgencies()
-			getAllTopics()
-			getAllSources()
-			getTopicList()
-			getSourceList()
-		}
-	}, [userData])
-
-	useEffect(() => {
-		if (update) {
-			handleUpload()
-		}
-	}, [update])
-
 	const handleRefresh = () => {
 		if (formRef.current) {
 			setSelectedAgency("")
@@ -417,14 +378,15 @@ const ReportSystem = ({
 			console.log("not current form")
 		}
 	}
+
 	return (
-		<div className={style.sectionContainer}>
+		<div className={globalStyles.sectionContainer}>
 			<>
-				<div className={`${style.sectionWrapper} flex justify-between`}>
+				<div className={`${globalStyles.sectionWrapper} flex justify-between`}>
 					{reportSystem > 0 && reportSystem < 7 && (
 						<button
 							onClick={onReportSystemPrevStep}
-							className={style.buttonBack}>
+							className={globalStyles.button.buttonBack}>
 							<IoMdArrowRoundBack size={25} />
 						</button>
 					)}
@@ -445,7 +407,7 @@ const ReportSystem = ({
 					)}
 				</div>
 				{reminderShow != false && reportSystem == 1 && (
-					<div className={style.viewWrapperCenter}>
+					<div className={globalStyles.viewWrapperCenter}>
 						<Image
 							src='/img/reminder.png'
 							width={156}
@@ -468,11 +430,11 @@ const ReportSystem = ({
 								{t("incorrect")}
 							</div>
 						</div>
-						<button
+						<Button
 							onClick={onReminderStart}
 							className={globalStyles.button.md}>
 							{t("start")}
-						</button>
+						</Button>
 						{/* DO NOT SHOW AGAIN CHECKBOX */}
 						<div className='inline-flex items-center'>
 							<label
@@ -490,9 +452,7 @@ const ReportSystem = ({
 									<IoMdCheckmark />
 								</span>
 							</label>
-							<label
-								className={globalStyles.checkbox.label}
-								htmlFor='noShow'>
+							<label className={globalStyles.checkbox.label} htmlFor='noShow'>
 								{t("noShow")}
 							</label>
 						</div>
@@ -510,7 +470,9 @@ const ReportSystem = ({
 							{/* Agency */}
 							{reportSystem == 2 && (
 								<div className={globalStyles.form.viewWrapper}>
-									<div className={style.sectionH1}>{t("which_agency")}</div>
+									<div className={globalStyles.heading.h1.black}>
+										{t("which_agency")}
+									</div>
 									{agencies.length == 0 && t("noAgencies")}
 									{agencies.map((agency, i = self.crypto.randomUUID()) => (
 										<>
@@ -519,11 +481,12 @@ const ReportSystem = ({
 												className={
 													agency === selectedAgency
 														? globalStyles.button.md_selected
-														: globalStyles.button.md
+														: globalStyles.button.md_block
 												}>
 												{/* Agency Input */}
 												<input
 													className='absolute opacity-0'
+													size='md'
 													id='agency'
 													type='radio'
 													checked={selectedAgency === agency}
@@ -538,114 +501,132 @@ const ReportSystem = ({
 										<span className='text-red-500'>{errors.agency}</span>
 									)}
 									{selectedAgency != "" && (
-										<button
+										<IconButton
+											variant='outlined'
 											onClick={() => setReportSystem(reportSystem + 1)}
-											className={`${globalStyles.icon_wrap} self-end`}>
-											<BiRightArrowCircle
-												size={40}
-												className={globalStyles.icon.filled}
+											className={`${globalStyles.icon_button.button} self-end`}>
+											<IoMdArrowRoundForward
+												size={30}
+												className={globalStyles.icon_button.icon}
 											/>
-										</button>
+										</IconButton>
 									)}
 								</div>
 							)}
 							{/* Topic tag */}
 							{reportSystem == 3 && (
 								<div className={globalStyles.form.viewWrapper}>
-									<div className={style.sectionH1}>{t("about")}</div>
-									{[
-										...allTopicsArr.filter((topic) => topic !== "Other"),
-										...allTopicsArr.filter((topic) => topic === "Other"),
-									].map((topic, i = self.crypto.randomUUID()) => (
-										<>
-											<label
-												key={i}
-												className={
-													topic === selectedTopic
-														? globalStyles.button.md_selected
-														: globalStyles.button.md
-												}>
-												{/* Topic Tag Input */}
-												<input
-													className='absolute opacity-0'
+									<div className={globalStyles.heading.h1.black}>
+										{t("about")}
+									</div>
+									<Card className='w-96'>
+										<List>
+											{[
+												...allTopicsArr.filter((topic) => topic !== "Other"),
+												...allTopicsArr.filter((topic) => topic === "Other"),
+											].map((topic, i = self.crypto.randomUUID()) => (
+												<ListItem
 													id='topic'
-													type='radio'
-													checked={selectedTopic === topic}
-													onChange={
-														// create a custom function
-														// (e) => setSelectedTopic(e.target.value)
-														handleTopicChange
-													}
+													selected={topic === selectedTopic}
 													value={topic}
-												/>
-												{t("topics." + topic)}
-											</label>
-										</>
-									))}
+													onClick={() => handleTopicChange(topic)}>
+													{topic}
+												</ListItem>
+											))}
+										</List>
+									</Card>
 									{errors.topic && selectedTopic === "" && (
 										<span className='text-red-500'>{errors.topic}</span>
 									)}
 									{showOtherTopic && (
-										<div className=''>
-											<div className='text-zinc-500'>{t("custom_topic")}</div>
-											<input
-												id='topic-other'
-												className='rounded shadow-md border-zinc-400 w-full'
-												type='text'
-												placeholder={t("specify_topic")}
-												onChange={handleOtherTopicChange}
+										<div className='w-full'>
+											<Input
+												label='Custom topic'
 												value={otherTopic}
-												style={{ fontSize: "14px" }}
+												onChange={handleOtherTopicChange}
 											/>
+											<Typography
+												variant='small'
+												color='gray'
+												className={globalStyles.mdInput.hint}>
+												<IoIosInformationCircle />
+												{t("specify_topic")}
+											</Typography>
 										</div>
 									)}
 									{selectedTopic != "" && (
-										<button
+										<IconButton
+											variant='outlined'
 											onClick={() => setReportSystem(reportSystem + 1)}
-											className={`${globalStyles.icon_wrap} self-end`}>
-											<BiRightArrowCircle
-												size={40}
-												className={globalStyles.icon.filled}
+											className={`${globalStyles.icon_button.button} self-end`}>
+											<IoMdArrowRoundForward
+												size={30}
+												className={globalStyles.icon_button.icon}
 											/>
-										</button>
+										</IconButton>
 									)}
 								</div>
 							)}
 							{/* Source tag */}
 							{reportSystem == 4 && (
 								<div className={globalStyles.form.viewWrapper}>
-									<div className={style.sectionH1}>{t("where")}</div>
-									{[
-										...sources.filter((source) => source !== "Other"),
-										...sources.filter((source) => source === "Other"),
-									].map((source, i = self.crypto.randomUUID()) => (
-										<>
-											<label
-												key={i}
-												className={
-													source === selectedSource
-														? globalStyles.button.md_selected
-														: globalStyles.button.md
-												}>
-												{/* Source tag input */}
-												<input
-													className='absolute opacity-0'
-													id='source'
-													type='radio'
-													checked={selectedSource === source}
-													onChange={handleSourceChangeOther}
-													value={source}
-												/>
-												{console.log(source)}
-												{t("sources." + source)}
-											</label>
-										</>
-									))}
+									<div className={globalStyles.heading.h1.black}>
+										{t("where")}
+									</div>
+									<Card className='w-96'>
+										<List>
+											{[
+												...sources.filter((source) => source !== "Other"),
+												...sources.filter((source) => source === "Other"),
+											].map((source, i = self.crypto.randomUUID()) => (
+												<>
+													<ListItem
+														id='source'
+														selected={source === selectedSource}
+														value={source}
+														onClick={() => handleSourceChange(source)}>
+														{source}
+													</ListItem>
+													<label
+														key={i}
+														className={
+															source === selectedSource
+																? globalStyles.button.md_selected
+																: globalStyles.button.md_block
+														}>
+														{/* Source tag input */}
+														{/* <input
+															className='absolute checked:bg-blue-600 opacity-0'
+															id='source'
+															type='radio'
+															checked={selectedSource === source}
+															onChange={handleSourceChangeOther}
+															value={source}
+														/> */}
+														{console.log(source)}
+														{t("sources." + source)}
+													</label>
+												</>
+											))}
+										</List>
+									</Card>
 									{errors.source && selectedSource === "" && (
 										<span className='text-red-500'>{errors.source}</span>
 									)}
 									{showOtherSource && (
-										<div className=''>
+										<div className='w-full'>
+											<Input
+												label='Custom source'
+												value={otherSource}
+												onChange={handleOtherSourceChange}
+											/>
+											<Typography
+												variant='small'
+												color='gray'
+												className={globalStyles.mdInput.hint}>
+												<IoIosInformationCircle />
+												{t("custom_source")}
+											</Typography>
 											<div className='text-zinc-500'>{t("custom_source")}</div>
 											<input
 												id='topic-other'
@@ -659,14 +640,15 @@ const ReportSystem = ({
 										</div>
 									)}
 									{selectedSource != "" && (
-										<button
+										<IconButton
+											variant='outlined'
 											onClick={() => setReportSystem(reportSystem + 1)}
-											className={`${globalStyles.icon_wrap} self-end`}>
-											<BiRightArrowCircle
-												size={40}
-												className={globalStyles.icon.filled}
+											className={`${globalStyles.icon_button.button} self-end`}>
+											<IoMdArrowRoundForward
+												size={30}
+												className={globalStyles.icon_button.icon}
 											/>
-										</button>
+										</IconButton>
 									)}
 								</div>
 							)}
@@ -766,7 +748,7 @@ const ReportSystem = ({
 												<label className='block'>
 													<span className='sr-only'>{t("choose_files")}</span>
 													<input
-														className={style.inputImage}
+														className={globalStyles.inputImage}
 														id='multiple_files'
 														type='file'
 														multiple
@@ -790,7 +772,7 @@ const ReportSystem = ({
 										<div className='block'>
 											<div className='relative w-full min-w-[200px] mt-3'>
 												<textarea
-													className={style.inputTextarea}
+													className={globalStyles.inputTextarea}
 													id='detail'
 													placeholder=' '
 													onChange={(e) => setDetail(e.target.value)}
@@ -810,7 +792,7 @@ const ReportSystem = ({
 									<>
 										<button
 											onClick={handleSubmitClick}
-											className={globalStyles.button.md}
+											className={globalStyles.button.md_block}
 											type='submit'>
 											{t("submit")}
 										</button>
@@ -840,7 +822,9 @@ const ReportSystem = ({
 									alt='report success'
 									className='object-cover w-auto'
 								/>
-								<div className={style.sectionH1}>{t("thankyou")}</div>
+								<div className={globalStyles.heading.h1.black}>
+									{t("thankyou")}
+								</div>
 								<div className='text-center'>{t("thanksText")}</div>
 								<button
 									onClick={() => setReportSystem(reportSystem + 1)}
@@ -853,13 +837,17 @@ const ReportSystem = ({
 						{reportSystem == 7 && (
 							<div className={globalStyles.form.viewWrapper}>
 								{/* Title */}
-								<div className={style.inputSingle}>
-									<div className={style.sectionH2}>{t("title_text")}</div>
+								<div className={globalStyles.inputSingle}>
+									<h2 className={globalStyles.heading.h2.blue}>
+										{t("title_text")}
+									</h2>
 									{title}
 								</div>
 								{/* Links */}
-								<div className={style.inputSingle}>
-									<div className={style.sectionH2}>{t("links")}</div>
+								<div className={globalStyles.inputSingle}>
+									<div className={globalStyles.heading.h2.blue}>
+										{t("links")}
+									</div>
 									{link || secondLink != "" ? (
 										<>
 											{link}
@@ -871,8 +859,10 @@ const ReportSystem = ({
 									)}
 								</div>
 								{/* Image upload */}
-								<div className={style.inputSingle}>
-									<div className={style.sectionH2}>{t("image")}</div>
+								<div className={globalStyles.inputSingle}>
+									<div className={globalStyles.heading.h2.blue}>
+										{t("image")}
+									</div>
 									<div className='flex w-full overflow-y-auto'>
 										{imageURLs.map((image, i = self.crypto.randomUUID()) => {
 											return (
@@ -892,8 +882,10 @@ const ReportSystem = ({
 									</div>
 								</div>
 								{/* Details */}
-								<div className={style.inputSingle}>
-									<div className={style.sectionH2}>{t("detailed")}</div>
+								<div className={globalStyles.inputSingle}>
+									<div className={globalStyles.heading.h2.blue}>
+										{t("detailed")}
+									</div>
 									{detail ? detail : `No description provided.`}
 								</div>
 								<button
