@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { reportSystems } from "../pages/report"
-import { IoMdArrowRoundBack, IoMdArrowRoundForward } from "react-icons/io"
+import { IoMdArrowRoundForward, IoMdArrowRoundBack } from "react-icons/io"
 import { BiCheckCircle, BiXCircle, BiRightArrowCircle } from "react-icons/bi"
 import {
 	setDoc,
@@ -43,6 +43,7 @@ import {
 	Card,
 	Input,
 	Typography,
+	Textarea,
 } from "@material-tailwind/react"
 
 const ReportSystem = ({
@@ -58,8 +59,8 @@ const ReportSystem = ({
 }) => {
 	// used for Spanish translations
 	const { t } = useTranslation("NewReport")
-	const dbInstance = collection(db, "reports")
 	const { user } = useAuth()
+	const [key, setKey] = useState(self.crypto.randomUUID())
 	const [data, setData] = useState({ country: "US", state: null, city: null })
 	const [isSearchable, setIsSearchable] = useState(true)
 	const [userData, setUserData] = useState(null)
@@ -363,49 +364,44 @@ const ReportSystem = ({
 		// console.log('REPORT VALUE CHANGED: ' + e.target.id + ': ' + e.target.value);
 	}
 	const handleRefresh = () => {
-		if (formRef.current) {
-			setSelectedAgency("")
-			setSelectedTopic("")
-			setSelectedSource("")
-			setTitle("")
-			setLink("")
-			setSecondLink("")
-			setImages([])
-			setDetail("")
-			setReportResetModal(false)
-			setReportSystem(0)
-		} else {
-			console.log("not current form")
-		}
+		setKey(self.crypto.randomUUID())
+		// if (formRef.current) {
+		// setSelectedAgency("")
+		// setSelectedTopic("")
+		// setSelectedSource("")
+		// setTitle("")
+		// setLink("")
+		// setSecondLink("")
+		// setImages([])
+		// setDetail("")
+		setReportResetModal(false)
+		setReportSystem(0)
+		// } else {
+		// console.log("not current form")
+		// }
 	}
-
+	useEffect(() => {
+		console.log(reportSystem)
+	}, [])
+	const ForwardArrow = () => {
+		return (
+			<div className='absolute -bottom-10 right-4 sm:top-28 sm:right-12 sm:bottom-auto'>
+				<IconButton
+					variant='outlined'
+					className='rounded-full'
+					color='blue'
+					onClick={() => setReportSystem(reportSystem + 1)}>
+					<IoMdArrowRoundForward
+						size={30}
+						className={globalStyles.icon_button.icon}
+					/>
+				</IconButton>
+			</div>
+		)
+	}
 	return (
-		<div className={globalStyles.sectionContainer}>
+		<div className={globalStyles.sectionContainer} key={key}>
 			<>
-				<div className={`${globalStyles.sectionWrapper} flex justify-between`}>
-					{reportSystem > 0 && reportSystem < 7 && (
-						<button
-							onClick={onReportSystemPrevStep}
-							className={globalStyles.button.buttonBack}>
-							<IoMdArrowRoundBack size={25} />
-						</button>
-					)}
-					{/* Button to display the ConfirmModal component */}
-					{reportSystem >= 3 && (
-						<button
-							className='top-1 right-2 m-0 md:m-0 tooltip-refresh'
-							onClick={() => setReportResetModal(true)}
-							type='button'>
-							<IoMdRefresh size={20} />
-							<Tooltip
-								anchorSelect='.tooltip-refresh'
-								place='bottom'
-								delayShow={500}>
-								Reset Report
-							</Tooltip>
-						</button>
-					)}
-				</div>
 				{reminderShow != false && reportSystem == 1 && (
 					<div className={globalStyles.viewWrapperCenter}>
 						<Image
@@ -459,67 +455,63 @@ const ReportSystem = ({
 					</div>
 				)}
 			</>
-			{reportSystem >= 2 && (
+			{reportSystem >= 2 && reportSystem <= 6 && (
 				<div className={globalStyles.form.wrap}>
+					{/* BACK ICON */}
+					{reportSystem > 0 && reportSystem < 7 && (
+						<div className='absolute -bottom-10 left-4 sm:top-28 sm:left-12'>
+							<IconButton
+								variant='text'
+								color='blue-gray'
+								onClick={onReportSystemPrevStep}>
+								<IoMdArrowRoundBack
+									size={30}
+									className={globalStyles.icon_button.icon_gray}
+								/>
+							</IconButton>
+						</div>
+					)}
+
 					<form
 						onChange={handleChange}
 						onSubmit={handleNewReport}
 						className={globalStyles.form.element}
-						ref={formRef}>
+						ref={formRef}
+						id={key}>
 						<>
 							{/* Agency */}
 							{reportSystem == 2 && (
 								<div className={globalStyles.form.viewWrapper}>
-									<div className={globalStyles.heading.h1.black}>
-										{t("which_agency")}
-									</div>
-									{agencies.length == 0 && t("noAgencies")}
-									{agencies.map((agency, i = self.crypto.randomUUID()) => (
-										<>
-											<label
-												key={i}
-												className={
-													agency === selectedAgency
-														? globalStyles.button.md_selected
-														: globalStyles.button.md_block
-												}>
-												{/* Agency Input */}
-												<input
-													className='absolute opacity-0'
-													size='md'
+									<Typography variant='h5'>{t("which_agency")}</Typography>
+									<Card className='sm:w-96'>
+										<List>
+											{agencies.length == 0 && t("noAgencies")}
+											{agencies.map((agency, i = self.crypto.randomUUID()) => (
+												<ListItem
 													id='agency'
-													type='radio'
-													checked={selectedAgency === agency}
-													onChange={(e) => setSelectedAgency(e.target.value)}
+													key={i}
+													selected={agency === selectedAgency}
 													value={agency}
-												/>
-												{agency}
-											</label>
-										</>
-									))}
+													onClick={() => setSelectedAgency(agency)}>
+													{agency}
+												</ListItem>
+											))}
+										</List>
+									</Card>
 									{errors.agency && selectedAgency === "" && (
 										<span className='text-red-500'>{errors.agency}</span>
 									)}
+									{/* FORWARD ARROW */}
 									{selectedAgency != "" && (
-										<IconButton
-											variant='outlined'
-											onClick={() => setReportSystem(reportSystem + 1)}
-											className={`${globalStyles.icon_button.button} self-end`}>
-											<IoMdArrowRoundForward
-												size={30}
-												className={globalStyles.icon_button.icon}
-											/>
-										</IconButton>
+										<ForwardArrow />
 									)}
 								</div>
 							)}
 							{/* Topic tag */}
 							{reportSystem == 3 && (
 								<div className={globalStyles.form.viewWrapper}>
-									<div className={globalStyles.heading.h1.black}>
-										{t("about")}
-									</div>
-									<Card className='w-96'>
+									<Typography variant='h5'>{t("about")}</Typography>
+									<Card className='sm:w-96'>
 										<List>
 											{[
 												...allTopicsArr.filter((topic) => topic !== "Other"),
@@ -527,6 +519,7 @@ const ReportSystem = ({
 											].map((topic, i = self.crypto.randomUUID()) => (
 												<ListItem
 													id='topic'
+													key={i}
 													selected={topic === selectedTopic}
 													value={topic}
 													onClick={() => handleTopicChange(topic)}>
@@ -554,59 +547,30 @@ const ReportSystem = ({
 											</Typography>
 										</div>
 									)}
+									{/* FORWARD ARROW */}
 									{selectedTopic != "" && (
-										<IconButton
-											variant='outlined'
-											onClick={() => setReportSystem(reportSystem + 1)}
-											className={`${globalStyles.icon_button.button} self-end`}>
-											<IoMdArrowRoundForward
-												size={30}
-												className={globalStyles.icon_button.icon}
-											/>
-										</IconButton>
+										<ForwardArrow />
 									)}
 								</div>
 							)}
 							{/* Source tag */}
 							{reportSystem == 4 && (
 								<div className={globalStyles.form.viewWrapper}>
-									<div className={globalStyles.heading.h1.black}>
-										{t("where")}
-									</div>
-									<Card className='w-96'>
+									<Typography variant='h5'>{t("where")}</Typography>
+									<Card className='sm:w-96'>
 										<List>
 											{[
 												...sources.filter((source) => source !== "Other"),
 												...sources.filter((source) => source === "Other"),
 											].map((source, i = self.crypto.randomUUID()) => (
-												<>
-													<ListItem
-														id='source'
-														selected={source === selectedSource}
-														value={source}
-														onClick={() => handleSourceChange(source)}>
-														{source}
-													</ListItem>
-													<label
-														key={i}
-														className={
-															source === selectedSource
-																? globalStyles.button.md_selected
-																: globalStyles.button.md_block
-														}>
-														{/* Source tag input */}
-														{/* <input
-															className='absolute checked:bg-blue-600 opacity-0'
-															id='source'
-															type='radio'
-															checked={selectedSource === source}
-															onChange={handleSourceChangeOther}
-															value={source}
-														/> */}
-														{console.log(source)}
-														{t("sources." + source)}
-													</label>
-												</>
+												<ListItem
+													id='source'
+													key={i}
+													selected={source === selectedSource}
+													value={source}
+													onClick={() => handleSourceChange(source)}>
+													{source}
+												</ListItem>
 											))}
 										</List>
 									</Card>
@@ -627,52 +591,29 @@ const ReportSystem = ({
 												<IoIosInformationCircle />
 												{t("custom_source")}
 											</Typography>
-											<div className='text-zinc-500'>{t("custom_source")}</div>
-											<input
-												id='topic-other'
-												className='rounded shadow-md border-zinc-400 w-full'
-												type='text'
-												placeholder='Please specify the source.'
-												onChange={handleOtherSourceChange}
-												value={otherSource}
-												style={{ fontSize: "14px" }}
-											/>
 										</div>
 									)}
 									{selectedSource != "" && (
-										<IconButton
-											variant='outlined'
-											onClick={() => setReportSystem(reportSystem + 1)}
-											className={`${globalStyles.icon_button.button} self-end`}>
-											<IoMdArrowRoundForward
-												size={30}
-												className={globalStyles.icon_button.icon}
-											/>
-										</IconButton>
+										<ForwardArrow />
 									)}
 								</div>
 							)}
-							{/* TODO: add agency dropdown */}
 							{/* Details */}
 							{reportSystem == 5 && (
 								<div className='flex flex-col gap-6 mb-1'>
-									<h1 className={globalStyles.heading.h1.black}>
-										{t("share")}
-									</h1>
+									<Typography variant='h5'>{t("share")}</Typography>
 									{/* DESCRIPTION - details */}
-									<>
-										<h6 className={globalStyles.form.input_title}>
+									<div>
+										<Typography variant='h6' color='blue'>
 											{t("detail")}
-										</h6>
-										<p className={globalStyles.p.default}>
-											{t("detailDescription")}
-										</p>
-									</>
+										</Typography>
+										<Typography>{t("detailDescription")}</Typography>
+									</div>
 									{/* TITLE */}
-									<>
-										<h6 className={globalStyles.form.input_title}>
+									<div>
+										<Typography variant='h6' color='blue'>
 											{t("title_text")}
-										</h6>
+										</Typography>
 										<div className='block'>
 											<div className={globalStyles.form.input_wrap}>
 												<input
@@ -687,15 +628,19 @@ const ReportSystem = ({
 													{t("briefly")}
 												</label>
 											</div>
-											<p className={globalStyles.input.hint}>
+											<Typography
+												variant='small'
+												color='gray'
+												className='mt-2 flex items-center gap-1 font-normal'>
+												{" "}
 												<IoIosInformationCircle />
 												{t("provide_title")} <br />
 												{t("max")}
-											</p>
+											</Typography>
 										</div>
-									</>
+									</div>
 									{/* LINKS */}
-									<>
+									<div>
 										<h6 className={globalStyles.form.input_title}>
 											{t("links")}
 										</h6>
@@ -732,14 +677,18 @@ const ReportSystem = ({
 												)}
 											</div>
 											{/* Link 01 - info subtext */}
-											<p className={globalStyles.input.hint}>
+											<Typography
+												variant='small'
+												color='gray'
+												className='mt-2 flex items-center gap-1 font-normal'>
+												{" "}
 												<IoIosInformationCircle />
 												Example: https://
-											</p>
+											</Typography>
 										</div>
-									</>
+									</div>
 									{/* IMAGE UPLOAD */}
-									<>
+									<div>
 										<h6 className={globalStyles.form.input_title}>
 											{t("image")}
 										</h6>
@@ -758,36 +707,38 @@ const ReportSystem = ({
 													/>
 												</label>
 											</div>
-											<p className={globalStyles.input.hint}>
+											<Typography
+												variant='small'
+												color='gray'
+												className='mt-2 flex items-center gap-1 font-normal'>
 												<IoIosInformationCircle />
 												{t("imageDescription")}
-											</p>
+											</Typography>
 										</div>
-									</>
+									</div>
 									{/* DESCRIBE IN DETAIL */}
-									<>
+									<div>
 										<h6 className={globalStyles.form.input_title}>
 											{t("detailed")}
 										</h6>
 										<div className='block'>
 											<div className='relative w-full min-w-[200px] mt-3'>
-												<textarea
-													className={globalStyles.inputTextarea}
+												<Textarea
 													id='detail'
-													placeholder=' '
 													onChange={(e) => setDetail(e.target.value)}
 													value={detail}
-													rows='6'></textarea>
-												<label className="before:content[' '] after:content[' '] pointer-events-none absolute left-0 -top-1.5 flex h-full w-full select-none text-[11px] font-normal leading-tight text-blue-gray-400 transition-all before:pointer-events-none before:mt-[6.5px] before:mr-1 before:box-border before:block before:h-1.5 before:w-2.5 before:rounded-tl-md before:border-t before:border-l before:border-blue-gray-200 before:transition-all after:pointer-events-none after:mt-[6.5px] after:ml-1 after:box-border after:block after:h-1.5 after:w-2.5 after:flex-grow after:rounded-tr-md after:border-t after:border-r after:border-blue-gray-200 after:transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:leading-[3.75] peer-placeholder-shown:text-blue-gray-500 peer-placeholder-shown:before:border-transparent peer-placeholder-shown:after:border-transparent peer-focus:text-[11px] peer-focus:leading-tight peer-focus:text-gray-900 peer-focus:before:border-t-2 peer-focus:before:border-l-2 peer-focus:before:border-gray-900 peer-focus:after:border-t-2 peer-focus:after:border-r-2 peer-focus:after:border-gray-900 peer-disabled:text-transparent peer-disabled:before:border-transparent peer-disabled:after:border-transparent peer-disabled:peer-placeholder-shown:text-blue-gray-500">
-													{t("describe")}
-												</label>
+													label={t("describe")}
+													rows='6'></Textarea>
 											</div>
-											<p className={globalStyles.textarea.hint}>
+											<Typography
+												variant='small'
+												color='gray'
+												className='mt-2 flex items-center gap-1 font-normal'>
 												<IoIosInformationCircle />
 												{t("detailedDescription")}
-											</p>
+											</Typography>
 										</div>
-									</>
+									</div>
 									{/* SUBMIT BUTTON */}
 									<>
 										<button
@@ -800,19 +751,30 @@ const ReportSystem = ({
 								</div>
 							)}
 						</>
+						{reportSystem >= 3 && (
+							<IconButton
+								variant='text'
+								color='blue-gray'
+								className='-bottom-4 left-1/2 right-1/2 tooltip-refresh'
+								onClick={() => setReportResetModal(true)}
+								type='button'>
+								<IoMdRefresh size={30} />
+								<Tooltip
+									anchorSelect='.tooltip-refresh'
+									place='bottom'
+									delayShow={500}>
+									Reset Report
+								</Tooltip>
+							</IconButton>
+						)}
 					</form>
-					{/* Render the ConfirmModal component */}
-					{reportResetModal && (
-						<ConfirmModal
-							func={handleRefresh} // Pass the handleRefresh function to the ConfirmModal component
-							title='Are you sure you want to reset the report?'
-							subtitle='You cannot undo this action.'
-							CTA='Reset Report'
-							closeModal={() => setReportResetModal(false)}
-						/>
-					)}
+					{/* View Form */}
+				</div>
+			)}
+			{reportSystem === 7 && (
+				<div className={globalStyles.form.wrap}>
 					<>
-						{/* Thank you */}
+						{/* THANK YOU */}
 						{reportSystem == 6 && (
 							<div className={globalStyles.form.viewWrapper + " items-center"}>
 								<Image
@@ -835,34 +797,39 @@ const ReportSystem = ({
 						)}
 						{/* View Report */}
 						{reportSystem == 7 && (
-							<div className={globalStyles.form.viewWrapper}>
+							<Card
+								color='transparent'
+								shadow={false}
+								className='w-full max-w-[26rem] mb-6'>
 								{/* Title */}
-								<div className={globalStyles.inputSingle}>
-									<h2 className={globalStyles.heading.h2.blue}>
+								<div className='mb-6 p-0'>
+									<Typography variant='h6' className='text-blue-600'>
 										{t("title_text")}
-									</h2>
-									{title}
+									</Typography>
+									<Typography>{title}</Typography>
 								</div>
 								{/* Links */}
-								<div className={globalStyles.inputSingle}>
-									<div className={globalStyles.heading.h2.blue}>
+								<div className='mb-6 p-0'>
+									<Typography variant='h6' className='text-blue-600'>
 										{t("links")}
-									</div>
-									{link || secondLink != "" ? (
-										<>
-											{link}
-											<br></br>
-											{secondLink}
-										</>
-									) : (
-										t("noLinks")
-									)}
+									</Typography>
+									<Typography>
+										{link || secondLink != "" ? (
+											<>
+												{link}
+												<br></br>
+												{secondLink}
+											</>
+										) : (
+											t("noLinks")
+										)}
+									</Typography>
 								</div>
 								{/* Image upload */}
-								<div className={globalStyles.inputSingle}>
-									<div className={globalStyles.heading.h2.blue}>
+								<div className='mb-6 p-0'>
+									<Typography variant='h6' className='text-blue-600'>
 										{t("image")}
-									</div>
+									</Typography>
 									<div className='flex w-full overflow-y-auto'>
 										{imageURLs.map((image, i = self.crypto.randomUUID()) => {
 											return (
@@ -882,21 +849,33 @@ const ReportSystem = ({
 									</div>
 								</div>
 								{/* Details */}
-								<div className={globalStyles.inputSingle}>
-									<div className={globalStyles.heading.h2.blue}>
+								<div className='mb-6 p-0'>
+									<Typography variant='h6' className='text-blue-600'>
 										{t("detailed")}
-									</div>
-									{detail ? detail : `No description provided.`}
+									</Typography>
+									<Typography>
+										{detail ? detail : `No description provided.`}
+									</Typography>
 								</div>
-								<button
+								<Button
 									onClick={() => setReportSystem(0)}
-									className={globalStyles.button.md}>
+									className={globalStyles.button.md_block}>
 									{t("backReports")}
-								</button>
-							</div>
+								</Button>
+							</Card>
 						)}
 					</>
 				</div>
+			)}
+			{/* Render the ConfirmModal component */}
+			{reportResetModal && (
+				<ConfirmModal
+					func={handleRefresh} // Pass the handleRefresh function to the ConfirmModal component
+					title='Are you sure you want to reset the report?'
+					subtitle='You cannot undo this action.'
+					CTA='Reset Report'
+					closeModal={() => setReportResetModal(false)}
+				/>
 			)}
 		</div>
 	)
