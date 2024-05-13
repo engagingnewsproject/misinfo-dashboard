@@ -223,7 +223,7 @@ const [showUserMessage, setShowUserMessage] = useState(false)
 	// LOCATION CHANGE
 	const handleAgencyLocationChange = (e) => {
 		e.preventDefault()
-		setEditLocation(!editLocation)
+		setEditLocation(editLocation)
 	}
 	const handleAgencyStateChange = (e) => {
 		// location STATE
@@ -642,7 +642,7 @@ const handleDelete = async () => {
 											getOptionLabel={(options) => {
 												return options["name"]
 											}}
-											isDisabled={editLocation === true ? `false` : `true`}
+											// isDisabled={editLocation === true ? `false` : `true`}
 											getOptionValue={(options) => {
 												return options["name"]
 											}}
