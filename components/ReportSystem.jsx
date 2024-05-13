@@ -380,23 +380,46 @@ const ReportSystem = ({
 		// console.log("not current form")
 		// }
 	}
-	useEffect(() => {
-		console.log(reportSystem)
-	}, [])
+
 	const ForwardArrow = () => {
 		return (
-			<div className='absolute -bottom-10 right-4 sm:top-28 sm:right-12 sm:bottom-auto'>
-				<IconButton
-					variant='outlined'
-					className='rounded-full'
-					color='blue'
-					onClick={() => setReportSystem(reportSystem + 1)}>
-					<IoMdArrowRoundForward
-						size={30}
-						className={globalStyles.icon_button.icon}
-					/>
-				</IconButton>
-			</div>
+			<IconButton
+				variant='text'
+				color='blue'
+				onClick={() => setReportSystem(reportSystem + 1)}>
+				<IoMdArrowRoundForward
+					size={30}
+					className={globalStyles.icon_button.icon}
+				/>
+			</IconButton>
+		)
+	}
+	const BackArrow = () => {
+		return (
+			<IconButton
+				variant='text'
+				color='blue-gray'
+				onClick={onReportSystemPrevStep}>
+				<IoMdArrowRoundBack
+					size={30}
+					className={globalStyles.icon_button.icon_gray}
+				/>
+			</IconButton>
+		)
+	}
+	const RefreshButton = () => {
+		return (
+			<IconButton
+				variant='text'
+				color='blue-gray'
+				className='tooltip-refresh'
+				onClick={() => setReportResetModal(true)}
+				type='button'>
+				<IoMdRefresh size={30} />
+				<Tooltip anchorSelect='.tooltip-refresh' place='bottom' delayShow={500}>
+					Reset Report
+				</Tooltip>
+			</IconButton>
 		)
 	}
 	return (
@@ -457,21 +480,6 @@ const ReportSystem = ({
 			</>
 			{reportSystem >= 2 && reportSystem <= 6 && (
 				<div className={globalStyles.form.wrap}>
-					{/* BACK ICON */}
-					{reportSystem > 0 && reportSystem < 7 && (
-						<div className='absolute -bottom-10 left-4 sm:top-28 sm:left-12'>
-							<IconButton
-								variant='text'
-								color='blue-gray'
-								onClick={onReportSystemPrevStep}>
-								<IoMdArrowRoundBack
-									size={30}
-									className={globalStyles.icon_button.icon_gray}
-								/>
-							</IconButton>
-						</div>
-					)}
-
 					<form
 						onChange={handleChange}
 						onSubmit={handleNewReport}
@@ -483,7 +491,7 @@ const ReportSystem = ({
 							{reportSystem == 2 && (
 								<div className={globalStyles.form.viewWrapper}>
 									<Typography variant='h5'>{t("which_agency")}</Typography>
-									<Card className='sm:w-96'>
+									<Card>
 										<List>
 											{agencies.length == 0 && t("noAgencies")}
 											{agencies.map((agency, i = self.crypto.randomUUID()) => (
@@ -503,7 +511,9 @@ const ReportSystem = ({
 									)}
 									{/* FORWARD ARROW */}
 									{selectedAgency != "" && (
-										<ForwardArrow />
+										<div className='absolute bottom-4 right-4 sm:right-6'>
+											<ForwardArrow />
+										</div>
 									)}
 								</div>
 							)}
@@ -511,7 +521,7 @@ const ReportSystem = ({
 							{reportSystem == 3 && (
 								<div className={globalStyles.form.viewWrapper}>
 									<Typography variant='h5'>{t("about")}</Typography>
-									<Card className='sm:w-96'>
+									<Card>
 										<List>
 											{[
 												...allTopicsArr.filter((topic) => topic !== "Other"),
@@ -549,7 +559,9 @@ const ReportSystem = ({
 									)}
 									{/* FORWARD ARROW */}
 									{selectedTopic != "" && (
-										<ForwardArrow />
+										<div className='absolute bottom-4 right-4 sm:right-6'>
+											<ForwardArrow />
+										</div>
 									)}
 								</div>
 							)}
@@ -557,7 +569,7 @@ const ReportSystem = ({
 							{reportSystem == 4 && (
 								<div className={globalStyles.form.viewWrapper}>
 									<Typography variant='h5'>{t("where")}</Typography>
-									<Card className='sm:w-96'>
+									<Card>
 										<List>
 											{[
 												...sources.filter((source) => source !== "Other"),
@@ -594,7 +606,9 @@ const ReportSystem = ({
 										</div>
 									)}
 									{selectedSource != "" && (
-										<ForwardArrow />
+										<div className='absolute bottom-4 right-4 sm:right-6'>
+											<ForwardArrow />
+										</div>
 									)}
 								</div>
 							)}
@@ -751,21 +765,19 @@ const ReportSystem = ({
 								</div>
 							)}
 						</>
-						{reportSystem >= 3 && (
-							<IconButton
-								variant='text'
-								color='blue-gray'
-								className='-bottom-4 left-1/2 right-1/2 tooltip-refresh'
-								onClick={() => setReportResetModal(true)}
-								type='button'>
-								<IoMdRefresh size={30} />
-								<Tooltip
-									anchorSelect='.tooltip-refresh'
-									place='bottom'
-									delayShow={500}>
-									Reset Report
-								</Tooltip>
-							</IconButton>
+						{/* REFRESH REPORT BUTTON */}
+						{reportSystem >= 2 && (
+							<div className='flex justify-center'>
+								<div className='w-50 opacity-50 hover:opacity-100 mt-2 sm:mt-4'>
+									<RefreshButton />
+								</div>
+							</div>
+						)}
+						{/* BACK ICON */}
+						{reportSystem > 0 && reportSystem < 7 && (
+							<div className='absolute opacity-50 hover:opacity-100 bottom-4 left-4 sm:left-6'>
+								<BackArrow />
+							</div>
 						)}
 					</form>
 					{/* View Form */}
@@ -867,7 +879,7 @@ const ReportSystem = ({
 					</>
 				</div>
 			)}
-			{/* Render the ConfirmModal component */}
+			{/* Reset MODAL */}
 			{reportResetModal && (
 				<ConfirmModal
 					func={handleRefresh} // Pass the handleRefresh function to the ConfirmModal component
