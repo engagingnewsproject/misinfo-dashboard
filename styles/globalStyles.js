@@ -35,12 +35,12 @@ const globalStyles = {
     }
 	},
 	form: {
-		wrap: "flex relative h-auto justify-center py-6 bg-white shadow-none rounded-xl bg-clip-border min-h-[220px]",
-		element: "max-w-screen-lg max-w-fit	p-4 sm:p-0 sm:mt-8 sm:mb-2 lg:w-96",
-		viewWrapper: "flex flex-col justify-center gap-2 mt-4 sm:px-5",
+		wrap: "flex h-auto justify-center wm:py-6 bg-white shadow-none rounded-xl bg-clip-border min-h-[220px]",
+		element: "relative max-w-screen-lg max-w-fit p-4 sm:w-96",
+		viewWrapper: "flex flex-col justify-center gap-2 sm:px-5",
 		input_title:
 			"block -mb-3 font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-blue-600",
-		input_wrap: "relative h-11 w-full min-w-[200px]",
+    input_wrap: "relative h-11 w-full min-w-[200px]",
   },
   mdInput: {
     hint: "mt-2 flex items-center gap-1 font-normal",
