@@ -506,11 +506,13 @@ const handleDelete = async () => {
           <div className="text-xl font-extrabold text-blue-600">
             {t("editLocation")}
           </div>
-   
+		  <div className='font-light'>
+            {t("Select a new state and city: ")}
+          </div>
         <div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
           <div className='flex flex-auto justify-between'>
             <Select
-              className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline p-6 md:p-12"
               id="state"
               type="text"
               required
@@ -528,7 +530,7 @@ const handleDelete = async () => {
               />
           
             <Select
-              className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline p-6 md:p-12"
               id="city"
               type="text"
               placeholder={t("NewReport:city_text")}
@@ -551,13 +553,13 @@ const handleDelete = async () => {
           <div>
             <button
               onClick={handleUserLocationReset}
-              className={`${style.button} ml-2`}
+              className={`${style.button} ml-2 p-6 md:p-12`}
               type='submit'>
                 {t("cancelChanges")}
             </button>
             <button
               onClick={handleUserLocationChange}
-              className={`${style.button} ml-2`}
+              className={`${style.button} ml-2 p-6 md:p-12`}
               type='submit'>
                {t("updateLocation")}
             </button>
