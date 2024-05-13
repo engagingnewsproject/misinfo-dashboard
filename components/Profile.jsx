@@ -223,7 +223,7 @@ const [showUserMessage, setShowUserMessage] = useState(false)
 	// LOCATION CHANGE
 	const handleAgencyLocationChange = (e) => {
 		e.preventDefault()
-		setEditLocation(editLocation)
+		setEditLocation(!editLocation)
 	}
 	const handleAgencyStateChange = (e) => {
 		// location STATE
