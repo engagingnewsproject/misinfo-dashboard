@@ -101,9 +101,9 @@ const globalStyles = {
 	inputTextarea:
 		"border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
 	inputImage:
-		"block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer",
+		"block w-full pb-16 border-none file:mr-4 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer",
 	inputSingle:
-		"border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 bg-white leading-tight focus:outline-none focus:shadow-outline",
+		"border-gray-300 rounded-md w-full pb-14 border-none border-transparent text-gray-700 bg-white leading-tight focus:outline-none focus:shadow-outline",
 	viewWrapperCenter: "flex flex-col gap-2 mt-8 items-center",
 	sectionWrapper: "flex items-center",
 	sectionContainer: "w-full h-full flex flex-col mb-5 overflow-y-visible",

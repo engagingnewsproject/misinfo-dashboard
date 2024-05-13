@@ -33,7 +33,6 @@ import {
 	IoIosInformationCircle,
 	IoMdCheckmark,
 } from "react-icons/io"
-import { Tooltip } from "react-tooltip"
 import globalStyles from "../styles/globalStyles"
 import {
 	Button,
@@ -44,6 +43,11 @@ import {
 	Input,
 	Typography,
 	Textarea,
+	Checkbox,
+	Tooltip,
+	ListItemPrefix,
+	ListItemSuffix,
+	Chip,
 } from "@material-tailwind/react"
 
 const ReportSystem = ({
@@ -70,10 +74,12 @@ const ReportSystem = ({
 	const [images, setImages] = useState([])
 	const [imageURLs, setImageURLs] = useState([])
 	const [update, setUpdate] = useState(false)
-	const [title, setTitle] = useState("")
+	const [title,setTitle] = useState("")
+	const [titleError, setTitleError] = useState(false)
 	const [link, setLink] = useState("")
 	const [secondLink, setSecondLink] = useState("")
-	const [detail, setDetail] = useState("")
+	const [detail,setDetail] = useState("")
+	const [detailError, setDetailError] = useState(false)
 	const [allTopicsArr, setAllTopicsArr] = useState([])
 	const [agencies, setAgencies] = useState([])
 	const [selectedAgency, setSelectedAgency] = useState("")
@@ -193,8 +199,10 @@ const ReportSystem = ({
 	const handleSubmitClick = (e) => {
 		e.preventDefault()
 		if (!title) {
+			setTitleError(true)
 			alert(t("titleRequired"))
 		} else if (images == "" && !detail && !link) {
+			setDetailError(true)
 			alert(t("atLeast"))
 		} else {
 			if (images.length > 0) {
@@ -361,6 +369,12 @@ const ReportSystem = ({
 		}
 	}
 	const handleChange = (e) => {
+		console.log(e.target.id)
+		if (titleError) {
+			e.target.id == 'title' && setTitleError(false)
+		} else if (detailError) {
+			e.target.id == 'link' || 'multiple_files' || 'detail' && setTitleError(false)
+		}
 		// console.log('REPORT VALUE CHANGED: ' + e.target.id + ': ' + e.target.value);
 	}
 	const handleRefresh = () => {
@@ -387,10 +401,7 @@ const ReportSystem = ({
 				variant='text'
 				color='blue'
 				onClick={() => setReportSystem(reportSystem + 1)}>
-				<IoMdArrowRoundForward
-					size={30}
-					className={globalStyles.icon_button.icon}
-				/>
+				<IoMdArrowRoundForward size={30} />
 			</IconButton>
 		)
 	}
@@ -400,10 +411,7 @@ const ReportSystem = ({
 				variant='text'
 				color='blue-gray'
 				onClick={onReportSystemPrevStep}>
-				<IoMdArrowRoundBack
-					size={30}
-					className={globalStyles.icon_button.icon_gray}
-				/>
+				<IoMdArrowRoundBack size={30} />
 			</IconButton>
 		)
 	}
@@ -412,13 +420,9 @@ const ReportSystem = ({
 			<IconButton
 				variant='text'
 				color='blue-gray'
-				className='tooltip-refresh'
 				onClick={() => setReportResetModal(true)}
 				type='button'>
 				<IoMdRefresh size={30} />
-				<Tooltip anchorSelect='.tooltip-refresh' place='bottom' delayShow={500}>
-					Reset Report
-				</Tooltip>
 			</IconButton>
 		)
 	}
@@ -434,46 +438,36 @@ const ReportSystem = ({
 							alt='reminderShow'
 							className='object-cover w-auto'
 						/>
-						<div className='text-xl px-5 font-extrabold text-blue-600 tracking-wider'>
-							{reportSystem == 1 ? t("reminder") : reportSystems[reportSystem]}
-						</div>
-						<div>{t("description")}</div>
-						<div>{t("example")}</div>
-						<div className='flex flex-col gap-2'>
-							<div className='flex gap-3'>
-								<BiCheckCircle size={25} color='green' />
-								{t("correct")}
-							</div>
-							<div className='flex gap-3'>
-								<BiXCircle size={25} color='red' />
-								{t("incorrect")}
-							</div>
-						</div>
-						<Button
-							onClick={onReminderStart}
-							className={globalStyles.button.md}>
+						<Typography variant='h5' color='blue'>
+							{t("reminder")}
+						</Typography>
+						<Typography>{t("description")}</Typography>
+						<Typography>{t("example")}</Typography>
+						<List>
+							<ListItem disabled='true' className='opacity-100'>
+								<ListItemPrefix>
+									<BiCheckCircle size={25} color='green' />
+								</ListItemPrefix>
+								<Typography color='black'>{t("correct")}</Typography>
+							</ListItem>
+							<ListItem disabled='true' className='opacity-100'>
+								<ListItemPrefix>
+									<BiXCircle size={25} color='red' />
+								</ListItemPrefix>
+								<Typography color='black'>{t("incorrect")}</Typography>
+							</ListItem>
+						</List>
+						<Button onClick={onReminderStart} color='blue'>
 							{t("start")}
 						</Button>
 						{/* DO NOT SHOW AGAIN CHECKBOX */}
 						<div className='inline-flex items-center'>
-							<label
-								className={globalStyles.checkbox.input_label}
-								htmlFor='check'>
-								<input
-									className={globalStyles.checkbox.input}
-									onChange={onChangeCheckbox}
-									checked={disableReminder}
-									type='checkbox'
-									id='noShow'
-									name='noShow'
-								/>
-								<span className={globalStyles.checkbox.icon}>
-									<IoMdCheckmark />
-								</span>
-							</label>
-							<label className={globalStyles.checkbox.label} htmlFor='noShow'>
-								{t("noShow")}
-							</label>
+							<Checkbox
+								onChange={onChangeCheckbox}
+								checked={disableReminder}
+								label={t("noShow")}
+								color='blue'
+							/>
 						</div>
 					</div>
 				)}
@@ -486,285 +480,257 @@ const ReportSystem = ({
 						className={globalStyles.form.element}
 						ref={formRef}
 						id={key}>
-						<>
-							{/* Agency */}
-							{reportSystem == 2 && (
-								<div className={globalStyles.form.viewWrapper}>
-									<Typography variant='h5'>{t("which_agency")}</Typography>
-									<Card>
-										<List>
-											{agencies.length == 0 && t("noAgencies")}
-											{agencies.map((agency, i = self.crypto.randomUUID()) => (
-												<ListItem
-													id='agency'
-													key={i}
-													selected={agency === selectedAgency}
-													value={agency}
-													onClick={() => setSelectedAgency(agency)}>
-													{agency}
-												</ListItem>
-											))}
-										</List>
-									</Card>
-									{errors.agency && selectedAgency === "" && (
-										<span className='text-red-500'>{errors.agency}</span>
-									)}
-									{/* FORWARD ARROW */}
-									{selectedAgency != "" && (
-										<div className='absolute bottom-4 right-4 sm:right-6'>
-											<ForwardArrow />
-										</div>
-									)}
-								</div>
-							)}
-							{/* Topic tag */}
-							{reportSystem == 3 && (
-								<div className={globalStyles.form.viewWrapper}>
-									<Typography variant='h5'>{t("about")}</Typography>
-									<Card>
-										<List>
-											{[
-												...allTopicsArr.filter((topic) => topic !== "Other"),
-												...allTopicsArr.filter((topic) => topic === "Other"),
-											].map((topic, i = self.crypto.randomUUID()) => (
-												<ListItem
-													id='topic'
-													key={i}
-													selected={topic === selectedTopic}
-													value={topic}
-													onClick={() => handleTopicChange(topic)}>
-													{topic}
-												</ListItem>
-											))}
-										</List>
-									</Card>
-									{errors.topic && selectedTopic === "" && (
-										<span className='text-red-500'>{errors.topic}</span>
-									)}
-									{showOtherTopic && (
-										<div className='w-full'>
-											<Input
-												label='Custom topic'
-												value={otherTopic}
-												onChange={handleOtherTopicChange}
-											/>
-											<Typography
-												variant='small'
-												color='gray'
-												className={globalStyles.mdInput.hint}>
-												<IoIosInformationCircle />
-												{t("specify_topic")}
-											</Typography>
-										</div>
-									)}
-									{/* FORWARD ARROW */}
-									{selectedTopic != "" && (
-										<div className='absolute bottom-4 right-4 sm:right-6'>
-											<ForwardArrow />
-										</div>
-									)}
-								</div>
-							)}
-							{/* Source tag */}
-							{reportSystem == 4 && (
-								<div className={globalStyles.form.viewWrapper}>
-									<Typography variant='h5'>{t("where")}</Typography>
-									<Card>
-										<List>
-											{[
-												...sources.filter((source) => source !== "Other"),
-												...sources.filter((source) => source === "Other"),
-											].map((source, i = self.crypto.randomUUID()) => (
-												<ListItem
-													id='source'
-													key={i}
-													selected={source === selectedSource}
-													value={source}
-													onClick={() => handleSourceChange(source)}>
-													{source}
-												</ListItem>
-											))}
-										</List>
-									</Card>
-									{errors.source && selectedSource === "" && (
-										<span className='text-red-500'>{errors.source}</span>
-									)}
-									{showOtherSource && (
-										<div className='w-full'>
-											<Input
-												label='Custom source'
-												value={otherSource}
-												onChange={handleOtherSourceChange}
-											/>
-											<Typography
-												variant='small'
-												color='gray'
-												className={globalStyles.mdInput.hint}>
-												<IoIosInformationCircle />
-												{t("custom_source")}
-											</Typography>
-										</div>
-									)}
-									{selectedSource != "" && (
-										<div className='absolute bottom-4 right-4 sm:right-6'>
-											<ForwardArrow />
-										</div>
-									)}
-								</div>
-							)}
-							{/* Details */}
-							{reportSystem == 5 && (
-								<div className='flex flex-col gap-6 mb-1'>
-									<Typography variant='h5'>{t("share")}</Typography>
-									{/* DESCRIPTION - details */}
-									<div>
-										<Typography variant='h6' color='blue'>
-											{t("detail")}
+						{/* Agency */}
+						{reportSystem == 2 && (
+							<div className={globalStyles.form.viewWrapper}>
+								<Typography variant='h5'>{t("which_agency")}</Typography>
+								<Card>
+									<List>
+										{agencies.length == 0 && t("noAgencies")}
+										{agencies.map((agency, i = self.crypto.randomUUID()) => (
+											<ListItem
+												id='agency'
+												key={i}
+												selected={agency === selectedAgency}
+												value={agency}
+												onClick={() => setSelectedAgency(agency)}>
+												{agency}
+											</ListItem>
+										))}
+									</List>
+								</Card>
+								{errors.agency && selectedAgency === "" && (
+									<span className='text-red-500'>{errors.agency}</span>
+								)}
+								{/* FORWARD ARROW */}
+								{selectedAgency != "" && (
+									<div className='absolute bottom-4 right-4 sm:right-6'>
+										<ForwardArrow />
+									</div>
+								)}
+							</div>
+						)}
+						{/* Topic tag */}
+						{reportSystem == 3 && (
+							<div className={globalStyles.form.viewWrapper}>
+								<Typography variant='h5'>{t("about")}</Typography>
+								<Card>
+									<List>
+										{[
+											...allTopicsArr.filter((topic) => topic !== "Other"),
+											...allTopicsArr.filter((topic) => topic === "Other"),
+										].map((topic, i = self.crypto.randomUUID()) => (
+											<ListItem
+												id='topic'
+												key={i}
+												selected={topic === selectedTopic}
+												value={topic}
+												onClick={() => handleTopicChange(topic)}>
+												{topic}
+											</ListItem>
+										))}
+									</List>
+								</Card>
+								{errors.topic && selectedTopic === "" && (
+									<span className='text-red-500'>{errors.topic}</span>
+								)}
+								{showOtherTopic && (
+									<div className='w-full'>
+										<Input
+											label='Custom topic'
+											value={otherTopic}
+											onChange={handleOtherTopicChange}
+										/>
+										<Typography
+											variant='small'
+											color='gray'
+											className={globalStyles.mdInput.hint}>
+											<IoIosInformationCircle />
+											{t("specify_topic")}
 										</Typography>
-										<Typography>{t("detailDescription")}</Typography>
 									</div>
-									{/* TITLE */}
-									<div>
-										<Typography variant='h6' color='blue'>
-											{t("title_text")}
+								)}
+								{/* FORWARD ARROW */}
+								{selectedTopic != "" && (
+									<div className='absolute bottom-4 right-4 sm:right-6'>
+										<ForwardArrow />
+									</div>
+								)}
+							</div>
+						)}
+						{/* Source tag */}
+						{reportSystem == 4 && (
+							<div className={globalStyles.form.viewWrapper}>
+								<Typography variant='h5'>{t("where")}</Typography>
+								<Card>
+									<List>
+										{[
+											...sources.filter((source) => source !== "Other"),
+											...sources.filter((source) => source === "Other"),
+										].map((source, i = self.crypto.randomUUID()) => (
+											<ListItem
+												id='source'
+												key={i}
+												selected={source === selectedSource}
+												value={source}
+												onClick={() => handleSourceChange(source)}>
+												{source}
+											</ListItem>
+										))}
+									</List>
+								</Card>
+								{errors.source && selectedSource === "" && (
+									<span className='text-red-500'>{errors.source}</span>
+								)}
+								{showOtherSource && (
+									<div className='w-full'>
+										<Input
+											label='Custom source'
+											value={otherSource}
+											onChange={handleOtherSourceChange}
+										/>
+										<Typography
+											variant='small'
+											color='gray'
+											className={globalStyles.mdInput.hint}>
+											<IoIosInformationCircle />
+											{t("custom_source")}
 										</Typography>
-										<div className='block'>
-											<div className={globalStyles.form.input_wrap}>
-												<input
-													id='title'
-													type='text'
-													className={globalStyles.input.input}
-													placeholder=' '
-													onChange={(e) => setTitle(e.target.value)}
-													value={title}
-												/>
-												<label className={globalStyles.input.label}>
-													{t("briefly")}
-												</label>
-											</div>
-											<Typography
-												variant='small'
-												color='gray'
-												className='mt-2 flex items-center gap-1 font-normal'>
-												{" "}
-												<IoIosInformationCircle />
-												{t("provide_title")} <br />
-												{t("max")}
-											</Typography>
-										</div>
 									</div>
-									{/* LINKS */}
-									<div>
-										<h6 className={globalStyles.form.input_title}>
-											{t("links")}
-										</h6>
-										{/* Link 01 */}
-										<div className='block'>
-											<div
-												className={`${globalStyles.form.input_wrap} flex flex-col gap-2`}>
-												<input
-													className={globalStyles.input.input}
-													id='link'
-													type='text'
-													placeholder=' '
-													onChange={(e) => setLink(e.target.value)}
-													value={link}
-												/>
-												<label className={globalStyles.input.label}>
-													{t("linkFirst")}
-												</label>
-												{/* Link 02 */}
-												{link && (
-													<div className='relative h-10 w-full min-w-[200px]'>
-														<input
-															className={globalStyles.input.input}
-															id='secondLink'
-															type='text'
-															placeholder=' '
-															onChange={(e) => setSecondLink(e.target.value)}
-															value={secondLink}
-														/>
-														<label className={globalStyles.input.label}>
-															{t("linkFirst")}
-														</label>
-													</div>
-												)}
-											</div>
-											{/* Link 01 - info subtext */}
-											<Typography
-												variant='small'
-												color='gray'
-												className='mt-2 flex items-center gap-1 font-normal'>
-												{" "}
-												<IoIosInformationCircle />
-												Example: https://
-											</Typography>
-										</div>
+								)}
+								{selectedSource != "" && (
+									<div className='absolute bottom-4 right-4 sm:right-6'>
+										<ForwardArrow />
 									</div>
-									{/* IMAGE UPLOAD */}
-									<div>
-										<h6 className={globalStyles.form.input_title}>
-											{t("image")}
-										</h6>
-										<div className='block'>
-											<div className={globalStyles.form.input_wrap}>
-												<label className='block'>
-													<span className='sr-only'>{t("choose_files")}</span>
-													<input
-														className={globalStyles.inputImage}
-														id='multiple_files'
-														type='file'
-														multiple
-														accept='image/*'
-														onChange={handleImageChange}
-														ref={imgPicker}
-													/>
-												</label>
-											</div>
-											<Typography
-												variant='small'
-												color='gray'
-												className='mt-2 flex items-center gap-1 font-normal'>
-												<IoIosInformationCircle />
-												{t("imageDescription")}
-											</Typography>
-										</div>
-									</div>
-									{/* DESCRIBE IN DETAIL */}
-									<div>
-										<h6 className={globalStyles.form.input_title}>
-											{t("detailed")}
-										</h6>
-										<div className='block'>
-											<div className='relative w-full min-w-[200px] mt-3'>
-												<Textarea
-													id='detail'
-													onChange={(e) => setDetail(e.target.value)}
-													value={detail}
-													label={t("describe")}
-													rows='6'></Textarea>
-											</div>
-											<Typography
-												variant='small'
-												color='gray'
-												className='mt-2 flex items-center gap-1 font-normal'>
-												<IoIosInformationCircle />
-												{t("detailedDescription")}
-											</Typography>
-										</div>
-									</div>
-									{/* SUBMIT BUTTON */}
-									<>
-										<button
-											onClick={handleSubmitClick}
-											className={globalStyles.button.md_block}
-											type='submit'>
-											{t("submit")}
-										</button>
-									</>
+								)}
+							</div>
+						)}
+						{/* Details */}
+						{reportSystem == 5 && (
+							<div className='flex flex-col gap-6 mb-1'>
+								<Typography variant='h5'>{t("share")}</Typography>
+								{/* DESCRIPTION - details */}
+								<div className='block'>
+									<Typography variant='h6' color='blue'>
+										{t("detail")}
+									</Typography>
+									<Typography>{t("detailDescription")}</Typography>
 								</div>
-							)}
-						</>
+								{/* TITLE */}
+								<div className='block'>
+									<Input
+										variant='small'
+										color='gray'
+										id='title'
+										type='text'
+										label={t("title")}
+										onChange={(e) => setTitle(e.target.value)}
+										value={title}
+										error={titleError}
+									/>
+									<Typography
+										variant='small'
+										color={titleError ? 'red' : 'gray'}
+										className='mt-2 flex items-start gap-1 font-normal'>
+										<IoIosInformationCircle size="15" className='mt-1' />
+										{t("provide_title")} {t("max")}
+									</Typography>
+									{detailError && (
+										<Typography color="red" className="mt-2">{t("atLeast")}</Typography>
+									)}
+								</div>
+								{/* LINKS */}
+								<div className='block'>
+									<Input
+										variant='small'
+										color='gray'
+										label={t("linkFirst")}
+										id='link'
+										type='text'
+										onChange={(e) => setLink(e.target.value)}
+										value={link}
+									/>
+									{!link && (
+										<Typography
+											variant='small'
+											color='gray'
+											className='mt-2 flex items-start gap-1 font-normal'>
+											<IoIosInformationCircle size="15" className='mt-1' />
+											{t("example")} https://
+										</Typography>
+									)}
+									{/* Link 02 */}
+									{link && (
+										<>
+											<div className='mt-2'>
+												<Input
+													variant='small'
+													color='gray'
+													label={t("linkFirst")}
+													id='secondLink'
+													type='text'
+													onChange={(e) => setSecondLink(e.target.value)}
+													value={secondLink}
+												/>
+											</div>
+											<Typography
+												variant='small'
+												color='gray'
+												className='mt-2 flex items-start gap-1 font-normal'>
+												<IoIosInformationCircle size="15" className='mt-1' />
+												{t("example")} https://
+											</Typography>
+										</>
+									)}
+								</div>
+								{/* IMAGE UPLOAD */}
+								<div className='block'>
+									<Input
+										variant='static'
+										id='multiple_files'
+										multiple
+										className={globalStyles.inputImage}
+										accept='image/*'
+										onChange={handleImageChange}
+										ref={imgPicker}
+										type='file'
+										label={t("image")}
+									/>
+									<Typography
+										variant='small'
+										color='gray'
+										className='mt-2 flex items-start gap-1'>
+										<IoIosInformationCircle size="15" className='mt-1' />
+										{t("imageDescription")}
+									</Typography>
+								</div>
+								{/* DESCRIBE IN DETAIL */}
+								<div className='block'>
+									<Textarea
+										type="textarea"
+										id='detail'
+										onChange={(e) => setDetail(e.target.value)}
+										value={detail}
+										label={t("detailed")}
+										rows={8}
+										/>
+									<Typography
+										variant='small'
+										color='gray'
+										className='mt-2 flex items-start gap-1'>
+										<IoIosInformationCircle size="15" className='mt-1' />
+										{t("detailedDescription")}
+									</Typography>
+								</div>
+								{/* SUBMIT BUTTON */}
+								<button
+									onClick={handleSubmitClick}
+									className={globalStyles.button.md_block}
+									type='submit'>
+									{t("submit")}
+								</button>
+							</div>
+						)}
 						{/* REFRESH REPORT BUTTON */}
 						{reportSystem >= 2 && (
 							<div className='flex justify-center'>
@@ -780,11 +746,10 @@ const ReportSystem = ({
 							</div>
 						)}
 					</form>
-					{/* View Form */}
 				</div>
 			)}
 			{reportSystem === 7 && (
-				<div className={globalStyles.form.wrap}>
+				<div className={`${globalStyles.form.wrap} sm:p-6`}>
 					<>
 						{/* THANK YOU */}
 						{reportSystem == 6 && (
@@ -809,20 +774,17 @@ const ReportSystem = ({
 						)}
 						{/* View Report */}
 						{reportSystem == 7 && (
-							<Card
-								color='transparent'
-								shadow={false}
-								className='w-full max-w-[26rem] mb-6'>
+							<Card className={globalStyles.form.element}>
 								{/* Title */}
 								<div className='mb-6 p-0'>
-									<Typography variant='h6' className='text-blue-600'>
+									<Typography variant='h6' color='blue'>
 										{t("title_text")}
 									</Typography>
 									<Typography>{title}</Typography>
 								</div>
 								{/* Links */}
 								<div className='mb-6 p-0'>
-									<Typography variant='h6' className='text-blue-600'>
+									<Typography variant='h6' color='blue'>
 										{t("links")}
 									</Typography>
 									<Typography>
@@ -839,7 +801,7 @@ const ReportSystem = ({
 								</div>
 								{/* Image upload */}
 								<div className='mb-6 p-0'>
-									<Typography variant='h6' className='text-blue-600'>
+									<Typography variant='h6' color='blue'>
 										{t("image")}
 									</Typography>
 									<div className='flex w-full overflow-y-auto'>
@@ -862,16 +824,14 @@ const ReportSystem = ({
 								</div>
 								{/* Details */}
 								<div className='mb-6 p-0'>
-									<Typography variant='h6' className='text-blue-600'>
+									<Typography variant='h6' color='blue'>
 										{t("detailed")}
 									</Typography>
 									<Typography>
 										{detail ? detail : `No description provided.`}
 									</Typography>
 								</div>
-								<Button
-									onClick={() => setReportSystem(0)}
-									className={globalStyles.button.md_block}>
+								<Button color='blue' onClick={() => setReportSystem(0)}>
 									{t("backReports")}
 								</Button>
 							</Card>
