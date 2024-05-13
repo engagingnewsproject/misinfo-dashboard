@@ -43,9 +43,9 @@ const SignUp = () => {
         // Get user object
         const user = auth.currentUser;
      
-        // if (user) {
+        if (user) {
             // Set user uid
-            // console.log("adding mobile user")
+            console.log("adding mobile user")
             const uid = user.uid;
             // create a new mobileUsers doc with signed in user's uid
             setDoc(doc(db, "mobileUsers", uid), {
@@ -60,9 +60,9 @@ const SignUp = () => {
                 contact: data.contact
             });
             // console.log("user was added with uid" + uid)
-        // } else {
-            // console.log('no user');
-        // }
+        } else {
+            console.log('no user');
+        }
     }
 
     const handleSignUp = async (e) => {
