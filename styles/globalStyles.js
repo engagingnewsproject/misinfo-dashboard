@@ -35,8 +35,9 @@ const globalStyles = {
     }
 	},
 	form: {
-		wrap: "flex h-auto justify-center wm:py-6 bg-white shadow-none rounded-xl bg-clip-border min-h-[220px]",
-		element: "relative max-w-screen-lg max-w-fit p-4 sm:w-96",
+		wrap: "flex h-auto justify-center md:py-6 bg-white shadow-none rounded-xl bg-clip-border min-h-[220px] sm:min-w-72",
+		view: "min-w-full bg-clip-border p-6",
+		element: "ELEMENT relative max-w-screen-lg min-w-96 p-4 sm:w-96",
 		viewWrapper: "flex flex-col justify-center gap-2 sm:px-5",
 		input_title:
 			"block -mb-3 font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-blue-600",
