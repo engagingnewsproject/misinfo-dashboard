@@ -1,0 +1,9 @@
+{
+	"chfModalTitle": "Contact Help Form",
+	"chfModalSubject": "Add a subject",
+	"chfModalMessage": "Add a message",
+	"chfModalScreenshots": "Upload screenshots",
+	"chfModalChooseFiles": "Choose files",
+	"chfModalNoChosenFile": "No file chosen",
+	"chfModalSubmit": "Submit"
+}
