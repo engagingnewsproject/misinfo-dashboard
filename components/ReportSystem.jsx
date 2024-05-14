@@ -774,7 +774,7 @@ const ReportSystem = ({
 						)}
 						{/* View Report */}
 						{reportSystem == 7 && (
-							<Card className={globalStyles.form.element}>
+							<Card className={globalStyles.form.view}>
 								{/* Title */}
 								<div className='mb-6 p-0'>
 									<Typography variant='h6' color='blue'>
