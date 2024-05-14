@@ -5,6 +5,7 @@ import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage,connectStorageEmulator } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
 import { getPerformance } from "firebase/performance";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 
 // UNCOMMENT "connectFunctionsEmulator" BELOW: enable connection to firebase functions emulator
 // connectFunctionsEmulator
@@ -27,6 +28,21 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig)
+
+// Create a ReCaptchaEnterpriseProvider instance using your reCAPTCHA Enterprise
+// site key and pass it to initializeAppCheck().
+// Docs: https://firebase.google.com/docs/app-check/web/recaptcha-enterprise-provider?authuser=0&hl=en#initialize
+// Check if we're running in a browser environment
+if (typeof window !== 'undefined') {
+  // Use App Check with the debug provider in web apps
+  // Docs: https://firebase.google.com/docs/app-check/web/debug-provider?authuser=0
+  self.FIREBASE_APPCHECK_DEBUG_TOKEN = process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN;
+  // Initialize Firebase App Check with ReCaptcha Enterprise
+  const appCheck = initializeAppCheck(app, {
+      provider: new ReCaptchaEnterpriseProvider(process.env.NEXT_PUBLIC_FIREBASE_RECAPTCHA_ENTERPRISE_SITE_KEY),
+      isTokenAutoRefreshEnabled: true // Set to true to allow auto-refresh.
+  });
+}
 
 // Initialize Analytics and get a reference to the service
 let analytics = null; // Initialize to null

@@ -94,8 +94,8 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
         setData(tagSystem, list, active, user)
     }
 
-    const deleteTag = (e) => {
-        e.preventDefault
+    const deleteTag = () => {
+        // e.preventDefault
         if (list.includes(selected)) {
             list.splice(list.indexOf(selected), 1)
         }
@@ -148,9 +148,6 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
     useEffect(() => {
         setSearch(selected)
     }, [selected])
-useEffect(() => {
-  console.log(customClaims)
-}, [])
 
     return (
         <div className="z-0 flex flex-col p-4 sm:p-16 h-full" onClick={(e) => {
@@ -208,7 +205,7 @@ useEffect(() => {
                 <div className="relative">
                 <form className="w-full mt-7 ml-2 relative" onChange={handleChange} onSubmit={handleSearch}>
                     <button 
-                    className="p-1 absolute right-1 top-1 bg-blue-500 text-white rounded-xl" 
+                    className="p-1 absolute right-1 top-1 bg-blue-600 text-white rounded-xl" 
                     type='submit'>
                         <AiOutlineSearch size={25}/>
                     </button>
@@ -226,7 +223,7 @@ useEffect(() => {
                     <div className="bg-white w-full rounded-lg">
                         {searchResult.map((item) => {
                             return (
-                                !item.includes('Other/Otro') &&
+                                !item.includes('Other') &&
                                 <div onClick={() => {
                                 setSelected(item)
                                 setSearchResult([])
@@ -239,7 +236,7 @@ useEffect(() => {
                 <div className="z-10 mt-12 pr-6">
                     {list.length == 0 ? 
                     <div className="grid bg-white w-full py-6 px-4 rounded-xl text-center items-center">
-                        <Image src="svgs/warning.svg" width={156} height={120} alt="warning"/>
+                        <Image src="svgs/warning.svg" width={156} height={120} className='w-auto' alt="warning"/>
                         <div className="py-3 text-sm">You have no tags right now</div>
                     </div>
                     : 
@@ -254,7 +251,7 @@ useEffect(() => {
                             {active.map((item) => {
                                 return (
                                 !customClaims.admin ?
-                                    !item.includes('Other/Otro') ?
+                                    !item.includes('Other') ?
                                         <div onClick={() => setSelected(item)} className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center" key={item}>
                                             <GoDotFill size={25} className="text-green-600"/>
                                             <div className="pl-2">{item}</div>
@@ -284,7 +281,7 @@ useEffect(() => {
                             const randomKey = self.crypto.randomUUID(); // Generate random UUID
                             return (
                                 !customClaims.admin ?
-                                    !item.includes('Other/Otro') &&
+                                    !item.includes('Other') &&
                                     <div onClick={() => setSelected(item)} className={selected == item ? selectedStyles : normStyles} key={randomKey}>
                                         { active.includes(item) && <GoDotFill size={25} className="text-green-600"/> }
                                         <div className="pl-2">{item}</div>

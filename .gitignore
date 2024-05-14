@@ -51,3 +51,10 @@ public/worker-*.js.map
 # Local Netlify folder
 .netlify
 
+# extensions
+extensions/*
+functions/.runtimeconfig.json
+functions/sendgrid.env
+functions/node_modules
+extensions/firestore-send-email-6bt9.env
+functions/sendgrid.env

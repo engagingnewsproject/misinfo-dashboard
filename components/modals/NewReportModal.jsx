@@ -166,7 +166,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     
     const handleTopicChange = (e) => {
         setSelectedTopic(e.value)
-        if (e.value === "Other/Otro") {
+        if (e.value === t("Other")) {
             setShowOtherTopic(true)
         } else {
             setShowOtherTopic(false)
@@ -176,7 +176,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
 
     const handleSourceChangeOther = (e) => {
         setSelectedSource(e.value)
-        if (e.value === "Other/Otro") {
+        if (e.value === t("Other")) {
             setShowOtherSource(true)
         } else {
             setShowOtherSource(false)
@@ -204,8 +204,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
             const { ['Topic']: tagsData } = docRef.data()
             setList(tagsData.list)
             tagsData.active.sort((a, b) => {
-                if (a === "Other") return 1; // Move "Other" to the end
-                if (b === "Other") return -1; // Move "Other" to the end
+                if (a === t("Other")) return 1; // Move "Other" to the end
+                if (b === t("Other")) return -1; // Move "Other" to the end
                 return a.localeCompare(b); // Default sorting for other elements
             });
             setActive(tagsData.active)
@@ -367,7 +367,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                 onClick={handleNewReportModalClose} 
                 className={`flex overflow-y-auto justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full`}>
                 {/* <div onClick={handleNewReportModalClose} className="flex overflow-y-auto justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full"> */}
-                    <div onClick={(e) => {e.stopPropagation()}} className={`flex-col justify-center items-center bg-white md:w-8/12 lg:w-6/12 h-auto rounded-2xl py-10 px-10 z-50`}>
+                    <div onClick={(e) => {e.stopPropagation()}} className={`flex-col justify-center items-center bg-white w-full h-full py-10 px-10 z-50 md:w-8/12 md:h-auto lg:w-6/12 rounded-2xl`}>
                         <div className="flex justify-between w-full mb-5">
                             <div className="text-md font-bold text-blue-600 tracking-wide">{t("add_report")}</div>
                             <button onClick={handleNewReportModalClose} className="text-gray-800">
@@ -488,7 +488,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     id="source-selection"
                                     type="text"
                                     placeholder="Source"
-                                    options={allSourcesArr.map(source => ({ label: source, value: source }))}
+                                    options={allSourcesArr.map(source => ({ label: t(source), value: t(source) }))}
                                     onChange={handleSourceChangeOther}
                                     value={selectedSource.hearFrom}
                                     />
@@ -579,7 +579,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                             {reportState >= 6 &&
                             <div className="mt-3 sm:mt-6">
                                 <button
-                                    className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
                                     onClick={handleSubmitClick}
                                     type="submit">
                                     {t("createReport")}

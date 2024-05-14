@@ -26,7 +26,10 @@
   "incorrectEmail": "El nuevo correo electrónico debe ser @correo.",
   "agencies": "Agencias",
   "agency": "Agencia",
-  "cancel": "Cancelar"
-
-
+  "cancel": "Cancelar",
+  "location": "Ubicación actualizada.",
+  "updateLocation": "Actualizar ubicación",
+  "cancelChanges": "Cancelar cambios",
+  "editLocation": "Editar tu ubicación",
+  "addLocation":"Selecciona una ubicación"
 }

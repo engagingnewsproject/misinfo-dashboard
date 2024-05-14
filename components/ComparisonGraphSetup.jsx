@@ -20,7 +20,7 @@ import { Tooltip } from "react-tooltip";
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
 import _ from "lodash";
-
+import globalStyles from '../styles/globalStyles';
 const ComparisonGraphSetup = () => {
 
   // Indicates which topics and dates have been selected in the dropdowns. 
@@ -104,12 +104,12 @@ const ComparisonGraphSetup = () => {
 
   return (
     <div className="relative h-full lg:h-1/2">
-      <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Compare Topic Reports</h1>
+      <h1 className={`${globalStyles.heading.h1.blue} text-center`}>Compare Topic Reports</h1>
               {/* Initial screen that appears when user selects the comparison view. Allows user to select three topics. */}
             {tab == 0 && 
-              <div className="flex items-center justify-center">
+              <div className="flex items-center justify-center md:ml-12">
               <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 h-auto">
-                <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select topics to compare. </h1>
+                <h2 className={`${globalStyles.heading.h2.blue} text-center py-4`}>Select topics to compare. </h2>
                 <h1 className="pl-3 pb-4 text-center">Choose at least one topic to view the number of reports.</h1>
                 {topicError && <h1 className="pl-3 pb-4 text-center text-red-500">You must choose at least one topic to compare.</h1>}
                 <Select options={listTopicChoices} components={animatedComponents}

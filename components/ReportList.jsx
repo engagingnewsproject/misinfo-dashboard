@@ -54,7 +54,7 @@ const ReportList = ({reportView, setReportView}) => {
 	return (
 		<>
 		{reportView == 0 &&
-			<div className="bg-slate-100 p-4 rounded-lg mt-2">
+			<ul className="bg-white p-4 rounded-lg mt-2 flex flex-col divide-y divide-gray-100">
 				{reports.map((reportObj, i) => {
 					const report = Object.values(reportObj)[0]
 					const reportId = Object.keys(reportObj)[0]
@@ -64,14 +64,14 @@ const ReportList = ({reportView, setReportView}) => {
 						.replace(/,/g, "")
 
 					return (
-							<button onClick={() => handleReportView(Object.keys(reportObj)[0])} key={i} className="flex gap-4 text-left">
+							<li onClick={() => handleReportView(Object.keys(reportObj)[0])} key={i} className="flex gap-4 py-5 pl-4 text-left rounded-lg hover:bg-slate-100 cursor-pointer">
 								<div>{posted}</div>
 								<div>{report.title}</div>
-							</button>
+							</li>
 					)
 				})}
 				{reports == 0 && <div>{t("noReports")}</div>}
-			</div>
+			</ul>
 		}
 		{reportView == 1 &&
 			<ReportView reportView={reportView} setReportView={setReportView} reportId={reportId} setReportId={setReportId} />
