@@ -67,7 +67,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                     </div>
                     <form onChange={handleChange} onSubmit={handleUpdatePW}>
                         <div className="flex flex-col mb-4">
-                            <label className='text-xs text-gray-400'>Email</label>
+                            <label className='text-xs text-gray-400'>{t('email')}</label>
                             <input
                                 className="border-none rounded-md w-full py-3 px-3 text-sm text-gray-400 leading-tight"
                                 value={user.email}

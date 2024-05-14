@@ -175,7 +175,7 @@ export async function getStaticProps(context) {
   return {
     props: {
       // pass the translation props to the page component
-      ...(await serverSideTranslations(locale, ['Home', 'Report', 'NewReport', "Profile"])),
+      ...(await serverSideTranslations(locale, ['Home', 'Report', 'NewReport', 'Profile', 'Navbar'])),
     },
   }
 }
