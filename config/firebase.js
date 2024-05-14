@@ -66,11 +66,11 @@ export const functions = getFunctions(app);
 // UNCOMMENT BELOW: enable connection to firebase functions emulator
 // connectFunctionsEmulator(functions,"127.0.0.1",5001)
 
-
+// If running in development environment, connect to Firestore emulator
 if (process.env.NODE_ENV === 'development') {
   console.log("Running Emulator");
   connectAuthEmulator(auth, "http://127.0.0.1:9099");
-  connectFirestoreEmulator(db, "127.0.0.1", 8080);
+  connectFirestoreEmulator(db, "localhost", 8080);
   connectStorageEmulator(storage, "127.0.0.1", 9199);
   connectFunctionsEmulator(functions, "127.0.0.1", 5001);
 }
