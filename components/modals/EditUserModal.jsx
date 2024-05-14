@@ -48,7 +48,7 @@ const EditUserModal = ({
 		modal_form_input:
 			"shadow border-none rounded-xl min-w-full col-span-2 p-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
 		modal_form_button:
-			"bg-blue-500 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
+			"bg-blue-600 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
 	}
 	// useEffect(() => {
 		// console.log(`user role: ${userRole}`)

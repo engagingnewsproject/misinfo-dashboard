@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router'
-import 'react-tooltip/dist/react-tooltip.css'
 
 export default function Home() {
 

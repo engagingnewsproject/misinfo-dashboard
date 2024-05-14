@@ -40,13 +40,13 @@ const Headbar = ({ search, setSearch}) => {
 
             <div className="w-full grid grid-cols-12 pb-5 md:flex md:flex-row md:px-12 md:justify-between md:items-center">
             {/* <div className="grid grid-cols-5 md:grid-cols-12 md:pl-12 lg:px-20"> */}
-                <div className="col-start-3 col-span-9 md:col-start-1 flex items-center pt-3">
+                <div className="col-start-3 col-span-9 md:col-start-1 flex items-center">
                 {/* TODO: - agency can swap out their logo */}
                     <div className="flex justify-center">
                         {customClaims.agency && agencyLogo ? (
-                            <Image src={agencyLogo} width={100} height={100} alt="image" style={{ width: '100%', height: 'auto' }}/>
+                            <Image src={agencyLogo} width={55} height={55} alt="agency logo" className='w-auto'/>
                          ) : (
-                            <Image src="/img/misinformation-app-logo.png" width={45} height={45} alt="image" style={{ width: '100%', height: 'auto' }}/>
+                            <Image src="/img/misinformation-app-logo.png" width={55} height={55} alt="agency logo" className='w-auto'/>
                         )}
                     </div>
                     <div className="text-md font-semibold px-4 tracking-wide">
@@ -78,7 +78,7 @@ const Headbar = ({ search, setSearch}) => {
                         onChange={handleChange}
                         value={search} />
                     <button 
-                    className="py-1 px-1 mt-1 mr-1 absolute right-0 top-0 bg-blue-500 text-white rounded-xl" 
+                    className="py-1 px-1 mt-1 mr-1 absolute right-0 top-0 bg-blue-600 text-white rounded-xl" 
                     type='submit'>
                         <AiOutlineSearch size={25}/>
                     </button>

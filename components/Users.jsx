@@ -20,6 +20,7 @@ import ConfirmModal from "./modals/ConfirmModal"
 import EditUserModal from "./modals/EditUserModal"
 import NewUserModal from './modals/NewUserModal'
 import { FaPlus } from 'react-icons/fa'
+import globalStyles from "../styles/globalStyles"
 // adelgado@freepress.com prior userID: 6PCpGTofClOv9FSvFgo3l9zHBTB2
 // Profile page that allows the user to edit password or logout of their account
 const Users = () => {
@@ -161,7 +162,6 @@ const Users = () => {
 						// Set the agency state
 						setSelectedAgency(userData.data.agencyName)
 					}
-					console.log(mobileUsersArray)
 					mobileUsersArray.push(userData)
 				}
 				// need to itterate over the 'agency' collection 
@@ -428,11 +428,6 @@ const Users = () => {
 	useEffect(() => {
 		getData()
 	},[update])
-
-	useEffect(() => {
-		console.log("Loaded Mobile Users:", loadedMobileUsers);
-		// This will log the loadedMobileUsers state variable whenever it changes
-	}, [loadedMobileUsers]);
 	
 	return (
 		<div className={style.section_container}>
@@ -444,7 +439,7 @@ const Users = () => {
 						) : (
 							<span className='text-xs'>All Agency</span>
 						)}
-						<div className='text-center md:text-left text-lg font-bold text-blue-600 tracking-wider pb-2 md:pb-0'>
+						<div className={globalStyles.heading.h1.blue}>
 							Users
 						</div>
 					</div>

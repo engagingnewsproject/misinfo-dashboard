@@ -15,7 +15,7 @@
   "detail": "Detalles",
   "detailDescription":
     "Por favor, especifique lo más que pueda. Necesitamos por lo menos: un enlace, una foto o una descripción detallada.",
-  "link": "Enlace",
+  "linkFirst": "Enlace",
   "links": "Enlaces",
   "image_text": "Imágenes",
   "linkSecond":"Enlace",
@@ -69,6 +69,19 @@
   "upload": "Puedes subir capturas de pantalla o fotografías de la posible desinformación.",
   "agency":"Agencia",
   "topic": "Tema",
+  "noAgencies":"There are no participating newsrooms in this area.",
+  "topics": {
+    "Health": "Salud",
+    "Weather": "Clima",
+    "Other": "Otro",
+    "Politics":"Política"
+  },
+  "sources": {
+  "Social": "Social",
+  "Newspaper": "Periódico",
+  "Website": "Sitio web",
+  "Other": "Otro"
+  },
   "thanksText": "Investigamos tantas denuncias como sea posible, aunque no siempre podemos llegar a todas."
 
 }
