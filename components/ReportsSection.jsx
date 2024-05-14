@@ -372,9 +372,12 @@ const handleUserSendEmail = (reportURI) => {
 	} // end handleReportModalShow
 
 	useEffect(() => {
+		console.log(`agency user? - ${isAgency}`)
 		if (reportModalShow && reportModalId) {
-		// Set report as read since someone clicked on it - so they read it
-			handleChangeRead(reportModalId, true)
+			// When a report's modal opens set the report as read 
+			// since someone clicked on it - so they read it
+			// but only if it is an agency user.
+			isAgency === true && handleChangeRead(reportModalId, true)
 		} else {
 			setReportModalId('')
 			setReportModalShow(false)
