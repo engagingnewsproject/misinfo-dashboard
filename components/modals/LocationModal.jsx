@@ -95,6 +95,7 @@ const LocationModal = ({ setLocationModal }) => {
                     <Select
                     className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                     id="state"
+                    name='state'
                     type="text"
                     required
                     placeholder={t("NewReport:state_text")}
@@ -115,6 +116,7 @@ const LocationModal = ({ setLocationModal }) => {
                       className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                       id="city"
                       type="text"
+                      name='city'
                       placeholder={t("NewReport:city_text")}
                       value={userLocation?.city}
                       options={City.getCitiesOfState(
