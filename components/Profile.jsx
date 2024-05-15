@@ -563,7 +563,7 @@ const handleDelete = async () => {
         </div>
 		<div>
               {showUserMessage && (
-                      <div className='text-green-800 transition-opacity opacity-100 align-center'>
+                      <div className='text-green-800 transition-opacity opacity-100'>
                         {t("location")}
                       </div>
                     )}
