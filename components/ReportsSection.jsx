@@ -26,7 +26,9 @@ import NewReport from './modals/NewReportModal';
 import ReportModal from './modals/ReportModal';
 import ConfirmModal from './modals/ConfirmModal';
 import globalStyles from '../styles/globalStyles';
-
+import TableHead from './partials/table/TableHead'
+import TableBody from './partials/table/TableBody'
+import { Card, Typography } from '@material-tailwind/react'
 const ReportsSection = ({
   search,
   newReportSubmitted,
@@ -48,7 +50,8 @@ const ReportsSection = ({
   const { user, verifyRole, customClaims } = useAuth();
 
   // Report modal states
-  const [report, setReport] = useState('');
+  const [report,setReport] = useState('');
+  const [reportId, setReportId] = useState('')
   const [reportModalShow, setReportModalShow] = useState(false);
   const [reportModalId, setReportModalId] = useState('');
   const [note, setNote] = useState('');
@@ -620,9 +623,32 @@ const ReportsSection = ({
 
     return () => {
       // Unsubscribe when the component unmounts
-      reportsUnsubscribe();
-    };
-  }, []);
+      reportsUnsubscribe()
+    }
+  },[])
+
+  const columns = [
+    { label: 'Title', accessor: 'title' },
+    { label: 'Date/Time', accessor: 'createdDate' },
+    { label: 'Candidates', accessor: 'candidates' },
+    { label: 'Topic Tags', accessor: 'topic' },
+    { label: 'Sources', accessor: 'hearFrom' },
+    { label: 'Labels', accessor: 'label' },
+    { label: 'Read/Unread', accessor: 'read' }
+  ]
+
+  const handleSorting = (sortField, sortOrder) => {
+    if (sortField) {
+      const sorted = [...loadedReports].sort((a,b) => {
+        return (
+          a[sortField].toString().localeCompare(b[sortField].toString(), 'en', {
+            numeric: true
+          }) * (sortOrder === 'asc' ? 1 : -1)
+        )
+      })
+      setLoadedReports(sorted)
+    }
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -758,127 +784,24 @@ const ReportsSection = ({
         reportTitle={reportTitle}>
         {/* TODO: change here*/}
         {/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
-        <table className="min-w-full bg-white rounded-xl p-1">
-          <thead className="border-b dark:border-indigo-100 bg-slate-100">
-            <tr>
-              <th scope="col" className={globalStyles.table.heading}>
-                Title
-              </th>
-              <th scope="col" className={globalStyles.table.heading}>
-                Date/Time
-              </th>
-              <th scope="col" className={globalStyles.table.heading}>
-                Candidates
-              </th>
-              <th scope="col" className={globalStyles.table.heading}>
-                Topic Tags
-              </th>
-              <th scope="col" className={globalStyles.table.heading}>
-                Sources
-              </th>
-              <th scope="col" className={globalStyles.table.heading}>
-                Labels
-              </th>
-              <th
-                scope="col"
-                colSpan={2}
-                className={globalStyles.table.heading}>
-                Read/Unread
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {/* Check if loadedReports is empty */}
-            {loadedReports.length === 0 ? (
-              <tr>
-                <td colSpan="7" className="text-center">
-                  No reports
-                </td>
-              </tr>
-            ) : (
-              loadedReports.slice(0, endIndex).map((reportObj, key) => {
-                const report = Object.values(reportObj)[0];
-                // console.log(report)
-                const posted = report['createdDate']
-                  .toDate()
-                  .toLocaleString('en-US', globalStyles.dateOptions)
-                  .replace(/,/g, '')
-                  .replace('at', '');
-                const reportId = Object.values(reportObj)[1];
-                const reportIdKey = reportId + '-' + key;
-                return (
-                  <tr
-                    onClick={() => handleReportModalShow(reportId)}
-                    className="border-b transition duration-300 ease-in-out hover:bg-indigo-100 dark:border-indigo-100 dark:hover:bg-indigo-100"
-                    key={key}>
-                    <td scope="row" className={globalStyles.column.data}>
-                      {report.title}
-                    </td>
-                    <td className={globalStyles.column.data_center}>
-                      {posted}
-                    </td>
-                    <td className={globalStyles.column.data_center}>-</td>
-                    <td className={globalStyles.column.data_center}>
-                      {report.topic}
-                    </td>
-                    <td className={globalStyles.column.data_center}>
-                      {report.hearFrom}
-                    </td>
-                    <td className={globalStyles.column.data_center}>
-                      {/* Change label tooltip */}
-                      {/* <ReactTooltip
-													id="labelTooltip"
-													place="top"
-													type="light"
-													effect="solid"
-													delayShow={500}
-												/> */}
-                      <div
-                        className={
-                          !report.label
-                            ? globalStyles.label.default
-                            : globalStyles.label.special
-                        }
-                        data-tip="Change label"
-                        data-for="labelTooltip">
-                        {report.label || 'None'}
-                      </div>
-                    </td>
-                    <td
-                      className={globalStyles.column.data_center}
-                      onClick={(e) => e.stopPropagation()}>
-                      <Switch
-                        onChange={(checked) =>
-                          handleChangeRead(reportId, checked)
-                        }
-                        checked={reportsRead[reportId]}
-                        onColor="#2563eb"
-                        offColor="#e5e7eb"
-                        uncheckedIcon={false}
-                        checkedIcon={false}
-                        height={23}
-                        width={43}
-                        className={`${
-                          report.read ? 'bg-blue-600' : 'bg-gray-200'
-                        } relative inline-flex h-6 w-11 items-center rounded-full`}
-                      />
-                      <button
-                        onClick={() => handleReportDelete(reportId)}
-                        data-tip="Delete report"
-                        className={globalStyles.icon.hover}>
-                        <IoTrash
-                          size={20}
-                          className="ml-4 fill-gray-400 hover:fill-red-600"
-                        />
-                        {/* <ReactTooltip place="top" type="light" effect="solid" delayShow={500} /> */}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+
+        <Card className="h-full w-full overflow-scroll">
+          <table className="w-full min-w-max table-auto text-left">
+            <TableHead columns={columns} handleSorting={handleSorting} />
+
+            <TableBody
+              columns={columns}
+              loadedReports={loadedReports} // Table data
+              endIndex={endIndex}
+              reportsRead={reportsRead}
+              reportId={reportId}
+              onReportModalShow={handleReportModalShow}
+              onChangeRead={handleChangeRead}
+              onReportDelete={handleReportDelete}
+            />
+          </table>
+        </Card>
+
         {reportModalShow && (
           <ReportModal
             reportModalShow={reportModalShow}
