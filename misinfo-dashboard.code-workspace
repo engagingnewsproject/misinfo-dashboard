@@ -1,57 +1,49 @@
 {
-	"folders": [
-		{
-			"name": "misinfo-dashboard",
-			"path": "."
-		}
-	],
-	"settings": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode",
-		"[javascriptreact]": {
-			"editor.formatOnSave": false,
-			"editor.defaultFormatter": "esbenp.prettier-vscode"
-		},
-		"[javascript]": {
-				"editor.defaultFormatter": "esbenp.prettier-vscode"
-		},
-		"[html]": {
-				"editor.defaultFormatter": "esbenp.prettier-vscode"
-		},
-		"[css]": {
-				"editor.defaultFormatter": "esbenp.prettier-vscode"
-		},
-		"editor.tabSize": 2,
-		"editor.formatOnSave": false,
-		"editor.formatOnSaveMode": "modificationsIfAvailable",
-		"editor.autoIndent": "keep",
-		"editor.quickSuggestions": {
-			"strings": true
-		},
-		"files.trimTrailingWhitespace": false,
-		"editor.useTabStops": true,
-		"workbench.editor.showTabs": "multiple",
-		"editor.guides.indentation": true,
-		"workbench.editor.scrollToSwitchTabs": false,
-		"workbench.editor.pinnedTabSizing": "normal",
-		"workbench.editor.highlightModifiedTabs": true,
-		"html.format.enable": true,
-		"json.format.enable": false,
-		"javascript.format.enable": true,
-		"typescript.format.enable": true,
-		"css.format.enable": false,
-		"less.format.enable": false,
-		"scss.format.enable": false,
-		"editor.trimAutoWhitespace": false,
-		"javascript.format.insertSpaceAfterCommaDelimiter": false,
+  "folders": [
+    {
+      "name": "misinfo-dashboard",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[javascriptreact]": {
+      "editor.formatOnSave": false,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[html]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[css]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "prettier.enable": true,
+    "editor.tabSize": 2,
+    "editor.formatOnSave": false,
+    "editor.formatOnSaveMode": "modificationsIfAvailable",
+    "editor.autoIndent": "keep",
+    "editor.trimAutoWhitespace": false,
+    "editor.formatOnPaste": false,
+    "editor.formatOnType": true,
+    "editor.useTabStops": true,
+    "editor.guides.indentation": true,
+    "editor.quickSuggestions": {
+      "strings": true
+    },
+    "html.format.enable": true,
 		"html.format.wrapAttributes": "preserve",
-		"editor.formatOnPaste": false,
-		"prettier.enable": true,
-		"javascript.format.semicolons": "remove",
-		"typescript.format.semicolons": "remove",
-		"editor.formatOnType": true,
-		"github-enterprise.uri": "https://github.austin.utexas.edu",
-		"prettier.semi": false,
-		"reactSnippets.settings.prettierEnabled": true,
-	}
+    "json.format.enable": false,
+    "javascript.format.enable": true,
+    "javascript.format.insertSpaceAfterCommaDelimiter": false,
+    "javascript.format.semicolons": "remove",
+    "typescript.format.enable": true,
+    "typescript.format.semicolons": "remove",
+    "css.format.enable": false,
+    "less.format.enable": false,
+    "scss.format.enable": false,
+    "github-enterprise.uri": "https://github.austin.utexas.edu"
+  }
 }
-
