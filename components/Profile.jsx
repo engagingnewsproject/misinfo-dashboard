@@ -561,15 +561,14 @@ const handleDelete = async () => {
                {t("updateLocation")}
             </button>
         </div>
-		<div>
-              {showUserMessage && (
-                      <div className='text-green-800 transition-opacity opacity-100'>
-                        {t("location")}
-                      </div>
-                    )}
-           
-        </div>
       </div>
+	  <div>
+            {showUserMessage && (
+                <div className='text-green-800 transition-opacity opacity-100'>
+                	{t("location")}
+                    </div>
+            )}    
+        </div>
       </div>
 
       {/* Hides the language toggle for admin and agencies*/}
