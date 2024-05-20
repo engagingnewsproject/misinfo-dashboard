@@ -28,7 +28,7 @@ import ConfirmModal from './modals/ConfirmModal';
 import globalStyles from '../styles/globalStyles';
 import TableHead from './partials/table/TableHead'
 import TableBody from './partials/table/TableBody'
-import { Card, Typography } from '@material-tailwind/react'
+import { Card } from '@material-tailwind/react'
 const ReportsSection = ({
   search,
   newReportSubmitted,
@@ -143,8 +143,8 @@ const ReportsSection = ({
         // // Set reportsRead state
         // setReportsRead(initialReportsRead)
         if (readFilter !== 'All') {
-          arr = arr.filter((reportObj) => {
-            return reportObj['read'].toString() === readFilter;
+          arr = arr.filter((report) => {
+            return report.read.toString() === readFilter;
           });
         }
         setFilteredReports(arr);
@@ -261,16 +261,27 @@ const ReportsSection = ({
 
   // Updates the loaded reports whenever a user filters reports based on search.
   useEffect(() => {
-    let arr = filteredReports.filter((reportObj) => {
-      const report = reportObj;
-      return (
-        report['createdDate'].toDate() >=
-        new Date(
-          new Date().setDate(
-            new Date().getDate() - reportWeek * 7
+    let arr = filteredReports.filter((report) => {
+      console.log(report['createdDate'])
+      // Ensure that createdDate exists and has a toDate method
+      try {
+        if (report.createdDate && typeof report.createdDate.toDate === 'function') {
+          return (
+            report.createdDate.toDate() >=
+            new Date(
+              new Date().setDate(
+                new Date().getDate() - reportWeek * 7
+              )
+            )
           )
-        )
-      );
+        } else {
+          console.error(`Invalid createdDate in report: ${ report }`)
+          return false
+        }
+      } catch (error) {
+        console.error(`Error processing report: ${report}`, error);
+        return false;
+      }
     });
     arr = arr.sort((objA, objB) =>
       Object.values(objA)[0]['createdDate'] >
@@ -289,7 +300,7 @@ const ReportsSection = ({
       setHasMore(true);
     }
     setLoadedReports(arr);
-  }, [filteredReports]);
+  }, [filteredReports, reportWeek]);
 
   // Populates the loaded reports as the user scrolls to bottom of page
   useEffect(() => {
@@ -317,11 +328,11 @@ const ReportsSection = ({
   };
 
   const handleReadFilterChanged = (e) => {
-    console.log(e.target.value + 'went into function');
-    if (e.target.value != 'All') {
+    // console.log(e.target.value + 'went into function');
+    if (e.target.value !== 'All') {
       setFilteredReports(
         reports.filter((report) => {
-          return report['read'].toString() == e.target.value;
+          return report.read.toString() === e.target.value;
         })
       );
     } else {
@@ -383,7 +394,6 @@ const ReportsSection = ({
   }; // end handleReportModalShow
 
   useEffect(() => {
-    console.log(reportModalId)
     if (reportModalShow && reportModalId) {
       // When a report's modal opens set the report as read
       // since someone clicked on it - so they read it
@@ -535,18 +545,22 @@ const ReportsSection = ({
   },[])
 
   const columns = [
-    { label: 'Title', accessor: 'title' },
-    { label: 'Date/Time', accessor: 'createdDate' },
-    { label: 'Candidates', accessor: 'candidates' },
-    { label: 'Topic Tags', accessor: 'topic' },
-    { label: 'Sources', accessor: 'hearFrom' },
-    { label: 'Labels', accessor: 'label' },
-    { label: 'Read/Unread', accessor: 'read' },
+    { label: 'Title', accessor: 'title', sortable: true },
+    { label: 'Date/Time', accessor: 'createdDate', sortable: true },
+    { label: 'Candidates', accessor: 'candidates', sortable: false },
+    { label: 'Topic Tags', accessor: 'topic', sortable: true },
+    { label: 'Sources', accessor: 'hearFrom', sortable: false },
+    { label: 'Labels', accessor: 'label', sortable: false },
+    { label: 'Read/Unread', accessor: 'read', sortable: true },
   ];
 
   const handleSorting = (sortField, sortOrder) => {
     if (sortField) {
       const sorted = [...loadedReports].sort((a,b) => {
+        // column that includes null values
+        if (a[sortField] === null) return 1;
+        if (b[sortField] === null) return -1;
+        if (a[sortField] === null && b[sortField] === null) return 0;
         return (
           a[sortField].toString().localeCompare(b[sortField].toString(), 'en', {
             numeric: true
