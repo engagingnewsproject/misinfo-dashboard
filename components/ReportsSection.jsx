@@ -127,13 +127,14 @@ const ReportsSection = ({
       if (snapshot && !snapshot.empty) {
         var arr = [];
         snapshot.forEach((doc) => {
-          arr.push({
-            data: doc.data(),
-            id: doc.id,
-            read: doc.data().read
-          });
+          // dont need the data: {key:value}, just do {key:value}
+          // especially for the sorting to work
+          const data = doc.data();
+          data.reportID = doc.id; 
+          arr.push(data);
         });
         setReports(arr);
+        // console.log(arr)
         // Initialize reportsRead with read status of each report
         // const initialReportsRead = arr.reduce((acc,report) => {
         // 	acc[report.id] = report.read // Use report ID as key and read status as value
@@ -141,17 +142,16 @@ const ReportsSection = ({
         // }, {})
         // // Set reportsRead state
         // setReportsRead(initialReportsRead)
-
         if (readFilter !== 'All') {
           arr = arr.filter((reportObj) => {
-            return Object.values(reportObj)[0].read.toString() === readFilter;
+            return reportObj['read'].toString() === readFilter;
           });
         }
         setFilteredReports(arr);
         setLoadedReports(
           arr
             .filter((reportObj) => {
-              const report = Object.values(reportObj)[0];
+              const report = reportObj;
               return (
                 report['createdDate'].toDate() >=
                 new Date(
@@ -168,7 +168,7 @@ const ReportsSection = ({
         );
       } else {
         // Handle case where no agency was found for the user
-        // console.log("Snapshot empty: No reports found for this agency")
+        console.log("Snapshot empty: No reports found for this agency")
         // You might want to set snapshot to an empty array or handle this case differently
       }
     } catch (error) {
@@ -184,6 +184,7 @@ const ReportsSection = ({
     setRefresh(false);
   };
 
+  // Filter
   const handleDateChanged = (e) => {
     e.preventDefault();
     setReportWeek(e.target.value);
@@ -191,10 +192,14 @@ const ReportsSection = ({
 
     // Updates loaded reports so that they only feature reports within the selected date range
     let arr = filteredReports.filter((reportObj) => {
-      const report = Object.values(reportObj)[0];
+      const report = reportObj
       return (
         report['createdDate'].toDate() >=
-        new Date(new Date().setDate(new Date().getDate() - e.target.value * 7))
+        new Date(
+          new Date().setDate(
+            new Date().getDate() - e.target.value * 7
+          )
+        )
       );
     });
 
@@ -205,11 +210,6 @@ const ReportsSection = ({
         : 1
     );
     setLoadedReports(arr);
-  };
-
-  const handleReadFilter = (e) => {
-    e.preventDefault();
-    setFilterRead(e.target.value);
   };
 
   // Filter the reports based on the search text
@@ -262,10 +262,14 @@ const ReportsSection = ({
   // Updates the loaded reports whenever a user filters reports based on search.
   useEffect(() => {
     let arr = filteredReports.filter((reportObj) => {
-      const report = Object.values(reportObj)[0];
+      const report = reportObj;
       return (
         report['createdDate'].toDate() >=
-        new Date(new Date().setDate(new Date().getDate() - reportWeek * 7))
+        new Date(
+          new Date().setDate(
+            new Date().getDate() - reportWeek * 7
+          )
+        )
       );
     });
     arr = arr.sort((objA, objB) =>
@@ -317,8 +321,7 @@ const ReportsSection = ({
     if (e.target.value != 'All') {
       setFilteredReports(
         reports.filter((report) => {
-          const reportData = Object.values(report)[0];
-          return reportData.read.toString() == e.target.value;
+          return report['read'].toString() == e.target.value;
         })
       );
     } else {
@@ -347,7 +350,6 @@ const ReportsSection = ({
 
   const handleReportModalShow = async (reportId) => {
     // get doc
-    console.log(reportId);
     const docRef = await getDoc(doc(db, 'reports', reportId));
     const reportData = docRef.data();
     setReport({ id: reportId, ...reportData });
@@ -381,7 +383,7 @@ const ReportsSection = ({
   }; // end handleReportModalShow
 
   useEffect(() => {
-    console.log(`agency user? - ${isAgency}`);
+    console.log(reportModalId)
     if (reportModalShow && reportModalId) {
       // When a report's modal opens set the report as read
       // since someone clicked on it - so they read it
@@ -394,7 +396,6 @@ const ReportsSection = ({
   }, [reportModalShow]); // this effect runs when the report modal is opened/closed
   // list item handle read change
   const handleChangeRead = async (reportId, checked) => {
-    console.log(reportId, checked);
     setReportsRead((prevReportsRead) => ({
       ...prevReportsRead,
       [reportId]: checked
@@ -408,105 +409,11 @@ const ReportsSection = ({
   // function runs when report modal is displayed
   // and user clicks the read/unread toggle
   const handleChangeReadModal = async (reportId, checked) => {
-    console.log(reportId, checked);
     const docRef = doc(db, 'reports', reportId);
     await updateDoc(docRef, { read: checked });
     setUpdate(!update);
   };
 
-  const handleReadToggled = async (reportId) => {
-    const report = reports.filter(
-      (report) => Object.keys(report) == reportId
-    )[0];
-    const updatedReport = {
-      ...report,
-      [reportId]: {
-        ...report[reportId],
-        read: !report[reportId].read
-      }
-    };
-    const reportIndex = reports.findIndex(
-      (report) => Object.keys(report) == reportId
-    );
-    reports[reportIndex] = updatedReport;
-    const updatedReports = [...reports];
-    setReports([...reports]);
-    setFilteredReports([...reports]);
-    if (readFilter !== 'All') {
-      setFilteredReports(
-        updatedReports.filter((reportObj) => {
-          return Object.values(reportObj)[0].read.toString() == readFilter;
-        })
-      );
-    }
-    const reportDoc = doc(db, 'reports', reportId);
-    await updateDoc(reportDoc, { read: !report[reportId].read })
-      .then(function () {
-        // console.log("Success")
-      })
-      .catch(function (error) {
-        console.log('error');
-      });
-  };
-  const handleReadToggledModal = async (reportId) => {
-    // Find the report with the given reportId
-    const reportDocRef = doc(db, 'reports', reportId);
-    const docSnap = await getDoc(reportDocRef);
-    if (docSnap.exists() && docSnap.data().read === false) {
-      console.log('Document data:', docSnap.data().read);
-      await updateDoc(reportDocRef, { read: true })
-        .then(() => {
-          setReportRead(true);
-          console.log(
-            'Modal read status updated successfully',
-            docSnap.data().read
-          );
-        })
-        .catch((error) => {
-          console.error('Error updating read status: ', error);
-        });
-    } else {
-      // docSnap.data() will be undefined in this case
-      console.log('No such document!');
-    }
-    // await updateDoc(reportDocRef, { read: !read })
-    // 	.then(() => {
-
-    // 		console.log("Modal read status updated successfully");
-    // 	})
-    // 	.catch((error) => {
-    // 		console.error("Error updating read status: ", error);
-    // 	});
-    // const reportToUpdate = reports.find(report => Object.keys(report)[0] === reportId);
-
-    // // Toggle the read status of the report
-    // const updatedReadStatus = !reportToUpdate[reportId].read;
-
-    // // Update the read status in the local state
-    // const updatedReports = reports.map(report => {
-    // 	if (Object.keys(report)[0] === reportId) {
-    // 		return {
-    // 			[reportId]: {
-    // 				...report[reportId],
-    // 				read: updatedReadStatus
-    // 			}
-    // 		};
-    // 	} else {
-    // 		return report;
-    // 	}
-    // });
-    // setReports(updatedReports);
-
-    // // Update the read status in Firestore
-    // const reportDocRef = doc(db, "reports", reportId);
-    // await updateDoc(reportDocRef, { read: updatedReadStatus })
-    // 	.then(() => {
-    // 		console.log("Read status updated successfully");
-    // 	})
-    // 	.catch((error) => {
-    // 		console.error("Error updating read status: ", error);
-    // 	});
-  };
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setReportModalShow(false);
@@ -514,7 +421,7 @@ const ReportsSection = ({
   const handleNoteChange = async (e) => {
     e.preventDefault();
     let reportId = reportModalId;
-    if (e.target.value !== info['note']) {
+    if (e.target.value !== report['note']) {
       const docRef = doc(db, 'reports', reportId);
       await updateDoc(docRef, { note: e.target.value });
       setUpdate(e.target.value);
@@ -634,8 +541,8 @@ const ReportsSection = ({
     { label: 'Topic Tags', accessor: 'topic' },
     { label: 'Sources', accessor: 'hearFrom' },
     { label: 'Labels', accessor: 'label' },
-    { label: 'Read/Unread', accessor: 'read' }
-  ]
+    { label: 'Read/Unread', accessor: 'read' },
+  ];
 
   const handleSorting = (sortField, sortOrder) => {
     if (sortField) {
@@ -644,9 +551,9 @@ const ReportsSection = ({
           a[sortField].toString().localeCompare(b[sortField].toString(), 'en', {
             numeric: true
           }) * (sortOrder === 'asc' ? 1 : -1)
-        )
-      })
-      setLoadedReports(sorted)
+        );
+      });
+      setLoadedReports(sorted);
     }
   }
 
@@ -658,14 +565,6 @@ const ReportsSection = ({
         </div>
         <div className="flex flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-evenly">
           <div className="p-0 px-4 md:p-4 md:py-0 md:px-4">
-            {/* <ReactTooltip
-                id="refreshTooltip"
-                place="top"
-                type="light"
-                effect="solid"
-                delayShow={500}
-              /> */}
-            {/* Displays refresh icon */}
             {!refresh && !reportsUpdated && (
               <button
                 className="relative top-1 m-0 md:m-0"
@@ -675,7 +574,6 @@ const ReportsSection = ({
                 <IoMdRefresh size={20} />
               </button>
             )}
-
             {/* Displays loading icon when reports are being updated*/}
             {refresh && !reportsUpdated && (
               <div>
@@ -696,7 +594,6 @@ const ReportsSection = ({
                 </svg>
               </div>
             )}
-
             {/* Displays notification once reports have been refreshed. */}
             {!refresh && reportsUpdated && (
               <div>

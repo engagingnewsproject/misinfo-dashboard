@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react'
-import globalStyles from '../../../styles/globalStyles'
-import { Typography } from '@material-tailwind/react'
-import Switch from 'react-switch'
-import { IoTrash } from 'react-icons/io5'
+import React, { useState, useEffect } from 'react';
+import globalStyles from '../../../styles/globalStyles';
+import { Typography } from '@material-tailwind/react';
+import Switch from 'react-switch';
+import { IoTrash } from 'react-icons/io5';
 const TableBody = ({
   loadedReports,
   columns,
@@ -10,7 +10,7 @@ const TableBody = ({
   reportsRead,
   onReportModalShow,
   onChangeRead,
-  onReportDelete
+  onReportDelete,
 }) => {
   return (
     <tbody>
@@ -23,30 +23,21 @@ const TableBody = ({
         </tr>
       ) : (
         loadedReports.slice(0, endIndex).map((reportObj) => {
-          const report = Object.values(reportObj)[0]
-          const reportIdValue = Object.values(reportObj)[1]
-          const reportId =
-            typeof reportIdValue === 'string' ? reportIdValue : ''
-          console.log(report.id)
-          const posted = report['createdDate']
-            .toDate()
-            .toLocaleString('en-US', globalStyles.dateOptions)
-            .replace(/,/g, '')
-            .replace('at', '')
+          const report = reportObj;
           return (
             <tr
-              onClick={() => onReportModalShow(reportId)}
+              onClick={() => onReportModalShow(report['reportID'])}
               className={globalStyles.table.tr}
-              key={reportId}>
+              key={report['reportID']}>
               {columns.map(({ accessor }) => {
-                let tData
+                let tData;
                 if (accessor === 'createdDate') {
-                  // Handle Firestore timestamp object
-                  const dateObject = report[accessor].toDate()
-                  tData = dateObject.toLocaleString(
-                    'en-US',
-                    globalStyles.dateOptions
+                  const isoDateString = new Date(
+                    report['createdDate'].seconds * 1000
                   )
+                    .toISOString()
+                    .split('T')[0];
+                  tData = isoDateString;
                 } else if (accessor === 'label') {
                   // Special handling for label column
                   tData = report[accessor] ? (
@@ -63,7 +54,7 @@ const TableBody = ({
                       data-for="labelTooltip">
                       {'None'}
                     </Typography>
-                  )
+                  );
                 } else if (accessor === 'read') {
                   // Special handling for read/unread column
                   tData = (
@@ -71,8 +62,10 @@ const TableBody = ({
                       className={globalStyles.column.data_center}
                       onClick={(e) => e.stopPropagation()}>
                       <Switch
-                        onChange={(checked) => onChangeRead(reportId, checked)}
-                        checked={reportsRead[reportId]}
+                        onChange={(checked) =>
+                          onChangeRead(report['reportID'], checked)
+                        }
+                        checked={reportsRead[report['reportID']]}
                         onColor="#2563eb"
                         offColor="#e5e7eb"
                         uncheckedIcon={false}
@@ -80,11 +73,11 @@ const TableBody = ({
                         height={23}
                         width={43}
                         className={`${
-                          report.read ? 'bg-blue-600' : 'bg-gray-200'
+                          report['read'] ? 'bg-blue-600' : 'bg-gray-200'
                         } relative inline-flex h-6 w-11 items-center rounded-full`}
                       />
                       <button
-                        onClick={() => onReportDelete(reportId)}
+                        onClick={() => onReportDelete(report['reportID'])}
                         data-tip="Delete report"
                         className={globalStyles.icon.hover}>
                         <IoTrash
@@ -93,10 +86,10 @@ const TableBody = ({
                         />
                       </button>
                     </td>
-                  )
+                  );
                 } else {
                   // Render other data normally
-                  tData = report[accessor] || '——'
+                  tData = report[accessor] || '——';
                 }
                 return (
                   <td key={accessor}>
@@ -106,14 +99,14 @@ const TableBody = ({
                       {tData}
                     </Typography>
                   </td>
-                )
+                );
               })}
             </tr>
-          )
+          );
         })
       )}
     </tbody>
-  )
-}
+  );
+};
 
-export default TableBody
+export default TableBody;
