@@ -17,7 +17,7 @@ import {
 	where,
 	updateDoc,
 	doc,
-} from "@firebase/firestore"
+} from "firebase/firestore"
 import { db, auth } from "../config/firebase"
 
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'

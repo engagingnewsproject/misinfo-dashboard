@@ -9,8 +9,7 @@ import {
 	doc, 
 	updateDoc,
 	arrayUnion,
-
-	} from '@firebase/firestore'
+	} from 'firebase/firestore'
 
 import { auth } from '../../config/firebase'
 
