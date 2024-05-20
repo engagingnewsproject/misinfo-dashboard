@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { AiOutlineSearch } from 'react-icons/ai'
-import { collection, getDocs, query, where } from '@firebase/firestore'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import { useAuth } from '../context/AuthContext'
 import { db } from "../config/firebase"
 import Image from 'next/image'

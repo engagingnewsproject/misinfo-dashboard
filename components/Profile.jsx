@@ -15,7 +15,7 @@ import {
   where,
   updateDoc,
   doc
-} from '@firebase/firestore';
+} from 'firebase/firestore';
 import {
   getStorage,
   ref,

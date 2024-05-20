@@ -16,7 +16,7 @@ import {
 	where,
 	updateDoc,
 	doc,
-} from "@firebase/firestore"
+} from "firebase/firestore"
 const Login = () => {
   const router = useRouter()
 

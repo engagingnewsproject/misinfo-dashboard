@@ -10,7 +10,7 @@ import {
 	where,
 	updateDoc,
 	doc,
-} from "@firebase/firestore"
+} from "firebase/firestore"
 import { useTranslation } from 'next-i18next';
 import { State, City } from "country-state-city"
 import Select from "react-select"
