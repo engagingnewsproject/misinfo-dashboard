@@ -24,6 +24,15 @@ const TableBody = ({
       ) : (
         loadedReports.slice(0, endIndex).map((reportObj) => {
           const report = reportObj;
+          const formattedDate = new Date(report['createdDate'].seconds * 1000)
+          .toLocaleString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+              hour: 'numeric',
+              minute: 'numeric',
+              hour12: true,
+          });
           return (
             <tr
               onClick={() => onReportModalShow(report['reportID'])}
@@ -32,12 +41,7 @@ const TableBody = ({
               {columns.map(({ accessor }) => {
                 let tData;
                 if (accessor === 'createdDate') {
-                  const isoDateString = new Date(
-                    report['createdDate'].seconds * 1000
-                  )
-                    .toISOString()
-                    .split('T')[0];
-                  tData = isoDateString;
+                  tData = formattedDate;
                 } else if (accessor === 'label') {
                   // Special handling for label column
                   tData = report[accessor] ? (
