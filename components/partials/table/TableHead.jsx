@@ -28,7 +28,7 @@ const TableHead = ({ columns, handleSorting, sortable }) => {
               <Typography
                 variant="paragraph"
                 color="blue-gray"
-                className="flex items-center justify-between gap-2 font-normal leading-none opacity-70">
+                className="flex items-center justify-between gap-2 font-bold leading-none opacity-70">
                 {label}
                 {sortable && (
                   <HiOutlineChevronUpDown strokeWidth={2} className="h-4 w-4" />
