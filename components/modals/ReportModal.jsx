@@ -80,17 +80,12 @@ const ReportModal = ({
     const uri = `mailto:${email}`;
     window.open(uri);
 	}
-	useEffect(() => {
-		console.log(email)
-	}, [email])
 	
 	return (
 		<div
 			className='fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto' // {style.overlay}
 			onClick={() => setReportModalShow(false)}>
 			<div className='absolute flex justify-center items-center z-[1300] top-4 left-0 right-0 sm:overflow-y-scroll'>
-				{" "}
-				{/* {style.modal} */}
 				<div
 					className='flex-col justify-center items-center rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible md:w-10/12 lg:w-10/12' // {style.wrap}
 					onClick={(e) => {
