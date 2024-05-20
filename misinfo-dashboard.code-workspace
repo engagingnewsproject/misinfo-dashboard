@@ -34,7 +34,7 @@
     },
     "prettier.enable": true,
     "html.format.enable": true,
-		"html.format.wrapAttributes": "preserve",
+    "html.format.wrapAttributes": "preserve",
     "json.format.enable": false,
     "javascript.format.enable": true,
     "javascript.format.insertSpaceAfterCommaDelimiter": false,
