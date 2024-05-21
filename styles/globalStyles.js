@@ -12,7 +12,7 @@ const globalStyles = {
     thText: 'p-4 font-normal leading-none opacity-70',
     tr: 'p-4 border-b border-blue-gray-50 hover:bg-gray-100',
     td: 'whitespace-normal text-sm px-3 py-1 cursor-pointer',
-    tdText: 'p-4 block antialiased font-sans text-base leading-relaxed text-blue-gray-900 font-normal'
+    tdText: 'p-4 border-b border-blue-gray-50'
   },
   column: {
     data: 'whitespace-normal text-sm px-3 py-1 cursor-pointer',
