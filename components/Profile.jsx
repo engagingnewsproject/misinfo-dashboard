@@ -83,6 +83,8 @@ const Profile = ({ customClaims }) => {
     sectionWrapper: 'flex flex-col',
     button:
       'bg-blue-600 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline',
+    buttonHollow:
+      'bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl',
     input:
       'text-md font-light bg-white rounded-xl p-4 border-none w-full focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none',
     inputSelect:
@@ -481,7 +483,7 @@ const Profile = ({ customClaims }) => {
             <div className="font-light">{user.email}</div>
             <button
               onClick={() => setEmailModal(true)}
-              className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl flex justify-self-end">
+              className={ `${style.buttonHollow} flex justify-self-end`}>
               {t('editEmail')}
             </button>
           </div>
@@ -490,7 +492,7 @@ const Profile = ({ customClaims }) => {
           <div className="font-light">{t('resetPassword')}</div>
           <button
             onClick={() => setOpenModal(true)}
-            className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+            className={style.buttonHollow}>
             {t('editPassword')}
           </button>
         </div>
@@ -498,7 +500,7 @@ const Profile = ({ customClaims }) => {
           <div className="font-light">{t('logout')}</div>
           <button
             onClick={() => setLogoutModal(true)}
-            className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+            className={style.buttonHollow}>
             {t('logout')}
           </button>
         </div>
@@ -525,7 +527,7 @@ const Profile = ({ customClaims }) => {
           {/* Now that we have the user's location listed we can create a button to show/hide the option to change their location */}
           <div className="flex justify-end mx-0 md:mx-6 my-6 tracking-normal items-center">
             <button
-              className={style.button}
+              className={style.buttonHollow}
               onClick={() => handleChangeLocation()}>
               Change Location
             </button>
