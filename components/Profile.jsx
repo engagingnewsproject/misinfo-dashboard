@@ -56,7 +56,8 @@ const Profile = ({ customClaims }) => {
   // LOCATION
   const [agencyState, setAgencyState] = useState(null);
   const [agencyCity, setAgencyCity] = useState(null);
-
+  // give the change location button state
+  const [changeLocation, setChangeLocation] = useState(false);
   const [editLocation, setEditLocation] = useState(false);
   const [location, setLocation] = useState([]);
   const [data, setData] = useState({ country: 'US', state: null, city: null });
@@ -136,7 +137,7 @@ const Profile = ({ customClaims }) => {
   };
 
   // GET DATA
-  // Needs to be defined before any useEffect hooks 
+  // Needs to be defined before any useEffect hooks
   const getData = async () => {
     console.log('getData run');
     try {
@@ -193,6 +194,16 @@ const Profile = ({ customClaims }) => {
   useEffect(() => {
     console.log(userData);
   }, [userData]);
+
+  // handle when a user clicks the "Change Location" button
+  const handleChangeLocation = () => {
+    setChangeLocation(!changeLocation);
+  };
+
+  // For testing only: I usually use useEffect hooks to log out state changes (this will be removed or commented out before pushing changes)
+  useEffect(() => {
+    console.log(changeLocation);
+  }, [changeLocation]);
 
   // SAVE AGENCY
   const saveAgency = (imageURLs) => {
@@ -513,72 +524,81 @@ const Profile = ({ customClaims }) => {
           </div>
           {/* Now that we have the user's location listed we can create a button to show/hide the option to change their location */}
           <div className="flex justify-end mx-0 md:mx-6 my-6 tracking-normal items-center">
-            <button className={style.button}>Change Location</button>
+            <button
+              className={style.button}
+              onClick={() => handleChangeLocation()}>
+              Change Location
+            </button>
           </div>
-          <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
-            <div className="flex flex-auto justify-between">
-              <Select
-                className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline px-2"
-                id="state"
-                type="text"
-                required
-                placeholder={t('NewReport:state_text')}
-                value={userLocation?.state}
-                options={State.getStatesOfCountry('US')}
-                getOptionLabel={(options) => {
-                  return options['name'];
-                }}
-                getOptionValue={(options) => {
-                  return options['name'];
-                }}
-                label="state"
-                onChange={handleStateChange}
-              />
+          {/* show/hide change location fields */}
+          {changeLocation && (
+            <>
+              <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
+                <div className="flex flex-auto justify-between">
+                  <Select
+                    className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline px-2"
+                    id="state"
+                    type="text"
+                    required
+                    placeholder={t('NewReport:state_text')}
+                    value={userLocation?.state}
+                    options={State.getStatesOfCountry('US')}
+                    getOptionLabel={(options) => {
+                      return options['name'];
+                    }}
+                    getOptionValue={(options) => {
+                      return options['name'];
+                    }}
+                    label="state"
+                    onChange={handleStateChange}
+                  />
 
-              <Select
-                className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline px-2"
-                id="city"
-                type="text"
-                placeholder={t('NewReport:city_text')}
-                value={userLocation?.city}
-                options={City.getCitiesOfState(
-                  userLocation?.state?.countryCode,
-                  userLocation?.state?.isoCode
-                )}
-                getOptionLabel={(options) => {
-                  return options['name'];
-                }}
-                getOptionValue={(options) => {
-                  return options['name'];
-                }}
-                onChange={handleCityChange}
-              />
-              {errors.state && data.state === null && (
-                <span className="text-red-500">{errors.state}</span>
-              )}
-            </div>
-            <div>
-              <button
-                onClick={handleUserLocationReset}
-                className={`${style.button}`}
-                type="submit">
-                {t('cancelChanges')}
-              </button>
-              <button
-                onClick={handleUserLocationChange}
-                className={`${style.button}`}
-                type="submit">
-                {t('updateLocation')}
-              </button>
-            </div>
-          </div>
-          <div>
-            {showUserMessage && (
-              <div className="text-green-800 transition-opacity opacity-100">
-                {t('location')}
+                  <Select
+                    className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline px-2"
+                    id="city"
+                    type="text"
+                    placeholder={t('NewReport:city_text')}
+                    value={userLocation?.city}
+                    options={City.getCitiesOfState(
+                      userLocation?.state?.countryCode,
+                      userLocation?.state?.isoCode
+                    )}
+                    getOptionLabel={(options) => {
+                      return options['name'];
+                    }}
+                    getOptionValue={(options) => {
+                      return options['name'];
+                    }}
+                    onChange={handleCityChange}
+                  />
+                  {errors.state && data.state === null && (
+                    <span className="text-red-500">{errors.state}</span>
+                  )}
+                </div>
+                <div>
+                  <button
+                    onClick={handleUserLocationReset}
+                    className={`${style.button}`}
+                    type="submit">
+                    {t('cancelChanges')}
+                  </button>
+                  <button
+                    onClick={handleUserLocationChange}
+                    className={`${style.button}`}
+                    type="submit">
+                    {t('updateLocation')}
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
+              <div>
+                {showUserMessage && (
+                  <div className="text-green-800 transition-opacity opacity-100">
+                    {t('location')}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Hides the language toggle for admin and agencies*/}
