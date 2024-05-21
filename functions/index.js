@@ -1,8 +1,12 @@
+require('dotenv').config()
 const functions = require('firebase-functions')
 const admin = require('firebase-admin')
 const sgMail = require('@sendgrid/mail')
 
 admin.initializeApp()
+
+// // Initialize SendGrid API with your SendGrid API key from environment variables
+sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 exports.addUserRole = functions.https.onCall((data,context) => {
   // get user and add custom claim to user
@@ -46,7 +50,8 @@ exports.addAdminRole = functions.https.onCall((data,context) => {
 })
 
 // Adds agency privilege to user based on email provided
-exports.addAgencyRole = functions.https.onCall((data,context) => {
+exports.addAgencyRole = functions.https.onCall(
+  (data,context) => {
   // get user and add custom claim to user
 
 
@@ -185,9 +190,6 @@ exports.deleteUser = functions.https.onCall(async (data, context) => {
 	}
 })
 
-// Initialize SendGrid API with your SendGrid API key from environment variables
-sgMail.setApiKey(functions.config().sendgrid.api_key);
-
 // Firestore trigger to send email when a new document is added to helpRequests collection
 exports.sendHelpRequestEmail = functions.firestore.document('helpRequests/{requestId}')
     .onCreate((snap, context) => {
@@ -223,7 +225,7 @@ function sendEmail(email, recipients, requestData) {
   // Set up message data
     const msg = {
         to: recipients,
-        from: 'luke@lukecarlhartman.com',
+        from: 'mediaengagement@austin.utexas.edu',
         subject: 'New Help Request Submitted',
         html: `
             <p>Hello Misinfo Administrator,</p>

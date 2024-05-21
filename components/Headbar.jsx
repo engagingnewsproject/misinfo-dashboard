@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { AiOutlineSearch } from 'react-icons/ai'
-import { collection, getDocs, query, where } from '@firebase/firestore'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import { useAuth } from '../context/AuthContext'
 import { db } from "../config/firebase"
 import Image from 'next/image'
@@ -78,7 +78,7 @@ const Headbar = ({ search, setSearch}) => {
                         onChange={handleChange}
                         value={search} />
                     <button 
-                    className="py-1 px-1 mt-1 mr-1 absolute right-0 top-0 bg-blue-500 text-white rounded-xl" 
+                    className="py-1 px-1 mt-1 mr-1 absolute right-0 top-0 bg-blue-600 text-white rounded-xl" 
                     type='submit'>
                         <AiOutlineSearch size={25}/>
                     </button>

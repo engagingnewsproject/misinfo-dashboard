@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import {isSignInWithEmailLink, signInWithEmailLink, signOut, createUserWithEmailAndPassword, verifyEmail } from 'firebase/auth'
-import { doc, setDoc, collection, addDoc, arrayUnion} from '@firebase/firestore'
+import { doc, setDoc, collection, addDoc, arrayUnion} from 'firebase/firestore'
 import { db, auth } from '../config/firebase'
 import Select from "react-select";
 import PhoneInput from 'react-phone-input-2'
@@ -43,9 +43,9 @@ const SignUp = () => {
         // Get user object
         const user = auth.currentUser;
      
-        // if (user) {
+        if (user) {
             // Set user uid
-            // console.log("adding mobile user")
+            console.log("adding mobile user")
             const uid = user.uid;
             // create a new mobileUsers doc with signed in user's uid
             setDoc(doc(db, "mobileUsers", uid), {
@@ -60,9 +60,9 @@ const SignUp = () => {
                 contact: data.contact
             });
             // console.log("user was added with uid" + uid)
-        // } else {
-            // console.log('no user');
-        // }
+        } else {
+            console.log('no user');
+        }
     }
 
     const handleSignUp = async (e) => {

@@ -67,7 +67,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                     </div>
                     <form onChange={handleChange} onSubmit={handleUpdatePW}>
                         <div className="flex flex-col mb-4">
-                            <label className='text-xs text-gray-400'>Email</label>
+                            <label className='text-xs text-gray-400'>{t('email')}</label>
                             <input
                                 className="border-none rounded-md w-full py-3 px-3 text-sm text-gray-400 leading-tight"
                                 value={user.email}
@@ -123,7 +123,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
                         <div className="mt-6">
                             <button
                                 disabled={data.newPassword !== data.confirmNewPW || data.newPassword.length > 0 && data.newPassword.length < 8}
-                                className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
                                 type="submit">
                                 {t('resetPassword')}
                             </button>

@@ -38,13 +38,24 @@ First step! Clone this repo into a local directory (ex. `~/username/sites/`) on 
  
 ### 2. Install Packages
 
+#### Node Version
+
+At this time of writing (April 26, 2024) the latest working update is at Node v20.12.2. Ensure this is the version by running `node -v`. If you are not on that Node version check out this article to set the correct Node version: [Easily switch between multiple Node versions without using nvm](https://dev.to/andreasbergstrom/easily-switch-between-multiple-node-versions-without-using-nvm-52k9).
+
+#### Yarn
 Install/update [`yarn`](https://yarnpkg.com/) package manager on your machine ([installation docs](https://yarnpkg.com/getting-started/install))
   
-- Start by enabling [Corepack](https://yarnpkg.com/corepack), if it isn't already; this will add the `yarn` binary to your PATH:
+- Enable [Corepack](https://yarnpkg.com/corepack), if it isn't already; this will add the `yarn` binary to your PATH:
 
     ```
     corepack enable
     ```
+
+- Set the yarn version by running:
+
+```
+yarn set version 1.22.1
+```
 
 - From the root of the project install dependencies by running:
         

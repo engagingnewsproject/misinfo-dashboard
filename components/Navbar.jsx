@@ -21,9 +21,10 @@ import NewReport from "./modals/NewReportModal"
 import HelpModal from './modals/HelpModal'
 import ContactHelpModal from './modals/ContactHelpModal'
 import { useAuth } from '../context/AuthContext'
+import { useTranslation } from 'next-i18next'
 
 const Navbar = ({tab, setTab, handleNewReportSubmit, handleContactHelpSubmit, onReportTabClick, isOpen}) => {
-
+  const {t} = useTranslation("Navbar")
   const [windowSize, setWindowSize] = useState([
     window.innerWidth,
     window.innerHeight,

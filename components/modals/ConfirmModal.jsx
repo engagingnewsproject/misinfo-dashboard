@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { RiDeleteBin2Fill } from 'react-icons/ri'
 import { BiLogOut } from 'react-icons/bi'
-
+import { IoMdRefresh } from "react-icons/io"
 const ConfirmModal = ({ func,title,subtitle,CTA,closeModal }) => {
         const handleSubmit = (e) => {
         e.preventDefault(); // Prevent the default form submission behavior
@@ -22,6 +22,7 @@ const ConfirmModal = ({ func,title,subtitle,CTA,closeModal }) => {
                     <div className="grid justify-items-center mb-4">
                         {CTA == "Delete" && <RiDeleteBin2Fill className="text-blue-500" size={30}/>}
                         {CTA == "Log out" && <BiLogOut className="text-blue-500" size={30}/>}
+                        {CTA == "Reset Report" && <IoMdRefresh className="text-blue-500" size={30}/>}
                         <div className="flex-col mt-3 mb-2 text-center tracking-wide">
                             <div className="text-lg text-blue-500 font-bold my-2">{title}</div>
                             <div className="text-xs font-light">{subtitle}</div>
@@ -35,7 +36,7 @@ const ConfirmModal = ({ func,title,subtitle,CTA,closeModal }) => {
                                 Cancel
                             </button>
                             <button
-                                className="bg-blue-500 hover:bg-white text-white text-sm hover:text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit" autoFocus>
+                                className="bg-blue-600 hover:bg-white text-white text-sm hover:text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit" autoFocus>
                                 {CTA}
                             </button>
                         </div>

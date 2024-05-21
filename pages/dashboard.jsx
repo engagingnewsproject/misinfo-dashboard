@@ -64,7 +64,7 @@ const Dashboard = () => {
     return (
         <div className="h-full w-full">
             <Navbar tab={tab} setTab={setTab} handleNewReportSubmit={handleNewReportSubmit} customClaims={customClaims} setCustomClaims={setCustomClaims}/>
-            <div className="pl-2 sm:pl-12">
+            <div className="sm:pl-16">
             { tab == 0 && (customClaims.admin || customClaims.agency) && <Home newReportSubmitted={newReportSubmitted} handleNewReportSubmit={handleNewReportSubmit} />}
             { tab == 1 && <Profile customClaims={customClaims}/>}
             { tab == 2 && (customClaims.admin || customClaims.agency) && <Settings customClaims={customClaims} />}
@@ -87,7 +87,7 @@ export async function getStaticProps(context) {
   return {
     props: {
       // pass the translation props to the page component
-      ...(await serverSideTranslations(locale, ['Home', 'Report', 'NewReport', 'Profile'])),
+      ...(await serverSideTranslations(locale, ['Home', 'Report', 'NewReport', 'Profile', 'Navbar'])),
     },
   }
 }

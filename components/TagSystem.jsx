@@ -205,7 +205,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                 <div className="relative">
                 <form className="w-full mt-7 ml-2 relative" onChange={handleChange} onSubmit={handleSearch}>
                     <button 
-                    className="p-1 absolute right-1 top-1 bg-blue-500 text-white rounded-xl" 
+                    className="p-1 absolute right-1 top-1 bg-blue-600 text-white rounded-xl" 
                     type='submit'>
                         <AiOutlineSearch size={25}/>
                     </button>
@@ -223,7 +223,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                     <div className="bg-white w-full rounded-lg">
                         {searchResult.map((item) => {
                             return (
-                                !item.includes('Other/Otro') &&
+                                !item.includes('Other') &&
                                 <div onClick={() => {
                                 setSelected(item)
                                 setSearchResult([])
@@ -251,7 +251,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                             {active.map((item) => {
                                 return (
                                 !customClaims.admin ?
-                                    !item.includes('Other/Otro') ?
+                                    !item.includes('Other') ?
                                         <div onClick={() => setSelected(item)} className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center" key={item}>
                                             <GoDotFill size={25} className="text-green-600"/>
                                             <div className="pl-2">{item}</div>
@@ -281,7 +281,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                             const randomKey = self.crypto.randomUUID(); // Generate random UUID
                             return (
                                 !customClaims.admin ?
-                                    !item.includes('Other/Otro') &&
+                                    !item.includes('Other') &&
                                     <div onClick={() => setSelected(item)} className={selected == item ? selectedStyles : normStyles} key={randomKey}>
                                         { active.includes(item) && <GoDotFill size={25} className="text-green-600"/> }
                                         <div className="pl-2">{item}</div>
