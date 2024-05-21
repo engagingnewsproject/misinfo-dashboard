@@ -195,11 +195,57 @@ const Profile = ({ customClaims }) => {
     console.log(userData);
   }, [userData]);
 
+  // LOCATION CHANGE FOR USERS
   // handle when a user clicks the "Change Location" button
   const handleChangeLocation = () => {
     setChangeLocation(!changeLocation);
   };
 
+  // move the below "user location change" functions up by the handleChangeLocation function
+  const handleStateChange = (e) => {
+    setShowUserMessage(false);
+
+    setUserLocation((data) => ({ ...data, state: e, city: null }));
+  };
+  const handleCityChange = (e) => {
+    setShowUserMessage(false);
+    setUserLocation((data) => ({ ...data, city: e !== null ? e : null }));
+  };
+
+  // handle location reset, delete changes for general users
+  const handleUserLocationReset = () => {
+    setShowUserMessage(false);
+    setUserLocation({ state: userData?.state, city: userData?.city });
+  };
+  // handle location change for users
+  const handleUserLocationChange = (e) => {
+    e.preventDefault()
+    // STATE
+    const allErrors = {};
+
+    if (!userLocation.state) {
+      console.log(userLocation.state);
+      console.log('state error');
+      allErrors.userState = 'Please enter a state.';
+    }
+    else if (!userLocation.city) {
+      console.log(userLocation.city);
+      console.log('city error');
+      allErrors.userState = 'Please enter a city.';
+    }
+    //  no errors, update doc
+    else {
+      const userDoc = doc(db, 'mobileUsers', user.accountId);
+      updateDoc(userDoc, {
+        state: userLocation?.state,
+        city: userLocation?.city,
+      }).then(() => {
+        // update state variables
+        setShowUserMessage(true);
+        getData();
+      });
+    }
+  };
   // For testing only: I usually use useEffect hooks to log out state changes (this will be removed or commented out before pushing changes)
   useEffect(() => {
     console.log(changeLocation);
@@ -239,7 +285,7 @@ const Profile = ({ customClaims }) => {
     e.preventDefault();
     setAgencyName(e.target.value);
   };
-  // LOCATION CHANGE
+  // AGENCY LOCATION CHANGE
   const handleAgencyLocationChange = (e) => {
     e.preventDefault();
     setEditLocation(!editLocation);
@@ -250,46 +296,6 @@ const Profile = ({ customClaims }) => {
   };
   const handleAgencyCityChange = (e) => {
     setData((data) => ({ ...data, city: e !== null ? e : null }));
-  };
-
-  // LOCATION CHANGE FOR USERS
-  const handleStateChange = (e) => {
-    setShowUserMessage(false);
-
-    setUserLocation((data) => ({ ...data, state: e, city: null }));
-  };
-  const handleCityChange = (e) => {
-    setShowUserMessage(false);
-    setUserLocation((data) => ({ ...data, city: e !== null ? e : null }));
-  };
-
-  // handle location reset, delete changes for general users
-  const handleUserLocationReset = () => {
-    setShowUserMessage(false);
-    setUserLocation({ state: userData?.state, city: userData?.city });
-  };
-  // handle location change for users
-  const handleUserLocationChange = () => {
-    // STATE
-    const allErrors = {};
-
-    if (!userLocation.state) {
-      console.log(userLocation.state);
-      console.log('state error');
-      allErrors.userState = 'Please enter a state.';
-    }
-    //  no errors, update doc
-    else {
-      const userDoc = doc(db, 'mobileUsers', user.accountId);
-      updateDoc(userDoc, {
-        state: userLocation?.state,
-        city: userLocation?.city,
-      }).then(() => {
-        // update state variables
-        setShowUserMessage(true);
-        getData();
-      });
-    }
   };
 
   // FORM SUMBMISSION
@@ -532,7 +538,7 @@ const Profile = ({ customClaims }) => {
           </div>
           {/* show/hide change location fields */}
           {changeLocation && (
-            <>
+            <form> {/* Need to wrap any form elements in a form tag */}
               <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
                 <div className="flex flex-auto justify-between">
                   <Select
@@ -597,7 +603,7 @@ const Profile = ({ customClaims }) => {
                   </div>
                 )}
               </div>
-            </>
+            </form>
           )}
         </div>
 
