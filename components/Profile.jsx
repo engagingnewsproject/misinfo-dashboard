@@ -148,7 +148,12 @@ const Profile = ({ customClaims }) => {
         setIsAdmin(false);
       }
     });
-  }, []);
+    getData() // Regardless if the user is a general, admin or agency user we need to get the data when this component loads.
+    // Now that we have fetched the data we can log out what the user data is:
+    console.log(userData)
+    // And access the user's data specifically:
+    console.log(userData.state.name)
+  }, []); // this useEffect call will run on page load, since it has no arguments in the []. If arguments are present in the [], effect will only activate if the values in the list change.
 
   // GET DATA
   const getData = async () => {
@@ -510,6 +515,15 @@ const Profile = ({ customClaims }) => {
         <div>
           <div className="text-xl font-extrabold text-blue-600">
             {t('editLocation')}
+          </div>
+          {/* We should list out the user's location information */}
+          <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
+            <div className="font-light">City</div>
+            <div className="font-light">{ userData.city.name }</div>
+          </div>
+          <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
+            <div className="font-light">State</div>
+            <div className="font-light">{ userData.state.name }</div>
           </div>
           <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
             <div className="flex flex-auto justify-between">
