@@ -41,7 +41,7 @@ const TableBody = ({
               {columns.map(({ accessor }) => {
                 let tData;
                 if (accessor === 'createdDate') {
-                  tData = formattedDate;
+                  tData = <Typography>{ formattedDate }</Typography>
                 } else if (accessor === 'label') {
                   // Special handling for label column
                   tData = report[accessor] ? (
@@ -62,7 +62,7 @@ const TableBody = ({
                 } else if (accessor === 'read') {
                   // Special handling for read/unread column
                   tData = (
-                    <td
+                    <div
                       className={globalStyles.column.data_center}
                       onClick={(e) => e.stopPropagation()}>
                       <Switch
@@ -89,19 +89,15 @@ const TableBody = ({
                           className="ml-4 fill-gray-400 hover:fill-red-600"
                         />
                       </button>
-                    </td>
+                    </div>
                   );
                 } else {
                   // Render other data normally
                   tData = report[accessor] || '——';
                 }
                 return (
-                  <td key={accessor}>
-                    <Typography
-                      color="blue-gray"
-                      className={globalStyles.table.tdText}>
-                      {tData}
-                    </Typography>
+                  <td className={globalStyles.table.tdText} key={accessor}>
+                    {tData}
                   </td>
                 );
               })}
