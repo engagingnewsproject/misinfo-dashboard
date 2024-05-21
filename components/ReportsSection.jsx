@@ -16,9 +16,8 @@ import { db } from '../config/firebase';
 // import { Switch } from "@headlessui/react"
 import Switch from 'react-switch';
 // Icons
-import { IoMdRefresh } from 'react-icons/io';
+import { IoMdRefresh, IoIosInformationCircle, IoMdCheckmark } from 'react-icons/io';
 import { IoAdd, IoTrash } from 'react-icons/io5';
-
 // Icons END
 // import ReactTooltip from "react-tooltip"
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -28,7 +27,7 @@ import ConfirmModal from './modals/ConfirmModal';
 import globalStyles from '../styles/globalStyles';
 import TableHead from './partials/table/TableHead'
 import TableBody from './partials/table/TableBody'
-import { Card } from '@material-tailwind/react'
+import { Button, Card, CardHeader, IconButton, Tooltip, Alert, Typography, Badge, Spinner, Tabs, TabsHeader, Tab, CardBody } from '@material-tailwind/react'
 const ReportsSection = ({
   search,
   newReportSubmitted,
@@ -38,12 +37,12 @@ const ReportsSection = ({
   const [reports, setReports] = useState([]);
   // const [reporterInfo, setReporterInfo] = useState({})
   const [newReportModal, setNewReportModal] = useState(false);
-  const [filteredReports, setFilteredReports] = useState([]);
+  const [filteredReports, setFilteredReports] = useState(reports);
   const [loadedReports, setLoadedReports] = useState([]);
   const [endIndex, setEndIndex] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [reportWeek, setReportWeek] = useState('4');
-  const [readFilter, setReadFilter] = useState('All');
+  const [readFilter, setReadFilter] = useState('all');
   const [reportTitle, setReportTitle] = useState('');
   // const [agencyName, setAgencyName] = useState('')
   const [isAgency, setIsAgency] = useState(null);
@@ -72,8 +71,9 @@ const ReportsSection = ({
 
   // Indicates when reports have been updated once user presses the refresh button.
   const [reportsUpdated, setReportsUpdated] = useState(false);
-  const [refresh, setRefresh] = useState(false);
-
+  const [refresh,setRefresh] = useState(false);
+  const [showCheckmark, setShowCheckmark] = useState(false);
+  const [open, setOpen] = useState(true)
   useEffect(() => {
     if (customClaims.admin) {
       setIsAgency(false);
@@ -180,8 +180,14 @@ const ReportsSection = ({
   const handleRefresh = async () => {
     setRefresh(true);
     await getData();
-    setReportsUpdated(true);
     setRefresh(false);
+    setReportsUpdated(true);
+    setShowCheckmark(true);
+    // Set a timer to hide the checkmark icon after 2 seconds
+    setTimeout(() => {
+      setShowCheckmark(false);
+      setReportsUpdated(false);
+    }, 2000);
   };
 
   // Filter
@@ -222,6 +228,7 @@ const ReportsSection = ({
           })
         );
       } else {
+        console.log(reports)
         setFilteredReports(reports);
       }
     } else {
@@ -262,7 +269,7 @@ const ReportsSection = ({
   // Updates the loaded reports whenever a user filters reports based on search.
   useEffect(() => {
     let arr = filteredReports.filter((report) => {
-      console.log(report['createdDate'])
+      // console.log(report['createdDate'])
       // Ensure that createdDate exists and has a toDate method
       try {
         if (report.createdDate && typeof report.createdDate.toDate === 'function') {
@@ -327,24 +334,23 @@ const ReportsSection = ({
     }
   };
 
-  const handleReadFilterChanged = (e) => {
-    // console.log(e.target.value + 'went into function');
-    if (e.target.value !== 'All') {
+  const handleReadFilterChanged = (value) => {
+    if (value !== 'all') {
       setFilteredReports(
         reports.filter((report) => {
-          return report.read.toString() === e.target.value;
+          return report.read.toString() === value;
         })
       );
     } else {
       setFilteredReports(reports);
     }
-    // setFilteredReports(reports.filter(report => {
-    // 	const reportData = Object.values(report)[0]
-    // 	return reportData.read.toString() == e.target.value
-    // }))
-    setReadFilter(e.target.value);
+    setReadFilter(value);
   };
-
+  
+  useEffect(() => {
+    setFilteredReports(reports); // Initialize filteredReports with reports when component mounts
+  }, [reports]);
+  
   const handleUserSendEmail = (reportURI) => {
     const subject = 'Misinfo Report';
     const body = `Link to report:\n${reportURI}`;
@@ -510,10 +516,12 @@ const ReportsSection = ({
     if (info['label']) {
       setSelectedLabel(info['label']);
     }
-  }, [info, reportModalShow]);
+  },[info,reportModalShow]);
+  
   useEffect(() => {
     getData();
-  }, [update]);
+  },[update]);
+  
   useEffect(() => {
     const reportsUnsubscribe = onSnapshot(
       collection(db, 'reports'),
@@ -553,7 +561,13 @@ const ReportsSection = ({
     { label: 'Labels', accessor: 'label', sortable: false },
     { label: 'Read/Unread', accessor: 'read', sortable: true },
   ];
-
+  
+  const readValues = [
+    { label: 'All', value: 'all' },
+    { label: 'Read', value: 'true' },
+    { label: 'Unread', value: 'false' }
+  ];
+ 
   const handleSorting = (sortField, sortOrder) => {
     if (sortField) {
       const sorted = [...loadedReports].sort((a,b) => {
@@ -572,102 +586,46 @@ const ReportsSection = ({
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex flex-col md:flex-row py-5 md:justify-between">
-        <div className="text-center md:text-left text-lg font-bold text-blue-600 tracking-wider pb-2 md:pb-0">
-          List of Reports
+    <Card className="h-full w-full mt-4">
+      <CardHeader floated={false} shadow={false} className="rounded-none">
+        <div className="mb-8 flex items-center justify-between gap-8">
+          <Typography variant="h5" color="blue">
+            List of Reports
+          </Typography>
+          <Button
+            onClick={() => setNewReportModal(true)}
+            variant="filled"
+            className="flex items-center gap-3"
+            color="blue">
+            <IoAdd className="mr-1" size={15} />
+            New Report
+          </Button>
         </div>
-        <div className="flex flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-evenly">
-          <div className="p-0 px-4 md:p-4 md:py-0 md:px-4">
-            {!refresh && !reportsUpdated && (
-              <button
-                className="relative top-1 m-0 md:m-0"
-                onClick={handleRefresh}
-                data-tip="Refresh"
-                data-for="refreshTooltip">
-                <IoMdRefresh size={20} />
-              </button>
-            )}
-            {/* Displays loading icon when reports are being updated*/}
-            {refresh && !reportsUpdated && (
-              <div>
-                <svg
-                  aria-hidden="true"
-                  className="ml-2 w-4 h-4 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
-                  viewBox="0 0 100 101"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                    fill="currentColor"
-                  />
-                  <path
-                    d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                    fill="currentFill"
-                  />
-                </svg>
-              </div>
-            )}
-            {/* Displays notification once reports have been refreshed. */}
-            {!refresh && reportsUpdated && (
-              <div>
-                <span className="px-1">Reports up to date.</span>
-                <button
-                  className={globalStyles.button.sm}
-                  onClick={() => setReportsUpdated(false)}>
-                  Dismiss
-                </button>
-              </div>
-            )}
+        <div className="flex items-center justify-between gap-8">
+          <div className="flex">
+            <Tabs value={readFilter} className="w-full md:w-max">
+              <TabsHeader>
+                {readValues.map(({ label, value }) => (
+                  <Tab
+                    key={value}
+                    value={value}
+                    onClick={() => handleReadFilterChanged(value)}>
+                    {label}
+                  </Tab>
+                ))}
+              </TabsHeader>
+            </Tabs>
+            <IconButton variant="text" onClick={handleRefresh}>
+              {!refresh && !reportsUpdated && <IoMdRefresh size={20} />}
+              {/* Displays loading icon when reports are being updated*/}
+              {refresh && <Spinner color="blue" />}
+              {/* Displays notification once reports have been refreshed. */}
+              {!refresh && showCheckmark && (
+                <IoMdCheckmark size={20} color="green" />
+              )}
+            </IconButton>
           </div>
-          <div>
-            {/* New report tooltip */}
-            {/* <ReactTooltip
-                id="newReportTooltip"
-                place="top"
-                type="light"
-                effect="solid"
-                delayShow={500}
-              /> */}
-            <button
-              onClick={() => setNewReportModal(true)}
-              className="flex items-center text-sm bg-white px-4 border-none shadow text-black py-1 rounded-md hover:shadow-none active:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
-              data-tip="Create a new report"
-              data-for="newReportTooltip">
-              <IoAdd className="mr-1" size={15} />
-              New Report
-            </button>
-          </div>
-          <div className="mb-0">
-            {/* Filter tooltip */}
-            {/* <ReactTooltip
-							id="filterTooltip"
-							place="top"
-							type="light"
-							effect="solid"
-							delayShow={500}
-						/> */}
-            <select
-              id="label_read"
-              onChange={(e) => handleReadFilterChanged(e)}
-              defaultValue="All"
-              data-tip="Filter reports"
-              data-for="filterTooltip"
-              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md mr-1 md:mx-2 hover:shadow-none">
-              <option value="false">Unread</option>
-              <option value="true">Read</option>
-              <option value="All">All reports</option>
-            </select>
-          </div>
-          <div className="mt-2 md:mt-0">
-            {/* Timeframe tooltip */}
-            {/* <ReactTooltip
-							id="timeframeTooltip"
-							place="top"
-							type="light"
-							effect="solid"
-							delayShow={500}
-						/> */}
+          <div className="LAST-X-WEEKS">
             <select
               id="label_date"
               onChange={(e) => handleDateChanged(e)}
@@ -683,21 +641,21 @@ const ReportsSection = ({
             </select>
           </div>
         </div>
-      </div>
-      <InfiniteScroll
-        className="overflow-x-auto"
-        dataLength={endIndex}
-        next={handleReportScroll}
-        inverse={false} //
-        hasMore={hasMore}
-        loader={<h4>Loading...</h4>}
-        scrollableTarget="scrollableDiv"
-        reportTitle={reportTitle}>
-        {/* TODO: change here*/}
-        {/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
+      </CardHeader>
+      <CardBody className="overflow-scroll px-0 pt-0">
+        <InfiniteScroll
+          className="overflow-x-auto"
+          dataLength={endIndex}
+          next={handleReportScroll}
+          inverse={false} //
+          hasMore={hasMore}
+          loader={<h4>Loading...</h4>}
+          scrollableTarget="scrollableDiv"
+          reportTitle={reportTitle}>
+          {/* TODO: change here*/}
+          {/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
 
-        <Card className="h-full w-full overflow-scroll">
-          <table className="w-full min-w-max table-auto text-left">
+          <table className="mt-4 w-full min-w-max table-auto text-left">
             <TableHead columns={columns} handleSorting={handleSorting} />
 
             <TableBody
@@ -711,35 +669,35 @@ const ReportsSection = ({
               onReportDelete={handleReportDelete}
             />
           </table>
-        </Card>
 
-        {reportModalShow && (
-          <ReportModal
-            reportModalShow={reportModalShow}
-            report={report}
-            reportTitle={reportTitle}
-            key={reportModalId}
-            note={note}
-            detail={detail}
-            info={info}
-            checked={reportsRead[report.id]} // Pass the checked state for the selected report
-            onReadChange={handleChangeReadModal}
-            reportSubmitBy={reportSubmitBy}
-            setReportModalShow={setReportModalShow}
-            reportModalId={reportModalId}
-            onNoteChange={handleNoteChange}
-            onLabelChange={handleLabelChange}
-            selectedLabel={selectedLabel}
-            activeLabels={activeLabels}
-            changeStatus={changeStatus}
-            onFormSubmit={handleFormSubmit}
-            onReportDelete={handleReportDelete}
-            postedDate={postedDate}
-            onUserSendEmail={handleUserSendEmail}
-            reportLocation={reportLocation}
-          />
-        )}
-      </InfiniteScroll>
+          {reportModalShow && (
+            <ReportModal
+              reportModalShow={reportModalShow}
+              report={report}
+              reportTitle={reportTitle}
+              key={reportModalId}
+              note={note}
+              detail={detail}
+              info={info}
+              checked={reportsRead[report.id]} // Pass the checked state for the selected report
+              onReadChange={handleChangeReadModal}
+              reportSubmitBy={reportSubmitBy}
+              setReportModalShow={setReportModalShow}
+              reportModalId={reportModalId}
+              onNoteChange={handleNoteChange}
+              onLabelChange={handleLabelChange}
+              selectedLabel={selectedLabel}
+              activeLabels={activeLabels}
+              changeStatus={changeStatus}
+              onFormSubmit={handleFormSubmit}
+              onReportDelete={handleReportDelete}
+              postedDate={postedDate}
+              onUserSendEmail={handleUserSendEmail}
+              reportLocation={reportLocation}
+            />
+          )}
+        </InfiniteScroll>
+      </CardBody>
       {newReportModal && (
         <NewReport
           setNewReportModal={setNewReportModal}
@@ -755,7 +713,7 @@ const ReportsSection = ({
           closeModal={setDeleteModal}
         />
       )}
-    </div>
+    </Card>
   );
 };
 
