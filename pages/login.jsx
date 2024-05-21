@@ -8,13 +8,21 @@ import LanguageSwitcher from '../components/LanguageSwitcher'
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { MdOutlineRemoveRedEye } from "react-icons/md"; // <MdOutlineRemoveRedEye />
-
+import {
+	collection,
+	getDocs,
+	getDoc,
+	query,
+	where,
+	updateDoc,
+	doc,
+} from "firebase/firestore"
 const Login = () => {
   const router = useRouter()
 
   const { t } = useTranslation('Welcome');
 
-  const { user, login, verifyEmail } = useAuth()
+  const { user, login, verifyEmail, addAgencyRole } = useAuth()
   const [data, setData] = useState({
     email: '',
     password: '',
@@ -53,9 +61,20 @@ const Login = () => {
       if (auth.currentUser?.emailVerified) {
         const idTokenResult = await auth.currentUser.getIdTokenResult()
         // console.log("Claims:", idTokenResult.claims)
+        
+        const dbInstance = collection(db, 'agency');
+        const q = query(dbInstance, where("agencyUsers", "array-contains", data.email));
+        const querySnapshot = await getDocs(q)
 
+        // adds agency role to current user if their email is in an agency users array
+        if (!querySnapshot.empty && !idTokenResult.claims.agency) {
+          await addAgencyRole({ email: data.email })
+					console.log(`${ data.email } has been made an agency user`)
+        }
+        
         // Redirect user based on their role
         if (idTokenResult.claims.admin || idTokenResult.claims.agency) {
+
           // console.log("Redirecting to dashboard...")
           await router.push("/dashboard")
         } else {
@@ -79,6 +98,7 @@ const Login = () => {
       } else if (error.code === "auth/wrong-password") {
         setError(t("incorrect"))
       } else {
+        console.log(error)
         setError(t("error"))
       }
     }

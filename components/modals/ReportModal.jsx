@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react"
 import Switch from "react-switch"
+import ButtonEmailSend from "../partials/ButtonEmailSend"
+import ShareReportModal from "../partials/modals/ShareReportModal"
 import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"
 import Link from "next/link"
 import Image from "next/image"
@@ -7,13 +9,13 @@ import {Tooltip} from "react-tooltip";
 // icons
 import { RiMessage2Fill } from "react-icons/ri"
 import { BiEditAlt } from "react-icons/bi"
-import { BsShareFill } from "react-icons/bs"
+// import { BsShareFill } from "react-icons/bs"
 import { BiLinkExternal } from "react-icons/bi";
 import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
 import { MdOutlineLocalPhone } from "react-icons/md";
 
 import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
-
+import { useTranslation } from 'next-i18next';
 const ReportModal = ({
 	// reportModalShow,
 	setReportModalShow,
@@ -40,6 +42,8 @@ const ReportModal = ({
 	onNoteChange,
 	onReportDelete,
 	changeStatus,
+	// send email
+	onButtonEmailSendClick,
 	reportModalId,
 }) => {
 	const style = {
@@ -57,37 +61,31 @@ const ReportModal = ({
 		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
 		special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl",
 	}
-
+	const {t} = useTranslation("ShareReport")
 	const reportURI = "/reports/" + reportModalId
 	const [images,setImages] = useState([])
-	// const [isReportRead, setIsReportRead] = useState(reportRead || false);
-
-	// useEffect(() => {
-	// 	setImages(report['images'])
-	// 	// console.log(images)
-	// }, [reportModalShow])
-	function SendLinkByMail(href) {
-		var subject = "Misinformation Report"
-		var body = "Link to report:\r\n"
-		body += window.location.href
-		var uri = "mailto:?subject="
-		uri += encodeURIComponent(subject)
-		uri += "&body="
-		uri += encodeURIComponent(body)
-		uri += reportURI
-		window.open(uri)
+	const [shareReportModal, setShareReportModal] = useState(false)
+	const [email,setEmail] = useState()
+	
+	const handleShareModal = () => {
+		setShareReportModal(true)
 	}
-	useEffect(() => {
-		console.log(report)
-	}, [])
+		// Function to handle email change
+	const handleEmailShareReport = (e) => {
+		e.preventDefault()
+		setEmail(e.target.value)
+	}
+	const handleShareReport = (e) => {
+		e.preventDefault()
+    const uri = `mailto:${email}`;
+    window.open(uri);
+	}
 	
 	return (
 		<div
 			className='fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto' // {style.overlay}
 			onClick={() => setReportModalShow(false)}>
 			<div className='absolute flex justify-center items-center z-[1300] top-4 left-0 right-0 sm:overflow-y-scroll'>
-				{" "}
-				{/* {style.modal} */}
 				<div
 					className='flex-col justify-center items-center rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible md:w-10/12 lg:w-10/12' // {style.wrap}
 					onClick={(e) => {
@@ -355,9 +353,10 @@ const ReportModal = ({
 									)}
 								</div>
 								{/* Share */}
-								<button
+								<ButtonEmailSend onButtonEmailSendClick={() => setShareReportModal(true)} />
+								{/* <button
 									className='flex flex-row text-sm bg-white px-4 mb-4 border-none text-black py-1 rounded-md shadow hover:shadow-none tooltip-share-report'
-									onClick={SendLinkByMail}
+									onClick={() => onUserSendEmail(`${reportURI}`)}
 									type='button'>
 									<BsShareFill className='my-1' size={15} />
 									<div className='px-3 py-1'>Share The Report</div>
@@ -367,12 +366,12 @@ const ReportModal = ({
 										delayShow={500}>
 										Share Report
 									</Tooltip>
-								</button>
+								</button> */}
 								{/* Save button */}
 								<div className='flex items-center justify-between justify-items-stretch'>
 									<div className='save-button w-full'>
 										<button
-											className='w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
+											className='w-full bg-blue-600 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
 											type='submit'>
 											Save
 										</button>
@@ -398,6 +397,17 @@ const ReportModal = ({
 					</form>
 				</div>
 			</div>
+			{shareReportModal && (
+				<ShareReportModal
+					func={handleShareModal}
+					title={t("shareReport")}
+					subtitle='Subtitle example text'
+					CTA={t("share")}
+					closeModal={setShareReportModal}
+					onEmailChange={handleEmailShareReport}
+					onSubmit={handleShareReport}
+				/>
+			)}
 		</div>
 	)
 }

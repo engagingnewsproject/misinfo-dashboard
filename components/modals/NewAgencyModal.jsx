@@ -34,7 +34,7 @@ const NewAgencyModal = ({
 		modal_form_upload_image: 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
 		modal_form_input: 'shadow border-none rounded-md min-w-full col-span-2 p-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
 		modal_form_select: 'border-none rounded-xl min-w-full col-span-2 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
-		modal_form_button: 'bg-blue-500 self-center hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
+		modal_form_button: 'bg-blue-600 self-center hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
 	}
 	return (
 		<div className={style.modal_background} onClick={() => setNewAgencyModal(false)}>

@@ -64,7 +64,17 @@
   "location_text": "Location",
   "thankyou": "Thank you",
   "noAgencies":"There are no participating newsrooms in this area.",
-
+  "topics": {
+    "Health": "Health",
+    "Weather": "Weather",
+    "Other": "Other",
+    "Politics":"Politics"
+  },
+  "sources": {
+    "Social": "Social",
+    "Newspaper": "Newspaper",
+    "Website": "Website",
+    "Other": "Other"},
   "thanksText": "We investigate as many reports as possible, although we aren't always able to get to everything. When we're able, we'd love to share the results of our investigation."
 
 
