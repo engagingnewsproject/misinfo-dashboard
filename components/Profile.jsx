@@ -93,53 +93,9 @@ const Profile = ({ customClaims }) => {
       'block flex flex-col text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
   };
 
-  // IMAGE UPLOAD
-  const handleLogoEdit = (e) => {
-    e.preventDefault();
-    setEditLogo(!editLogo);
-  };
-
-  const handleImageChange = (e) => {
-    for (let i = 0; i < e.target.files.length; i++) {
-      const newImage = e.target.files[i];
-      // console.log(newImage)
-      setImages((prevState) => [...prevState, newImage]);
-      setUpdate(!update);
-    }
-  };
-
-  const handleUpload = () => {
-    // Image upload to firebase
-    const promises = [];
-    images.map((image) => {
-      const storageRef = ref(
-        storage,
-        `agencies/logo_${agencyId}_${new Date().getTime().toString()}.png`
-      );
-      const uploadTask = uploadBytesResumable(storageRef, image);
-      promises.push(uploadTask);
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          // console.log(snapshot)
-        },
-        (error) => {
-          console.log(error);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setImageURLs((prev) => [...prev, downloadURL]);
-          });
-        }
-      );
-    });
-    Promise.all(promises).catch((err) => console.log(err));
-  };
-
   // GET DATA
   // Needs to be defined before any useEffect hooks
   const getData = async () => {
-    console.log('getData run');
     try {
       // Fetch mobile user data
       const mobileRef = await getDoc(doc(db, 'mobileUsers', user.accountId));
@@ -191,9 +147,7 @@ const Profile = ({ customClaims }) => {
     });
   }, []); // this useEffect call will run on page load, since it has no arguments in the []. If arguments are present in the [], effect will only activate if the values in the list change.
 
-  useEffect(() => {
-    console.log(userData);
-  }, [userData]);
+  // removed extra useEffect log
 
   // LOCATION CHANGE FOR USERS
   // handle when a user clicks the "Change Location" button
@@ -201,13 +155,12 @@ const Profile = ({ customClaims }) => {
     setChangeLocation(!changeLocation);
   };
 
-  // move the below "user location change" functions up by the handleChangeLocation function
-  const handleStateChange = (e) => {
+  const handleUserStateChange = (e) => {
     setShowUserMessage(false);
 
     setUserLocation((data) => ({ ...data, state: e, city: null }));
   };
-  const handleCityChange = (e) => {
+  const handleUserCityChange = (e) => {
     setShowUserMessage(false);
     setUserLocation((data) => ({ ...data, city: e !== null ? e : null }));
   };
@@ -219,7 +172,7 @@ const Profile = ({ customClaims }) => {
   };
   // handle location change for users
   const handleUserLocationChange = (e) => {
-    e.preventDefault()
+    e.preventDefault(); // on a form you want to prevent default or the page will refresh
     // STATE
     const allErrors = {};
 
@@ -227,8 +180,7 @@ const Profile = ({ customClaims }) => {
       console.log(userLocation.state);
       console.log('state error');
       allErrors.userState = 'Please enter a state.';
-    }
-    else if (!userLocation.city) {
+    } else if (!userLocation.city) {
       console.log(userLocation.city);
       console.log('city error');
       allErrors.userState = 'Please enter a city.';
@@ -248,8 +200,8 @@ const Profile = ({ customClaims }) => {
   };
   // For testing only: I usually use useEffect hooks to log out state changes (this will be removed or commented out before pushing changes)
   useEffect(() => {
-    console.log(changeLocation);
-  }, [changeLocation]);
+    console.log(userLocation); // logging userLocation so we can watch it's changes
+  }, [userLocation]);
 
   // SAVE AGENCY
   const saveAgency = (imageURLs) => {
@@ -262,6 +214,49 @@ const Profile = ({ customClaims }) => {
     }).then(() => {
       setUpdate(true);
     });
+  };
+
+  // IMAGE UPLOAD
+  const handleLogoEdit = (e) => {
+    e.preventDefault();
+    setEditLogo(!editLogo);
+  };
+
+  const handleImageChange = (e) => {
+    for (let i = 0; i < e.target.files.length; i++) {
+      const newImage = e.target.files[i];
+      // console.log(newImage)
+      setImages((prevState) => [...prevState, newImage]);
+      setUpdate(!update);
+    }
+  };
+
+  const handleUpload = () => {
+    // Image upload to firebase
+    const promises = [];
+    images.map((image) => {
+      const storageRef = ref(
+        storage,
+        `agencies/logo_${agencyId}_${new Date().getTime().toString()}.png`
+      );
+      const uploadTask = uploadBytesResumable(storageRef, image);
+      promises.push(uploadTask);
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          // console.log(snapshot)
+        },
+        (error) => {
+          console.log(error);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            setImageURLs((prev) => [...prev, downloadURL]);
+          });
+        }
+      );
+    });
+    Promise.all(promises).catch((err) => console.log(err));
   };
 
   // Agency updated message
@@ -280,7 +275,7 @@ const Profile = ({ customClaims }) => {
     }
   }, [update, errors]);
 
-  // NAME CHANGE
+  // AGENCY NAME CHANGE
   const handleAgencyNameChange = (e) => {
     e.preventDefault();
     setAgencyName(e.target.value);
@@ -298,7 +293,7 @@ const Profile = ({ customClaims }) => {
     setData((data) => ({ ...data, city: e !== null ? e : null }));
   };
 
-  // FORM SUMBMISSION
+  // AGENCY FORM SUMBMISSION
   const handleSubmitClick = (e) => {
     e.preventDefault();
     const allErrors = {};
@@ -538,7 +533,8 @@ const Profile = ({ customClaims }) => {
           </div>
           {/* show/hide change location fields */}
           {changeLocation && (
-            <form> {/* Need to wrap any form elements in a form tag */}
+            <form>
+              {/* Need to wrap any form elements in a form tag */}
               <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
                 <div className="flex flex-auto justify-between">
                   <Select
@@ -556,7 +552,7 @@ const Profile = ({ customClaims }) => {
                       return options['name'];
                     }}
                     label="state"
-                    onChange={handleStateChange}
+                    onChange={handleUserStateChange}
                   />
 
                   <Select
@@ -575,7 +571,7 @@ const Profile = ({ customClaims }) => {
                     getOptionValue={(options) => {
                       return options['name'];
                     }}
-                    onChange={handleCityChange}
+                    onChange={handleUserCityChange}
                   />
                   {errors.state && data.state === null && (
                     <span className="text-red-500">{errors.state}</span>
