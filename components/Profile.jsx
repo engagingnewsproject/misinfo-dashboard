@@ -147,8 +147,6 @@ const Profile = ({ customClaims }) => {
     });
   }, []); // this useEffect call will run on page load, since it has no arguments in the []. If arguments are present in the [], effect will only activate if the values in the list change.
 
-  // removed extra useEffect log
-
   // LOCATION CHANGE FOR USERS
   // handle when a user clicks the "Change Location" button
   const handleChangeLocation = () => {
@@ -201,7 +199,8 @@ const Profile = ({ customClaims }) => {
   // For testing only: I usually use useEffect hooks to log out state changes (this will be removed or commented out before pushing changes)
   useEffect(() => {
     console.log(userLocation); // logging userLocation so we can watch it's changes
-  }, [userLocation]);
+    console.log(update); // logging update because we will use this state var to track the progress of the location update
+  }, [update, userLocation]);
 
   // SAVE AGENCY
   const saveAgency = (imageURLs) => {
