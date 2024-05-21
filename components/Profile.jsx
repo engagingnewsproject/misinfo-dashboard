@@ -55,14 +55,14 @@ const Profile = ({ customClaims }) => {
 
   // country state city
   const [data, setData] = useState({ country: 'US', state: null, city: null });
-  
+
   // USER DATA
   const [userData,setUserData] = useState(null);
   // USER LOCATION
   const [userLocation,setUserLocation] = useState(null);
   const [userLocationChange, setUserLocationChange] = useState(false);
   const [showUserMessage,setShowUserMessage] = useState(false);
-  
+  const [userUpdate, setUserUpdate] = useState(false);
   // AGENCY LOCATION
   const [agencyState, setAgencyState] = useState(null);
   const [agencyCity, setAgencyCity] = useState(null);
@@ -105,10 +105,6 @@ const Profile = ({ customClaims }) => {
       const mobileRef = await getDoc(doc(db, 'mobileUsers', user.accountId));
       // Update state after fetching data
       setUserData(mobileRef.data());
-      setUserLocation({
-        state: mobileRef.data()?.state,
-        city: mobileRef.data()?.city,
-      });
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -155,6 +151,7 @@ const Profile = ({ customClaims }) => {
   // handle when a user clicks the "Change Location" button
   const handleChangeLocation = () => {
     setUserLocationChange(!userLocationChange);
+    setUserLocation(null) // need to reset the userLocation state 
   };
 
   const handleUserStateChange = (e) => {
@@ -170,41 +167,44 @@ const Profile = ({ customClaims }) => {
   // handle location reset, delete changes for general users
   const handleUserLocationReset = () => {
     setShowUserMessage(false);
+    getData() // fetch data again 
     setUserLocation({ state: userData?.state, city: userData?.city });
   };
   // handle location change for users
-  const handleUserLocationChange = (e) => {
-    e.preventDefault(); // on a form you want to prevent default or the page will refresh
-    // STATE
+  const handleUserLocationChange = async (e) => {
+    e.preventDefault();
     const allErrors = {};
 
     if (!userLocation.state) {
-      console.log(userLocation.state);
-      console.log('state error');
       allErrors.userState = 'Please enter a state.';
     } else if (!userLocation.city) {
-      console.log(userLocation.city);
-      console.log('city error');
-      allErrors.userState = 'Please enter a city.';
-    }
-    //  no errors, update doc
-    else {
-      const userDoc = doc(db, 'mobileUsers', user.accountId);
-      updateDoc(userDoc, {
-        state: userLocation?.state,
-        city: userLocation?.city,
-      }).then(() => {
-        // update state variables
-        setShowUserMessage(true);
+      allErrors.city = 'Please enter a city.';
+    } else {
+      try {
+        const userDoc = doc(db,'mobileUsers',user.accountId);
+        updateDoc(userDoc, {
+          state: userLocation?.state,
+          city: userLocation?.city,
+        });
+        // Set state or do any necessary actions after successfully updating Firestore
         getData();
-      });
+        setUserUpdate(!userUpdate);
+        setShowUserMessage(!showUserMessage);
+      } catch (error) {
+        console.error('Error updating user location:', error);
+      }
     }
-    setErrors(allErrors)
+
+    setErrors(allErrors);
   };
-  // For testing only: I usually use useEffect hooks to log out state changes (this will be removed or commented out before pushing changes)
+
+  // When user location updated we can set the user location change to false and it will close the form block
   useEffect(() => {
-    console.log(userLocation); // logging userLocation so we can watch it's changes
-  }, [userLocation]);
+    setUserLocationChange(false);
+    setTimeout(() => {
+      setShowUserMessage(false);
+    }, 3000);
+  }, [userUpdate]);
 
   // SAVE AGENCY
   const saveAgency = (imageURLs) => {
@@ -526,17 +526,10 @@ const Profile = ({ customClaims }) => {
               <div className="font-light">{userData.state.name}</div>
             )}
           </div>
-          {/* Now that we have the user's location listed we can create a button to show/hide the option to change their location */}
-          <div className="flex justify-end mx-0 md:mx-6 my-6 tracking-normal items-center">
-            <button
-              className={style.buttonHollow}
-              onClick={() => handleChangeLocation()}>
-              Change Location
-            </button>
-          </div>
           {/* show/hide change location fields */}
-          {userLocationChange && (
-            <form>
+          <>
+            {userLocationChange && (
+            <form onSubmit={handleUserLocationChange} ref={formRef}>
               {/* Need to wrap any form elements in a form tag */}
               <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
                 <div className="flex flex-auto justify-between">
@@ -576,15 +569,11 @@ const Profile = ({ customClaims }) => {
                     }}
                     onChange={handleUserCityChange}
                   />
-                  {errors.userState && data.state === null && (
-                    <span className="text-red-500">{errors.userState}</span>
-                  )}
                 </div>
                 <div>
                   <button
                     onClick={handleUserLocationReset}
-                    className={`${style.button}`}
-                    type="submit">
+                    className={`${style.button}`}>
                     {t('cancelChanges')}
                   </button>
                   <button
@@ -595,15 +584,36 @@ const Profile = ({ customClaims }) => {
                   </button>
                 </div>
               </div>
-              <div>
-                {showUserMessage && (
+            </form>
+            )}
+            {/* Change location button */}
+            <div className="flex justify-end mx-0 md:mx-6 my-6 tracking-normal items-center">
+              {showUserMessage && (
+                <div className="mr-4">
                   <div className="text-green-800 transition-opacity opacity-100">
                     {t('location')}
                   </div>
-                )}
+                </div>
+              )}
+              {!userLocationChange && (
+                <button
+                  className={`${style.buttonHollow} justify-end`}
+                  onClick={() => handleChangeLocation()}>
+                  Change Location
+                </button>
+              )}
+            </div>
+            {errors.userState && data.state === null && (
+              <div className="flex justify-center">
+                <span className="text-red-500">{errors.userState}</span>
               </div>
-            </form>
-          )}
+            )}
+            {errors.userCity && data.city === null && (
+              <div className="flex justify-center">
+                <span className="text-red-500">{errors.userCity}</span>
+              </div>
+            )}
+          </>
         </div>
 
         {/* Hides the language toggle for admin and agencies*/}
