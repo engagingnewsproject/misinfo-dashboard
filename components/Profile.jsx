@@ -135,31 +135,35 @@ const Profile = ({ customClaims }) => {
     Promise.all(promises).catch((err) => console.log(err));
   };
 
+  // GET DATA
+  // Needs to be defined before any useEffect hooks 
+  const getData = async () => {
+    console.log('getData run');
+    try {
+      // Fetch mobile user data
+      const mobileRef = await getDoc(doc(db, 'mobileUsers', user.accountId));
+      // Update state after fetching data
+      setUserData(mobileRef.data());
+      setUserLocation({
+        state: mobileRef.data()?.state,
+        city: mobileRef.data()?.city,
+      });
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
   useEffect(() => {
+    // Then in our effect we can get the data when the component loads
+    getData();
+
     // Verify role
-    verifyRole().then((result) => {
+    verifyRole().then(async (result) => {
       // console.log(result)
       if (result.admin) {
         setIsAdmin(true);
       } else if (result.agency) {
         setIsAgency(true);
-      } else {
-        setIsAgency(false);
-        setIsAdmin(false);
-      }
-    });
-    getData() // Regardless if the user is a general, admin or agency user we need to get the data when this component loads.
-    // Now that we have fetched the data we can log out what the user data is:
-    console.log(userData)
-    // And access the user's data specifically:
-    console.log(userData.state.name)
-  }, []); // this useEffect call will run on page load, since it has no arguments in the []. If arguments are present in the [], effect will only activate if the values in the list change.
-
-  // GET DATA
-  const getData = async () => {
-    // Get data
-    if (isAgency) {
-      try {
         const agencyCollection = collection(db, 'agency');
         const q = query(
           agencyCollection,
@@ -179,19 +183,16 @@ const Profile = ({ customClaims }) => {
             setAgencyLogo(doc.data()['logo']);
           });
         }
-      } catch (error) {
-        console.error('Error fetching agency data:', error);
+      } else {
+        setIsAgency(false);
+        setIsAdmin(false);
       }
-    } else {
-      await getDoc(doc(db, 'mobileUsers', user.accountId)).then((mobileRef) => {
-        setUserData(mobileRef.data());
-        setUserLocation({
-          state: mobileRef.data()?.state,
-          city: mobileRef.data()?.city,
-        });
-      });
-    }
-  };
+    });
+  }, []); // this useEffect call will run on page load, since it has no arguments in the []. If arguments are present in the [], effect will only activate if the values in the list change.
+
+  useEffect(() => {
+    console.log(userData);
+  }, [userData]);
 
   // SAVE AGENCY
   const saveAgency = (imageURLs) => {
@@ -428,26 +429,6 @@ const Profile = ({ customClaims }) => {
     }
   }, [update]);
 
-  // Had to remove it for a sec. Wasn't allowing me to view the profile page.
-  // useEffect(() => {
-  // 	auth.currentUser
-  // 		.getIdTokenResult()
-  // 		.then((idTokenResult) => {
-  // 			// Confirm the user is an Admin.
-  // 			if (!!idTokenResult.claims.admin) {
-  // 				// Show admin UI.
-  // 				setCustomClaims({ admin: true })
-  // 			} else if (!!idTokenResult.claims.agency) {
-  // 				// Show regular user UI.
-  // 				setCustomClaims({ agency: true })
-  // 			}
-  // 		})
-  // 		.catch((error) => {
-  // 			console.log(error)
-  // 		})
-  // 	getData()
-  // })
-
   useEffect(() => {
     const fetchUserRoles = async () => {
       try {
@@ -519,11 +500,20 @@ const Profile = ({ customClaims }) => {
           {/* We should list out the user's location information */}
           <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
             <div className="font-light">City</div>
-            <div className="font-light">{ userData.city.name }</div>
+            {/* check if user data has a value */}
+            {userData && userData.city && (
+              <div className="font-light">{userData.city.name}</div>
+            )}
           </div>
           <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
             <div className="font-light">State</div>
-            <div className="font-light">{ userData.state.name }</div>
+            {userData && userData.state && (
+              <div className="font-light">{userData.state.name}</div>
+            )}
+          </div>
+          {/* Now that we have the user's location listed we can create a button to show/hide the option to change their location */}
+          <div className="flex justify-end mx-0 md:mx-6 my-6 tracking-normal items-center">
+            <button className={style.button}>Change Location</button>
           </div>
           <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
             <div className="flex flex-auto justify-between">
