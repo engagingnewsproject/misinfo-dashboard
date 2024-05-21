@@ -199,6 +199,7 @@ const Profile = ({ customClaims }) => {
         getData();
       });
     }
+    setErrors(allErrors)
   };
   // For testing only: I usually use useEffect hooks to log out state changes (this will be removed or commented out before pushing changes)
   useEffect(() => {
@@ -575,8 +576,8 @@ const Profile = ({ customClaims }) => {
                     }}
                     onChange={handleUserCityChange}
                   />
-                  {errors.state && data.state === null && (
-                    <span className="text-red-500">{errors.state}</span>
+                  {errors.userState && data.state === null && (
+                    <span className="text-red-500">{errors.userState}</span>
                   )}
                 </div>
                 <div>
