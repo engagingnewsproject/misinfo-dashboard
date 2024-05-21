@@ -14,13 +14,13 @@ import {
   query,
   where,
   updateDoc,
-  doc
+  doc,
 } from 'firebase/firestore';
 import {
   getStorage,
   ref,
   uploadBytesResumable,
-  getDownloadURL
+  getDownloadURL,
 } from 'firebase/storage';
 import { db, auth } from '../config/firebase';
 import { State, City } from 'country-state-city';
@@ -38,7 +38,7 @@ const Profile = ({ customClaims }) => {
     addAdminRole,
     addAgencyRole,
     viewRole,
-    deleteUser
+    deleteUser,
   } = useAuth();
   const { t } = useTranslation('Profile');
   const [openModal, setOpenModal] = useState(false);
@@ -89,7 +89,7 @@ const Profile = ({ customClaims }) => {
     buttonCancel:
       ' col-start-3 border-solid border-red-500 self-end hover:bg-blue-700 text-sm text-red-500 font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline',
     fileUploadButton:
-      'block flex flex-col text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer'
+      'block flex flex-col text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
   };
 
   // IMAGE UPLOAD
@@ -182,7 +182,7 @@ const Profile = ({ customClaims }) => {
         setUserData(mobileRef.data());
         setUserLocation({
           state: mobileRef.data()?.state,
-          city: mobileRef.data()?.city
+          city: mobileRef.data()?.city,
         });
       });
     }
@@ -195,7 +195,7 @@ const Profile = ({ customClaims }) => {
       name: agencyName,
       logo: imageURLs,
       state: data.state.name,
-      city: data.city == null ? 'N/A' : data.city.name
+      city: data.city == null ? 'N/A' : data.city.name,
     }).then(() => {
       setUpdate(true);
     });
@@ -266,7 +266,7 @@ const Profile = ({ customClaims }) => {
       const userDoc = doc(db, 'mobileUsers', user.accountId);
       updateDoc(userDoc, {
         state: userLocation?.state,
-        city: userLocation?.city
+        city: userLocation?.city,
       }).then(() => {
         // update state variables
         setShowUserMessage(true);
@@ -509,72 +509,73 @@ const Profile = ({ customClaims }) => {
         {/* USer Location Edit*/}
         <div>
           <div className="text-xl font-extrabold text-blue-600">
-            {t("editLocation")}
+            {t('editLocation')}
           </div>
-        <div className='flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center'>
-          <div className='flex flex-auto justify-between'>
-            <Select
-              className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline px-2"
-              id="state"
-              type="text"
-              required
-              placeholder={t("NewReport:state_text")}
-              value={userLocation?.state}
-              options={State.getStatesOfCountry("US")}
-              getOptionLabel={(options) => {
-              return options["name"];
-              }}
-              getOptionValue={(options) => {
-              return options["name"];
-              }}                                
-              label="state"
-              onChange={handleStateChange}
+          <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
+            <div className="flex flex-auto justify-between">
+              <Select
+                className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline px-2"
+                id="state"
+                type="text"
+                required
+                placeholder={t('NewReport:state_text')}
+                value={userLocation?.state}
+                options={State.getStatesOfCountry('US')}
+                getOptionLabel={(options) => {
+                  return options['name'];
+                }}
+                getOptionValue={(options) => {
+                  return options['name'];
+                }}
+                label="state"
+                onChange={handleStateChange}
               />
-          
-            <Select
-              className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline px-2"
-              id="city"
-              type="text"
-              placeholder={t("NewReport:city_text")}
-              value={userLocation?.city}
-              options={City.getCitiesOfState(
-              userLocation?.state?.countryCode,
-              userLocation?.state?.isoCode
-              )}
-              getOptionLabel={(options) => {
-              return options["name"];
-              }}
-              getOptionValue={(options) => {
-              return options["name"];
-              }}                                 
-              onChange={handleCityChange}
-              />
-              {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)} 
 
+              <Select
+                className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline px-2"
+                id="city"
+                type="text"
+                placeholder={t('NewReport:city_text')}
+                value={userLocation?.city}
+                options={City.getCitiesOfState(
+                  userLocation?.state?.countryCode,
+                  userLocation?.state?.isoCode
+                )}
+                getOptionLabel={(options) => {
+                  return options['name'];
+                }}
+                getOptionValue={(options) => {
+                  return options['name'];
+                }}
+                onChange={handleCityChange}
+              />
+              {errors.state && data.state === null && (
+                <span className="text-red-500">{errors.state}</span>
+              )}
+            </div>
+            <div>
+              <button
+                onClick={handleUserLocationReset}
+                className={`${style.button}`}
+                type="submit">
+                {t('cancelChanges')}
+              </button>
+              <button
+                onClick={handleUserLocationChange}
+                className={`${style.button}`}
+                type="submit">
+                {t('updateLocation')}
+              </button>
+            </div>
           </div>
           <div>
-            <button
-              onClick={handleUserLocationReset}
-              className={`${style.button}`}
-              type='submit'>
-                {t("cancelChanges")}
-            </button>
-            <button
-              onClick={handleUserLocationChange}
-              className={`${style.button}`}
-              type='submit'>
-               {t("updateLocation")}
-            </button>
-        </div>
-      </div>
-	  <div>
             {showUserMessage && (
-                <div className='text-green-800 transition-opacity opacity-100'>
-                	{t("location")}
-                    </div>
-            )}    
+              <div className="text-green-800 transition-opacity opacity-100">
+                {t('location')}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
         {/* Hides the language toggle for admin and agencies*/}
         {!isAgency && !isAdmin && (
