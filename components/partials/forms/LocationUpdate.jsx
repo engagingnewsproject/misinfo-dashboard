@@ -149,7 +149,7 @@ const LocationUpdate = ({ user, userData, setUserData }) => {
           onSubmit={handleSubmit}
           className={`${
             showForm ? 'flex' : 'hidden'
-          } sm:mx-6 flex-col lg:flex-row lg:justify-end gap-4`}>
+          } sm:mx-6 flex-col lg:flex-row lg:flex-auto gap-4`}>
           {/* Need to wrap any form elements in a form tag */}
           <div className="flex flex-col sm:flex-row lg:flex-auto lg:justify-end">
             {/* These could be changed to the tailwindcss material design select elements */}
@@ -188,19 +188,19 @@ const LocationUpdate = ({ user, userData, setUserData }) => {
               onChange={handleUserCityChange}
             />
           </div>
-          <div className="sm:flex sm:items-start sm:gap-2">
+          <div className="flex flex-col md:flex-row md:items-start md:flex-none gap-2">
             <Button
               onClick={handleUserLocationReset}
               color="blue"
               fullWidth
-              className="mb-2"
+              className="text-white"
               type="reset">
               {t('cancelChanges')}
             </Button>
             <Button
               color="blue"
               fullWidth
-              className="lg:text-nowrap"
+              className="text-white"
               type="submit">
               {t('updateLocation')}
             </Button>
@@ -228,7 +228,7 @@ const LocationUpdate = ({ user, userData, setUserData }) => {
           {!showForm && (
             <Button
               variant="outlined"
-              className={`${style.buttonHollow} justify-end`}
+              color='blue'
               onClick={() => handleUserClickLocationChange()}>
               Change Location
             </Button>
