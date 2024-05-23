@@ -1,20 +1,20 @@
 // components/LocationUpdate.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../config/firebase';
 import { useTranslation } from 'next-i18next';
 import Select from 'react-select';
 import { State, City } from 'country-state-city';
+import { Button } from '@material-tailwind/react';
 
 const LocationUpdate = ({ user, userData, setUserData }) => {
   const { t } = useTranslation('Profile');
 
   // USER LOCATION
-  const formRef = useRef();
   const [userLocation, setUserLocation] = useState(null);
-  const [userLocationChange, setUserLocationChange] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [showUserMessage, setShowUserMessage] = useState(false);
-  const [userUpdate, setUserUpdate] = useState(false);
+  const [update, setUpdate] = useState(false);
   const [errors, setErrors] = useState({});
 
   // GET DATA
@@ -38,77 +38,74 @@ const LocationUpdate = ({ user, userData, setUserData }) => {
 
     const allErrors = {};
     // error logging
-    if (userLocation === null) {
+    if (!userLocation?.state) {
+      console.log('state error');
       allErrors.userState = 'Please enter a state.';
-    } else if (!userLocation.city) {
+    } else if (!userLocation?.city) {
+      console.log('city error');
       allErrors.userCity = 'Please enter a city.';
     } else {
       try {
         // where we update the firestore data
-				setUserData({
-          state: userLocation.state,
-          city: userLocation.city
-				})
-        // Update Firestore data
-        const userDoc = doc(db, 'mobileUsers', user.accountId);
-        await updateDoc(userDoc, {
+        setUserData({
           state: userLocation.state,
           city: userLocation.city,
         });
-
-        console.log('Firestore document updated successfully!');
-				// set userUpdate state (see useEffect)
-				getData();
-        setUserUpdate(!userUpdate);
-        setShowUserMessage(!showUserMessage);
-
+        setUpdate(!update);
+        // Update Firestore data
+        const userDoc = doc(db, 'mobileUsers', user.accountId);
+        await updateDoc(userDoc, {
+          state: userLocation?.state,
+          city: userLocation?.city,
+        });
         // Set state or do any necessary actions after successfully updating Firestore
       } catch (error) {
         console.error('Error updating user location:', error);
       }
     }
     // set all errors
+    getData();
     setErrors(allErrors);
   };
 
-  const handleChangeLocation = () => {
+  const handleUserClickLocationChange = () => {
     // handle when a user clicks the "Change Location" button
-    setUserLocationChange(true);
+    setShowForm(!showForm);
+    setUserLocation(null);
   };
 
   const handleUserStateChange = (e) => {
-    setShowUserMessage(false);
+    // setShowUserMessage(false);
     setUserLocation((data) => ({ ...data, state: e, city: null }));
   };
 
   const handleUserCityChange = (e) => {
-    setShowUserMessage(false);
+    // setShowUserMessage(false);
     setUserLocation((data) => ({ ...data, city: e !== null ? e : null }));
   };
 
   const handleUserLocationReset = () => {
     // handle location reset, delete changes for general users
-    setShowUserMessage(false);
+    setShowForm(false);
+    // setShowUserMessage(false);
     getData(); // fetch data again
     // reset to default firestore values
     setUserLocation({ state: userData?.state, city: userData?.city });
   };
 
   // When user location updated we can set the user location change to false and it will close the form block
-  useEffect(() => {
-    console.log(userUpdate);
-    console.log(userData);
-    console.log(userLocation);
-    setUserLocationChange(false); // hides the userLocation form
-    setTimeout(() => {
-      setShowUserMessage(false); // delay the success message
-    }, 3000);
-  }, [userUpdate]); // when userUpdate state changes
 
   useEffect(() => {
-    // if user adds a city this will hide the error message
-    userLocation?.city && setErrors([]);
-  }, [userLocation]);
+    if (update) {
+      setShowUserMessage(true);
+      setShowForm(false);
+    }
+    return () => {
+      setTimeout(() => {
+        setShowUserMessage(false);
+      }, 3000);
+    };
+  }, [update]);
 
   const style = {
     sectionContainer: 'w-full h-full flex flex-col mb-5 overflow-visible',
@@ -148,62 +145,67 @@ const LocationUpdate = ({ user, userData, setUserData }) => {
       </div>
       {/* show/hide change location fields */}
       <>
-        {userLocationChange && ( // show form!
-          <form onSubmit={handleSubmit} ref={formRef}>
-            {/* Need to wrap any form elements in a form tag */}
-            <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
-              <div className="flex flex-auto justify-between">
-                {/* These could be changed to the tailwindcss material design select elements */}
-                <Select
-                  className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline px-2"
-                  id="state"
-                  type="text"
-                  required
-                  placeholder={t('NewReport:state_text')}
-                  value={userLocation?.state}
-                  options={State.getStatesOfCountry('US')}
-                  getOptionLabel={(options) => {
-                    return options['name'];
-                  }}
-                  getOptionValue={(options) => {
-                    return options['name'];
-                  }}
-                  label="state"
-                  onChange={handleUserStateChange}
-                />
-                <Select
-                  className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline px-2"
-                  id="city"
-                  type="text"
-                  placeholder={t('NewReport:city_text')}
-                  value={userLocation?.city}
-                  options={City.getCitiesOfState(
-                    userLocation?.state?.countryCode,
-                    userLocation?.state?.isoCode
-                  )}
-                  getOptionLabel={(options) => {
-                    return options['name'];
-                  }}
-                  getOptionValue={(options) => {
-                    return options['name'];
-                  }}
-                  onChange={handleUserCityChange}
-                />
-              </div>
-              <div>
-                <button
-                  onClick={handleUserLocationReset}
-                  className={`${style.button}`}
-                  type="reset">
-                  {t('cancelChanges')}
-                </button>
-                <button className={`${style.button}`} type="submit">
-                  {t('updateLocation')}
-                </button>
-              </div>
-            </div>
-          </form>
-        )}
+        <form
+          onSubmit={handleSubmit}
+          className={`${
+            showForm ? 'flex' : 'hidden'
+          } sm:mx-6 flex-col lg:flex-row lg:flex-auto gap-4`}>
+          {/* Need to wrap any form elements in a form tag */}
+          <div className="flex flex-col sm:flex-row lg:flex-auto lg:justify-end">
+            {/* These could be changed to the tailwindcss material design select elements */}
+            <Select
+              className="mb-2 sm:mb-0 lg:max-w-52 border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="state"
+              type="text"
+              placeholder={t('NewReport:state_text')}
+              value={userLocation?.state}
+              options={State.getStatesOfCountry('US')}
+              getOptionLabel={(options) => {
+                return options['name'];
+              }}
+              getOptionValue={(options) => {
+                return options['name'];
+              }}
+              label="state"
+              onChange={handleUserStateChange}
+            />
+            <Select
+              className="sm:pl-2 lg:max-w-52 border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="city"
+              type="text"
+              placeholder={t('NewReport:city_text')}
+              value={userLocation?.city}
+              options={City.getCitiesOfState(
+                userLocation?.state?.countryCode,
+                userLocation?.state?.isoCode
+              )}
+              getOptionLabel={(options) => {
+                return options['name'];
+              }}
+              getOptionValue={(options) => {
+                return options['name'];
+              }}
+              onChange={handleUserCityChange}
+            />
+          </div>
+          <div className="flex flex-col md:flex-row md:items-start md:flex-none gap-2">
+            <Button
+              onClick={handleUserLocationReset}
+              color="blue"
+              fullWidth
+              className="text-white"
+              type="reset">
+              {t('cancelChanges')}
+            </Button>
+            <Button
+              color="blue"
+              fullWidth
+              className="text-white"
+              type="submit">
+              {t('updateLocation')}
+            </Button>
+          </div>
+        </form>
         {/* Change location button */}
         <div className="flex justify-end mx-0 md:mx-6 my-6 tracking-normal items-center">
           {showUserMessage && (
@@ -212,23 +214,24 @@ const LocationUpdate = ({ user, userData, setUserData }) => {
             </p>
           )}
           {/* Error output */}
-          {errors.userState && data.state === null && (
+          {errors.userState && !userLocation?.state && (
             <div className="flex justify-center mr-4">
               <span className="text-red-500">{errors.userState}</span>
             </div>
           )}
-          {errors.userCity && data.city === null && (
+          {errors.userCity && !userLocation?.city && (
             <div className="flex justify-center mr-4">
               <span className="text-red-500">{errors.userCity}</span>
             </div>
           )}
           {/* if form is not visible show this button */}
-          {!userLocationChange && (
-            <button
-              className={`${style.buttonHollow} justify-end`}
-              onClick={() => handleChangeLocation()}>
+          {!showForm && (
+            <Button
+              variant="outlined"
+              color='blue'
+              onClick={() => handleUserClickLocationChange()}>
               Change Location
-            </button>
+            </Button>
           )}
         </div>
       </>

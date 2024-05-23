@@ -9,15 +9,6 @@ module.exports = withMT({
 		fontFamily: {
 			sans: ["Helvetica", "Arial", "sans-serif"],
     },
-    button: {
-      styles: {
-        base: {
-          initial: {
-            fontFamily: ["Helvetica","Arial","sans-serif"],
-          }
-        }
-      }
-    },
 		extend: {
 			colors: {
 				blue: {
@@ -28,13 +19,6 @@ module.exports = withMT({
 				},
 				sky: {
 					100: "#e0f2fe",
-				},
-			},
-			typography: {
-				DEFAULT: {
-					css: {
-						fontWeight: "bold", // Update the default font weight here
-					},
 				},
 			},
 		},
