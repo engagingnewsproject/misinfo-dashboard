@@ -10,13 +10,17 @@ import {
   where,
   updateDoc,
   deleteDoc,
-  onSnapshot
+  onSnapshot,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 // import { Switch } from "@headlessui/react"
 import Switch from 'react-switch';
 // Icons
-import { IoMdRefresh, IoIosInformationCircle, IoMdCheckmark } from 'react-icons/io';
+import {
+  IoMdRefresh,
+  IoIosInformationCircle,
+  IoMdCheckmark,
+} from 'react-icons/io';
 import { IoAdd, IoTrash } from 'react-icons/io5';
 // Icons END
 // import ReactTooltip from "react-tooltip"
@@ -25,13 +29,27 @@ import NewReport from './modals/NewReportModal';
 import ReportModal from './modals/ReportModal';
 import ConfirmModal from './modals/ConfirmModal';
 import globalStyles from '../styles/globalStyles';
-import TableHead from './partials/table/TableHead'
-import TableBody from './partials/table/TableBody'
-import { Button, Card, CardHeader, IconButton, Tooltip, Alert, Typography, Badge, Spinner, Tabs, TabsHeader, Tab, CardBody } from '@material-tailwind/react'
+import TableHead from './partials/table/TableHead';
+import TableBody from './partials/table/TableBody';
+import {
+  Button,
+  Card,
+  CardHeader,
+  IconButton,
+  Tooltip,
+  Alert,
+  Typography,
+  Badge,
+  Spinner,
+  Tabs,
+  TabsHeader,
+  Tab,
+  CardBody,
+} from '@material-tailwind/react';
 const ReportsSection = ({
   search,
   newReportSubmitted,
-  handleNewReportSubmit
+  handleNewReportSubmit,
 }) => {
   const userId = localStorage.getItem('userId');
   const [reports, setReports] = useState([]);
@@ -49,8 +67,8 @@ const ReportsSection = ({
   const { user, verifyRole, customClaims } = useAuth();
 
   // Report modal states
-  const [report,setReport] = useState('');
-  const [reportId, setReportId] = useState('')
+  const [report, setReport] = useState('');
+  const [reportId, setReportId] = useState('');
   const [reportModalShow, setReportModalShow] = useState(false);
   const [reportModalId, setReportModalId] = useState('');
   const [note, setNote] = useState('');
@@ -71,9 +89,9 @@ const ReportsSection = ({
 
   // Indicates when reports have been updated once user presses the refresh button.
   const [reportsUpdated, setReportsUpdated] = useState(false);
-  const [refresh,setRefresh] = useState(false);
+  const [refresh, setRefresh] = useState(false);
   const [showCheckmark, setShowCheckmark] = useState(false);
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(true);
   useEffect(() => {
     if (customClaims.admin) {
       setIsAgency(false);
@@ -130,7 +148,7 @@ const ReportsSection = ({
           // dont need the data: {key:value}, just do {key:value}
           // especially for the sorting to work
           const data = doc.data();
-          data.reportID = doc.id; 
+          data.reportID = doc.id;
           arr.push(data);
         });
         setReports(arr);
@@ -168,7 +186,7 @@ const ReportsSection = ({
         );
       } else {
         // Handle case where no agency was found for the user
-        console.log("Snapshot empty: No reports found for this agency")
+        console.log('Snapshot empty: No reports found for this agency');
         // You might want to set snapshot to an empty array or handle this case differently
       }
     } catch (error) {
@@ -198,14 +216,10 @@ const ReportsSection = ({
 
     // Updates loaded reports so that they only feature reports within the selected date range
     let arr = filteredReports.filter((reportObj) => {
-      const report = reportObj
+      const report = reportObj;
       return (
         report['createdDate'].toDate() >=
-        new Date(
-          new Date().setDate(
-            new Date().getDate() - e.target.value * 7
-          )
-        )
+        new Date(new Date().setDate(new Date().getDate() - e.target.value * 7))
       );
     });
 
@@ -228,7 +242,7 @@ const ReportsSection = ({
           })
         );
       } else {
-        console.log(reports)
+        console.log(reports);
         setFilteredReports(reports);
       }
     } else {
@@ -272,18 +286,17 @@ const ReportsSection = ({
       // console.log(report['createdDate'])
       // Ensure that createdDate exists and has a toDate method
       try {
-        if (report.createdDate && typeof report.createdDate.toDate === 'function') {
+        if (
+          report.createdDate &&
+          typeof report.createdDate.toDate === 'function'
+        ) {
           return (
             report.createdDate.toDate() >=
-            new Date(
-              new Date().setDate(
-                new Date().getDate() - reportWeek * 7
-              )
-            )
-          )
+            new Date(new Date().setDate(new Date().getDate() - reportWeek * 7))
+          );
         } else {
-          console.error(`Invalid createdDate in report: ${ report }`)
-          return false
+          console.error(`Invalid createdDate in report: ${report}`);
+          return false;
         }
       } catch (error) {
         console.error(`Error processing report: ${report}`, error);
@@ -346,11 +359,11 @@ const ReportsSection = ({
     }
     setReadFilter(value);
   };
-  
+
   useEffect(() => {
     setFilteredReports(reports); // Initialize filteredReports with reports when component mounts
   }, [reports]);
-  
+
   const handleUserSendEmail = (reportURI) => {
     const subject = 'Misinfo Report';
     const body = `Link to report:\n${reportURI}`;
@@ -414,7 +427,7 @@ const ReportsSection = ({
   const handleChangeRead = async (reportId, checked) => {
     setReportsRead((prevReportsRead) => ({
       ...prevReportsRead,
-      [reportId]: checked
+      [reportId]: checked,
     }));
 
     // Update the Firestore document with the new read status
@@ -481,7 +494,7 @@ const ReportsSection = ({
         year: 'numeric',
         month: 'short',
         hour: 'numeric',
-        minute: 'numeric'
+        minute: 'numeric',
       };
       setPostedDate(
         info['createdDate']
@@ -503,7 +516,7 @@ const ReportsSection = ({
         year: 'numeric',
         month: 'short',
         hour: 'numeric',
-        minute: 'numeric'
+        minute: 'numeric',
       };
       setPostedDate(
         info['createdDate']
@@ -516,12 +529,12 @@ const ReportsSection = ({
     if (info['label']) {
       setSelectedLabel(info['label']);
     }
-  },[info,reportModalShow]);
-  
+  }, [info, reportModalShow]);
+
   useEffect(() => {
     getData();
-  },[update]);
-  
+  }, [update]);
+
   useEffect(() => {
     const reportsUnsubscribe = onSnapshot(
       collection(db, 'reports'),
@@ -531,7 +544,7 @@ const ReportsSection = ({
           reportsArray.push({
             data: doc.data(),
             id: doc.id,
-            read: doc.data().read
+            read: doc.data().read,
           });
         });
         setReports(reportsArray);
@@ -548,9 +561,9 @@ const ReportsSection = ({
 
     return () => {
       // Unsubscribe when the component unmounts
-      reportsUnsubscribe()
-    }
-  },[])
+      reportsUnsubscribe();
+    };
+  }, []);
 
   const columns = [
     { label: 'Title', accessor: 'title', sortable: true },
@@ -561,29 +574,29 @@ const ReportsSection = ({
     { label: 'Labels', accessor: 'label', sortable: false },
     { label: 'Read/Unread', accessor: 'read', sortable: true },
   ];
-  
+
   const readValues = [
     { label: 'All', value: 'all' },
     { label: 'Read', value: 'true' },
-    { label: 'Unread', value: 'false' }
+    { label: 'Unread', value: 'false' },
   ];
- 
+
   const handleSorting = (sortField, sortOrder) => {
     if (sortField) {
-      const sorted = [...loadedReports].sort((a,b) => {
+      const sorted = [...loadedReports].sort((a, b) => {
         // column that includes null values
         if (a[sortField] === null) return 1;
         if (b[sortField] === null) return -1;
         if (a[sortField] === null && b[sortField] === null) return 0;
         return (
           a[sortField].toString().localeCompare(b[sortField].toString(), 'en', {
-            numeric: true
+            numeric: true,
           }) * (sortOrder === 'asc' ? 1 : -1)
         );
       });
       setLoadedReports(sorted);
     }
-  }
+  };
 
   return (
     <Card className="h-full w-full mt-4">
@@ -594,9 +607,7 @@ const ReportsSection = ({
           </Typography>
           <Button
             onClick={() => setNewReportModal(true)}
-            variant="filled"
-            className="flex items-center gap-3"
-            color="blue">
+            className="flex items-center gap-2">
             <IoAdd className="mr-1" size={15} />
             New Report
           </Button>
