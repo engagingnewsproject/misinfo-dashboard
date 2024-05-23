@@ -607,9 +607,7 @@ const ReportsSection = ({
           </Typography>
           <Button
             onClick={() => setNewReportModal(true)}
-            variant="filled"
-            className="flex items-center gap-3"
-            color="blue">
+            className="flex items-center gap-2">
             <IoAdd className="mr-1" size={15} />
             New Report
           </Button>
