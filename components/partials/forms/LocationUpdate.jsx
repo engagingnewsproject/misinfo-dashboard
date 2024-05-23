@@ -225,13 +225,13 @@ const LocationUpdate = ({ user, userData, setUserData }) => {
             </div>
           )}
           {/* if form is not visible show this button */}
-          {/* {!showForm && ( */}
+          {!showForm && (
           <button
             className={`${style.buttonHollow} justify-end`}
             onClick={() => handleUserClickLocationChange()}>
             Change Location
           </button>
-          {/* )} */}
+          )}
         </div>
       </>
     </div>
