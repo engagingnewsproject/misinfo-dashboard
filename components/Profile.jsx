@@ -29,6 +29,7 @@ import Image from 'next/image';
 import { useTranslation } from 'next-i18next';
 import globalStyles from '../styles/globalStyles';
 import LocationUpdate from './partials/forms/LocationUpdate';
+import { Button } from '@material-tailwind/react';
 // Profile page that allows user to edit password or logout of their account
 const Profile = ({ customClaims }) => {
   const {
@@ -150,7 +151,7 @@ const Profile = ({ customClaims }) => {
       }
     });
   }, []); // this useEffect call will run on page load, since it has no arguments in the []. If arguments are present in the [], effect will only activate if the values in the list change.
-  
+
   // SAVE AGENCY
   const saveAgency = (imageURLs) => {
     const docRef = doc(db, 'agency', agencyId);
@@ -431,33 +432,40 @@ const Profile = ({ customClaims }) => {
           </div>
           <div className="flex gap-2 my-2 tracking-normal items-center justify-between">
             <div className="font-light">{user.email}</div>
-            <button
-              onClick={() => setEmailModal(true)}
-              className={`${style.buttonHollow} flex justify-self-end`}>
+            <Button
+              variant="outlined"
+              color="blue"
+              onClick={() => setEmailModal(true)}>
               {t('editEmail')}
-            </button>
+            </Button>
           </div>
         </div>
         <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
           <div className="font-light">{t('resetPassword')}</div>
-          <button
-            onClick={() => setOpenModal(true)}
-            className={style.buttonHollow}>
+          <Button
+            variant="outlined"
+            color="blue"
+            onClick={() => setOpenModal(true)}>
             {t('editPassword')}
-          </button>
+          </Button>
         </div>
         <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
           <div className="font-light">{t('logout')}</div>
-          <button
-            onClick={() => setLogoutModal(true)}
-            className={style.buttonHollow}>
+          <Button
+            variant="outlined"
+            color="blue"
+            onClick={() => setLogoutModal(true)}>
             {t('logout')}
-          </button>
+          </Button>
         </div>
 
         {/* User Location Edit*/}
 
-        <LocationUpdate user={user} userData={userData} setUserData={setUserData} />
+        <LocationUpdate
+          user={user}
+          userData={userData}
+          setUserData={setUserData}
+        />
 
         {/* Hides the language toggle for admin and agencies*/}
         {!isAgency && !isAdmin && (
@@ -652,12 +660,13 @@ const Profile = ({ customClaims }) => {
                       Agency updated
                     </div>
                   )}
-                  <button
+                  <Button
+                    color="blue"
                     onClick={handleSubmitClick}
-                    className={`${style.button} ml-2`}
+                    // className={`${style.button} ml-2`}
                     type="submit">
                     Update Agency
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>
