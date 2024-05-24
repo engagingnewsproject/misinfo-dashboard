@@ -56,7 +56,7 @@ const withPWA = require("next-pwa")({
   register: true, // Register the PWA service worker
   skipWaiting: true, // Skip waiting for service worker activation
   mode: process.env.NODE_ENV,
-  maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB, to handle larger files
+  // maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB, to handle larger files
 });
 // Export the combined configuration for Next.js with PWA support
 module.exports = withPWA(nextConfig);
