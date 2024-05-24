@@ -226,6 +226,15 @@ Links: [Syncing fork branch](https://docs.github.com/en/pull-requests/collaborat
 
 Project Lead Links: [Firebase CLI Tools](https://firebase.google.com/docs/firestore/security/get-started#use_the_firebase_cli) || [Firebase Console](https://console.firebase.google.com/) || [Firebase Cloud Console](https://console.cloud.google.com/welcome?project=misinfo-5d004) || [Syncing a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line) || [Netlify dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview) || [ENP Prod Repo](https://github.com/engagingnewsproject/misinfo-dashboard-prod)
 
-## Docs
+## Links
+
+#### [React Dev Docs](https://react.dev/)
+
+#### [Firebase Firestore Docs](https://firebase.google.com/docs/firestore)
+
+#### [Material Tailwind](https://www.material-tailwind.com/docs/react/accordion)
+  - (all components in the left sidebar)
+  
+#### [TailwindCSS Docs](https://tailwindcss.com/docs/installation)
 
 #### [Deprecated: Misinfo Dashboard Documentation GitBook](https://app.gitbook.com/o/tmOnCbkSzYuWj7EVbFqg/s/h5B8zKreIfyiUKOT1awO/)
