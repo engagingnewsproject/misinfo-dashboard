@@ -599,122 +599,124 @@ const ReportsSection = ({
   };
 
   return (
-    <Card className="h-full w-full mt-4">
-      <CardHeader floated={false} shadow={false} className="rounded-none">
-        <div className="mb-8 flex items-center justify-between gap-8">
-          <Typography variant="h5" color="blue">
-            List of Reports
-          </Typography>
-          <Button
-            onClick={() => setNewReportModal(true)}
-            className="flex items-center gap-2">
-            <IoAdd className="mr-1" size={15} />
-            New Report
-          </Button>
-        </div>
-        <div className="flex items-center justify-between gap-8">
-          <div className="flex">
-            <Tabs value={readFilter} className="w-full md:w-max">
-              <TabsHeader>
-                {readValues.map(({ label, value }) => (
-                  <Tab
-                    key={value}
-                    value={value}
-                    onClick={() => handleReadFilterChanged(value)}>
-                    {label}
-                  </Tab>
-                ))}
-              </TabsHeader>
-            </Tabs>
-            <IconButton variant="text" onClick={handleRefresh}>
-              {!refresh && !reportsUpdated && <IoMdRefresh size={20} />}
-              {/* Displays loading icon when reports are being updated*/}
-              {refresh && <Spinner color="blue" />}
-              {/* Displays notification once reports have been refreshed. */}
-              {!refresh && showCheckmark && (
-                <IoMdCheckmark size={20} color="green" />
-              )}
-            </IconButton>
+    <>
+      <Card className="h-full w-full mt-4">
+        <CardHeader floated={false} shadow={false} className="rounded-none">
+          <div className="mb-8 flex items-center justify-between gap-8">
+            <Typography variant="h5" color="blue">
+              List of Reports
+            </Typography>
+            <Button
+              onClick={() => setNewReportModal(true)}
+              className="flex items-center gap-2">
+              <IoAdd className="mr-1" size={15} />
+              New Report
+            </Button>
           </div>
-          <div className="LAST-X-WEEKS">
-            <select
-              id="label_date"
-              onChange={(e) => handleDateChanged(e)}
-              defaultValue="4"
-              data-tip="Select timeframe"
-              data-for="timeframeTooltip"
-              className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none">
-              <option value="4">Last four weeks</option>
-              <option value="3">Last three weeks</option>
-              <option value="2">Last two weeks</option>
-              <option value="1">Last week</option>
-              <option value="100">All reports</option>
-            </select>
+          <div className="flex items-center justify-between gap-8">
+            <div className="flex">
+              <Tabs value={readFilter} className="w-full md:w-max">
+                <TabsHeader>
+                  {readValues.map(({ label, value }) => (
+                    <Tab
+                      key={value}
+                      value={value}
+                      onClick={() => handleReadFilterChanged(value)}>
+                      {label}
+                    </Tab>
+                  ))}
+                </TabsHeader>
+              </Tabs>
+              <IconButton variant="text" onClick={handleRefresh}>
+                {!refresh && !reportsUpdated && <IoMdRefresh size={20} />}
+                {/* Displays loading icon when reports are being updated*/}
+                {refresh && <Spinner color="blue" />}
+                {/* Displays notification once reports have been refreshed. */}
+                {!refresh && showCheckmark && (
+                  <IoMdCheckmark size={20} color="green" />
+                )}
+              </IconButton>
+            </div>
+            <div className="LAST-X-WEEKS">
+              <select
+                id="label_date"
+                onChange={(e) => handleDateChanged(e)}
+                defaultValue="4"
+                data-tip="Select timeframe"
+                data-for="timeframeTooltip"
+                className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none">
+                <option value="4">Last four weeks</option>
+                <option value="3">Last three weeks</option>
+                <option value="2">Last two weeks</option>
+                <option value="1">Last week</option>
+                <option value="100">All reports</option>
+              </select>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardBody className="overflow-scroll px-0 pt-0">
-        <InfiniteScroll
-          className="overflow-x-auto"
-          dataLength={endIndex}
-          next={handleReportScroll}
-          inverse={false} //
-          hasMore={hasMore}
-          loader={<h4>Loading...</h4>}
-          scrollableTarget="scrollableDiv"
-          reportTitle={reportTitle}>
-          {/* TODO: change here*/}
-          {/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
+        </CardHeader>
+        <CardBody className="overflow-scroll px-0 pt-0">
+          <InfiniteScroll
+            className="overflow-x-auto"
+            dataLength={endIndex}
+            next={handleReportScroll}
+            inverse={false} //
+            hasMore={hasMore}
+            loader={<h4>Loading...</h4>}
+            scrollableTarget="scrollableDiv"
+            reportTitle={reportTitle}>
+            {/* TODO: change here*/}
+            {/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
 
-          <table className="mt-4 w-full min-w-max table-auto text-left">
-            <TableHead columns={columns} handleSorting={handleSorting} />
+            <table className="mt-4 w-full min-w-max table-auto text-left">
+              <TableHead columns={columns} handleSorting={handleSorting} />
 
-            <TableBody
-              columns={columns}
-              loadedReports={loadedReports} // Table data
-              endIndex={endIndex}
-              reportsRead={reportsRead}
-              reportId={reportId}
-              onReportModalShow={handleReportModalShow}
-              onChangeRead={handleChangeRead}
-              onReportDelete={handleReportDelete}
-            />
-          </table>
+              <TableBody
+                columns={columns}
+                loadedReports={loadedReports} // Table data
+                endIndex={endIndex}
+                reportsRead={reportsRead}
+                reportId={reportId}
+                onReportModalShow={handleReportModalShow}
+                onChangeRead={handleChangeRead}
+                onReportDelete={handleReportDelete}
+              />
+            </table>
 
-          {reportModalShow && (
-            <ReportModal
-              reportModalShow={reportModalShow}
-              report={report}
-              reportTitle={reportTitle}
-              key={reportModalId}
-              note={note}
-              detail={detail}
-              info={info}
-              checked={reportsRead[report.id]} // Pass the checked state for the selected report
-              onReadChange={handleChangeReadModal}
-              reportSubmitBy={reportSubmitBy}
-              setReportModalShow={setReportModalShow}
-              reportModalId={reportModalId}
-              onNoteChange={handleNoteChange}
-              onLabelChange={handleLabelChange}
-              selectedLabel={selectedLabel}
-              activeLabels={activeLabels}
-              changeStatus={changeStatus}
-              onFormSubmit={handleFormSubmit}
-              onReportDelete={handleReportDelete}
-              postedDate={postedDate}
-              onUserSendEmail={handleUserSendEmail}
-              reportLocation={reportLocation}
-            />
-          )}
-        </InfiniteScroll>
-      </CardBody>
-      {newReportModal && (
-        <NewReport
-          setNewReportModal={setNewReportModal}
-          handleNewReportSubmit={handleNewReportSubmit}
-        />
-      )}
+            {reportModalShow && (
+              <ReportModal
+                reportModalShow={reportModalShow}
+                report={report}
+                reportTitle={reportTitle}
+                key={reportModalId}
+                note={note}
+                detail={detail}
+                info={info}
+                checked={reportsRead[report.id]} // Pass the checked state for the selected report
+                onReadChange={handleChangeReadModal}
+                reportSubmitBy={reportSubmitBy}
+                setReportModalShow={setReportModalShow}
+                reportModalId={reportModalId}
+                onNoteChange={handleNoteChange}
+                onLabelChange={handleLabelChange}
+                selectedLabel={selectedLabel}
+                activeLabels={activeLabels}
+                changeStatus={changeStatus}
+                onFormSubmit={handleFormSubmit}
+                onReportDelete={handleReportDelete}
+                postedDate={postedDate}
+                onUserSendEmail={handleUserSendEmail}
+                reportLocation={reportLocation}
+              />
+            )}
+          </InfiniteScroll>
+        </CardBody>
+        {newReportModal && (
+          <NewReport
+            setNewReportModal={setNewReportModal}
+            handleNewReportSubmit={handleNewReportSubmit}
+          />
+        )}
+      </Card>
       {deleteModal && (
         <ConfirmModal
           func={handleDelete}
@@ -724,7 +726,7 @@ const ReportsSection = ({
           closeModal={setDeleteModal}
         />
       )}
-    </Card>
+    </>
   );
 };
 
