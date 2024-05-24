@@ -80,7 +80,7 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 							{data['images'].map((image, i) => {
 								return (
 									<div className="grid-cols-subgrid" key={i}>
-										<Image src={image} alt="image" width={200} height={200} priority={true} className='object-cover w-auto'/>
+										<Image src={image} alt="image" width={200} height={200} className='object-cover w-auto'/>
 									</div>
 								)
 							})}

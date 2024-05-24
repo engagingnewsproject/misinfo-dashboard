@@ -200,7 +200,7 @@ const ReportDetails = () => {
 								
 									return (
 										<div className="mr-2" key={i}>
-                      <Image src={image} alt="image" width={200} height={200} priority={true} />
+                      <Image src={image} alt="image" width={200} height={200} />
 										</div>
 									)
 								})}
