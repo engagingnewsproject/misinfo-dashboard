@@ -107,7 +107,7 @@ export const AuthContextProvider = ({children}) => {
     });
   }
 
-  const signup = (name, email, password) => {
+  const signup = (name, email, password, state, city) => {
 		return new Promise((resolve, reject) => {
 			// Create a new Promise that wraps the asynchronous user creation process
 			createUserWithEmailAndPassword(auth, email, password) // Attempt to create a new user with the provided email and password
@@ -127,7 +127,9 @@ export const AuthContextProvider = ({children}) => {
 									email: email,
 									joiningDate: moment().utc().unix(),
 									isBanned: false,
-									userRole: "User",
+                  userRole: "User",
+                  state: state,
+                  city: city
 								}
 								// Create a new document in the 'mobileUsers' collection with the provided user data
 								setDoc(mobileUserDocRef, userData)
