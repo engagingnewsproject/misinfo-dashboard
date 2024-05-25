@@ -66,9 +66,6 @@ export const AuthContextProvider = ({children}) => {
                     localId = value
                     break
                   
-                  } else {
-                    console.log(`Match NOT found for user city: ${ cityName }`)
-                    // match not found so add a new field - cityName: auto-generated ID
                   }
                 }
                 // If the city was not found, add a new field
