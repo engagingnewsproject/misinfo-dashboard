@@ -49,7 +49,6 @@ import {
 const ReportsSection = ({
   search,
   newReportSubmitted,
-  handleNewReportSubmit,
 }) => {
   const userId = localStorage.getItem('userId');
   const [reports, setReports] = useState([]);
@@ -100,7 +99,7 @@ const ReportsSection = ({
     }
   }, []);
 
-  // On page load (mount) or new report submitted, get the reports from firebase
+  // if user is agency user or new report submitted, get the reports from firebase
   useEffect(() => {
     getData();
   }, [isAgency, newReportSubmitted]);
@@ -122,37 +121,41 @@ const ReportsSection = ({
       const querySnapshot = await getDocs(q);
       // Check if any documents were found
       if (querySnapshot && !querySnapshot.empty) {
+        // console.log('01 - agency user and found their email in agency')
         querySnapshot.forEach((doc) => {
           agencyName = doc.data()['name'];
         });
+        // console.log(`02 - found agency name: ${agencyName}`)
         // & only fetch reports with the user's 'agency' name
-        const agencyReports = query(
-          reportsCollection,
-          where('agency', '==', agencyName)
-        );
-        snapshot = await getDocs(agencyReports);
+        if (agencyName) {
+          const agencyReports = query(
+            reportsCollection,
+            where('agency','==',agencyName)
+          )
+          snapshot = await getDocs(agencyReports)
+        }
       } else {
         // Handle case where no agency was found for the user
-        // console.log("No reports found for the agency")
+        console.log("No reports found for the agency")
         // You might want to set snapshot to an empty array or handle this case differently
       }
       // Displays all reports for admin user
     } else {
+      // console.log('only Admin snapshot should work')
       snapshot = await getDocs(reportsCollection);
     }
 
-    try {
-      if (snapshot && !snapshot.empty) {
+    if (snapshot.docs && !snapshot.empty) {
+      try {
         var arr = [];
         snapshot.forEach((doc) => {
-          // dont need the data: {key:value}, just do {key:value}
+          // dont need: "data: {key:value}" eliminate the "data:" and just do "{key:value}"
           // especially for the sorting to work
           const data = doc.data();
           data.reportID = doc.id;
           arr.push(data);
         });
         setReports(arr);
-        // console.log(arr)
         // Initialize reportsRead with read status of each report
         // const initialReportsRead = arr.reduce((acc,report) => {
         // 	acc[report.id] = report.read // Use report ID as key and read status as value
@@ -160,7 +163,7 @@ const ReportsSection = ({
         // }, {})
         // // Set reportsRead state
         // setReportsRead(initialReportsRead)
-        if (readFilter !== 'All') {
+        if (readFilter !== 'all') {
           arr = arr.filter((report) => {
             return report.read.toString() === readFilter;
           });
@@ -184,13 +187,13 @@ const ReportsSection = ({
                 : 1
             )
         );
-      } else {
+      } catch (error) {
         // Handle case where no agency was found for the user
-        console.log('Snapshot empty: No reports found for this agency');
+        console.log(error);
         // You might want to set snapshot to an empty array or handle this case differently
       }
-    } catch (error) {
-      console.log(error);
+    } else {
+      console.log('Snapshot empty: No reports found for this agency');
     }
   };
 
@@ -235,21 +238,19 @@ const ReportsSection = ({
   // Filter the reports based on the search text
   useEffect(() => {
     if (search == '') {
-      if (readFilter != 'All') {
+      if (readFilter != 'all') {
         setFilteredReports(
           reports.filter((reportObj) => {
-            return Object.values(reportObj)[0].read.toString() == readFilter;
+            return reportObj.read.toString() === readFilter;
           })
         );
       } else {
-        console.log(reports);
         setFilteredReports(reports);
       }
     } else {
       setFilteredReports(
         reports.filter((reportObj) => {
-          const report = Object.values(reportObj)[0];
-
+          const report = Object.values(reportObj);
           var arr = [];
           // Collect the searchable fields of the reports data
           for (const key in report) {
@@ -283,7 +284,6 @@ const ReportsSection = ({
   // Updates the loaded reports whenever a user filters reports based on search.
   useEffect(() => {
     let arr = filteredReports.filter((report) => {
-      // console.log(report['createdDate'])
       // Ensure that createdDate exists and has a toDate method
       try {
         if (
@@ -713,7 +713,7 @@ const ReportsSection = ({
         {newReportModal && (
           <NewReport
             setNewReportModal={setNewReportModal}
-            handleNewReportSubmit={handleNewReportSubmit}
+            onNewReportSubmit={handleNewReportSubmit}
           />
         )}
       </Card>
