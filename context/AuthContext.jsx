@@ -19,9 +19,9 @@ import {
   httpsCallable,
 } from "firebase/functions";
 import { auth, app, db, functions } from '../config/firebase'
-import { getDoc, doc, setDoc } from "firebase/firestore";
+import { getDoc, doc, setDoc, updateDoc, collection, query, where } from "firebase/firestore";
 import moment from 'moment'
-
+import { v4 as uuidv4 } from 'uuid';
 
 const AuthContext = createContext({})
 
@@ -31,14 +31,66 @@ export const AuthContextProvider = ({children}) => {
 
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
-    const [userRole, setUserRole] = useState('user')
     const [customClaims, setCustomClaims] = useState({agency: false, admin: false})
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
           // let customClaims = { admin: false, agency: false}
-            if (user) {
-                const ref = await getDoc(doc(db, "locations", "Texas"))
-                const localId = ref.data()['Austin']
+          if (user) {
+            let localId = ''
+            const allErrors = {}
+            try {
+              // get user's mobileUser document
+              const userData = await getDoc(doc(db,'mobileUsers',user.uid))
+              if (!userData.exists()) {
+                allErrors.user = "User document does not exist"
+                return
+              }
+              // Extract state and city names
+              const userState = userData.data().state.name
+              const userCity = userData.data().city.name
+              // Fetch location document from mobileUser state name
+              const locationDocRef = doc(db,"locations",userState)
+              const locationDoc = await getDoc(locationDocRef)
+
+              if (locationDoc.exists()) {
+                const locationData = locationDoc.data()
+                // console.log(locationData)
+              
+                let cityFound = false
+              
+                // Step 3: Iterate over the fields in the location document
+                for (const [cityName,value] of Object.entries(locationData)) {
+                  if (cityName === userCity) {
+                    console.log(`Match found for user city: ${ cityName } with value: ${ value }`)
+                    cityFound = true
+                    localId = value
+                    break
+                  
+                  } else {
+                    console.log(`Match NOT found for user city: ${ cityName }`)
+                    // match not found so add a new field - cityName: auto-generated ID
+                  }
+                }
+                // If the city was not found, add a new field
+                if (!cityFound) {
+                  console.log('city not found, so add a new field')
+                  const newCityId = uuidv4().replace(/-/g,'').slice(0,20) // Generate a new ID and take the first 20 characters
+                  await updateDoc(locationDocRef,{
+                    [userCity]: newCityId
+                  })
+                  console.log(`Added new city: ${ userCity } with ID: ${ newCityId }`)
+                }
+              } else {
+                // docSnap.data() will be undefined in this case
+                console.log("We do not have an agency in your state!")
+                setAuthErrors({ user: "We do not have an agency in your state!" }); // Add error to the state
+              }
+            } catch (error) {
+              console.error("Error fetching data:",error);
+              allErrors.user(error)
+            }
+              // const ref = await getDoc(doc(db, "locations", "Texas"))
+            // const localId = ref.data()['Austin']
                 setUser({
                     uid: localId, // not sure what this is used for
                     accountId: user.uid,
@@ -72,8 +124,10 @@ export const AuthContextProvider = ({children}) => {
 
             }
             setLoading(false)
+
         })
         return () => unsubscribe()
+        // Cleanup function to clear errors when component unmounts
     }, [])
 
 
