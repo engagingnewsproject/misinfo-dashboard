@@ -13,8 +13,6 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-// import { Switch } from "@headlessui/react"
-import Switch from 'react-switch';
 // Icons
 import {
   IoMdRefresh,
@@ -201,16 +199,28 @@ const ReportsSection = ({
   const handleRefresh = async () => {
     setRefresh(true);
     await getData();
-    setRefresh(false);
     setReportsUpdated(true);
     setShowCheckmark(true);
+    // setReadFilter('all')
     // Set a timer to hide the checkmark icon after 2 seconds
     setTimeout(() => {
+      setRefresh(false)
       setShowCheckmark(false);
       setReportsUpdated(false);
     }, 2000);
   };
 
+  useEffect(() => {
+    if (readFilter !== 'all') {
+      setReadFilter('all')
+    }
+    console.log(readFilter)
+    return () => {
+      readFilter
+    }
+  }, [refresh])
+  
+  
   // Filter
   const handleDateChanged = (e) => {
     e.preventDefault();
