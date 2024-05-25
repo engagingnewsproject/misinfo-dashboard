@@ -397,7 +397,6 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
 
                             </div>
 
-                            {reportState >= 1 &&  
                             <div className="mt-4 mb-0.5">
                                 <Select
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -419,8 +418,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     />
                                     {errors.city && data.city === null &&  (<span className="text-red-500">{errors.city}</span>)}
                             </div>
-                            }
-                            {reportState >= 2 &&
+                            
                                 <div className="mt-4 mb-0.5">
                                     <Select
                                         className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -433,8 +431,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                         />
                                         {errors.topic && selectedAgency === '' &&  (<span className="text-red-500">{errors.agency}</span>)}
                                 </div>
-                            }
-                            {reportState >= 3 &&  
+                            
                             <div className="mt-4 mb-0.5">
                                 <input
                                     className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -446,8 +443,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     value={title}
                                     />
                             </div>
-                            }
-                            {reportState >= 4 &&
+                            
                                 <div className="mt-4 mb-0.5">
                                     <Select
                                         className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -480,8 +476,6 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                             )}
                                         </div>
                                 </div>
-                            }
-                            {reportState >= 5 && 
                             <div className="mt-4 mb-0.5">
                                 <Select
                                     className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -514,8 +508,6 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     </div>
 
                             </div>
-                            }
-                            {reportState >= 6 && 
                             <>
                                 <div className="mt-4 mb-0.5">{t("detail")}</div>
                                 <div className="mt-4 mb-0.5">
@@ -575,8 +567,6 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     </div>
                                 </div>
                             </>
-                            }
-                            {reportState >= 6 &&
                             <div className="mt-3 sm:mt-6">
                                 <button
                                     className="w-full bg-blue-600 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
@@ -585,7 +575,6 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                                     {t("createReport")}
                                 </button>
                             </div>
-                            }
                         </form>
                     </div>
                 </div>
