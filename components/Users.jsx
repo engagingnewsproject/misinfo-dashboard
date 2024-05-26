@@ -135,114 +135,48 @@ const Users = () => {
 
 	// Function to fetch user data from Firebase
 	const getData = async () => {
-
-		if (customClaims.admin) {
-			// List ALL users for admin
-			try {
-				const mobileUsersQuery = query(collection(db,'mobileUsers'))
-				const mobileUsersQuerySnapshot = await getDocs(mobileUsersQuery)
-
-				const mobileUsersArray = []
-
-				// Iterate over each mobile user
-				for (const doc of mobileUsersQuerySnapshot.docs) {
-					const userData = {
-						id: doc.id,
-						data: doc.data()
-					}
-
-					// Check if the user is associated with any agency
-					const agencyRef = collection(db,'agency')
-					const agencyQuery = query(agencyRef,where('agencyUsers','array-contains',userData.data.email))
-					const agencySnapshot = await getDocs(agencyQuery)
-
-					if (!agencySnapshot.empty) {
-						const agencyData = agencySnapshot.docs[0].data()
-						userData.data.agencyName = agencyData.name
-						// Set the agency state
-						setSelectedAgency(userData.data.agencyName)
-					}
-					mobileUsersArray.push(userData)
-				}
-				// need to itterate over the 'agency' collection 
-				// to see if the mobileUser's email is in the 
-				// 'agency'(s) 'agencyUsers' array
-				setLoadedMobileUsers(mobileUsersArray)
-			} catch (error) {
-				console.error('Error in getData:',error)
-			}
-		} else {
-			// List users for Agencies
-			try {
-				const agencyRef = collection(db,'agency')
-				const q = query(agencyRef,where('agencyUsers','array-contains',user['email']))
-
-				let agencyName
-				let agencyID
-				const querySnapshot = await getDocs(q)
-				querySnapshot.forEach((doc) => { // Set initial values
-					agencyName = doc.data()['name']
-					agencyID = doc.id
-					console.log(agencyID)
-
-				})
-
-				// Check if there is at least one document
-				if (!querySnapshot.empty) {
-					// const firstDocument = querySnapshot.docs[0]
-					// const name = firstDocument.data().name
-
-					// Use the 'name' value in another query
-					const reportsQuery = query(collection(db,'reports'),where('agency','==',agencyName))
-					const reportsQuerySnapshot = await getDocs(reportsQuery)
-
-					// Build an array of 'userID' from the reports documents
-					const userIDs = []
-					reportsQuerySnapshot.forEach((doc) => {
-						const userID = doc.data().userID
-
-						userIDs.push(userID)
-					})
-
-					// Query 'mobileUsers' collection for each 'userID'
-					const mobileUsersArray = []
-					// Query 'mobileUsers' collection for each userID
-					for (const userID of userIDs) {
-						const mobileUserDocRef = doc(db,'mobileUsers',userID)
-						const mobileUserDocSnapshot = await getDoc(mobileUserDocRef)
-
-						if (mobileUserDocSnapshot.exists()) {
-							// Document exists, add it to the array
-							mobileUsersArray.push({
-								id: mobileUserDocSnapshot.id,
-								data: mobileUserDocSnapshot.data()
-							})
-
-							// Check to see if user exists
-						}
-					}
-					setLoadedMobileUsers(mobileUsersArray)
-				} else {
-					console.log('No matching documents.')
-				}
-			} catch (error) {
-				console.error('Error in getData:',error)
-			}
-		}
-		const agenciesQuery = query(collection(db,'agency'))
-		const agenciesQuerySnapshot = await getDocs(agenciesQuery)
-		const newAgenciesArray = [];
-
-		agenciesQuerySnapshot.forEach((doc) => {
-				// doc.data() is never undefined for query doc snapshots
-				const agencyData = {
-						id: doc.id,
-						data: doc.data()
-				};
-				newAgenciesArray.push(agencyData);
+		const mobileUsersQuerySnapshot = await getDocs(collection(db,'mobileUsers'))
+		const mobileUsersArr = []
+		mobileUsersQuerySnapshot.forEach((doc) => {
+			const data = doc.data()
+			data.mobileUserId = doc.id
+			mobileUsersArr.push(data)
 		});
-		// Set the state variable agenciesArray with the new array
-		setAgenciesArray(newAgenciesArray);
+		
+		// AGNECY USERS ONLY
+		if (customClaims.agency) {
+			console.log('only for agencies!')			
+			// get current user's emial
+			let uEmail = user.email
+			// get list of all agencies
+			const q = query(collection(db,"agency"),where("agencyUsers","array-contains",user.email))
+			// select the agency with current user's email in agencyUsers array
+			let agencyName
+			const querySnapshot = await getDocs(q)
+			querySnapshot.forEach((doc) => {
+				// get that agency name
+				agencyName = doc.data().name
+			})			
+			// get all reports with agency name
+			const r = query(collection(db,"reports"),where('agency',"==",agencyName))
+			// from those reports get the userID
+			let userIds = []
+			const reportSnapshot = await getDocs(r)
+			// add each userID to an array
+			reportSnapshot.forEach((doc) => {
+				// get that agency name
+				const uID = doc.data().userID
+				userIds.push(uID)
+			})			
+			// get all mobile users and
+			// Filter the mobileUsersArr to include only users whose mobileUserId is in the ids array
+			const filteredUsers = mobileUsersArr.filter(user => userIds.includes(user.mobileUserId));
+			setLoadedMobileUsers(filteredUsers)
+			// DONE
+			// ADMIN ONLY
+		} else {
+			setLoadedMobileUsers(mobileUsersArr)
+		}
 	};
 		
 	useEffect(() => {
@@ -378,7 +312,6 @@ const Users = () => {
 				try {
 					// Call the addAdminRole function
 					await addAdminRole({ email: email })
-					console.log(`${ email } has been made an admin`)
 				} catch (error) {
 					console.error("Error adding admin role:",error)
 				}
@@ -386,7 +319,6 @@ const Users = () => {
 				// Call the addAgencyRole function
 				try {
 					await addAgencyRole({ email: email })
-					console.log(`${ email } has been made an agency user`)
 				} catch (error) {
 					console.error("Error adding agency role:",error)
 					// Handle error if needed
@@ -395,7 +327,6 @@ const Users = () => {
 				// Call the addUserRole function
 				try {
 					await addUserRole({ email: email })
-					console.log(`${ email } has been made a general user`)
 				} catch (error) {
 					console.error("Error adding general user role:",error)
 					// Handle error if needed
@@ -495,46 +426,44 @@ const Users = () => {
 								<tbody>
 									{loadedMobileUsers.map((userObj, key) => {
 										// Directly access user details and user ID
-										const userId = userObj.id;
-										const listUser = userObj.data;
-										let posted = listUser.joiningDate
-										// Get list user agency uid & display agency name
-										posted = posted * 1000
-										posted = new Date(posted)
-										posted = posted.toLocaleString("en-US", dateOptions)
+										let userId = userObj.mobileUserId
+										let joined = userObj.joiningDate
+										joined = joined * 1000
+										joined = new Date(joined)
+										joined = joined.toLocaleString("en-US", dateOptions)
 										return (
 											<tr
 												className='border-b transition duration-300 ease-in-out dark:border-indigo-100'
 												key={key}
 												onClick={
 													customClaims.admin
-														? () => handleEditUser(listUser, userId)
+														? () => handleEditUser(userObj, userId)
 														: undefined
 												}>
 												{/* Name */}
 												<td scope='row' className={column.data}>
-													{listUser.name}
+													{userObj.name}
 												</td>
 												{/* TODO: add geopoint fields as a column in table. */}
 												{/* Email */}
-												<td className={column.data_center}>{listUser.email}</td>
+												<td className={column.data_center}>{userObj.email}</td>
 												{/* Agency */}
 												{customClaims.admin && (
 													<td className={column.data_center}>
-													{listUser.agencyName}
+													{userObj.agencyName}
 													</td>
 												)}
 												{/* Joined date */}
-												<td className={column.data_center}>{posted}</td>
+												<td className={column.data_center}>{joined}</td>
 												{/* Role */}
 												{customClaims.admin && (
 													<td className={column.data_center}>
-														{listUser.userRole}
+														{userObj.userRole}
 													</td>
 												)}
 												{/* Banned */}
 												<td className={column.data_center}>
-													{(userObj.data.isBanned && "yes") || "no"}
+													{(userObj.isBanned && "yes") || "no"}
 												</td>
 												{/* Delete */}
 												{customClaims.admin && (
