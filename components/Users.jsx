@@ -147,7 +147,7 @@ const Users = () => {
 		if (customClaims.agency) {
 			console.log('only for agencies!')			
 			// get current user's emial
-			let uEmail = user.email
+			// user.email
 			// get list of all agencies
 			const q = query(collection(db,"agency"),where("agencyUsers","array-contains",user.email))
 			// select the agency with current user's email in agencyUsers array
