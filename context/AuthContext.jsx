@@ -37,55 +37,67 @@ export const AuthContextProvider = ({children}) => {
           // let customClaims = { admin: false, agency: false}
           if (user) {
             let localId = ''
-            const allErrors = {}
-            try {
-              // get user's mobileUser document
-              const userData = await getDoc(doc(db,'mobileUsers',user.uid))
-              if (!userData.exists()) {
-                allErrors.user = "User document does not exist"
-                return
-              }
-              // Extract state and city names
-              const userState = userData.data().state.name
-              const userCity = userData.data().city.name
-              // Fetch location document from mobileUser state name
-              const locationDocRef = doc(db,"locations",userState)
-              const locationDoc = await getDoc(locationDocRef)
+            let allErrors = {}
+            // get user's mobileUser document
+            const userData = await getDoc(
+              doc(db, 'mobileUsers', user.uid)
+            )
+            if (userData.exists()) {
+              console.log(`user data exists: ${userData.exists()}`)
+              try {
+                // Extract state and city names
+                const userState = userData.data().state.name;
+                const userCity = userData.data().city.name;
+                // Fetch location document from mobileUser state name
+                const locationDocRef = doc(db, 'locations', userState);
+                const locationDoc = await getDoc(locationDocRef);
 
-              if (locationDoc.exists()) {
-                const locationData = locationDoc.data()
-                // console.log(locationData)
-              
-                let cityFound = false
-              
-                // Step 3: Iterate over the fields in the location document
-                for (const [cityName,value] of Object.entries(locationData)) {
-                  if (cityName === userCity) {
-                    console.log(`Match found for user city: ${ cityName } with value: ${ value }`)
-                    cityFound = true
-                    localId = value
-                    break
-                  
+                if (locationDoc.exists()) {
+                  const locationData = locationDoc.data();
+
+                  let cityFound = false;
+
+                  // Step 3: Iterate over the fields in the location document
+                  for (const [cityName, value] of Object.entries(
+                    locationData
+                  )) {
+                    if (cityName === userCity) {
+                      console.log(
+                        `Match found for user city: ${cityName} with value: ${value}`
+                      );
+                      cityFound = true;
+                      localId = value;
+                      break;
+                    }
                   }
+                  // If the city was not found, add a new field
+                  if (!cityFound) {
+                    console.log('city not found, so add a new field');
+                    const newCityId = uuidv4().replace(/-/g, '').slice(0, 20); // Generate a new ID and take the first 20 characters
+                    await updateDoc(locationDocRef, {
+                      [userCity]: newCityId,
+                    });
+                    console.log(
+                      `Added new city: ${userCity} with ID: ${newCityId}`
+                    );
+                  }
+                } else {
+                  // docSnap.data() will be undefined in this case
+                  console.log('We do not have an agency in your state!');
+                  setAuthErrors({
+                    user: 'We do not have an agency in your state!',
+                  }); // Add error to the state
                 }
-                // If the city was not found, add a new field
-                if (!cityFound) {
-                  console.log('city not found, so add a new field')
-                  const newCityId = uuidv4().replace(/-/g,'').slice(0,20) // Generate a new ID and take the first 20 characters
-                  await updateDoc(locationDocRef,{
-                    [userCity]: newCityId
-                  })
-                  console.log(`Added new city: ${ userCity } with ID: ${ newCityId }`)
-                }
-              } else {
-                // docSnap.data() will be undefined in this case
-                console.log("We do not have an agency in your state!")
-                setAuthErrors({ user: "We do not have an agency in your state!" }); // Add error to the state
+              } catch (error) {
+                console.error('Error fetching data:', error);
+                console.log(allErrors);
+                // allErrors.user(error)
               }
-            } catch (error) {
-              console.error("Error fetching data:",error);
-              allErrors.user(error)
+            } else {
+              allErrors.user = 'User document does not exist';
+              return;
             }
+
               // const ref = await getDoc(doc(db, "locations", "Texas"))
             // const localId = ref.data()['Austin']
                 setUser({
