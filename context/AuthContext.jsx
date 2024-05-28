@@ -51,8 +51,12 @@ export const AuthContextProvider = ({children}) => {
                 // Fetch location document from mobileUser state name
                 const locationDocRef = doc(db, 'locations', userState);
                 const locationDoc = await getDoc(locationDocRef);
-
+                // if the user's location exists we can continue 
                 if (locationDoc.exists()) {
+                  console.log('User location exists in firestore db');
+                  
+                } else { // if user location does not exist we need to create one.
+                  // Location does not exist so we need to create one
                   const locationData = locationDoc.data();
 
                   let cityFound = false;
@@ -81,12 +85,6 @@ export const AuthContextProvider = ({children}) => {
                       `Added new city: ${userCity} with ID: ${newCityId}`
                     );
                   }
-                } else {
-                  // docSnap.data() will be undefined in this case
-                  console.log('We do not have an agency in your state!');
-                  setAuthErrors({
-                    user: 'We do not have an agency in your state!',
-                  }); // Add error to the state
                 }
               } catch (error) {
                 console.error('Error fetching data:', error);
