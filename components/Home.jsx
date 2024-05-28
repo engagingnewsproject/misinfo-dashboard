@@ -9,12 +9,11 @@ import globalStyles from '../styles/globalStyles'
 const Home = ({newReportSubmitted, handleNewReportSubmit}) => {
   const [search, setSearch] = useState("")
   const { user,  customClaims, setCustomClaims, logout, verifyPrivilege, changeRole, addAdminRole, addAgencyRole, viewRole } = useAuth()
-  // const memoizedSearch = useMemo(() => search, [search]);
-  // Memoize the search value
+  // Memoize the search value: Ensures that components only re-render when their props or state actually change
   const memoizedSearch = useMemo(() => {
-    console.log('Memoized search value:', search); // Log memoized search value
     return search;
-  }, [search]);
+  },[search]);
+  
   return (
     <div className="w-full h-full flex flex-col py-5">
         <Headbar search={memoizedSearch} setSearch={setSearch} customClaims={customClaims} user={user} />
