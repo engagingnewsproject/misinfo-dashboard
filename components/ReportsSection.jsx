@@ -61,7 +61,7 @@ const ReportsSection = ({
   const [reportTitle, setReportTitle] = useState('');
   const [agencyName, setAgencyName] = useState('')
   const [isAgency, setIsAgency] = useState(null);
-  const { user,verifyRole,customClaims } = useAuth();
+  const { user, customClaims } = useAuth();
 
   // Report modal states
   const [report, setReport] = useState('');
@@ -90,12 +90,16 @@ const ReportsSection = ({
   const [showCheckmark, setShowCheckmark] = useState(false);
   const [open, setOpen] = useState(true);
   useEffect(() => {
+    console.log(customClaims)
     if (customClaims.admin) {
       setIsAgency(false);
     } else if (customClaims.agency) {
       setIsAgency(true);
     }
-  }, []);
+    return () => {
+      isAgency
+    }
+  });
 
   // if user is agency user or new report submitted, get the reports from firebase
   useEffect(() => {
@@ -171,7 +175,7 @@ const ReportsSection = ({
   //   // }
   // };
   const getData = async () => {
-
+    console.log(isAgency)
     if (isAgency) {
       console.log('is agency user')
       // get list of all agencies

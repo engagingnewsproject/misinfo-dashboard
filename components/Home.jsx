@@ -16,7 +16,7 @@ const Home = ({newReportSubmitted, handleNewReportSubmit}) => {
         {/* Nest the following toggle inside a component for the graph portion of the page*/}
         <div className={globalStyles.page.wrap} id="scrollableDiv">
           <TagGraph/>
-          <ReportsSection search={search} newReportSubmitted={newReportSubmitted} handleNewReportSubmit={handleNewReportSubmit} />
+          <ReportsSection search={search} newReportSubmitted={newReportSubmitted} handleNewReportSubmit={handleNewReportSubmit} customClaims={customClaims} />
         </div>
     </div>
   )
