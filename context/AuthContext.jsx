@@ -19,9 +19,9 @@ import {
   httpsCallable,
 } from "firebase/functions";
 import { auth, app, db, functions } from '../config/firebase'
-import { getDoc, doc, setDoc, updateDoc, collection, query, where } from "firebase/firestore";
+import { getDoc, doc, setDoc } from "firebase/firestore";
 import moment from 'moment'
-import { v4 as uuidv4 } from 'uuid';
+
 
 const AuthContext = createContext({})
 
@@ -31,73 +31,14 @@ export const AuthContextProvider = ({children}) => {
 
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [userRole, setUserRole] = useState('user')
     const [customClaims, setCustomClaims] = useState({agency: false, admin: false})
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
           // let customClaims = { admin: false, agency: false}
-          if (user) {
-            let localId = ''
-            let allErrors = {}
-            // get user's mobileUser document
-            const userData = await getDoc(
-              doc(db, 'mobileUsers', user.uid)
-            )
-            if (userData.exists()) {
-              console.log(`user data exists: ${userData.exists()}`)
-              try {
-                // Extract state and city names
-                const userState = userData.data().state.name;
-                const userCity = userData.data().city.name;
-                // Fetch location document from mobileUser state name
-                const locationDocRef = doc(db, 'locations', userState);
-                const locationDoc = await getDoc(locationDocRef);
-                // if the user's location exists we can continue 
-                if (locationDoc.exists()) {
-                  console.log('User location exists in firestore db');
-                  
-                } else { // if user location does not exist we need to create one.
-                  // Location does not exist so we need to create one
-                  const locationData = locationDoc.data();
-
-                  let cityFound = false;
-
-                  // Step 3: Iterate over the fields in the location document
-                  for (const [cityName, value] of Object.entries(
-                    locationData
-                  )) {
-                    if (cityName === userCity) {
-                      console.log(
-                        `Match found for user city: ${cityName} with value: ${value}`
-                      );
-                      cityFound = true;
-                      localId = value;
-                      break;
-                    }
-                  }
-                  // If the city was not found, add a new field
-                  if (!cityFound) {
-                    console.log('city not found, so add a new field');
-                    const newCityId = uuidv4().replace(/-/g, '').slice(0, 20); // Generate a new ID and take the first 20 characters
-                    await updateDoc(locationDocRef, {
-                      [userCity]: newCityId,
-                    });
-                    console.log(
-                      `Added new city: ${userCity} with ID: ${newCityId}`
-                    );
-                  }
-                }
-              } catch (error) {
-                console.error('Error fetching data:', error);
-                console.log(allErrors);
-                // allErrors.user(error)
-              }
-            } else {
-              allErrors.user = 'User document does not exist';
-              return;
-            }
-
-              // const ref = await getDoc(doc(db, "locations", "Texas"))
-            // const localId = ref.data()['Austin']
+            if (user) {
+                const ref = await getDoc(doc(db, "locations", "Texas"))
+                const localId = ref.data()['Austin']
                 setUser({
                     uid: localId, // not sure what this is used for
                     accountId: user.uid,
@@ -131,10 +72,8 @@ export const AuthContextProvider = ({children}) => {
 
             }
             setLoading(false)
-
         })
         return () => unsubscribe()
-        // Cleanup function to clear errors when component unmounts
     }, [])
 
 
@@ -168,7 +107,7 @@ export const AuthContextProvider = ({children}) => {
     });
   }
 
-  const signup = (name, email, password, state, city) => {
+  const signup = (name, email, password) => {
 		return new Promise((resolve, reject) => {
 			// Create a new Promise that wraps the asynchronous user creation process
 			createUserWithEmailAndPassword(auth, email, password) // Attempt to create a new user with the provided email and password
@@ -188,9 +127,7 @@ export const AuthContextProvider = ({children}) => {
 									email: email,
 									joiningDate: moment().utc().unix(),
 									isBanned: false,
-                  userRole: "User",
-                  state: state,
-                  city: city
+									userRole: "User",
 								}
 								// Create a new document in the 'mobileUsers' collection with the provided user data
 								setDoc(mobileUserDocRef, userData)
