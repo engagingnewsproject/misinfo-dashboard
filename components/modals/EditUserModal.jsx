@@ -11,6 +11,7 @@ const EditUserModal = ({
 	// agency
 	agenciesArray,
 	selectedAgency,
+	agencyName,
 	onAgencyChange,
 	onNameChange,
 	name,
@@ -26,6 +27,9 @@ const EditUserModal = ({
 	userEditing
 }) => {
 	// Styles
+	console.log(`selected agency ${selectedAgency}`)
+	console.log(` agency name ${agencyName}`)
+	// console.log(agenciesArray)
 	const style = {
 		modal_background:
 			"fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto",
@@ -173,11 +177,11 @@ const EditUserModal = ({
 												<select
 													id='agency'
 													onChange={onAgencyChange}
-													value={selectedAgency}
+													value={agencyName}
 													className={`${style.modal_form_input}`}>
 													{agenciesArray.map((agency, i) => (
-														<option value={agency.data.name} key={i}>
-															{agency.data.name}
+														<option value={agency} key={i}>
+															{agency}
 														</option>
 													))}
 												</select>
