@@ -52,7 +52,7 @@ const ReportsSection = ({
   const [reports, setReports] = useState([]);
   // const [reporterInfo, setReporterInfo] = useState({})
   const [newReportModal, setNewReportModal] = useState(false);
-  const [filteredReports, setFilteredReports] = useState(reports);
+  const [filteredReports, setFilteredReports] = useState([]);
   const [loadedReports, setLoadedReports] = useState([]);
   const [endIndex, setEndIndex] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -90,7 +90,6 @@ const ReportsSection = ({
   const [showCheckmark, setShowCheckmark] = useState(false);
   const [open, setOpen] = useState(true);
   useEffect(() => {
-    console.log(customClaims)
     if (customClaims.admin) {
       setIsAgency(false);
     } else if (customClaims.agency) {
@@ -101,83 +100,16 @@ const ReportsSection = ({
     }
   });
 
-  // if user is agency user or new report submitted, get the reports from firebase
+  // Fetch data when new report is submitted or isAgency is set
   useEffect(() => {
-    getData();
-  }, [newReportSubmitted]); // isAgency
+    // Ensure isAgency is set before fetching data:
+    if (isAgency !== null) {
+      getData();
+    }
+  }, [newReportSubmitted, isAgency]);
 
-  
-  // const getData = async () => {
-  //   // get reports collection
-  //   const reportsRef = collection(db,'reports');
-  //   let reportList = []
-  //   let arr = []
-  //   reportList = await getReports(reportsRef)
-  //   console.log(reportList.docs)
-  //   // try {
-  //     // reportList = await getReports(reportsRef) // Await the promise
-  //   // } catch (error) {
-  //     // console.error("Error getting reports:", error);
-  //   // }
-
-  //   // if (reportList.docs && !reportList.empty) {
-  //   //   try {
-  //   //     reportList.forEach((doc) => {
-  //   //       // dont need: "data: {key:value}" eliminate the "data:" and just do "{key:value}"
-  //   //       // especially for the sorting to work
-  //   //       const data = doc.data();
-  //   //       data.reportID = doc.id;
-  //   //       arr.push(data);
-  //   //     });
-  //   //     setReports(arr);
-  //   //     console.log(reports)
-  //   //     // Initialize reportsRead with read status of each report
-  //   //     const initialReportsRead = arr.reduce((acc,report) => {
-  //   //       console.log(acc)
-  //   //     	acc[report.id] = report.read // Use report ID as key and read status as value
-  //   //     	return acc
-  //   //     }, {})
-  //   //     // Set reportsRead state
-  //   //     setReportsRead(initialReportsRead)
-  //   //     if (readFilter !== 'all') {
-  //   //       arr = arr.filter((report) => {
-  //   //         return report.read.toString() === readFilter;
-  //   //       });
-  //   //     }
-  //   //     setFilteredReports(arr);
-  //   //     setLoadedReports(
-  //   //       arr
-  //   //         .filter((reportObj) => {
-  //   //           const report = reportObj;
-  //   //           return (
-  //   //             report['createdDate'].toDate() >=
-  //   //             new Date(
-  //   //               new Date().setDate(new Date().getDate() - reportWeek * 7)
-  //   //             )
-  //   //           );
-  //   //         })
-  //   //         .sort((objA, objB) =>
-  //   //           objA.createdDate >
-  //   //           objB.createdDate
-  //   //           // Object.values(objA)[0]['createdDate'] >
-  //   //           // Object.values(objB)[0]['createdDate']
-  //   //             ? -1
-  //   //             : 1
-  //   //         )
-  //   //     );
-  //   //   } catch (error) {
-  //   //     // Handle case where no agency was found for the user
-  //   //     console.log(error);
-  //   //     // You might want to set snapshot to an empty array or handle this case differently
-  //   //   }
-  //   // } else {
-  //   //   console.log('Snapshot empty: No reports found for this agency');
-  //   // }
-  // };
   const getData = async () => {
-    console.log(isAgency)
     if (isAgency) {
-      console.log('is agency user')
       // get list of all agencies
       const q = query(collection(db,"agency"),where("agencyUsers","array-contains",user.email))
       // select the agency with current user's email in agencyUsers array
@@ -378,6 +310,9 @@ const ReportsSection = ({
   };
 
   const handleReadFilterChanged = (value) => {
+    console.log(`value --> ${value}`)
+    console.log(`reports(initial) -->`)
+    console.log(reports)
     if (value !== 'all') {
       setFilteredReports(
         reports.filter((report) => {
@@ -561,36 +496,6 @@ const ReportsSection = ({
   useEffect(() => {
     getData();
   }, [update]);
-
-  // useEffect(() => {
-  //   const reportsUnsubscribe = onSnapshot(
-  //     collection(db, 'reports'),
-  //     (querySnapshot) => {
-  //       var arr = [];
-  //       querySnapshot.forEach((doc) => {
-  //         const data = doc.data();
-  //         console.log(data)
-  //         data.reportID = doc.id;
-  //         arr.push(data);
-  //       });
-  //       setReports(arr);
-
-  //       // Initialize reportsRead with read status of each report
-  //       const initialReportsRead = arr.reduce((acc, report) => {
-  //         acc[report.id] = report.read; // Use report ID as key and read status as value
-  //         return acc;
-  //       }, {});
-  //       // Set reportsRead state
-  //       setReportsRead(initialReportsRead);
-  //     }
-  //   );
-
-  //   return () => {
-  //     // Unsubscribe when the component unmounts
-  //     reportsUnsubscribe();
-  //     console.log('unsubscribe - loadedReports')
-  //   };
-  // }, []);
 
   const columns = [
     { label: 'Title', accessor: 'title', sortable: true },
