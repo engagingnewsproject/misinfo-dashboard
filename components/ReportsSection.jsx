@@ -47,6 +47,7 @@ import {
 const ReportsSection = ({
   search,
   newReportSubmitted,
+  handleNewReportSubmit
 }) => {
   const userId = localStorage.getItem('userId');
   const [reports, setReports] = useState([]);
