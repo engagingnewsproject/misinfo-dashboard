@@ -4,25 +4,26 @@ import { Typography } from '@material-tailwind/react';
 import Switch from 'react-switch';
 import { IoTrash } from 'react-icons/io5';
 const TableBody = ({
-  loadedReports,
+  filteredReports,
   columns,
   endIndex,
-  reportsRead,
   onReportModalShow,
   onChangeRead,
   onReportDelete,
+  reportsReadState
 }) => {
+// console.log(reportsReadState)
   return (
     <tbody>
       {/* Check if loadedReports is empty */}
-      {loadedReports.length === 0 ? (
+      {filteredReports.length === 0 ? (
         <tr>
           <td colSpan="7" className="text-center">
             No reports
           </td>
         </tr>
       ) : (
-        loadedReports.slice(0, endIndex).map((reportObj) => {
+        filteredReports.slice(0, endIndex).map((reportObj) => {
           const report = reportObj;
           const formattedDate = new Date(report['createdDate'].seconds * 1000)
           .toLocaleString('en-US', {
@@ -65,11 +66,11 @@ const TableBody = ({
                     <div
                       className={globalStyles.column.data_center}
                       onClick={(e) => e.stopPropagation()}>
-                      <Switch
+                     <Switch
                         onChange={(checked) =>
                           onChangeRead(report['reportID'], checked)
                         }
-                        checked={reportsRead[report['reportID']]}
+                        checked={reportsReadState[report['reportID']]} // Use reportsReadState
                         onColor="#2563eb"
                         offColor="#e5e7eb"
                         uncheckedIcon={false}

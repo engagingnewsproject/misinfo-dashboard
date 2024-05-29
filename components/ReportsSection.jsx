@@ -52,7 +52,7 @@ const ReportsSection = ({
   const [reports, setReports] = useState([]);
   // const [reporterInfo, setReporterInfo] = useState({})
   const [newReportModal, setNewReportModal] = useState(false);
-  const [filteredReports, setFilteredReports] = useState(reports);
+  const [filteredReports, setFilteredReports] = useState([]);
   const [loadedReports, setLoadedReports] = useState([]);
   const [endIndex, setEndIndex] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -73,7 +73,8 @@ const ReportsSection = ({
   const [detail, setDetail] = useState();
   const [reportSubmitBy, setReportSubmitBy] = useState('');
   const [reportRead, setReportRead] = useState(false);
-  const [reportsRead, setReportsRead] = useState({}); // Store checked state for each report
+  const [reportsRead,setReportsRead] = useState({}) // Store checked state for each report
+  const [reportsReadState, setReportsReadState] = useState({})
   const [info, setInfo] = useState({});
   const [selectedLabel, setSelectedLabel] = useState('');
   const [activeLabels, setActiveLabels] = useState([]);
@@ -90,7 +91,6 @@ const ReportsSection = ({
   const [showCheckmark, setShowCheckmark] = useState(false);
   const [open, setOpen] = useState(true);
   useEffect(() => {
-    console.log(customClaims)
     if (customClaims.admin) {
       setIsAgency(false);
     } else if (customClaims.agency) {
@@ -101,114 +101,51 @@ const ReportsSection = ({
     }
   });
 
-  // if user is agency user or new report submitted, get the reports from firebase
+  // Fetch data when new report is submitted or isAgency is set
   useEffect(() => {
-    getData();
-  }, [newReportSubmitted]); // isAgency
-
-  
-  // const getData = async () => {
-  //   // get reports collection
-  //   const reportsRef = collection(db,'reports');
-  //   let reportList = []
-  //   let arr = []
-  //   reportList = await getReports(reportsRef)
-  //   console.log(reportList.docs)
-  //   // try {
-  //     // reportList = await getReports(reportsRef) // Await the promise
-  //   // } catch (error) {
-  //     // console.error("Error getting reports:", error);
-  //   // }
-
-  //   // if (reportList.docs && !reportList.empty) {
-  //   //   try {
-  //   //     reportList.forEach((doc) => {
-  //   //       // dont need: "data: {key:value}" eliminate the "data:" and just do "{key:value}"
-  //   //       // especially for the sorting to work
-  //   //       const data = doc.data();
-  //   //       data.reportID = doc.id;
-  //   //       arr.push(data);
-  //   //     });
-  //   //     setReports(arr);
-  //   //     console.log(reports)
-  //   //     // Initialize reportsRead with read status of each report
-  //   //     const initialReportsRead = arr.reduce((acc,report) => {
-  //   //       console.log(acc)
-  //   //     	acc[report.id] = report.read // Use report ID as key and read status as value
-  //   //     	return acc
-  //   //     }, {})
-  //   //     // Set reportsRead state
-  //   //     setReportsRead(initialReportsRead)
-  //   //     if (readFilter !== 'all') {
-  //   //       arr = arr.filter((report) => {
-  //   //         return report.read.toString() === readFilter;
-  //   //       });
-  //   //     }
-  //   //     setFilteredReports(arr);
-  //   //     setLoadedReports(
-  //   //       arr
-  //   //         .filter((reportObj) => {
-  //   //           const report = reportObj;
-  //   //           return (
-  //   //             report['createdDate'].toDate() >=
-  //   //             new Date(
-  //   //               new Date().setDate(new Date().getDate() - reportWeek * 7)
-  //   //             )
-  //   //           );
-  //   //         })
-  //   //         .sort((objA, objB) =>
-  //   //           objA.createdDate >
-  //   //           objB.createdDate
-  //   //           // Object.values(objA)[0]['createdDate'] >
-  //   //           // Object.values(objB)[0]['createdDate']
-  //   //             ? -1
-  //   //             : 1
-  //   //         )
-  //   //     );
-  //   //   } catch (error) {
-  //   //     // Handle case where no agency was found for the user
-  //   //     console.log(error);
-  //   //     // You might want to set snapshot to an empty array or handle this case differently
-  //   //   }
-  //   // } else {
-  //   //   console.log('Snapshot empty: No reports found for this agency');
-  //   // }
-  // };
-  const getData = async () => {
-    console.log(isAgency)
-    if (isAgency) {
-      console.log('is agency user')
-      // get list of all agencies
-      const q = query(collection(db,"agency"),where("agencyUsers","array-contains",user.email))
-      // select the agency with current user's email in agencyUsers array
-      let agencyName
-      const querySnapshot = await getDocs(q)
-      querySnapshot.forEach((doc) => {
-        // get that agency name
-        agencyName = doc.data().name
-      })
-      // get all reports with agency name
-			const r = query(collection(db,"reports"),where('agency',"==",agencyName))
-			// from those reports get the userID
-			let reportArr = []
-			const reportSnapshot = await getDocs(r)
-			// add each userID to an array
-			reportSnapshot.forEach((doc) => {
-        const data = doc.data()
-        data.reportID = doc.id
-        reportArr.push(data)
-      })
-      setReports(reportArr)
-    } else {
-      const reportSnapshot = await getDocs(collection(db,'reports'))
-      const reportArr = []
-      reportSnapshot.forEach((doc) => {
-        const data = doc.data()
-        data.reportID = doc.id
-        reportArr.push(data)
-      });
-      setReports(reportArr)
+    // Ensure isAgency is set before fetching data:
+    if (isAgency !== null) {
+      getData();
     }
+  }, [newReportSubmitted, isAgency]);
+
+  const getData = async () => {
+    let reportArr = [];
+    let a
+    if (isAgency) {
+      const q = query(
+        collection(db, 'agency'),
+        where('agencyUsers', 'array-contains', user.email)
+      );
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        a = doc.data().name;
+      });
+      const r = query(
+        collection(db, 'reports'),
+        where('agency', '==', a)
+      );
+      const reportSnapshot = await getDocs(r);
+      reportSnapshot.forEach((doc) => {
+        const data = doc.data();
+        data.reportID = doc.id;
+        reportArr.push(data);
+      });
+    } else {
+      const reportSnapshot = await getDocs(collection(db, 'reports'));
+      reportSnapshot.forEach((doc) => {
+        const data = doc.data();
+        data.reportID = doc.id;
+        reportArr.push(data);
+      });
+    }
+    setReports(reportArr);
+    setReportsReadState(
+      reportArr.reduce((acc, report) => {
+        acc[report.reportID] = report.read;
+        return acc;
+      }, {})
+    );
   };
 
   useEffect(() => {    
@@ -216,6 +153,19 @@ const ReportsSection = ({
     setFilteredReports(reports) // Initialize filteredReports with reports when component mounts
   }, [reports])
 
+  useEffect(() => {
+    const filteredReports = loadedReports.filter((report) => {
+      if (readFilter === 'all') {
+        return true; // Show all reports
+      } else if (readFilter === 'true') {
+        return report.read === true; // Show only read reports
+      } else if (readFilter === 'false') {
+        return report.read === false; // Show only unread reports
+      }
+    });
+    setFilteredReports(filteredReports);
+  }, [readFilter, loadedReports]);
+  
   // Handler that is run once user wants to refresh the reports section
   const handleRefresh = async () => {
     setRefresh(true);
@@ -378,16 +328,17 @@ const ReportsSection = ({
   };
 
   const handleReadFilterChanged = (value) => {
+    setReadFilter(value) // Update the readFilter state first
     if (value !== 'all') {
+      const filterValue = value === 'true';
       setFilteredReports(
         reports.filter((report) => {
-          return report.read.toString() === value;
+          return report.read === filterValue;
         })
       );
     } else {
       setFilteredReports(reports);
     }
-    setReadFilter(value);
   };
 
   const handleUserSendEmail = (reportURI) => {
@@ -412,6 +363,7 @@ const ReportsSection = ({
 
     // setReport(docRef.data())
     // get note
+    console.log(docRef.data().note)
     setNote(docRef.data().note);
     setReportTitle(docRef.data().title);
     setDetail(docRef.data().detail);
@@ -421,7 +373,6 @@ const ReportsSection = ({
     setReportModalId(reportId);
 
     const tagsRef = await getDoc(doc(db,'tags',userId));
-    console.log(tagsRef)
     setActiveLabels(tagsRef.data()['Labels']['active']);
 
     // Get report submission user info
@@ -449,18 +400,36 @@ const ReportsSection = ({
       setReportModalId('');
       setReportModalShow(false);
     }
-  }, [reportModalShow]); // this effect runs when the report modal is opened/closed
+  },[reportModalShow]) // this effect runs when the report modal is opened/closed
+  
   // list item handle read change
   const handleChangeRead = async (reportId, checked) => {
-    setReportsRead((prevReportsRead) => ({
-      ...prevReportsRead,
+    setReports((prevReports) =>
+      prevReports.map((report) =>
+        report.reportID === reportId ? { ...report, read: checked } : report
+      )
+    );
+
+    setFilteredReports((prevFilteredReports) =>
+      prevFilteredReports.map((report) =>
+        report.reportID === reportId ? { ...report, read: checked } : report
+      )
+    );
+
+    setReportsReadState((prevState) => ({
+      ...prevState,
       [reportId]: checked,
     }));
 
-    // Update the Firestore document with the new read status
-    const docRef = doc(db, 'reports', reportId);
-    await updateDoc(docRef, { read: checked });
+    try {
+      const docRef = doc(db, 'reports', reportId);
+      await updateDoc(docRef, { read: checked });
+    } catch (error) {
+      console.error('Error updating read status:', error);
+    }
   };
+
+
   // modal item read change
   // function runs when report modal is displayed
   // and user clicks the read/unread toggle
@@ -488,7 +457,7 @@ const ReportsSection = ({
   const handleLabelChange = async (e) => {
     e.preventDefault();
     let reportId = reportModalId;
-    if (e.target.value !== info['label']) {
+    if (e.target.value !== report['label']) {
       const docRef = doc(db, 'reports', reportId);
       await updateDoc(docRef, { label: e.target.value });
       setUpdate(e.target.value);
@@ -515,7 +484,7 @@ const ReportsSection = ({
   };
   useEffect(() => {
     // getData()
-    if (info['createdDate']) {
+    if (report['createdDate']) {
       const options = {
         day: '2-digit',
         year: 'numeric',
@@ -524,20 +493,20 @@ const ReportsSection = ({
         minute: 'numeric',
       };
       setPostedDate(
-        info['createdDate']
+        report['createdDate']
           .toDate()
           .toLocaleString('en-US', options)
           .replace(/,/g, '')
           .replace('at', '')
       );
     }
-    if (info['city'] || info['state']) {
-      setReportLocation(info['city'] + ', ' + info['state']);
+    if (report['city'] || report['state']) {
+      setReportLocation(report['city'] + ', ' + report['state']);
     }
   }, [reportModalShow]);
 
   useEffect(() => {
-    if (info['createdDate']) {
+    if (report['createdDate']) {
       const options = {
         day: '2-digit',
         year: 'numeric',
@@ -546,51 +515,21 @@ const ReportsSection = ({
         minute: 'numeric',
       };
       setPostedDate(
-        info['createdDate']
+        report['createdDate']
           .toDate()
           .toLocaleString('en-US', options)
           .replace(/,/g, '')
           .replace('at', '')
       );
     }
-    if (info['label']) {
-      setSelectedLabel(info['label']);
+    if (report['label']) {
+      setSelectedLabel(report['label']);
     }
-  }, [reportModalShow]); // info
+  }, [reportModalShow]); // report
 
   useEffect(() => {
     getData();
   }, [update]);
-
-  // useEffect(() => {
-  //   const reportsUnsubscribe = onSnapshot(
-  //     collection(db, 'reports'),
-  //     (querySnapshot) => {
-  //       var arr = [];
-  //       querySnapshot.forEach((doc) => {
-  //         const data = doc.data();
-  //         console.log(data)
-  //         data.reportID = doc.id;
-  //         arr.push(data);
-  //       });
-  //       setReports(arr);
-
-  //       // Initialize reportsRead with read status of each report
-  //       const initialReportsRead = arr.reduce((acc, report) => {
-  //         acc[report.id] = report.read; // Use report ID as key and read status as value
-  //         return acc;
-  //       }, {});
-  //       // Set reportsRead state
-  //       setReportsRead(initialReportsRead);
-  //     }
-  //   );
-
-  //   return () => {
-  //     // Unsubscribe when the component unmounts
-  //     reportsUnsubscribe();
-  //     console.log('unsubscribe - loadedReports')
-  //   };
-  // }, []);
 
   const columns = [
     { label: 'Title', accessor: 'title', sortable: true },
@@ -694,18 +633,17 @@ const ReportsSection = ({
             {/* TODO: change here*/}
             {/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
 
-            <table className="mt-4 w-full min-w-max table-auto text-left">
+            <table className="mt-4 w-full min-w-max table-fixed text-left">
               <TableHead columns={columns} handleSorting={handleSorting} />
 
               <TableBody
+                filteredReports={filteredReports} // Table data
                 columns={columns}
-                loadedReports={loadedReports} // Table data
                 endIndex={endIndex}
-                reportsRead={reportsRead}
-                reportId={reportId}
                 onReportModalShow={handleReportModalShow}
                 onChangeRead={handleChangeRead}
                 onReportDelete={handleReportDelete}
+                reportsReadState={reportsReadState}
               />
             </table>
 
@@ -717,7 +655,6 @@ const ReportsSection = ({
                 key={reportModalId}
                 note={note}
                 detail={detail}
-                info={info}
                 checked={reportsRead[report.id]} // Pass the checked state for the selected report
                 onReadChange={handleChangeReadModal}
                 reportSubmitBy={reportSubmitBy}

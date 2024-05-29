@@ -47,6 +47,7 @@ const Users = () => {
 	const [agenciesArray, setAgenciesArray] = useState([])
 	const [selectedAgency,setSelectedAgency] = useState("")
 	const [agencyName, setAgencyName] = useState("")
+	const [agencyNameNew, setAgencyNameNew] = useState("")
 	const [banned, setBanned] = useState("")
 	const [userEditModal, setUserEditModal] = useState(null)
 	const [userId, setUserId] = useState(null)
@@ -151,14 +152,14 @@ const Users = () => {
 			// get list of all agencies
 			const q = query(collection(db,"agency"),where("agencyUsers","array-contains",user.email))
 			// select the agency with current user's email in agencyUsers array
-			let agencyName
+			let name
 			const querySnapshot = await getDocs(q)
 			querySnapshot.forEach((doc) => {
 				// get that agency name
-				agencyName = doc.data().name
+				name = doc.data().name
 			})			
 			// get all reports with agency name
-			const r = query(collection(db,"reports"),where('agency',"==",agencyName))
+			const r = query(collection(db,"reports"),where('agency',"==",name))
 			// from those reports get the userID
 			let userIds = []
 			const reportSnapshot = await getDocs(r)
@@ -177,7 +178,7 @@ const Users = () => {
 		} else {
 			setLoadedMobileUsers(mobileUsersArr)
 		}
-	};
+	}
 		
 	useEffect(() => {
 		getData();
@@ -211,12 +212,27 @@ const Users = () => {
 		setUserEditing(userObj)
 		setUserEditModal(true)
 		// Fetch and set user agency
-		const agencyRef = collection(db,'agency')
-		const agencyQuery = query(agencyRef,where('agencyUsers','array-contains',userRef.data()["email"]))
-		const agencySnapshot = await getDocs(agencyQuery)
-		if (!agencySnapshot.empty) {
-			setSelectedAgency(agencySnapshot.docs[0].data().name)
-		}
+			const q = query(collection(db,"agency"),where("agencyUsers","array-contains",userRef.data().email))
+			// select the agency with current user's email in agencyUsers array
+			let aName
+			const querySnapshot = await getDocs(q)
+			querySnapshot.forEach((doc) => {
+				// get that agency name
+				aName = doc.data().name
+			})
+
+		setAgencyName(name)
+		console.log(agencyName)
+		let agencyArr = []
+		const agencySnapshot = await getDocs(collection(db,"agency"));
+			agencySnapshot.forEach((doc) => {
+				const n = doc.data().name
+        agencyArr.push(n)
+			})
+		setAgenciesArray(agencyArr)
+		// if (!agencySnapshot.empty) {
+		// 	setSelectedAgency(agencySnapshot.docs.data().name)
+		// }
 		setName(userRef.data()["name"])
 		setEmail(userRef.data()["email"])
 		setBanned(userRef.data()["isBanned"])
@@ -226,15 +242,17 @@ const Users = () => {
 	const handleAgencyChange = async (e) => {
 		e.preventDefault()
 		const selectedValue = e.target.value
-		setSelectedAgency(selectedValue)
+		console.log(agenciesArray)
+		setAgencyName(selectedValue)
 		const selectedAgency = agenciesArray.find(
-			(agency) => agency.data.name === selectedValue
+			(agency) => agency === selectedValue
 		)
+		console.log(selectedAgency)
 
 		if (selectedAgency) {
 			try {
 				// Fetch the current data of the agency document to which the user is being added
-        const newDocRef = doc(db, "agency", selectedAgency.id); // Use agency ID as document ID
+        const newDocRef = doc(db, "agency", selectedAgency); // Use agency ID as document ID
 				const newDocSnap = await getDoc(newDocRef)
 				if (newDocSnap.exists()) {
 					const newAgencyData = newDocSnap.data()
@@ -297,7 +315,10 @@ const Users = () => {
 	// Function to handle form submission (updating user data)
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
-		const docRef = doc(db, "mobileUsers", userId)
+		const docRef = doc(db,"mobileUsers",userId)
+		const docSnap = await getDoc(docRef);
+		// update agency name on mobileUser doc
+		// add user email to agency agencyUsers doc
 		await updateDoc(docRef, {
 			name: name,
 			email: email,
@@ -521,6 +542,7 @@ const Users = () => {
 					// agency
 					agenciesArray={agenciesArray}
 					selectedAgency={selectedAgency}
+					agencyName={agencyName}
 					onAgencyChange={handleAgencyChange}
 					// Role
 					onRoleChange={handleRoleChange}
