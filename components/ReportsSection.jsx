@@ -73,7 +73,8 @@ const ReportsSection = ({
   const [detail, setDetail] = useState();
   const [reportSubmitBy, setReportSubmitBy] = useState('');
   const [reportRead, setReportRead] = useState(false);
-  const [reportsRead, setReportsRead] = useState({}); // Store checked state for each report
+  const [reportsRead,setReportsRead] = useState({}) // Store checked state for each report
+  const [reportsReadState, setReportsReadState] = useState({})
   const [info, setInfo] = useState({});
   const [selectedLabel, setSelectedLabel] = useState('');
   const [activeLabels, setActiveLabels] = useState([]);
@@ -109,38 +110,42 @@ const ReportsSection = ({
   }, [newReportSubmitted, isAgency]);
 
   const getData = async () => {
+    let reportArr = [];
+    let a
     if (isAgency) {
-      // get list of all agencies
-      const q = query(collection(db,"agency"),where("agencyUsers","array-contains",user.email))
-      // select the agency with current user's email in agencyUsers array
-      let agencyName
-      const querySnapshot = await getDocs(q)
+      const q = query(
+        collection(db, 'agency'),
+        where('agencyUsers', 'array-contains', user.email)
+      );
+      const querySnapshot = await getDocs(q);
       querySnapshot.forEach((doc) => {
-        // get that agency name
-        agencyName = doc.data().name
-      })
-      // get all reports with agency name
-			const r = query(collection(db,"reports"),where('agency',"==",agencyName))
-			// from those reports get the userID
-			let reportArr = []
-			const reportSnapshot = await getDocs(r)
-			// add each userID to an array
-			reportSnapshot.forEach((doc) => {
-        const data = doc.data()
-        data.reportID = doc.id
-        reportArr.push(data)
-      })
-      setReports(reportArr)
-    } else {
-      const reportSnapshot = await getDocs(collection(db,'reports'))
-      const reportArr = []
-      reportSnapshot.forEach((doc) => {
-        const data = doc.data()
-        data.reportID = doc.id
-        reportArr.push(data)
+        a = doc.data().name;
       });
-      setReports(reportArr)
+      const r = query(
+        collection(db, 'reports'),
+        where('agency', '==', a)
+      );
+      const reportSnapshot = await getDocs(r);
+      reportSnapshot.forEach((doc) => {
+        const data = doc.data();
+        data.reportID = doc.id;
+        reportArr.push(data);
+      });
+    } else {
+      const reportSnapshot = await getDocs(collection(db, 'reports'));
+      reportSnapshot.forEach((doc) => {
+        const data = doc.data();
+        data.reportID = doc.id;
+        reportArr.push(data);
+      });
     }
+    setReports(reportArr);
+    setReportsReadState(
+      reportArr.reduce((acc, report) => {
+        acc[report.reportID] = report.read;
+        return acc;
+      }, {})
+    );
   };
 
   useEffect(() => {    
@@ -148,6 +153,19 @@ const ReportsSection = ({
     setFilteredReports(reports) // Initialize filteredReports with reports when component mounts
   }, [reports])
 
+  useEffect(() => {
+    const filteredReports = loadedReports.filter((report) => {
+      if (readFilter === 'all') {
+        return true; // Show all reports
+      } else if (readFilter === 'true') {
+        return report.read === true; // Show only read reports
+      } else if (readFilter === 'false') {
+        return report.read === false; // Show only unread reports
+      }
+    });
+    setFilteredReports(filteredReports);
+  }, [readFilter, loadedReports]);
+  
   // Handler that is run once user wants to refresh the reports section
   const handleRefresh = async () => {
     setRefresh(true);
@@ -345,6 +363,7 @@ const ReportsSection = ({
 
     // setReport(docRef.data())
     // get note
+    console.log(docRef.data().note)
     setNote(docRef.data().note);
     setReportTitle(docRef.data().title);
     setDetail(docRef.data().detail);
@@ -354,7 +373,6 @@ const ReportsSection = ({
     setReportModalId(reportId);
 
     const tagsRef = await getDoc(doc(db,'tags',userId));
-    console.log(tagsRef)
     setActiveLabels(tagsRef.data()['Labels']['active']);
 
     // Get report submission user info
@@ -382,25 +400,35 @@ const ReportsSection = ({
       setReportModalId('');
       setReportModalShow(false);
     }
-  }, [reportModalShow]); // this effect runs when the report modal is opened/closed
+  },[reportModalShow]) // this effect runs when the report modal is opened/closed
+  
   // list item handle read change
-  const handleChangeRead = async (reportId,checked) => {
-    console.log(reportId)
-    // Update the local state
-    setReportsRead((prevReportsRead) => ({
-      ...prevReportsRead,
+  const handleChangeRead = async (reportId, checked) => {
+    setReports((prevReports) =>
+      prevReports.map((report) =>
+        report.reportID === reportId ? { ...report, read: checked } : report
+      )
+    );
+
+    setFilteredReports((prevFilteredReports) =>
+      prevFilteredReports.map((report) =>
+        report.reportID === reportId ? { ...report, read: checked } : report
+      )
+    );
+
+    setReportsReadState((prevState) => ({
+      ...prevState,
       [reportId]: checked,
     }));
 
     try {
-      // Update the Firestore document with the new read status
       const docRef = doc(db, 'reports', reportId);
       await updateDoc(docRef, { read: checked });
     } catch (error) {
       console.error('Error updating read status:', error);
-      // Handle error if necessary
     }
   };
+
 
   // modal item read change
   // function runs when report modal is displayed
@@ -429,7 +457,7 @@ const ReportsSection = ({
   const handleLabelChange = async (e) => {
     e.preventDefault();
     let reportId = reportModalId;
-    if (e.target.value !== info['label']) {
+    if (e.target.value !== report['label']) {
       const docRef = doc(db, 'reports', reportId);
       await updateDoc(docRef, { label: e.target.value });
       setUpdate(e.target.value);
@@ -456,7 +484,7 @@ const ReportsSection = ({
   };
   useEffect(() => {
     // getData()
-    if (info['createdDate']) {
+    if (report['createdDate']) {
       const options = {
         day: '2-digit',
         year: 'numeric',
@@ -465,20 +493,20 @@ const ReportsSection = ({
         minute: 'numeric',
       };
       setPostedDate(
-        info['createdDate']
+        report['createdDate']
           .toDate()
           .toLocaleString('en-US', options)
           .replace(/,/g, '')
           .replace('at', '')
       );
     }
-    if (info['city'] || info['state']) {
-      setReportLocation(info['city'] + ', ' + info['state']);
+    if (report['city'] || report['state']) {
+      setReportLocation(report['city'] + ', ' + report['state']);
     }
   }, [reportModalShow]);
 
   useEffect(() => {
-    if (info['createdDate']) {
+    if (report['createdDate']) {
       const options = {
         day: '2-digit',
         year: 'numeric',
@@ -487,17 +515,17 @@ const ReportsSection = ({
         minute: 'numeric',
       };
       setPostedDate(
-        info['createdDate']
+        report['createdDate']
           .toDate()
           .toLocaleString('en-US', options)
           .replace(/,/g, '')
           .replace('at', '')
       );
     }
-    if (info['label']) {
-      setSelectedLabel(info['label']);
+    if (report['label']) {
+      setSelectedLabel(report['label']);
     }
-  }, [reportModalShow]); // info
+  }, [reportModalShow]); // report
 
   useEffect(() => {
     getData();
@@ -609,14 +637,13 @@ const ReportsSection = ({
               <TableHead columns={columns} handleSorting={handleSorting} />
 
               <TableBody
-                loadedReports={loadedReports} // Table data
+                filteredReports={filteredReports} // Table data
                 columns={columns}
                 endIndex={endIndex}
-                reportsRead={reportsRead}
                 onReportModalShow={handleReportModalShow}
                 onChangeRead={handleChangeRead}
                 onReportDelete={handleReportDelete}
-                readFilter={readFilter}
+                reportsReadState={reportsReadState}
               />
             </table>
 
@@ -628,7 +655,6 @@ const ReportsSection = ({
                 key={reportModalId}
                 note={note}
                 detail={detail}
-                info={info}
                 checked={reportsRead[report.id]} // Pass the checked state for the selected report
                 onReadChange={handleChangeReadModal}
                 reportSubmitBy={reportSubmitBy}

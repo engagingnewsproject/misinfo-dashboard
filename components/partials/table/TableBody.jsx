@@ -4,30 +4,19 @@ import { Typography } from '@material-tailwind/react';
 import Switch from 'react-switch';
 import { IoTrash } from 'react-icons/io5';
 const TableBody = ({
-  loadedReports,
+  filteredReports,
   columns,
   endIndex,
-  reportsRead,
   onReportModalShow,
   onChangeRead,
   onReportDelete,
-  readFilter
+  reportsReadState
 }) => {
-  console.log(reportsRead)
-  const filteredReports = loadedReports.filter((report) => {
-    if (readFilter === 'all') {
-      return true; // Show all reports
-    } else if (readFilter === 'true') {
-      return report.read === true; // Show only read reports
-    } else if (readFilter === 'false') {
-      return report.read === false; // Show only unread reports
-    }
-  });
-
+// console.log(reportsReadState)
   return (
     <tbody>
       {/* Check if loadedReports is empty */}
-      {loadedReports.length === 0 ? (
+      {filteredReports.length === 0 ? (
         <tr>
           <td colSpan="7" className="text-center">
             No reports
@@ -77,11 +66,11 @@ const TableBody = ({
                     <div
                       className={globalStyles.column.data_center}
                       onClick={(e) => e.stopPropagation()}>
-                      <Switch
+                     <Switch
                         onChange={(checked) =>
                           onChangeRead(report['reportID'], checked)
                         }
-                        checked={report.read} // Directly use the read value from the report object
+                        checked={reportsReadState[report['reportID']]} // Use reportsReadState
                         onColor="#2563eb"
                         offColor="#e5e7eb"
                         uncheckedIcon={false}

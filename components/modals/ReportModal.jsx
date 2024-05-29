@@ -36,7 +36,6 @@ const ReportModal = ({
 	onReadChange,
 	update,
 	// read status END
-	info,
 	postedDate,
 	reportLocation,
 	onNoteChange,
@@ -247,7 +246,6 @@ const ReportModal = ({
 									{/* Images */}
 									<div className='images mb-12'>
 										<div className={style.header}>Images</div>
-										{/* {info['images'] && info['images'][0] ? */}
 										<div className='grid grid-cols-4 gap-4 w-full overflow-y-auto'>
 											{report.images ?
 												report.images.map((image, i) => {
