@@ -310,19 +310,17 @@ const ReportsSection = ({
   };
 
   const handleReadFilterChanged = (value) => {
-    console.log(`value --> ${value}`)
-    console.log(`reports(initial) -->`)
-    console.log(reports)
+    setReadFilter(value) // Update the readFilter state first
     if (value !== 'all') {
+      const filterValue = value === 'true';
       setFilteredReports(
         reports.filter((report) => {
-          return report.read.toString() === value;
+          return report.read === filterValue;
         })
       );
     } else {
       setFilteredReports(reports);
     }
-    setReadFilter(value);
   };
 
   const handleUserSendEmail = (reportURI) => {
@@ -386,16 +384,24 @@ const ReportsSection = ({
     }
   }, [reportModalShow]); // this effect runs when the report modal is opened/closed
   // list item handle read change
-  const handleChangeRead = async (reportId, checked) => {
+  const handleChangeRead = async (reportId,checked) => {
+    console.log(reportId)
+    // Update the local state
     setReportsRead((prevReportsRead) => ({
       ...prevReportsRead,
       [reportId]: checked,
     }));
 
-    // Update the Firestore document with the new read status
-    const docRef = doc(db, 'reports', reportId);
-    await updateDoc(docRef, { read: checked });
+    try {
+      // Update the Firestore document with the new read status
+      const docRef = doc(db, 'reports', reportId);
+      await updateDoc(docRef, { read: checked });
+    } catch (error) {
+      console.error('Error updating read status:', error);
+      // Handle error if necessary
+    }
   };
+
   // modal item read change
   // function runs when report modal is displayed
   // and user clicks the read/unread toggle
@@ -603,14 +609,14 @@ const ReportsSection = ({
               <TableHead columns={columns} handleSorting={handleSorting} />
 
               <TableBody
-                columns={columns}
                 loadedReports={loadedReports} // Table data
+                columns={columns}
                 endIndex={endIndex}
                 reportsRead={reportsRead}
-                reportId={reportId}
                 onReportModalShow={handleReportModalShow}
                 onChangeRead={handleChangeRead}
                 onReportDelete={handleReportDelete}
+                readFilter={readFilter}
               />
             </table>
 

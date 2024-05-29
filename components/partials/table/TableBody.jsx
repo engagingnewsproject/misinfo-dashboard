@@ -11,7 +11,19 @@ const TableBody = ({
   onReportModalShow,
   onChangeRead,
   onReportDelete,
+  readFilter
 }) => {
+  console.log(reportsRead)
+  const filteredReports = loadedReports.filter((report) => {
+    if (readFilter === 'all') {
+      return true; // Show all reports
+    } else if (readFilter === 'true') {
+      return report.read === true; // Show only read reports
+    } else if (readFilter === 'false') {
+      return report.read === false; // Show only unread reports
+    }
+  });
+
   return (
     <tbody>
       {/* Check if loadedReports is empty */}
@@ -22,7 +34,7 @@ const TableBody = ({
           </td>
         </tr>
       ) : (
-        loadedReports.slice(0, endIndex).map((reportObj) => {
+        filteredReports.slice(0, endIndex).map((reportObj) => {
           const report = reportObj;
           const formattedDate = new Date(report['createdDate'].seconds * 1000)
           .toLocaleString('en-US', {
@@ -69,7 +81,7 @@ const TableBody = ({
                         onChange={(checked) =>
                           onChangeRead(report['reportID'], checked)
                         }
-                        checked={reportsRead[report['reportID']]}
+                        checked={report.read} // Directly use the read value from the report object
                         onColor="#2563eb"
                         offColor="#e5e7eb"
                         uncheckedIcon={false}
