@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import {isSignInWithEmailLink, signInWithEmailLink, signOut, createUserWithEmailAndPassword, verifyEmail } from 'firebase/auth'
-import { doc, setDoc, collection, addDoc, arrayUnion} from '@firebase/firestore'
+import { doc, setDoc, collection, addDoc, arrayUnion} from 'firebase/firestore'
 import { db, auth } from '../config/firebase'
 import Select from "react-select";
 import PhoneInput from 'react-phone-input-2'
@@ -40,12 +40,14 @@ const SignUp = () => {
     const [icon, setIcon] = useState(false)
     
     const addMobileUser = (privilege) => {
-        // Get user object
+      // Get user object
+      console.log('addMobileUser start', privilege)
         const user = auth.currentUser;
-     
+        console.log(user)
         if (user) {
             // Set user uid
-            console.log("adding mobile user")
+          console.log("adding mobile user")
+          console.log(data)
             const uid = user.uid;
             // create a new mobileUsers doc with signed in user's uid
             setDoc(doc(db, "mobileUsers", uid), {
@@ -65,7 +67,8 @@ const SignUp = () => {
         }
     }
 
-    const handleSignUp = async (e) => {
+  const handleSignUp = async (e) => {
+      console.log('handleSignUp')
         e.preventDefault()
         // console.log("signing up")
         if (data.password.length < 8) {
@@ -77,7 +80,6 @@ const SignUp = () => {
             allErrors.state = t("NewReport:state")
         }
         if (data.city == null) {
-            // Don't display the report, show an error message
             console.log("city error")
             allErrors.city = t("NewReport:city")
             if (data.state != null && City.getCitiesOfState(
@@ -130,7 +132,8 @@ const SignUp = () => {
                   });
                 
               } else {
-                signup(data.name, data.email, data.password)
+                console.log('not agency 135')
+                signup(data.name, data.email, data.password, data.state, data.city)
                   .then((userCredential) => {
                     setSignUpError("")
                     addMobileUser("User")

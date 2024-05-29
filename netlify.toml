@@ -4,6 +4,16 @@
   functions = "netlify/functions"
   publish = ".next"
 
+[[redirects]]
+  from = '/_next/image/*'
+  query = { q = ':quality', url = ':url', w = ':width' }
+  to = '/.netlify/images?url=:url&w=:width&q=:quality'
+  status = 200
+  force = true
+
+[build.environment]
+  NETLIFY_BUILD_DEBUG = "true"
+  
   ## Uncomment to use this redirect for Single Page Applications like create-react-app.
   ## Not needed for static site generators.
   #[[redirects]]

@@ -10,7 +10,7 @@ import {
 	arrayUnion,
 	query,
 	where
-	} from '@firebase/firestore'
+	} from 'firebase/firestore'
 import { db, auth } from "../config/firebase"
 import { useAuth } from '../context/AuthContext'
 import Image from 'next/image'
