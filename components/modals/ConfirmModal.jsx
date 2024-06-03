@@ -3,9 +3,13 @@ import { RiDeleteBin2Fill } from 'react-icons/ri'
 import { BiLogOut } from 'react-icons/bi'
 import { IoMdRefresh } from "react-icons/io"
 const ConfirmModal = ({ func,title,subtitle,CTA,closeModal }) => {
-        const handleSubmit = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault(); // Prevent the default form submission behavior
         func(); // Call the provided function on form submission
+    };
+    const handleCancel = (e) => {
+        e.stopPropagation(); // Prevent event propagation
+        closeModal(false); // Close the modal
     };
     return (
         <div>
@@ -31,7 +35,8 @@ const ConfirmModal = ({ func,title,subtitle,CTA,closeModal }) => {
                     <form onSubmit={handleSubmit}>
                         <div className="mt-6 flex justify-between">
                             <button
-                                onClick={() => closeModal(false)}
+                                type='button'
+                                onClick={handleCancel}
                                 className="bg-white hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline">
                                 Cancel
                             </button>
