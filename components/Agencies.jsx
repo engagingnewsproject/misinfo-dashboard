@@ -20,6 +20,7 @@ import ConfirmModal from "./modals/ConfirmModal"
 import { Tooltip } from 'react-tooltip'
 import { IoTrash } from "react-icons/io5"
 import { FaPlus } from 'react-icons/fa'
+import { Button, Typography } from '@material-tailwind/react'
 
 const Agencies = ({handleAgencyUpdateSubmit}) => {
 	// //
@@ -257,7 +258,11 @@ const handleDelete = async (e) => {
 						Agencies
 					</div>
 					<div className={style.section_filtersWrap}>
-					<button className={style.button} onClick={handleAddNewAgencyModal}><FaPlus className="text-blue-600 mr-2" size={12}/>Add Agency</button>
+					{/* <button className={style.button} onClick={handleAddNewAgencyModal}><FaPlus className="text-blue-600 mr-2" size={12}/>Add Agency</button> */}
+						<Button className="flex items-center gap-3" onClick={handleAddNewAgencyModal}>
+							<FaPlus size={12} />
+							Add Agency
+						</Button>
 						{/* TODO: add filters to agency list */}
 					</div>
 				</div>
