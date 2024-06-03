@@ -192,17 +192,10 @@ const Users = () => {
 
 	// Function to handle user deletion
 	const handleDelete = async (e) => {
-		// e.preventDefault()
+		e.preventDefault()
 		const docRef = doc(db, "mobileUsers", userId);
-		deleteDoc(docRef)
-			.then(() => {
-				getData()
-				setDeleteModal(false)
-				// TODO: Delete user from Firebase authentication console
-			})
-			.catch((error) => {
-				console.log("The write failed" + error)
-			})
+		await deleteDoc(docRef)
+		setDeleteModal(false)
 	}
 
 	// MODAL: Function to handle opening and setting values in the EditUserModal
