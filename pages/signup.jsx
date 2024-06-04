@@ -340,8 +340,8 @@ const SignUp = () => {
                         {t("login_action")}
                     </Link>
                 </p>
-                <div className="flex justify-between items-center p-6 gap-1">
-              <span className="text-blue-500 text-md uppercase font-bold py-2 px-2">{t("select")}</span>
+                <div className="flex justify-center items-center p-6 gap-1">
+              {/* <span className="text-blue-500 text-md uppercase font-bold py-2 px-2">{t("select")}</span> */}
               <LanguageSwitcher/>
                </div>
             </div>
