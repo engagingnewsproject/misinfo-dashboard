@@ -85,14 +85,15 @@ const Navbar = ({
   return (
     <>
       {/* Menu icon that appears when being viewed on mobile screen */}
+      <div className='absolute'>
         <IconButton
           variant="text"
           onClick={openDrawer}
-          className="absolute top-8 left-4 z-10 sm:hidden tooltip-menu"
+          className="top-8 left-4 z-10 sm:hidden tooltip-menu"
         >
           <IoMenu size={40} />
         </IconButton>
-
+      </div>
       <Drawer
         open={windowSize[0] > 640 ? true : open}
         onClose={closeDrawer}
