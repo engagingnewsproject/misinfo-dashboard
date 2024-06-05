@@ -28,20 +28,11 @@ import Select from 'react-select';
 import Image from 'next/image';
 import { useTranslation } from 'next-i18next';
 import globalStyles from '../styles/globalStyles';
-import LocationUpdate from './partials/forms/LocationUpdate';
+import LocationUpdate from './partials/forms/LocationUpdate'
 import { Button } from '@material-tailwind/react';
-// Profile page that allows user to edit password or logout of their account
+
 const Profile = ({ customClaims }) => {
-  const {
-    user,
-    logout,
-    verifyRole,
-    changeRole,
-    addAdminRole,
-    addAgencyRole,
-    viewRole,
-    deleteUser,
-  } = useAuth();
+  const { user, logout, verifyRole, deleteUser } = useAuth();
   const { t } = useTranslation('Profile');
   const [openModal, setOpenModal] = useState(false);
   const [emailModal, setEmailModal] = useState(false);
@@ -49,41 +40,30 @@ const Profile = ({ customClaims }) => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [agency, setAgency] = useState([]);
   const [agencyName, setAgencyName] = useState('');
-  const [agencyId, setAgencyId] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAgency, setIsAgency] = useState(false);
   const router = useRouter();
   const [userRoles, setUserRoles] = useState({});
-
-  // country state city
   const [data, setData] = useState({ country: 'US', state: null, city: null });
-
-  // USER DATA
   const [userData, setUserData] = useState(null);
-  // USER LOCATION
   const formRef = useRef();
   const [userLocation, setUserLocation] = useState(null);
   const [userLocationChange, setUserLocationChange] = useState(false);
   const [showUserMessage, setShowUserMessage] = useState(false);
   const [userUpdate, setUserUpdate] = useState(false);
-  // AGENCY LOCATION
   const [agencyState, setAgencyState] = useState(null);
   const [agencyCity, setAgencyCity] = useState(null);
   const [agencyLocationEdit, setAgencyLocationEdit] = useState(false);
-  const [agencyLocation, setAgencyLocation] = useState([]);
   const [isSearchable, setIsSearchable] = useState(true);
   const [errors, setErrors] = useState({});
-  // AGENCY LOGO IMAGE
   const imgPicker = useRef(null);
   const storage = getStorage();
   const [editLogo, setEditLogo] = useState(false);
   const [images, setImages] = useState([]);
   const [imageURLs, setImageURLs] = useState([]);
-  const [agencyLogo, setAgencyLogo] = useState([]);
   const [agencyUpdate, setAgencyUpdate] = useState(false);
   const [agencyUpdateMessageShow, setAgencyUpdateMessageShow] = useState(false);
-  const [changedFields,setChangedFields] = useState({});
-  
+
   const style = {
     sectionContainer: 'w-full h-full flex flex-col mb-5 overflow-visible',
     sectionWrapper: 'flex flex-col',
@@ -101,21 +81,19 @@ const Profile = ({ customClaims }) => {
       'block flex flex-col text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
   };
 
-  // GET DATA
-  // Needs to be defined before any useEffect hooks
   const getCurrentUser = async () => {
     try {
-      // Fetch mobile user data
       const mobileRef = await getDoc(doc(db, 'mobileUsers', user.accountId));
-      // Update state after fetching data
       setUserData(mobileRef.data());
-      // not really needed, we can extract what we need from above line (TODO)
-      setUserLocation({ state: userData?.state, city: userData?.city });
+      setUserLocation({
+        state: mobileRef.data()?.state,
+        city: mobileRef.data()?.city,
+      });
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   };
-  
+
   const getAgencyData = async () => {
     const agencyCollection = collection(db, 'agency');
     const q = query(
@@ -125,260 +103,173 @@ const Profile = ({ customClaims }) => {
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
-      const agencyDoc = querySnapshot.docs[0]; // Get the first agency document
-      setAgency(agencyDoc.data()); // Set agency to the document data
+      const agencyDoc = querySnapshot.docs[0];
+      setAgency({ id: agencyDoc.id, ...agencyDoc.data() });
+      setAgencyName(agencyDoc.data().name);
+      setAgencyState(agencyDoc.data().state);
+      setAgencyCity(agencyDoc.data().city);
     }
   };
-  
+
   useEffect(() => {
-    console.log('Fetching user data...');
     getCurrentUser();
-  },[]) // Run once on mount
-  
+  }, []);
+
   useEffect(() => {
-    console.log('Verifying role...');
-    // Then in our effect we can get the data when the component loads
     if (userData) {
       verifyRole().then(async (result) => {
-        console.log('Role verification result:', result);
         if (result.admin) {
-          setIsAdmin(true)
+          setIsAdmin(true);
         } else if (result.agency) {
-          setIsAgency(true)
+          setIsAgency(true);
         } else {
-          setIsAgency(false)
-          setIsAdmin(false)
+          setIsAgency(false);
+          setIsAdmin(false);
         }
-      })
+      });
     }
-  }, [userData]); // run when user data is set
+  }, [userData]);
 
   useEffect(() => {
     if (isAgency) {
-      console.log('Fetching agency data...');
       getAgencyData();
     }
-  }, [isAgency]); // Run when isAgency is set
-  
-  // useEffect(() => {
-  //   console.log('User Data:', userData);
-  //   console.log('Is Admin:', isAdmin);
-  //   console.log('Is Agency:', isAgency);
-  //   console.log('Agency Data:', agency);
-  //   console.log('edit logo:', editLogo);
-  //   console.log('Agency logo:', agency.logo);
-  // }, [userData, isAdmin, isAgency, agency, editLogo]); // Log whenever any of these states change
-  
-  // SAVE AGENCY
-  const saveAgency = (imageURLs) => {
-    const docRef = doc(db, 'agency', agencyId);
-    updateDoc(docRef, {
+  }, [isAgency]);
+
+  const saveAgency = async (imageURLs) => {
+    const docRef = doc(db, 'agency', agency.id);
+    await updateDoc(docRef, {
       name: agencyName,
-      logo: imageURLs,
-      state: data.state.name,
-      city: data.city == null ? 'N/A' : data.city.name,
-    }).then(() => {
-      setAgencyUpdate(true);
-    });
+      logo: imageURLs.length > 0 ? imageURLs : agency.logo,
+      state: agencyState,
+      city: agencyCity,
+    })
+    setAgencyUpdate(!agencyUpdate)
   };
 
-  // IMAGE UPLOAD
   const handleLogoEdit = (e) => {
     e.preventDefault();
     setEditLogo(!editLogo);
   };
 
   const handleImageChange = (e) => {
+    const selectedImages = [];
     for (let i = 0; i < e.target.files.length; i++) {
-      const newImage = e.target.files[i];
-      // console.log(newImage)
-      setImages((prevState) => [...prevState, newImage]);
-      setAgencyUpdate(!agencyUpdate);
+      selectedImages.push(e.target.files[i]);
+    }
+    setImages(selectedImages);
+  };
+
+  const handleUpload = async () => {
+    const uploadPromises = images.map((image) => {
+      const storageRef = ref(
+        storage,
+        `agencies/logo_${agency.id}_${new Date().getTime().toString()}.png`
+      );
+      const uploadTask = uploadBytesResumable(storageRef, image);
+      return new Promise((resolve, reject) => {
+        uploadTask.on(
+          'state_changed',
+          null,
+          (error) => reject(error),
+          () => {
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+              resolve(downloadURL);
+            });
+          }
+        );
+      });
+    });
+
+    try {
+      const urls = await Promise.all(uploadPromises);
+      setImageURLs(urls);
+      return urls;
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      return [];
     }
   };
 
-  const handleUpload = () => {
-    // Image upload to firebase
-    const promises = [];
-    images.map((image) => {
-      const storageRef = ref(
-        storage,
-        `agencies/logo_${agencyId}_${new Date().getTime().toString()}.png`
-      );
-      const uploadTask = uploadBytesResumable(storageRef, image);
-      promises.push(uploadTask);
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          // Handle progress if needed
-        },
-        (error) => {
-          console.log(error);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setImageURLs((prev) => [...prev, downloadURL]);
-          });
-        }
-      );
-    });
-    Promise.all(promises).catch((err) => console.log(err));
-  };
-
-  // Agency updated message
   useEffect(() => {
     if (agencyUpdate && Object.keys(errors).length === 0) {
       setAgencyUpdateMessageShow(true);
-      console.log(
-        'Agency updated. MESSAGE SHOULD SHOW',
-        agencyUpdateMessageShow
-      );
 
-      // Hide the message after 5 seconds
       const timeoutId = setTimeout(() => {
         setAgencyUpdateMessageShow(false);
       }, 5000);
 
-      // Clean up the timeout to prevent memory leaks
       return () => clearTimeout(timeoutId);
     }
   }, [agencyUpdate, errors]);
 
-  // AGENCY NAME CHANGE
   const handleAgencyNameChange = (e) => {
     e.preventDefault();
     setAgencyName(e.target.value);
   };
-  // AGENCY LOCATION CHANGE
+
   const handleAgencyLocationChange = (e) => {
     e.preventDefault();
     setAgencyLocationEdit(!agencyLocationEdit);
   };
+
   const handleAgencyStateChange = (e) => {
-    // location STATE
     setData((data) => ({ ...data, state: e, city: null }));
+    setAgencyState(e.name); // Set state name
   };
+
   const handleAgencyCityChange = (e) => {
     setData((data) => ({ ...data, city: e !== null ? e : null }));
+    setAgencyCity(e.name); // Set city name
   };
 
-  // AGENCY FORM SUMBMISSION
-  const handleSubmitClick = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const allErrors = {};
-    // HANDLE CITY ERRORS
-    const handleCityError = (errorMessage) => {
-      allErrors.city = errorMessage;
-      if (
-        data.state != null &&
-        City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
-          .length == 0
-      ) {
-        console.log('No cities here');
-        delete allErrors.city;
-      }
-      setErrors(allErrors);
-      console.log(allErrors);
-    };
-    // AGENCY NAME
-    console.log(agency.state)
-    if (agencyName == '') {
-      console.log('No agency name error');
+
+    if (!agencyName.trim()) {
       allErrors.name = 'Please enter an agency name.';
     }
-    // STATE
-    if (!data.state || agency['state'] === '') {
-      console.log(data.state);
-      console.log('state error');
+
+    if (agencyState === null && agencyLocationEdit) {
       allErrors.state = 'Please enter a state.';
-    } else {
-      setAgencyState(agency['state']);
-    }
-    // CITY
-    if (!data.city || agency['city'] === '') {
-      handleCityError('Please enter a city.');
-      if (
-        data.state != null &&
-        City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
-          .length == 0
-      ) {
-        console.log('No cities here');
-        delete allErrors.city;
-      }
-      setErrors(allErrors);
-      console.log(allErrors);
-    } else if (
-      !data.city ||
-      data.city === null ||
-      data.city === undefined ||
-      agency['city'] === ''
-    ) {
-      handleCityError('Please enter a city.');
-      if (
-        data.state != null &&
-        City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
-          .length === 0
-      ) {
-        console.log('No cities here');
-        delete allErrors.city;
-      }
-      setErrors(allErrors);
-      console.log(allErrors);
-    } else {
-      if (!errors.city && data.city === null) {
-        console.log('No city error');
-        data.city = agency['city'];
-      } else if (errors.city) {
-        // Handle the case where there are errors related to the city
-        console.log('There are city errors:', errors.city);
-      }
     }
 
-    // IMAGE/LOGO
-    // if (images.length > 0) {
-    // 	setAgencyUpdate(!agencyUpdate)
-    // }
-    if (Object.keys(allErrors).length == 0) {
-      // handleSubmitClick(e)
-      console.log(agencyUpdate);
-      setAgencyUpdate(true);
-      console.log(agencyUpdate, ' no errors');
-      saveAgency(imageURLs);
+    if (agencyCity === null && agencyLocationEdit) {
+      allErrors.city = 'Please enter a city.';
+    }
+
+    if (Object.keys(allErrors).length === 0) {
+      const imageURLs = await handleUpload(); // Ensure images are uploaded before saving
+      await saveAgency(imageURLs);
+      setAgencyUpdate(false);
+      setImages([]); // Clear images after successful upload
+      setEditLogo(false); // Reset edit logo state
+
+    } else {
+      setErrors(allErrors);
     }
   };
 
-  // const handleFormSubmit = async (e) => {
-  // 	e.preventDefault()
-  // 	console.log('handleFormSubmit processed')
-  // 	setAgencyUpdate(true)
-  // 	const docRef = doc(db, "agency", agencyId)
-  // 	updateDoc(docRef, {
-  // 		logo: e.target.value,
-  // 	})
-  // }
-
-  // LOGOUT
   const handleLogout = () => {
     logout().then(() => {
       router.push('/login');
     });
   };
-  // Delete
+
   const handleDelete = async () => {
     const uidToDelete = user.accountId;
 
-    // Validate UID
     if (
       !uidToDelete ||
       typeof uidToDelete !== 'string' ||
       uidToDelete.length > 128
     ) {
       console.error('Invalid UID:', uidToDelete);
-      return; // Abort deletion
+      return;
     }
     await deleteUser({ uid: uidToDelete })
       .then(() => {
-        console.log('User deletion successful');
         router.push('/login');
       })
       .catch((error) => {
@@ -386,36 +277,10 @@ const Profile = ({ customClaims }) => {
       });
   };
 
-  // useEffect(() => {
-  //   // Get data once we know if the user is an agency or not
-  //   if (user) {
-  //     getCurrentUser();
-  //   }
-  // }, [isAgency]);
-
-  useEffect(() => {
-    if (agency['name'] !== agencyName) {
-      setAgencyName(agencyName);
-    } else {
-      setAgencyName(agency['name']);
-    }
-    if (agency['city'] !== agencyCity || agency['state'] == agencyState) {
-      setAgencyLocation(agency['city'] + ', ' + agency['state']);
-    }
-    // getData()
-  }, [agencyUpdate]);
-
-  useEffect(() => {
-    if (agencyUpdate) {
-      handleUpload();
-    }
-  }, [agencyUpdate]);
-
   useEffect(() => {
     const fetchUserRoles = async () => {
       try {
         const idTokenResult = await auth.currentUser.getIdTokenResult();
-        // console.log(idTokenResult)
         setUserRoles(idTokenResult.claims);
       } catch (error) {
         console.error('Error fetching user roles:', error);
@@ -425,8 +290,19 @@ const Profile = ({ customClaims }) => {
     fetchUserRoles();
   }, []);
 
+  useEffect(() => {
+    if (agencyState !== null && agency.state !== undefined) {
+      console.log('--> agencyState:', agencyState);
+      console.log('--> agency.state:', agency.state);
+    }
+    if (agencyCity !== null && agency.city !== undefined) {
+      console.log('--> agencyCity:', agencyCity);
+      console.log('--> agency.city:', agency.city);
+    }
+  }, [agencyUpdate]);
+
   const languageToggle = () => (
-      <div className="flex justify-between mx-0 my-6 tracking-normal items-center">
+    <div className="flex justify-between mx-0 my-6 tracking-normal items-center">
       <div className="text-xl font-extrabold text-blue-600">
         {t('selectLanguage')}
       </div>
@@ -434,14 +310,18 @@ const Profile = ({ customClaims }) => {
         <LanguageSwitcher />
       </div>
     </div>
-  )
+  );
+
   const agencySettings = () => (
     <div className="z-0 flex-col pt-10 bg-slate-100">
       <div className="text-xl font-extrabold text-blue-600 tracking-wider">
         Agency Settings
       </div>
       <div className="w-full h-auto">
-        <form id="agencyDesign" className="flex flex-col" onSubmit={handleSubmitClick}>
+        <form
+          id="agencyDesign"
+          className="flex flex-col"
+          onSubmit={handleSubmit}>
           <div className="mt-4 mb-4 grid gap-4">
             <div className="grid grid-cols-4 items-center">
               <div className="col-span-1">Agency Name</div>
@@ -450,14 +330,13 @@ const Profile = ({ customClaims }) => {
                   id="agency_name"
                   onChange={(e) => {
                     handleAgencyNameChange(e);
-                    // handleFieldChange('name', e.target.value);
                   }}
                   placeholder="Agency name"
                   type="text"
                   className={style.input}
                   defaultValue={agency.name}
                 />
-                {agencyName === '' && (
+                {errors.name && (
                   <span className="text-red-500 text-xs">{errors.name}</span>
                 )}
               </div>
@@ -490,12 +369,8 @@ const Profile = ({ customClaims }) => {
                   isSearchable={isSearchable}
                   value={data.state}
                   options={State.getStatesOfCountry(data.country)}
-                  getOptionLabel={(options) => {
-                    return options['name'];
-                  }}
-                  getOptionValue={(options) => {
-                    return options['name'];
-                  }}
+                  getOptionLabel={(options) => options['name']}
+                  getOptionValue={(options) => options['name']}
                   label="state"
                   onChange={(state) => {
                     handleAgencyStateChange(state);
@@ -521,12 +396,8 @@ const Profile = ({ customClaims }) => {
                     data.state?.countryCode,
                     data.state?.isoCode
                   )}
-                  getOptionLabel={(options) => {
-                    return options['name'];
-                  }}
-                  getOptionValue={(options) => {
-                    return options['name'];
-                  }}
+                  getOptionLabel={(options) => options['name']}
+                  getOptionValue={(options) => options['name']}
                   onChange={(city) => {
                     handleAgencyCityChange(city);
                   }}
@@ -562,8 +433,8 @@ const Profile = ({ customClaims }) => {
                       onChange={handleImageChange}
                       ref={imgPicker}
                     />
-                    {errors.images && images === null && (
-                      <span className="text-red-500">{errors.images}</span>
+                    {errors.image && image === null && (
+                      <span className="text-red-500">{errors.image}</span>
                     )}
                   </label>
                   <div className="col-span-2">
@@ -589,9 +460,9 @@ const Profile = ({ customClaims }) => {
                   className={`${style.inputSelect} bg-white col-span-3`}
                   onClick={handleLogoEdit}>
                   {agency.logo && agency.logo.length > 0 && (
-                    <Image 
-                      src={agency.logo[0]} 
-                      alt={`${ agency.name } logo`}
+                    <Image
+                      src={agency.logo[0]}
+                      alt={`${agency.name} logo`}
                       width={70}
                       height={100}
                     />
@@ -606,10 +477,7 @@ const Profile = ({ customClaims }) => {
                 Agency updated
               </div>
             )}
-            <Button
-              color="blue"
-              onClick={handleSubmitClick}
-              type="submit">
+            <Button color="blue" type="submit">
               Update Agency
             </Button>
           </div>
@@ -617,7 +485,7 @@ const Profile = ({ customClaims }) => {
       </div>
     </div>
   );
-  
+
   const deleteAccount = () => (
     <div className="self-end">
       <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
@@ -629,7 +497,8 @@ const Profile = ({ customClaims }) => {
         </button>
       </div>
     </div>
-  )
+  );
+
   return (
     <div
       className={`${
@@ -639,7 +508,7 @@ const Profile = ({ customClaims }) => {
       }`}>
       <div className={style.sectionWrapper}>
         <div className={globalStyles.heading.h1.blue}>{t('account')}</div>
-        {isAgency && ( // agency user will see the agency row
+        {isAgency && (
           <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">
               {agency.length > 1 ? 'Agencies' : 'Agency'}
@@ -682,14 +551,12 @@ const Profile = ({ customClaims }) => {
           </Button>
         </div>
 
-        {/* User Location Edit*/}
         <LocationUpdate
           user={user}
           userData={userData}
           setUserData={setUserData}
         />
 
-        {/* Language toggle*/}
         {!isAgency && !isAdmin && languageToggle()}
         {isAgency && agencySettings()}
         {deleteAccount()}
