@@ -103,7 +103,7 @@ const Profile = ({ customClaims }) => {
 
   // GET DATA
   // Needs to be defined before any useEffect hooks
-  const getData = async () => {
+  const getCurrentUser = async () => {
     try {
       // Fetch mobile user data
       const mobileRef = await getDoc(doc(db, 'mobileUsers', user.accountId));
@@ -115,63 +115,73 @@ const Profile = ({ customClaims }) => {
       console.error('Error fetching data:', error);
     }
   };
+  
+  const getAgencyData = async () => {
+    const agencyCollection = collection(db, 'agency');
+    const q = query(
+      agencyCollection,
+      where('agencyUsers', 'array-contains', user['email'])
+    );
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const agencyDoc = querySnapshot.docs[0]; // Get the first agency document
+      setAgency(agencyDoc.data()); // Set agency to the document data
+    }
+  };
+  
+  useEffect(() => {
+    console.log('Fetching user data...');
+    getCurrentUser();
+  },[]) // Run once on mount
+  
+  useEffect(() => {
+    console.log('Verifying role...');
+    // Then in our effect we can get the data when the component loads
+    if (userData) {
+      verifyRole().then(async (result) => {
+        console.log('Role verification result:', result);
+        if (result.admin) {
+          setIsAdmin(true)
+        } else if (result.agency) {
+          setIsAgency(true)
+        } else {
+          setIsAgency(false)
+          setIsAdmin(false)
+        }
+      })
+    }
+  }, [userData]); // run when user data is set
 
   useEffect(() => {
-    // Then in our effect we can get the data when the component loads
-    getData();
-
-    // Verify role
-    verifyRole().then(async (result) => {
-      // console.log(result)
-      if (result.admin) {
-        setIsAdmin(true);
-      } else if (result.agency) {
-        setIsAgency(true);
-        const agencyCollection = collection(db, 'agency');
-        const q = query(
-          agencyCollection,
-          where('agencyUsers', 'array-contains', user['email'])
-        );
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-          querySnapshot.forEach((doc) => {
-            // Set initial values
-            // console.log(doc.data())
-            setAgency(doc.data());
-            setAgencyId(doc.id);
-            setAgencyName(doc.data()['name']);
-            setAgencyState(doc.data()['state']);
-            setAgencyCity(doc.data()['city']);
-            setAgencyLogo(doc.data()['logo']);
-          });
-        }
-      } else {
-        setIsAgency(false);
-        setIsAdmin(false);
-      }
-    });
-  }, []); // this useEffect call will run on page load, since it has no arguments in the []. If arguments are present in the [], effect will only activate if the values in the list change.
-
+    if (isAgency) {
+      console.log('Fetching agency data...');
+      getAgencyData();
+    }
+  }, [isAgency]); // Run when isAgency is set
+  
+  // useEffect(() => {
+  //   console.log('User Data:', userData);
+  //   console.log('Is Admin:', isAdmin);
+  //   console.log('Is Agency:', isAgency);
+  //   console.log('Agency Data:', agency);
+  //   console.log('edit logo:', editLogo);
+  //   console.log('Agency logo:', agency.logo);
+  // }, [userData, isAdmin, isAgency, agency, editLogo]); // Log whenever any of these states change
+  
   // SAVE AGENCY
   const saveAgency = (imageURLs) => {
-    const updatedFields = {
-      ...(changedFields.name && { name: agencyName }),
-      ...(changedFields.logo && { logo: imageURLs }),
-      ...(changedFields.state && { state: data.state.name }),
-      ...(changedFields.city && { city: data.city == null ? 'N/A' : data.city.name })
-    };
-
     const docRef = doc(db, 'agency', agencyId);
-    updateDoc(docRef, updatedFields).then(() => {
+    updateDoc(docRef, {
+      name: agencyName,
+      logo: imageURLs,
+      state: data.state.name,
+      city: data.city == null ? 'N/A' : data.city.name,
+    }).then(() => {
       setAgencyUpdate(true);
     });
   };
-  
-  const handleFieldChange = (field, value) => {
-    setChangedFields((prev) => ({ ...prev, [field]: value }));
-  };
-  
+
   // IMAGE UPLOAD
   const handleLogoEdit = (e) => {
     e.preventDefault();
@@ -185,39 +195,34 @@ const Profile = ({ customClaims }) => {
       setImages((prevState) => [...prevState, newImage]);
       setAgencyUpdate(!agencyUpdate);
     }
-    handleFieldChange('logo', true); // Indicate logo has changed
   };
 
   const handleUpload = () => {
     // Image upload to firebase
-    const promises = images.map((image) => {
+    const promises = [];
+    images.map((image) => {
       const storageRef = ref(
         storage,
         `agencies/logo_${agencyId}_${new Date().getTime().toString()}.png`
       );
       const uploadTask = uploadBytesResumable(storageRef, image);
-
-      return new Promise((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            // console.log(snapshot)
-          },
-          (error) => {
-            console.log(error);
-            reject(error);
-          },
-          () => {
-            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-              setImageURLs((prev) => [...prev, downloadURL]);
-              resolve(downloadURL);
-            });
-          }
-        );
-      });
+      promises.push(uploadTask);
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          // Handle progress if needed
+        },
+        (error) => {
+          console.log(error);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            setImageURLs((prev) => [...prev, downloadURL]);
+          });
+        }
+      );
     });
-
-    return Promise.all(promises);
+    Promise.all(promises).catch((err) => console.log(err));
   };
 
   // Agency updated message
@@ -242,7 +247,6 @@ const Profile = ({ customClaims }) => {
   // AGENCY NAME CHANGE
   const handleAgencyNameChange = (e) => {
     e.preventDefault();
-    handleFieldChange('name', e.target.value);
     setAgencyName(e.target.value);
   };
   // AGENCY LOCATION CHANGE
@@ -259,60 +263,99 @@ const Profile = ({ customClaims }) => {
   };
 
   // AGENCY FORM SUMBMISSION
-  const handleSubmitClick = async (e) => {
+  const handleSubmitClick = (e) => {
     e.preventDefault();
     const allErrors = {};
-    const updatePayload = {};
-
-    // Validate agency name
-    if (agencyName === '') {
-      allErrors.name = 'Please enter an agency name.';
-    } else if (changedFields.name) {
-      updatePayload.name = agencyName;
-    }
-
-    // Validate state
-    if (!data.state || agency['state'] === '') {
-      allErrors.state = 'Please enter a state.';
-    } else if (changedFields.state) {
-      updatePayload.state = data.state.name;
-    }
-
-    // Validate city
-    if (!data.city || agency['city'] === '') {
-      const stateCities = City.getCitiesOfState(
-        data.state?.countryCode,
-        data.state?.isoCode
-      );
-      if (stateCities.length === 0) {
+    // HANDLE CITY ERRORS
+    const handleCityError = (errorMessage) => {
+      allErrors.city = errorMessage;
+      if (
+        data.state != null &&
+        City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
+          .length == 0
+      ) {
+        console.log('No cities here');
         delete allErrors.city;
-      } else {
-        allErrors.city = 'Please enter a city.';
       }
-    } else if (changedFields.city) {
-      updatePayload.city = data.city.name;
+      setErrors(allErrors);
+      console.log(allErrors);
+    };
+    // AGENCY NAME
+    console.log(agency.state)
+    if (agencyName == '') {
+      console.log('No agency name error');
+      allErrors.name = 'Please enter an agency name.';
+    }
+    // STATE
+    if (!data.state || agency['state'] === '') {
+      console.log(data.state);
+      console.log('state error');
+      allErrors.state = 'Please enter a state.';
+    } else {
+      setAgencyState(agency['state']);
+    }
+    // CITY
+    if (!data.city || agency['city'] === '') {
+      handleCityError('Please enter a city.');
+      if (
+        data.state != null &&
+        City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
+          .length == 0
+      ) {
+        console.log('No cities here');
+        delete allErrors.city;
+      }
+      setErrors(allErrors);
+      console.log(allErrors);
+    } else if (
+      !data.city ||
+      data.city === null ||
+      data.city === undefined ||
+      agency['city'] === ''
+    ) {
+      handleCityError('Please enter a city.');
+      if (
+        data.state != null &&
+        City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
+          .length === 0
+      ) {
+        console.log('No cities here');
+        delete allErrors.city;
+      }
+      setErrors(allErrors);
+      console.log(allErrors);
+    } else {
+      if (!errors.city && data.city === null) {
+        console.log('No city error');
+        data.city = agency['city'];
+      } else if (errors.city) {
+        // Handle the case where there are errors related to the city
+        console.log('There are city errors:', errors.city);
+      }
     }
 
-    // Set errors if any
-    setErrors(allErrors);
-
-    if (Object.keys(allErrors).length === 0) {
-      // Handle image upload if logo has changed
-      if (changedFields.logo) {
-        try {
-          const uploadedImageURLs = await handleUpload();
-          updatePayload.logo = uploadedImageURLs;
-        } catch (error) {
-          console.error('Error uploading images:', error);
-        }
-      }
-
-      // Proceed to save the agency data
-      saveAgency(updatePayload);
+    // IMAGE/LOGO
+    // if (images.length > 0) {
+    // 	setAgencyUpdate(!agencyUpdate)
+    // }
+    if (Object.keys(allErrors).length == 0) {
+      // handleSubmitClick(e)
+      console.log(agencyUpdate);
       setAgencyUpdate(true);
+      console.log(agencyUpdate, ' no errors');
+      saveAgency(imageURLs);
     }
   };
 
+  // const handleFormSubmit = async (e) => {
+  // 	e.preventDefault()
+  // 	console.log('handleFormSubmit processed')
+  // 	setAgencyUpdate(true)
+  // 	const docRef = doc(db, "agency", agencyId)
+  // 	updateDoc(docRef, {
+  // 		logo: e.target.value,
+  // 	})
+  // }
 
   // LOGOUT
   const handleLogout = () => {
@@ -343,12 +386,12 @@ const Profile = ({ customClaims }) => {
       });
   };
 
-  useEffect(() => {
-    // Get data once we know if the user is an agency or not
-    if (user) {
-      getData();
-    }
-  }, [isAgency]);
+  // useEffect(() => {
+  //   // Get data once we know if the user is an agency or not
+  //   if (user) {
+  //     getCurrentUser();
+  //   }
+  // }, [isAgency]);
 
   useEffect(() => {
     if (agency['name'] !== agencyName) {
@@ -407,12 +450,12 @@ const Profile = ({ customClaims }) => {
                   id="agency_name"
                   onChange={(e) => {
                     handleAgencyNameChange(e);
-                    handleFieldChange('name', e.target.value);
+                    // handleFieldChange('name', e.target.value);
                   }}
                   placeholder="Agency name"
                   type="text"
                   className={style.input}
-                  defaultValue={agencyName}
+                  defaultValue={agency.name}
                 />
                 {agencyName === '' && (
                   <span className="text-red-500 text-xs">{errors.name}</span>
@@ -456,7 +499,6 @@ const Profile = ({ customClaims }) => {
                   label="state"
                   onChange={(state) => {
                     handleAgencyStateChange(state);
-                    handleFieldChange('state', state);
                   }}
                 />
                 {errors.state && data.state === null && (
@@ -487,7 +529,6 @@ const Profile = ({ customClaims }) => {
                   }}
                   onChange={(city) => {
                     handleAgencyCityChange(city);
-                    handleFieldChange('city', city);
                   }}
                 />
                 {errors.city && data.city === null && (
@@ -547,19 +588,14 @@ const Profile = ({ customClaims }) => {
                 <div
                   className={`${style.inputSelect} bg-white col-span-3`}
                   onClick={handleLogoEdit}>
-                  {agencyLogo.map((image, i) => {
-                    return (
-                      <div className="flex mr-2" key={i}>
-                        <Image
-                          src={image}
-                          width={70}
-                          height={100}
-                          className="w-auto"
-                          alt="image"
-                        />
-                      </div>
-                    );
-                  })}
+                  {agency.logo && agency.logo.length > 0 && (
+                    <Image 
+                      src={agency.logo[0]} 
+                      alt={`${ agency.name } logo`}
+                      width={70}
+                      height={100}
+                    />
+                  )}
                 </div>
               )}
             </div>
