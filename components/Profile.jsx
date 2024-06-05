@@ -82,7 +82,8 @@ const Profile = ({ customClaims }) => {
   const [agencyLogo, setAgencyLogo] = useState([]);
   const [agencyUpdate, setAgencyUpdate] = useState(false);
   const [agencyUpdateMessageShow, setAgencyUpdateMessageShow] = useState(false);
-
+  const [changedFields,setChangedFields] = useState({});
+  
   const style = {
     sectionContainer: 'w-full h-full flex flex-col mb-5 overflow-visible',
     sectionWrapper: 'flex flex-col',
@@ -154,17 +155,23 @@ const Profile = ({ customClaims }) => {
 
   // SAVE AGENCY
   const saveAgency = (imageURLs) => {
+    const updatedFields = {
+      ...(changedFields.name && { name: agencyName }),
+      ...(changedFields.logo && { logo: imageURLs }),
+      ...(changedFields.state && { state: data.state.name }),
+      ...(changedFields.city && { city: data.city == null ? 'N/A' : data.city.name })
+    };
+
     const docRef = doc(db, 'agency', agencyId);
-    updateDoc(docRef, {
-      name: agencyName,
-      logo: imageURLs,
-      state: data.state.name,
-      city: data.city == null ? 'N/A' : data.city.name,
-    }).then(() => {
+    updateDoc(docRef, updatedFields).then(() => {
       setAgencyUpdate(true);
     });
   };
-
+  
+  const handleFieldChange = (field, value) => {
+    setChangedFields((prev) => ({ ...prev, [field]: value }));
+  };
+  
   // IMAGE UPLOAD
   const handleLogoEdit = (e) => {
     e.preventDefault();
@@ -178,34 +185,39 @@ const Profile = ({ customClaims }) => {
       setImages((prevState) => [...prevState, newImage]);
       setAgencyUpdate(!agencyUpdate);
     }
+    handleFieldChange('logo', true); // Indicate logo has changed
   };
 
   const handleUpload = () => {
     // Image upload to firebase
-    const promises = [];
-    images.map((image) => {
+    const promises = images.map((image) => {
       const storageRef = ref(
         storage,
         `agencies/logo_${agencyId}_${new Date().getTime().toString()}.png`
       );
       const uploadTask = uploadBytesResumable(storageRef, image);
-      promises.push(uploadTask);
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          // console.log(snapshot)
-        },
-        (error) => {
-          console.log(error);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setImageURLs((prev) => [...prev, downloadURL]);
-          });
-        }
-      );
+
+      return new Promise((resolve, reject) => {
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            // console.log(snapshot)
+          },
+          (error) => {
+            console.log(error);
+            reject(error);
+          },
+          () => {
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+              setImageURLs((prev) => [...prev, downloadURL]);
+              resolve(downloadURL);
+            });
+          }
+        );
+      });
     });
-    Promise.all(promises).catch((err) => console.log(err));
+
+    return Promise.all(promises);
   };
 
   // Agency updated message
@@ -230,6 +242,7 @@ const Profile = ({ customClaims }) => {
   // AGENCY NAME CHANGE
   const handleAgencyNameChange = (e) => {
     e.preventDefault();
+    handleFieldChange('name', e.target.value);
     setAgencyName(e.target.value);
   };
   // AGENCY LOCATION CHANGE
@@ -246,98 +259,60 @@ const Profile = ({ customClaims }) => {
   };
 
   // AGENCY FORM SUMBMISSION
-  const handleSubmitClick = (e) => {
+  const handleSubmitClick = async (e) => {
     e.preventDefault();
     const allErrors = {};
-    // HANDLE CITY ERRORS
-    const handleCityError = (errorMessage) => {
-      allErrors.city = errorMessage;
-      if (
-        data.state != null &&
-        City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
-          .length == 0
-      ) {
-        console.log('No cities here');
-        delete allErrors.city;
-      }
-      setErrors(allErrors);
-      console.log(allErrors);
-    };
-    // AGENCY NAME
-    if (agencyName == '') {
-      console.log('No agency name error');
+    const updatePayload = {};
+
+    // Validate agency name
+    if (agencyName === '') {
       allErrors.name = 'Please enter an agency name.';
-    }
-    // STATE
-    if (!data.state || agency['state'] === '') {
-      console.log(data.state);
-      console.log('state error');
-      allErrors.state = 'Please enter a state.';
-    } else {
-      setAgencyState(agency['state']);
-    }
-    // CITY
-    if (!data.city || agency['city'] === '') {
-      handleCityError('Please enter a city.');
-      if (
-        data.state != null &&
-        City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
-          .length == 0
-      ) {
-        console.log('No cities here');
-        delete allErrors.city;
-      }
-      setErrors(allErrors);
-      console.log(allErrors);
-    } else if (
-      !data.city ||
-      data.city === null ||
-      data.city === undefined ||
-      agency['city'] === ''
-    ) {
-      handleCityError('Please enter a city.');
-      if (
-        data.state != null &&
-        City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
-          .length === 0
-      ) {
-        console.log('No cities here');
-        delete allErrors.city;
-      }
-      setErrors(allErrors);
-      console.log(allErrors);
-    } else {
-      if (!errors.city && data.city === null) {
-        console.log('No city error');
-        data.city = agency['city'];
-      } else if (errors.city) {
-        // Handle the case where there are errors related to the city
-        console.log('There are city errors:', errors.city);
-      }
+    } else if (changedFields.name) {
+      updatePayload.name = agencyName;
     }
 
-    // IMAGE/LOGO
-    // if (images.length > 0) {
-    // 	setAgencyUpdate(!agencyUpdate)
-    // }
-    if (Object.keys(allErrors).length == 0) {
-      // handleSubmitClick(e)
-      console.log(agencyUpdate);
+    // Validate state
+    if (!data.state || agency['state'] === '') {
+      allErrors.state = 'Please enter a state.';
+    } else if (changedFields.state) {
+      updatePayload.state = data.state.name;
+    }
+
+    // Validate city
+    if (!data.city || agency['city'] === '') {
+      const stateCities = City.getCitiesOfState(
+        data.state?.countryCode,
+        data.state?.isoCode
+      );
+      if (stateCities.length === 0) {
+        delete allErrors.city;
+      } else {
+        allErrors.city = 'Please enter a city.';
+      }
+    } else if (changedFields.city) {
+      updatePayload.city = data.city.name;
+    }
+
+    // Set errors if any
+    setErrors(allErrors);
+
+    if (Object.keys(allErrors).length === 0) {
+      // Handle image upload if logo has changed
+      if (changedFields.logo) {
+        try {
+          const uploadedImageURLs = await handleUpload();
+          updatePayload.logo = uploadedImageURLs;
+        } catch (error) {
+          console.error('Error uploading images:', error);
+        }
+      }
+
+      // Proceed to save the agency data
+      saveAgency(updatePayload);
       setAgencyUpdate(true);
-      console.log(agencyUpdate, ' no errors');
-      saveAgency(imageURLs);
     }
   };
 
-  // const handleFormSubmit = async (e) => {
-  // 	e.preventDefault()
-  // 	console.log('handleFormSubmit processed')
-  // 	setAgencyUpdate(true)
-  // 	const docRef = doc(db, "agency", agencyId)
-  // 	updateDoc(docRef, {
-  // 		logo: e.target.value,
-  // 	})
-  // }
 
   // LOGOUT
   const handleLogout = () => {
@@ -407,6 +382,218 @@ const Profile = ({ customClaims }) => {
     fetchUserRoles();
   }, []);
 
+  const languageToggle = () => (
+      <div className="flex justify-between mx-0 my-6 tracking-normal items-center">
+      <div className="text-xl font-extrabold text-blue-600">
+        {t('selectLanguage')}
+      </div>
+      <div>
+        <LanguageSwitcher />
+      </div>
+    </div>
+  )
+  const agencySettings = () => (
+    <div className="z-0 flex-col pt-10 bg-slate-100">
+      <div className="text-xl font-extrabold text-blue-600 tracking-wider">
+        Agency Settings
+      </div>
+      <div className="w-full h-auto">
+        <form id="agencyDesign" className="flex flex-col" onSubmit={handleSubmitClick}>
+          <div className="mt-4 mb-4 grid gap-4">
+            <div className="grid grid-cols-4 items-center">
+              <div className="col-span-1">Agency Name</div>
+              <div className="col-span-3">
+                <input
+                  id="agency_name"
+                  onChange={(e) => {
+                    handleAgencyNameChange(e);
+                    handleFieldChange('name', e.target.value);
+                  }}
+                  placeholder="Agency name"
+                  type="text"
+                  className={style.input}
+                  defaultValue={agencyName}
+                />
+                {agencyName === '' && (
+                  <span className="text-red-500 text-xs">{errors.name}</span>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center">
+              <div className="col-span-1">Agency Location</div>
+              <div className="col-span-3 grid grid-cols-8 items-center bg-white rounded-md px-3">
+                <div
+                  className={`col-span-8 ${
+                    agencyLocationEdit === false
+                      ? ' visible relative'
+                      : ' hidden absolute'
+                  }`}
+                  onClick={handleAgencyLocationChange}>
+                  <div
+                    className={
+                      style.input
+                    }>{`${agency['city']}, ${agency['state']}`}</div>
+                </div>
+                <Select
+                  className={` col-start-1 row-start-1 col-span-3 ${
+                    (style.inputSelect,
+                    agencyLocationEdit === true
+                      ? ' visible relative'
+                      : ' hidden absolute ')
+                  }`}
+                  id="state"
+                  type="text"
+                  placeholder="State"
+                  isSearchable={isSearchable}
+                  value={data.state}
+                  options={State.getStatesOfCountry(data.country)}
+                  getOptionLabel={(options) => {
+                    return options['name'];
+                  }}
+                  getOptionValue={(options) => {
+                    return options['name'];
+                  }}
+                  label="state"
+                  onChange={(state) => {
+                    handleAgencyStateChange(state);
+                    handleFieldChange('state', state);
+                  }}
+                />
+                {errors.state && data.state === null && (
+                  <span className="text-red-500 text-xs col-start-1 col-span-3">
+                    {errors.state}
+                  </span>
+                )}
+                <Select
+                  className={`${
+                    (style.inputSelect,
+                    agencyLocationEdit === true
+                      ? ' visible relative'
+                      : ' hidden absolute')
+                  } ml-4 p-3 col-start-4 col-span-3 row-start-1`}
+                  id="city"
+                  type="text"
+                  placeholder="City"
+                  value={data.city}
+                  options={City.getCitiesOfState(
+                    data.state?.countryCode,
+                    data.state?.isoCode
+                  )}
+                  getOptionLabel={(options) => {
+                    return options['name'];
+                  }}
+                  getOptionValue={(options) => {
+                    return options['name'];
+                  }}
+                  onChange={(city) => {
+                    handleAgencyCityChange(city);
+                    handleFieldChange('city', city);
+                  }}
+                />
+                {errors.city && data.city === null && (
+                  <span className="text-red-500 text-xs col-span-3 col-start-4">
+                    {errors.city}
+                  </span>
+                )}
+                <div
+                  className={`text-red-500 cursor-pointer col-start-7 row-start-1 col-auto${
+                    agencyLocationEdit === true
+                      ? ' visible block'
+                      : ' hidden absolute'
+                  }`}
+                  onClick={handleAgencyLocationChange}>
+                  Cancel
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center">
+              <div className="col-span-1">Agency Logo</div>
+              {editLogo ? (
+                <div
+                  className={`${style.inputSelect} bg-white col-span-3 flex items-center`}>
+                  <label>
+                    <span className="sr-only">Choose agency logo</span>
+                    <input
+                      className={`${style.fileUploadButton}`}
+                      id="multiple_files"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      ref={imgPicker}
+                    />
+                    {errors.images && images === null && (
+                      <span className="text-red-500">{errors.images}</span>
+                    )}
+                  </label>
+                  <div className="col-span-2">
+                    {imageURLs.map((url, i = self.crypto.randomUUID()) => (
+                      <Image
+                        src={url}
+                        key={i}
+                        width={100}
+                        height={50}
+                        className="inline w-auto"
+                        alt={`image-upload-${i}`}
+                      />
+                    ))}
+                  </div>
+                  <div
+                    className="text-red-500 cursor-pointer"
+                    onClick={handleLogoEdit}>
+                    Cancel
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className={`${style.inputSelect} bg-white col-span-3`}
+                  onClick={handleLogoEdit}>
+                  {agencyLogo.map((image, i) => {
+                    return (
+                      <div className="flex mr-2" key={i}>
+                        <Image
+                          src={image}
+                          width={70}
+                          height={100}
+                          className="w-auto"
+                          alt="image"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex justify-end items-center">
+            {agencyUpdateMessageShow && (
+              <div className="transition-opacity opacity-100">
+                Agency updated
+              </div>
+            )}
+            <Button
+              color="blue"
+              onClick={handleSubmitClick}
+              type="submit">
+              Update Agency
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+  
+  const deleteAccount = () => (
+    <div className="self-end">
+      <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
+        <div className="font-light mr-4">{t('delete')}</div>
+        <button
+          onClick={() => setDeleteModal(true)}
+          className="bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl">
+          {t('request')}
+        </button>
+      </div>
+    </div>
+  )
   return (
     <div
       className={`${
@@ -460,229 +647,16 @@ const Profile = ({ customClaims }) => {
         </div>
 
         {/* User Location Edit*/}
-
         <LocationUpdate
           user={user}
           userData={userData}
           setUserData={setUserData}
         />
 
-        {/* Hides the language toggle for admin and agencies*/}
-        {!isAgency && !isAdmin && (
-          <div className="flex justify-between mx-0 my-6 tracking-normal items-center">
-            <div className="text-xl font-extrabold text-blue-600">
-              {t('selectLanguage')}
-            </div>
-            <div>
-              <LanguageSwitcher />
-            </div>
-          </div>
-        )}
-
-        {isAgency && ( // agency settings
-          <div className="z-0 flex-col p-16 pt-10 bg-slate-100">
-            <div className="text-xl font-extrabold text-blue-600 tracking-wider">
-              Agency Settings
-            </div>
-            <div className="w-full h-auto">
-              <form
-                // onSubmit={handleFormSubmit}
-                id="agencyDesign"
-                className="flex flex-col">
-                <div className="mt-4 mb-4 grid gap-4">
-                  <div className="grid grid-cols-4 items-center">
-                    <div className="col-span-1">Agency Name</div>
-                    <div className="col-span-3">
-                      <input
-                        id="agency_name"
-                        onChange={handleAgencyNameChange}
-                        placeholder="Agency name"
-                        type="text"
-                        className={style.input}
-                        defaultValue={agencyName}
-                      />
-                      {agencyName === '' && (
-                        <span className="text-red-500 text-xs">
-                          {errors.name}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-4 items-center">
-                    <div className="col-span-1">Agency Location</div>
-
-                    <div className="col-span-3 grid grid-cols-8 items-center bg-white rounded-md px-3">
-                      <div
-                        className={`col-span-8 ${
-                          agencyLocationEdit === false
-                            ? ' visible relative'
-                            : ' hidden absolute'
-                        }`}
-                        onClick={handleAgencyLocationChange}>
-                        <div
-                          className={
-                            style.input
-                          }>{`${agency['city']}, ${agency['state']}`}</div>
-                      </div>
-                      <Select
-                        className={` col-start-1 row-start-1 col-span-3 ${
-                          (style.inputSelect,
-                          agencyLocationEdit === true
-                            ? ' visible relative'
-                            : ' hidden absolute ')
-                        }`}
-                        id="state"
-                        type="text"
-                        placeholder="State"
-                        isSearchable={isSearchable}
-                        value={data.state}
-                        options={State.getStatesOfCountry(data.country)}
-                        getOptionLabel={(options) => {
-                          return options['name'];
-                        }}
-                        // isDisabled={agencyLocationEdit === true ? `false` : `true`}
-                        getOptionValue={(options) => {
-                          return options['name'];
-                        }}
-                        label="state"
-                        onChange={handleAgencyStateChange}
-                      />
-                      {errors.state && data.state === null && (
-                        <span className="text-red-500 text-xs col-start-1 col-span-3">
-                          {errors.state}
-                        </span>
-                      )}
-                      <Select
-                        className={`${
-                          (style.inputSelect,
-                          agencyLocationEdit === true
-                            ? ' visible relative'
-                            : ' hidden absolute')
-                        } ml-4 p-3 col-start-4 col-span-3 row-start-1`}
-                        id="city"
-                        type="text"
-                        placeholder="City"
-                        value={data.city}
-                        options={City.getCitiesOfState(
-                          data.state?.countryCode,
-                          data.state?.isoCode
-                        )}
-                        // isDisabled={agencyLocationEdit === true ? `false` : `true`}
-                        getOptionLabel={(options) => {
-                          return options['name'];
-                        }}
-                        getOptionValue={(options) => {
-                          return options['name'];
-                        }}
-                        onChange={handleAgencyCityChange}
-                      />
-                      {errors.city && data.city === null && (
-                        <span className="text-red-500 text-xs col-span-3 col-start-4">
-                          {errors.city}
-                        </span>
-                      )}
-                      <div
-                        className={`text-red-500 cursor-pointer col-start-7 row-start-1 col-auto${
-                          agencyLocationEdit === true
-                            ? ' visible block'
-                            : ' hidden absolute'
-                        }`}
-                        onClick={handleAgencyLocationChange}>
-                        Cancel
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-4 items-center">
-                    <div className="col-span-1">Agency Logo</div>
-                    {editLogo ? (
-                      <div
-                        className={`${style.inputSelect} bg-white col-span-3 flex items-center`}>
-                        <label>
-                          <span className="sr-only">Choose agency logo</span>
-                          <input
-                            className={`${style.fileUploadButton}`}
-                            id="multiple_files"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            ref={imgPicker}
-                          />
-                          {errors.images && images === null && (
-                            <span className="text-red-500">
-                              {errors.images}
-                            </span>
-                          )}
-                        </label>
-                        <div className="col-span-2">
-                          {imageURLs.map(
-                            (url, i = self.crypto.randomUUID()) => (
-                              <Image
-                                src={url}
-                                key={i}
-                                width={100}
-                                height={50}
-                                className="inline w-auto"
-                                alt={`image-upload-${i}`}
-                              />
-                            )
-                          )}
-                        </div>
-                        <div
-                          className="text-red-500 cursor-pointer"
-                          onClick={handleLogoEdit}>
-                          Cancel
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        className={`${style.inputSelect} bg-white col-span-3`}
-                        onClick={handleLogoEdit}>
-                        {agencyLogo.map((image, i) => {
-                          return (
-                            <div className="flex mr-2" key={i}>
-                              <Image
-                                src={image}
-                                width={70}
-                                height={100}
-                                className="w-auto"
-                                alt="image"
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex justify-end items-center">
-                  {agencyUpdateMessageShow && (
-                    <div className="transition-opacity opacity-100">
-                      Agency updated
-                    </div>
-                  )}
-                  <Button
-                    color="blue"
-                    onClick={handleSubmitClick}
-                    // className={`${style.button} ml-2`}
-                    type="submit">
-                    Update Agency
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        <div className="self-end">
-          <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
-            <div className="font-light mr-4">{t('delete')}</div>
-            <button
-              onClick={() => setDeleteModal(true)}
-              className="bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl">
-              {t('request')}
-            </button>
-          </div>
-        </div>
+        {/* Language toggle*/}
+        {!isAgency && !isAdmin && languageToggle()}
+        {isAgency && agencySettings()}
+        {deleteAccount()}
       </div>
 
       {openModal && <UpdatePwModal setOpenModal={setOpenModal} />}
