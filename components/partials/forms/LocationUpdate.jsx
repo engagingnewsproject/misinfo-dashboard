@@ -125,7 +125,7 @@ const LocationUpdate = ({ user, userData, setUserData }) => {
   };
 
   return (
-    <div>
+    <div className='m-6'>
       <div className="text-xl font-extrabold text-blue-600">
         {t('editLocation')}
       </div>

@@ -352,7 +352,7 @@ const Profile = ({ customClaims }) => {
   )
 
   const agencySettings = () => (
-    <div className="z-0 flex-col pt-10 bg-slate-100">
+    <div className="z-0 flex-col m-6 bg-slate-100">
       <div className="text-xl font-extrabold text-blue-600 tracking-wider">
         Agency Settings
       </div>
@@ -525,7 +525,7 @@ const Profile = ({ customClaims }) => {
   )
 
   const deleteAccount = () => (
-    <div className="self-end">
+    <div className="self-end m-6">
       <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
         <div className="font-light mr-4">{t('delete')}</div>
         <button
@@ -545,9 +545,9 @@ const Profile = ({ customClaims }) => {
           : globalStyles.page.wrap + ' md:p-12'
       }`}>
       <div className={style.sectionWrapper}>
-        <div className={globalStyles.heading.h1.blue}>{t('account')}</div>
+        <div className={`${globalStyles.heading.h1.blue} ml-16 p-4 md:ml-0 md:p-0`}>{t('account')}</div>
         {isAgency && (
-          <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
+          <div className="flex justify-between m-6 tracking-normal items-center">
             <div className="font-light">
               {agency.length > 1 ? 'Agencies' : 'Agency'}
             </div>
@@ -556,7 +556,7 @@ const Profile = ({ customClaims }) => {
             </div>
           </div>
         )}
-        <div className="flex flex-col md:flex-row justify-start md:justify-between mx-0 md:mx-6 my-6 tracking-normal items-stretch md:items-center">
+        <div className="flex flex-col m-6 md:flex-row justify-start md:justify-between tracking-normal items-stretch md:items-center">
           <div className="font-semibold text-sm md:font-light">
             {t('email')}
           </div>
@@ -570,7 +570,7 @@ const Profile = ({ customClaims }) => {
             </Button>
           </div>
         </div>
-        <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
+        <div className="flex m-6 justify-between tracking-normal items-center">
           <div className="font-light">{t('resetPassword')}</div>
           <Button
             variant="outlined"
@@ -579,7 +579,7 @@ const Profile = ({ customClaims }) => {
             {t('editPassword')}
           </Button>
         </div>
-        <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
+        <div className="flex m-6 justify-between tracking-normal items-center">
           <div className="font-light">{t('logout')}</div>
           <Button
             variant="outlined"

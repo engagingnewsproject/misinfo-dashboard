@@ -567,7 +567,7 @@ const ReportsSection = ({
 
   return (
     <>
-      <Card className="h-full w-full mt-4">
+      <Card className="w-full mt-4">
         <CardHeader floated={false} shadow={false} className="rounded-none">
           <div className="mb-8 flex items-center justify-between gap-8">
             <Typography variant="h5" color="blue">
