@@ -89,6 +89,7 @@ const Profile = ({ customClaims }) => {
         state: mobileRef.data()?.state,
         city: mobileRef.data()?.city,
       })
+      console.log('User data fetched:', mobileRef.data())
     } catch (error) {
       console.error('Error fetching data:', error)
     }
@@ -108,6 +109,7 @@ const Profile = ({ customClaims }) => {
       setAgencyName(agencyDoc.data().name)
       setAgencyState(agencyDoc.data().state)
       setAgencyCity(agencyDoc.data().city)
+      console.log('Agency data fetched:', agencyDoc.data())
     }
   }
 
@@ -126,6 +128,7 @@ const Profile = ({ customClaims }) => {
           setIsAgency(false)
           setIsAdmin(false)
         }
+        console.log('Role verification result:', result)
       })
     }
   }, [userData])
@@ -138,17 +141,29 @@ const Profile = ({ customClaims }) => {
 
   const saveAgency = async (imageURLs) => {
     const docRef = doc(db, 'agency', agency.id)
-    await updateDoc(docRef, {
+    console.log('Saving agency data:', {
       name: agencyName,
-      logo: imageURLs.length > 0 ? imageURLs : agency.logo,
+      logo: imageURLs,
       state: agencyState,
       city: agencyCity,
     })
+    try {
+      await updateDoc(docRef, {
+        name: agencyName,
+        logo: imageURLs.length > 0 ? imageURLs : agency.logo,
+        state: agencyState,
+        city: agencyCity,
+      })
+      console.log('Agency data saved to Firestore')
+    } catch (error) {
+      console.error('Error saving agency data to Firestore:', error)
+    }
   }
 
   const handleLogoEdit = (e) => {
     e.preventDefault()
     setEditLogo(!editLogo)
+    console.log('Logo edit toggled:', !editLogo)
   }
 
   const handleImageChange = (e) => {
@@ -157,6 +172,7 @@ const Profile = ({ customClaims }) => {
       selectedImages.push(e.target.files[i])
     }
     setImages(selectedImages)
+    console.log('Selected images:', selectedImages)
   }
 
   const handleUpload = async () => {
@@ -183,6 +199,7 @@ const Profile = ({ customClaims }) => {
     try {
       const urls = await Promise.all(uploadPromises)
       setImageURLs(urls)
+      console.log('Uploaded image URLs:', urls)
       return urls
     } catch (error) {
       console.error('Error uploading images:', error)
@@ -193,6 +210,7 @@ const Profile = ({ customClaims }) => {
   useEffect(() => {
     if (agencyUpdate && Object.keys(errors).length === 0) {
       setAgencyUpdateMessageShow(true)
+      console.log('Agency updated successfully')
 
       const timeoutId = setTimeout(() => {
         setAgencyUpdateMessageShow(false)
@@ -205,21 +223,25 @@ const Profile = ({ customClaims }) => {
   const handleAgencyNameChange = (e) => {
     e.preventDefault()
     setAgencyName(e.target.value)
+    console.log('Agency name changed:', e.target.value)
   }
 
   const handleAgencyLocationChange = (e) => {
     e.preventDefault()
     setAgencyLocationEdit(!agencyLocationEdit)
+    console.log('Agency location edit toggled:', !agencyLocationEdit)
   }
 
   const handleAgencyStateChange = (e) => {
     setData((data) => ({ ...data, state: e, city: null }))
     setAgencyState(e.name) // Set state name
+    console.log('Agency state changed:', e.name)
   }
 
   const handleAgencyCityChange = (e) => {
     setData((data) => ({ ...data, city: e !== null ? e : null }))
     setAgencyCity(e.name) // Set city name
+    console.log('Agency city changed:', e.name)
   }
 
   const handleSubmit = async (e) => {
@@ -241,25 +263,32 @@ const Profile = ({ customClaims }) => {
     if (Object.keys(allErrors).length === 0) {
       const imageURLs = await handleUpload() // Ensure images are uploaded before saving
       await saveAgency(imageURLs)
-      setAgencyUpdate(false)
-      setImages([]) // Clear images after successful upload
-      setEditLogo(false) // Reset edit logo state
-      setAgencyUpdateMessageShow(true) // Show update message
+      // Reset states after submission.
+      setImages([])
+      setEditLogo(false)
+      // Reset the form fields or other dependent states if necessary
+      setData({ ...data, state: null, city: null }) // Reset location data if used for form fields
+      setAgency({
+        ...agency,
+        logo: imageURLs.length > 0 ? imageURLs : agency.logo,
+      })
+      setAgencyUpdate(false) // Allow new updates
+      setAgencyUpdateMessageShow(true)
+      console.log('Form submitted successfully')
 
-      // Hide the message after 5 seconds
-      const timeoutId = setTimeout(() => {
+      setTimeout(() => {
         setAgencyUpdateMessageShow(false)
       }, 5000)
-
-      return () => clearTimeout(timeoutId)
     } else {
       setErrors(allErrors)
+      console.log('Form submission errors:', allErrors)
     }
   }
 
   const handleLogout = () => {
     logout().then(() => {
       router.push('/login')
+      console.log('Logged out successfully')
     })
   }
 
@@ -277,6 +306,7 @@ const Profile = ({ customClaims }) => {
     await deleteUser({ uid: uidToDelete })
       .then(() => {
         router.push('/login')
+        console.log('User deleted successfully')
       })
       .catch((error) => {
         console.error('Error deleting user:', error)
@@ -288,6 +318,7 @@ const Profile = ({ customClaims }) => {
       try {
         const idTokenResult = await auth.currentUser.getIdTokenResult()
         setUserRoles(idTokenResult.claims)
+        console.log('User roles fetched:', idTokenResult.claims)
       } catch (error) {
         console.error('Error fetching user roles:', error)
       }
@@ -305,7 +336,9 @@ const Profile = ({ customClaims }) => {
       console.log('--> agencyCity:', agencyCity)
       console.log('--> agency.city:', agency.city)
     }
-  }, [agencyUpdate])
+    console.log('agencyUpdate:', agencyUpdate)
+    console.log('agencyUpdateMessageShow:', agencyUpdateMessageShow)
+  }, [agencyUpdate, agencyState, agencyCity, agencyUpdateMessageShow])
 
   const languageToggle = () => (
     <div className="flex justify-between mx-0 my-6 tracking-normal items-center">
@@ -340,7 +373,7 @@ const Profile = ({ customClaims }) => {
                   placeholder="Agency name"
                   type="text"
                   className={style.input}
-                  defaultValue={agency.name}
+                  value={agencyName}
                 />
                 {errors.name && (
                   <span className="text-red-500 text-xs">{errors.name}</span>
