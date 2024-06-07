@@ -99,6 +99,7 @@ const Navbar = ({
         onClose={closeDrawer}
         size={60}
         overlay={disableOverlay}
+        className='z-30'
       >
         <div className="fixed top-0 left-0 w-16">
           <div className="flex-col bg-white h-screen max-h-screen">
