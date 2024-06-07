@@ -259,3 +259,291 @@ Files    |          |
 `RenameTagModal.jsx` |
 `ReportModal.jsx` | 
 `UpdatePwModal.jsx` |
+
+## Coding best practices
+
+A collection of general tips and rules of thumb when coding and building a project.
+
+#### Think about the performance impact of your code and solutions
+
+For example: 
+- will the change increase the weight of our page?
+- will the change increase our load time?
+
+#### Simple is better than Clever
+
+Clever can be fun, but always at the risk of complicating things and making life more difficult for your future self and others. Opt for unglamorous, simple code to save yourself a headache down the road. 
+
+If being clever is going to save you a lot of time or be a big performance boost, be sure to put it in a very simple, well-documented standalone function or module with a simple name that clearly explains what it does, why it should be done this way, and how it works.
+
+
+#### Functions should do one thing
+
+When writing a new function, make sure that it accomplishes one, specific thing. This keeps the code:
+- more testable, 
+- easier to debug, 
+- easier to read / understand,
+- easier to maintain
+
+Some rules of thumb. You probably need to break apart your function into several smaller functions if:
+- if you have a really long function name
+- if your function code is many lines long or has many steps
+
+
+#### If you can't figure something out, ask for help. But not before trying to solve it yourself first.
+
+This advice isn't in order to stop you from asking questions, but because some of the best learning happens when you think hard about trying to figure it out on your own. Google it. Read an article or two. Chances are you'll learn something, even if it doesn't lead you to the exact thing you needed to know.
+
+##### When asking questions, be sure to be detailed on:
+- what you're trying to solve
+- why you need to solve it
+- what you've already tried
+
+##### Writing a good question does a few things:
+- helps you organize your thoughts
+- gives you a chance to think about the problem in a different way
+- often leads you to the correct answer
+
+I'd estimate 30% of the time I've written a detailed question, I figure out the answer before I finish writing it or right after I ask it :)
+
+#### Make sure your editor doesn't reformat on save, unless we have something like `prettier` implemented
+
+When people have different format on save rules, it makes it really hard to review Pull Requests (PR). For example, if one person uses a two tab vs four spacing autoformat on save, the PR will show everyone of those lines from the file as a change rather than just the work that was completed. So, maybe you made one small change, but now every line in the file is shown as a change. This makes it difficult to identify the real change.
+
+#### Get only the data you need
+
+When writing a query or requesting data, it's best to get just what you need (or will likely need)
+
+#### Keep things organized
+- Look at the existing code base and see if it makes sense for code to be in one place or another. If it doesn't have an obvious place, create a new file using the existing standards of the code.
+
+# Git usage
+
+Important things to remember:
+
+- Make sure you are always pulling from `main`.
+
+- Thorough testing after big changes. Deploy in a more piecemeal manner
+
+- Only one person to push to the `prod` branch.
+
+After changes have been pushed to the [Dev Site](https://dev-misinfo-dashboard.netlify.app/) send a link to Kat for review.
+
+## Quick Guide
+
+1. When you take on a task:
+2. Go to the applicable [Github repo](https://github.com/engagingnewsproject/misinfo-dashboard) and choose the issue to work on
+3. Assign this issue to yourself
+4. Create your Git Branch
+
+   a. If this is a critical hotfix that needs to get released immediately:
+
+   ```
+   $ git checkout -b hotfix-[hotfix-name] stable      // creates a local branch
+   $ git push origin hotfix-[hotfix-name]             // makes the branch remotely available
+   ```
+
+   b. If this is a new feature/improvement:
+
+   ```
+   $ git checkout -b feature-[feature-name] master    // creates a local branch
+   $ git push origin feature-[feature-name]           // makes the branch remotely available
+   ```
+
+   c. If this is a non-critical bugfix:
+
+   ```
+   $ git checkout -b bug-[bug-name] master           // creates a local branch
+   $ git push origin bug-[bug-name]                  // makes the branch remotely available
+   ```
+
+5. As work gets to stable stopping points or completion, push it to github:
+
+   ```
+   $ git push origin your-branch-name                // pushes branch to github
+   ```
+
+6. When your code is ready to be reviewed:
+
+   - Go to your branch on github.com and create a new pull request to be merged into `main`.
+
+   - Drop any implementation notes into the github.com issue and link the pull request to the github.com issue in the issue right sidebar.
+
+7. After your code is reviewed:
+
+   - It will either be merged or comments will be left so you can finish up the issue. Go ahead and repeat from #1 while you wait for the review.
+
+## Branching
+
+**Quick Legend**
+
+<table>
+  <tr>
+   <td><strong>Instance</strong>
+   </td>
+   <td><strong>Branch</strong>
+   </td>
+   <td><strong>Description, Instructions, Notes</strong>
+   </td>
+  </tr>
+  <tr>
+   <td>Development
+   </td>
+   <td>dev
+   </td>
+   <td>Accepts merges from Working, Features/Issues and Hotfixes.
+   </td>
+  </tr>
+  <tr>
+   <td>Working
+   </td>
+   <td>main
+   </td>
+   <td>Accepts merges from Features/Issues and Hotfixes
+   </td>
+  </tr>
+  <tr>
+   <td>Production
+   </td>
+   <td>prod
+   </td>
+   <td>Accepts merges from Working and Hotfixes
+   </td>
+  </tr>
+</table>
+
+## Main Branches
+
+The main repository will always hold two evergreen branches:
+
+- `main`
+- `prod`
+
+The main branch should be considered `origin/main` and will be the main branch where the source code of `HEAD`always reflects a state with the latest delivered development changes for the next release. As a developer, you will be branching and merging from `main`.
+
+Consider `origin/prod` to always represent the latest code deployed to production. During day to day development, the `prod` branch will not be interacted with.
+
+When the source code in the `main` branch is stable and has been deployed, all of the changes will be merged into `prod`.
+
+## Supporting Branches
+
+Supporting branches are used to aid parallel development between team members, ease tracking of features, and to assist in quickly fixing live production problems. Unlike the main branches, these branches always have a limited life time, since they will be removed eventually.
+
+The different types of branches we may use are:
+
+- Feature branches
+- Bug branches
+- Hotfix branches
+
+Each of these branches have a specific purpose and are bound to strict rules as to which branches may be their originating branch and which branches must be their merge targets. Each branch and its usage is explained below.
+
+## Feature Branches
+
+Feature branches are used when developing a new feature or enhancement which has the potential of a development lifespan longer than a single deployment. When starting development, the deployment in which this feature will be released may not be known. No matter when the feature branch will be finished, it will always be merged back into the main branch.
+
+During the lifespan of the feature development, the lead should watch the `main` branch (network tool or branch tool in GitHub) to see if there have been commits since the feature was branched. Any and all changes to `main` should be merged into the feature before merging back to `main`; this can be done at various times during the project or at the end, but time to handle merge conflicts should be accounted for.
+
+- Must branch from: `main`
+- Must merge back into: `main`
+- Branch naming convention: `feature-[id]`
+
+### Working with a feature branch
+---
+
+If the branch does not exist yet (check with the Lead), create the branch locally and then push to GitHub. A feature branch should always be 'publicly' available. That is, development should never exist in just one developer's local branch.
+
+```
+$ git checkout -b feature-id master                 // creates a local branch for the new feature
+$ git push origin feature-id                        // makes the new feature remotely available
+```
+
+Periodically, changes made to `main` (if any) should be merged back into your feature branch.
+
+```
+$ git merge main                                  // merges changes from master into feature branch
+```
+
+When development on the feature is complete, the lead (or engineer in charge) should merge changes into `main` and then make sure the remote branch is deleted.
+
+```
+$ git checkout main                                 // change to the main branch
+$ git merge --no-ff feature-id                      // makes sure to create a commit object during merge
+$ git push origin main                              // push merge changes
+$ git push origin :feature-id                       // deletes the remote branch
+```
+
+## Bug Branches
+
+Bug branches differ from feature branches only semantically. Bug branches will be created when there is a bug on the live site that should be fixed and merged into the next deployment. For that reason, a bug branch typically will not last longer than one deployment cycle. Additionally, bug branches are used to explicitly track the difference between bug development and feature development. No matter when the bug branch will be finished, it will always be merged back into `main`.
+
+Although likelihood will be less, during the lifespan of the bug development, the lead should watch the `main` branch (network tool or branch tool in GitHub) to see if there have been commits since the bug was branched. Any and all changes to `main` should be merged into the bug before merging back to `main`; this can be done at various times during the project or at the end, but time to handle merge conflicts should be accounted for.
+
+- Must branch from: `main`
+- Must merge back into: `main`
+- Branch naming convention: `bug-[id]`
+
+### Working with a bug branch
+
+---
+
+If the branch does not exist yet (check with the Lead), create the branch locally and then push to GitHub. A bug branch should always be 'publicly' available. That is, development should never exist in just one developer's local branch.
+
+```
+$ git checkout -b bug-id main                       // creates a local branch for the new bug
+$ git push origin bug-id                            // makes the new bug remotely available
+```
+
+Periodically, changes made to `main` (if any) should be merged back into your bug branch.
+
+```
+$ git merge main                                   // merges changes from main into bug branch
+```
+
+When development on the bug is complete, [the Lead] should merge changes into `main` and then make sure the remote branch is deleted.
+
+```
+$ git checkout main                                 // change to the main branch
+$ git merge --no-ff bug-id                          // makes sure to create a commit object during merge
+$ git push origin main                              // push merge changes
+$ git push origin :bug-id                           // deletes the remote branch
+```
+
+## Hotfix Branches
+
+A hotfix branch comes from the need to act immediately upon an undesired state of a live production version. Additionally, because of the urgency, a hotfix is not required to be be pushed during a scheduled deployment. Due to these requirements, a hotfix branch is always branched from a tagged `main` branch. This is done for two reasons:
+
+- Development on the `main` branch can continue while the hotfix is being addressed.
+- A tagged `prod` branch still represents what is in production. At the point in time where a hotfix is needed, there could have been multiple commits to `main` which would then no longer represent production.
+
+- Must branch from: tagged `prod`
+- Must merge back into: `main` and `prod`
+- Branch naming convention: `hotfix-[id]`
+
+### Working with a hotfix branch
+
+---
+
+If the branch does not exist yet (check with the Lead), create the branch locally and then push to GitHub. A hotfix branch should always be 'publicly' available. That is, development should never exist in just one developer's local branch.
+
+```
+$ git checkout -b hotfix-id main                    // creates a local branch for the new hotfix
+$ git push origin hotfix-id                         // makes the new hotfix remotely available
+```
+
+When development on the hotfix is complete, [the Lead] should merge changes into `prod` and then update the tag.
+
+```
+$ git checkout main                                 // change to the main branch
+$ git merge --no-ff hotfix-id                       // forces creation of commit object during merge
+$ git tag -a <tag>                                  // tags the fix
+$ git push origin main --tags                       // push tag changes
+```
+
+Merge changes into `main` so not to lose the hotfix and then delete the remote hotfix branch.
+
+```
+$ git checkout main                                 // change to the main branch
+$ git merge --no-ff hotfix-id                       // forces creation of commit object during merge
+$ git push origin main                              // push merge changes
+$ git push origin :hotfix-id                        // deletes the remote branch
+```
