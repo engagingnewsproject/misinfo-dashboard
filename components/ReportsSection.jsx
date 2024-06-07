@@ -44,11 +44,13 @@ import {
   Tab,
   CardBody,
 } from '@material-tailwind/react';
+import useNetworkStatus from '../hooks/useNetworkStatus';
 const ReportsSection = ({
   search,
   newReportSubmitted,
   handleNewReportSubmit
 }) => {
+  const isOnline = useNetworkStatus();
   const userId = localStorage.getItem('userId');
   const [reports, setReports] = useState([]);
   // const [reporterInfo, setReporterInfo] = useState({})
@@ -90,7 +92,50 @@ const ReportsSection = ({
   const [reportsUpdated, setReportsUpdated] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [showCheckmark, setShowCheckmark] = useState(false);
-  const [open, setOpen] = useState(true);
+  const [open,setOpen] = useState(true);
+  
+
+  // testing for firebase offline status
+  // method 1
+  useEffect(() => {
+		const q = query(collection(db, 'reports'), where('read', '==', 'true'))
+
+		const unsubscribe = onSnapshot(
+			q,
+			{ includeMetadataChanges: true },
+			(snapshot) => {
+				snapshot.docChanges().forEach((change) => {
+					if (change.type === 'added') {
+						console.log('New doc: ', change.doc.data())
+					}
+					if (change.type === 'modified') {
+						console.log('Modified doc: ', change.doc.data())
+					}
+					if (change.type === 'removed') {
+						console.log('Removed doc: ', change.doc.data())
+					}
+				})
+
+				const source = snapshot.metadata.fromCache ? 'local cache' : 'server'
+				console.log('√ √ √ √ √ Data came from ' + source)
+				if (source === 'local cache') {
+					console.log('!!!!!!!!! Firestore is offline. !!!!!!!!!')
+				}
+			}
+		)
+
+		return () => unsubscribe()
+  },[])
+
+	useEffect(() => {
+		if (!isOnline) {
+			console.log('The browser is offline.')
+		}
+	}, [isOnline])
+  // testing for firebase offline status END
+
+  
+  
   useEffect(() => {
     if (customClaims.admin) {
       setIsAgency(false);
@@ -104,6 +149,7 @@ const ReportsSection = ({
 
   // Fetch data when new report is submitted or isAgency is set
   useEffect(() => {
+    // console.log('initial getData (from "isAgency" state change)')
     // Ensure isAgency is set before fetching data:
     if (isAgency !== null) {
       getData();
@@ -391,45 +437,69 @@ const ReportsSection = ({
     setReportModalShow(true);
   }; // end handleReportModalShow
 
+  // list item handle read change
+  const handleRowChangeRead = async (reportId,checked) => {
+    // Optimistic UI update
+    setReports((prevReports) =>
+			prevReports.map((report) =>
+				report.reportID === reportId ? { ...report, read: checked } : report
+			)
+    )
+    
+		setFilteredReports((prevFilteredReports) =>
+			prevFilteredReports.map((report) =>
+				report.reportID === reportId ? { ...report, read: checked } : report
+			)
+		)
+
+		setReportsReadState((prevState) => ({
+			...prevState,
+			[reportId]: checked,
+		}))
+
+		// Firestore update
+		try {
+			const docRef = doc(db, 'reports', reportId)
+			await updateDoc(docRef, { read: checked })
+		} catch (error) {
+			console.error('Error updating read status:', error)
+			// Revert the optimistic update in case of error
+			setReports((prevReports) =>
+				prevReports.map((report) =>
+					report.reportID === reportId ? { ...report, read: !checked } : report
+				)
+			)
+
+			setFilteredReports((prevFilteredReports) =>
+				prevFilteredReports.map((report) =>
+					report.reportID === reportId ? { ...report, read: !checked } : report
+				)
+			)
+
+			setReportsReadState((prevState) => ({
+				...prevState,
+				[reportId]: !checked,
+			}))
+		}
+  };
+
+useEffect(() => {
+  console.log('reportRead: ',reportRead)
+  console.log('reportModalShow: ', reportModalShow)
+}, [reportRead, reportModalShow])
+  
   useEffect(() => {
     if (reportModalShow && reportModalId) {
       // When a report's modal opens set the report as read
       // since someone clicked on it - so they read it
       // but only if it is an agency user.
-      isAgency === true && handleChangeRead(reportModalId, true);
+      isAgency === true && handleRowChangeRead(reportModalId, true);
     } else {
       setReportModalId('');
       setReportModalShow(false);
     }
   },[reportModalShow]) // this effect runs when the report modal is opened/closed
   
-  // list item handle read change
-  const handleChangeRead = async (reportId, checked) => {
-    setReports((prevReports) =>
-      prevReports.map((report) =>
-        report.reportID === reportId ? { ...report, read: checked } : report
-      )
-    );
-
-    setFilteredReports((prevFilteredReports) =>
-      prevFilteredReports.map((report) =>
-        report.reportID === reportId ? { ...report, read: checked } : report
-      )
-    );
-
-    setReportsReadState((prevState) => ({
-      ...prevState,
-      [reportId]: checked,
-    }));
-
-    try {
-      const docRef = doc(db, 'reports', reportId);
-      await updateDoc(docRef, { read: checked });
-    } catch (error) {
-      console.error('Error updating read status:', error);
-    }
-  };
-
 
   // modal item read change
   // function runs when report modal is displayed
@@ -633,7 +703,9 @@ const ReportsSection = ({
             reportTitle={reportTitle}>
             {/* TODO: change here*/}
             {/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
-
+            {process.env.NODE_ENV === 'development' && (
+              <div className={`text-center font-extrabold text-lg ${isOnline ? 'text-green-600' : 'text-red-800'}`}>{isOnline ? "Online" : "Offline"}</div>
+            )}
             <table className="mt-4 w-full min-w-max table-fixed text-left">
               <TableHead columns={columns} handleSorting={handleSorting} />
 
@@ -642,7 +714,7 @@ const ReportsSection = ({
                 columns={columns}
                 endIndex={endIndex}
                 onReportModalShow={handleReportModalShow}
-                onChangeRead={handleChangeRead}
+                onChangeRead={handleRowChangeRead}
                 onReportDelete={handleReportDelete}
                 reportsReadState={reportsReadState}
               />
