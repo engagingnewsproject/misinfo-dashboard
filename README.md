@@ -26,6 +26,8 @@ Not set up? Keep reading...
 
 ## Getting Started
 
+**See [Technical Documentation](https://github.com/engagingnewsproject/misinfo-dashboard/blob/main/technicalDocumentation.md)** for Project Structure, Firebase, Components and Git Usage docs.
+
 ### 1. Clone repo
 
 First step! Clone this repo into a local directory (ex. `~/username/sites/`) on your machine.
