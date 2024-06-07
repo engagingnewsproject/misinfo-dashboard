@@ -657,8 +657,6 @@ useEffect(() => {
             loader={<h4>Loading...</h4>}
             scrollableTarget="scrollableDiv"
             reportTitle={reportTitle}>
-            {/* TODO: change here*/}
-            {/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
             <table className="mt-4 w-full min-w-max table-fixed text-left">
               <TableHead columns={columns} handleSorting={handleSorting} />
 
