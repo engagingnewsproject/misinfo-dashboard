@@ -217,7 +217,7 @@ _The `dev` branch is the branch that contains the dev live site code._
 
     `git push origin dev`
     
-4.  Open the [Netlify UI for the dev site](https://app.netlify.com/sites/dev-misinfo-dashboard/deploys) and monitor the progress.
+4.  Open the [Netlify UI for the dev site](https://app.netlify.com/sites/dev-misinfo-dashboard/deploys) and monitor the progress. Make sure the top bar has `dev-misinfo-dashboard` active. On the left sidebar navigate to the "Deploys" link. Your latest push will be listed at the top.
     
 #### Deploy to prod
 Link: https://misinfo-dashboard.netlify.app/
@@ -250,6 +250,8 @@ _The `prod` branch is the branch that contains the live site code._
 
     `git push origin prod`
     
+7.  Open the [Netlify UI for the prod site](https://app.netlify.com/sites/misinfo-dashboard/deploys) and monitor the progress. Make sure the top bar has `misinfo-dashboard` active. On the left sidebar navigate to the "Deploys" link. Your latest push will be listed at the top.
+    
 #### Deploy issues
 
 If you get the below error you will need to install [Git Large File Storage](https://git-lfs.com/).
@@ -270,11 +272,11 @@ To install:
 
 `git lfs checkout` -  files can be repopulated with their full expected contents [lfs docs](https://github.com/git-lfs/git-lfs/blob/main/docs/man/git-lfs-migrate.adoc?utm_source=gitlfs_site&utm_medium=doc_man_migrate_link&utm_campaign=gitlfs#examples)
 
-Links: [Netlify Dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview)
-
 Project Lead Links: [Firebase CLI Tools](https://firebase.google.com/docs/firestore/security/get-started#use_the_firebase_cli) || [Firebase Console](https://console.firebase.google.com/) || [Firebase Cloud Console](https://console.cloud.google.com/welcome?project=misinfo-5d004) || [Syncing a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line) || [Netlify dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview) || [ENP Prod Repo](https://github.com/engagingnewsproject/misinfo-dashboard-prod)
 
-## Other Helpful Links
+## Links
+
+#### [Netlify Dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview)
 
 #### [React Dev Docs](https://react.dev/)
 
