@@ -44,13 +44,11 @@ import {
   Tab,
   CardBody,
 } from '@material-tailwind/react';
-import useNetworkStatus from '../hooks/useNetworkStatus';
 const ReportsSection = ({
   search,
   newReportSubmitted,
   handleNewReportSubmit
 }) => {
-  const isOnline = useNetworkStatus();
   const userId = localStorage.getItem('userId');
   const [reports, setReports] = useState([]);
   // const [reporterInfo, setReporterInfo] = useState({})
@@ -93,48 +91,6 @@ const ReportsSection = ({
   const [refresh, setRefresh] = useState(false);
   const [showCheckmark, setShowCheckmark] = useState(false);
   const [open,setOpen] = useState(true);
-  
-
-  // testing for firebase offline status
-  // method 1
-  useEffect(() => {
-		const q = query(collection(db, 'reports'), where('read', '==', 'true'))
-
-		const unsubscribe = onSnapshot(
-			q,
-			{ includeMetadataChanges: true },
-			(snapshot) => {
-				snapshot.docChanges().forEach((change) => {
-					if (change.type === 'added') {
-						console.log('New doc: ', change.doc.data())
-					}
-					if (change.type === 'modified') {
-						console.log('Modified doc: ', change.doc.data())
-					}
-					if (change.type === 'removed') {
-						console.log('Removed doc: ', change.doc.data())
-					}
-				})
-
-				const source = snapshot.metadata.fromCache ? 'local cache' : 'server'
-				console.log('√ √ √ √ √ Data came from ' + source)
-				if (source === 'local cache') {
-					console.log('!!!!!!!!! Firestore is offline. !!!!!!!!!')
-				}
-			}
-		)
-
-		return () => unsubscribe()
-  },[])
-
-	useEffect(() => {
-		if (!isOnline) {
-			console.log('The browser is offline.')
-		}
-	}, [isOnline])
-  // testing for firebase offline status END
-
-  
   
   useEffect(() => {
     if (customClaims.admin) {
@@ -703,9 +659,6 @@ useEffect(() => {
             reportTitle={reportTitle}>
             {/* TODO: change here*/}
             {/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className={`text-center font-extrabold text-lg ${isOnline ? 'text-green-600' : 'text-red-800'}`}>{isOnline ? "Online" : "Offline"}</div>
-            )}
             <table className="mt-4 w-full min-w-max table-fixed text-left">
               <TableHead columns={columns} handleSorting={handleSorting} />
 
