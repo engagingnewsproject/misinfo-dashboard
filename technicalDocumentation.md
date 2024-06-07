@@ -547,3 +547,44 @@ $ git merge --no-ff hotfix-id                       // forces creation of commit
 $ git push origin main                              // push merge changes
 $ git push origin :hotfix-id                        // deletes the remote branch
 ```
+
+## `git` commands
+
+See where your local files are at
+
+    git status
+
+Move to main branch
+
+    git checkout main
+
+Pull from main
+
+    git pull origin main
+
+Merge feature branch with main branch
+
+    git merge feature-slider-mobile-fix
+
+Merge feature branch with dev branch
+
+    ```
+    git checkout dev
+    git merge feature-slider-mobile-fix
+    ```
+
+Check your remote setup
+
+    git remote -v
+
+Pull changes from main
+
+    git pull origin main
+
+Add all files to commit
+
+    git add .
+
+Set remote repository URL
+
+    git remote add origin https://github.com/engagingnewsproject/misinfo-dashboard.git
