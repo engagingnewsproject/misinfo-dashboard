@@ -1,6 +1,6 @@
 // components/LocationUpdate.js
 import React, { useState, useEffect } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../config/firebase';
 import { useTranslation } from 'next-i18next';
 import Select from 'react-select';

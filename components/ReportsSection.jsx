@@ -364,7 +364,7 @@ const ReportsSection = ({
 
     // setReport(docRef.data())
     // get note
-    console.log(docRef.data().note)
+    // console.log(docRef.data().note)
     setNote(docRef.data().note);
     setReportTitle(docRef.data().title);
     setDetail(docRef.data().detail);

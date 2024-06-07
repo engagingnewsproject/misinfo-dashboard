@@ -146,7 +146,7 @@ const Users = () => {
 		
 		// AGNECY USERS ONLY
 		if (customClaims.agency) {
-			console.log('only for agencies!')			
+			// console.log('only for agencies!')			
 			// get current user's emial
 			// user.email
 			// get list of all agencies
@@ -215,7 +215,6 @@ const Users = () => {
 			})
 
 		setAgencyName(name)
-		console.log(agencyName)
 		let agencyArr = []
 		const agencySnapshot = await getDocs(collection(db,"agency"));
 			agencySnapshot.forEach((doc) => {
