@@ -93,6 +93,7 @@ Open that link to view the Emulator UI:
 
 ![emulator-ui](https://media.github.austin.utexas.edu/user/3619/files/1012c2ee-b9b2-4529-8914-2e0455af9bda)
 
+**See Emulator Tips** for more info.
 
 ### 5. Add yourself as a user via the "Emulator Authentication" tab. 
 
@@ -150,7 +151,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 Develop away! And good luck :)
 
-## Emulator Notes:
+## Emulator Tips:
 
 #### Emulator UI
 - Database: find the imported database under the Emulator UI / Firestore tab.
@@ -164,6 +165,14 @@ Your user UID that you created will not be associated with any reports or agenci
 #### Emulator log files
 
 Emulator creates log files (`firebase-debug.log` & `ui-debug.log`) when you boot up the emulator. No need to push those with git. 
+
+#### Export your local emulator data
+
+The Firebase emulator allows you to export data from your running emulator instance. If you want to stash a baseline set of data, auth profiles you have set up in your running emulator instance.
+
+`firebase emulators:export ./emulator-data`
+
+This command will export the running emulator instance's auth profiles, firestore data and storage files to the `/emulator-data` folder. **Recommended** to not commit the `/emulator-data` changed files as to not alter the baseline Emulator data.
 
 ## Firebase Functions
 
@@ -187,48 +196,85 @@ With proper permissions access Firebase Console or Firebase Cloud Console.
 
 Links: [Chrome React Developer Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi) || [VS Code React-Native snippets](https://marketplace.visualstudio.com/items?itemName=dsznajder.es7-react-js-snippets) || [VS Code Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
 
-## Project Lead Notes
+## Deploy to Netlify
 
-#### Project Lead: Push to Netlify live site
+#### Deploy to dev
+Link: https://dev-misinfo-dashboard.netlify.app/
 
-To sync with the [Engaging News Project's misinfo-dashboard-prod](https://github.com/engagingnewsproject/misinfo-dashboard-prod) repo once the caet-saga repo's `main` branch is approved and working.
+To push all changes to the dev site on Netlify using the [Engaging News Project's misinfo-dashboard](https://github.com/engagingnewsproject/misinfo-dashboard) repo's `dev` branch.
 
-#### Project Lead: Sync with the caet-saga repo
+_The `dev` branch is the branch that contains the dev live site code._
 
-Fetch upstream branch from caet-saga into the CME misinfo-dashboard-production repo's `dev` branch to validate changes on the misinfo-dev site. Then from CME misinfo-dashboard-production repo create a pull request to merge the `dev` branch into `main`.
-
-1.  Fetch the branches and their respective commits from the upstream repository
-
-    `git fetch upstream`
-2.  Check out your fork's local `dev` branch
+1.  Checkout the `dev` branch
 
     `git checkout dev`
-3.  Merge the changes from the upstream default(`main`) branch
+    
+2.  Merge changes from `main` to `dev`
 
-    `git merge upstream/main`
-4.  Push your changes to the CME `dev` branch
+    `git marge main`
+    
+3. Push the merge into `dev`
 
     `git push origin dev`
     
-    ** If you get a `remote: error: File firestore-debug.log is 102.65 MB; this exceeds GitHub's file size limit of 100.00 MB` run these commands:
+4.  Open the [Netlify UI for the dev site](https://app.netlify.com/sites/dev-misinfo-dashboard/deploys) and monitor the progress.
     
-      `git lfs install` - make sure git large file storage is installed
-      
-      `git lfs track "firestore-debug.log"` - to track the large file
-      
-      `git lfs migrate import --include="firestore-debug.log" --everything` - convert the file types to LFS
-      
-      `git lfs ls-files` - to list files
-      
-      `git lfs checkout` -  files can be repopulated with their full expected contents [lfs docs](https://github.com/git-lfs/git-lfs/blob/main/docs/man/git-lfs-migrate.adoc?utm_source=gitlfs_site&utm_medium=doc_man_migrate_link&utm_campaign=gitlfs#examples)
-    
-5.  If everything looks good on the dev site go to CME's misinfo-dashboard-production repo & create a pull request to merge `dev` into `main`. If all checks pass complete the pull request.
+#### Deploy to prod
+Link: https://misinfo-dashboard.netlify.app/
 
-Links: [Syncing fork branch](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line) | [Netlify dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview)
+To push all changes to the live site on Netlify using the [Engaging News Project's misinfo-dashboard](https://github.com/engagingnewsproject/misinfo-dashboard) repo's `dev` branch.
+
+_The `prod` branch is the branch that contains the live site code._
+
+1.  Checkout the `main` branch
+
+    `git checkout main`
+    
+2.  Merge changes from `dev` into `main`
+
+    `git marge dev`
+    
+3. Push the merge into `main`
+
+    `git push origin main`
+    
+4.  Checkout the `prod` branch
+
+    `git checkout prod`
+
+5. Merge `main` into `prod`
+
+    `git merge main`
+    
+6. Push the merge into `prod`
+
+    `git push origin prod`
+    
+#### Deploy issues
+
+If you get the below error you will need to install [Git Large File Storage](https://git-lfs.com/).
+
+```
+remote: error: File firestore-debug.log is 102.65 MB; this exceeds GitHub's file size limit of 100.00 MB
+``` 
+
+To install:
+
+`git lfs install` - make sure git large file storage is installed
+
+`git lfs track "firestore-debug.log"` - to track the large file
+
+`git lfs migrate import --include="firestore-debug.log" --everything` - convert the file types to LFS
+
+`git lfs ls-files` - to list files
+
+`git lfs checkout` -  files can be repopulated with their full expected contents [lfs docs](https://github.com/git-lfs/git-lfs/blob/main/docs/man/git-lfs-migrate.adoc?utm_source=gitlfs_site&utm_medium=doc_man_migrate_link&utm_campaign=gitlfs#examples)
+
+Links: [Netlify Dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview)
 
 Project Lead Links: [Firebase CLI Tools](https://firebase.google.com/docs/firestore/security/get-started#use_the_firebase_cli) || [Firebase Console](https://console.firebase.google.com/) || [Firebase Cloud Console](https://console.cloud.google.com/welcome?project=misinfo-5d004) || [Syncing a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line) || [Netlify dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview) || [ENP Prod Repo](https://github.com/engagingnewsproject/misinfo-dashboard-prod)
 
-## Links
+## Other Helpful Links
 
 #### [React Dev Docs](https://react.dev/)
 
