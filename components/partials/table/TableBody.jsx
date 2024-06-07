@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import globalStyles from '../../../styles/globalStyles';
-import { Typography } from '@material-tailwind/react';
+import { Tooltip, Typography } from '@material-tailwind/react';
 import { Switch } from "@material-tailwind/react";
 import { IoTrash } from 'react-icons/io5';
 const TableBody = ({
@@ -12,7 +12,18 @@ const TableBody = ({
   onReportDelete,
   reportsReadState
 }) => {
-// console.log(reportsReadState)
+  function trimToWordCount(str, wordCount) {
+    // Split the string into an array of words
+    const words = str.split(' ');
+
+    // If the word count is less than or equal to the desired count, return the original string
+    if (words.length <= wordCount) {
+      return str;
+    }
+
+    // Select the first 'wordCount' words and join them back into a string
+    return words.slice(0, wordCount).join(' ') + '...';
+  }
   return (
     <tbody>
       {/* Check if loadedReports is empty */}
@@ -25,6 +36,8 @@ const TableBody = ({
       ) : (
         filteredReports.slice(0, endIndex).map((reportObj) => {
           const report = reportObj;
+          let details = report.detail
+          details = trimToWordCount(details, 25);
           const formattedDate = new Date(report['createdDate'].seconds * 1000)
           .toLocaleString('en-US', {
               month: 'short',
@@ -35,9 +48,20 @@ const TableBody = ({
               hour12: true,
           });
           return (
+            <Tooltip content={
+              <div className="w-80">
+                <Typography
+                  color="white"
+                  className="font-normal opacity-80"
+                >
+                  {details}
+                </Typography>
+              </div>
+            }
+            >
             <tr
               onClick={() => onReportModalShow(report['reportID'])}
-              className={globalStyles.table.tr}
+              className={`${globalStyles.table.tr} cursor-pointer`}
               key={report['reportID']}>
               {columns.map(({ accessor }) => {
                 let tData;
@@ -69,6 +93,7 @@ const TableBody = ({
                         onChange={(e) => onRowChangeRead(report.reportID,e.target.checked)}
                         color="blue" 
                       />
+                      <Tooltip content="Delete Report" placement="top-start">
                       <button
                         onClick={() => onReportDelete(report['reportID'])}
                         data-tip="Delete report"
@@ -77,7 +102,8 @@ const TableBody = ({
                           size={20}
                           className="ml-4 fill-gray-400 hover:fill-red-600"
                         />
-                      </button>
+                        </button>
+                      </Tooltip>
                     </div>
                   );
                 } else {
@@ -90,7 +116,8 @@ const TableBody = ({
                   </td>
                 );
               })}
-            </tr>
+              </tr>
+            </Tooltip>
           );
         })
       )}

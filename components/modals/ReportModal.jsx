@@ -17,7 +17,6 @@ import { MdOutlineLocalPhone } from "react-icons/md";
 import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
 import { useTranslation } from 'next-i18next';
 const ReportModal = ({
-	// reportModalShow,
 	setReportModalShow,
 	report, // should hold all report fields
 	activeLabels,
@@ -344,20 +343,7 @@ const ReportModal = ({
 								</div>
 								{/* Share */}
 								<ButtonEmailSend onButtonEmailSendClick={() => setShareReportModal(true)} />
-								{/* <button
-									className='flex flex-row text-sm bg-white px-4 mb-4 border-none text-black py-1 rounded-md shadow hover:shadow-none tooltip-share-report'
-									onClick={() => onUserSendEmail(`${reportURI}`)}
-									type='button'>
-									<BsShareFill className='my-1' size={15} />
-									<div className='px-3 py-1'>Share The Report</div>
-									<Tooltip
-										anchorSelect='.tooltip-share-report'
-										place='top'
-										delayShow={500}>
-										Share Report
-									</Tooltip>
-								</button> */}
-								{/* Save button */}
+								
 								<div className='flex items-center justify-between justify-items-stretch'>
 									<div className='save-button w-full'>
 										<button

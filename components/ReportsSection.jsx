@@ -595,12 +595,14 @@ const ReportsSection = ({
             <Typography variant="h5" color="blue">
               List of Reports
             </Typography>
+            <Tooltip content="New Report">
             <Button
               onClick={() => setNewReportModal(true)}
               className="flex items-center gap-2">
               <IoAdd className="mr-1" size={15} />
               New Report
-            </Button>
+              </Button>
+              </Tooltip>
           </div>
           <div className="flex items-center justify-between gap-8">
             <div className="flex">
@@ -616,15 +618,17 @@ const ReportsSection = ({
                   ))}
                 </TabsHeader>
               </Tabs>
-              <IconButton variant="text" onClick={handleRefresh}>
-                {!refresh && !reportsUpdated && <IoMdRefresh size={20} />}
-                {/* Displays loading icon when reports are being updated*/}
-                {refresh && <Spinner color="blue" />}
-                {/* Displays notification once reports have been refreshed. */}
-                {!refresh && showCheckmark && (
-                  <IoMdCheckmark size={20} color="green" />
-                )}
-              </IconButton>
+              <Tooltip content="Refresh Reports" placement="right-end">
+                <IconButton variant="text" onClick={handleRefresh}>
+                  {!refresh && !reportsUpdated && <IoMdRefresh size={20} />}
+                  {/* Displays loading icon when reports are being updated*/}
+                  {refresh && <Spinner color="blue" />}
+                  {/* Displays notification once reports have been refreshed. */}
+                  {!refresh && showCheckmark && (
+                    <IoMdCheckmark size={20} color="green" />
+                  )}
+                </IconButton>
+              </Tooltip>
             </div>
             <div className="LAST-X-WEEKS">
               <select
