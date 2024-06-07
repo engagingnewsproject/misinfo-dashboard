@@ -27,9 +27,6 @@ const EditUserModal = ({
 	userEditing
 }) => {
 	// Styles
-	console.log(`selected agency ${selectedAgency}`)
-	console.log(` agency name ${agencyName}`)
-	// console.log(agenciesArray)
 	const style = {
 		modal_background:
 			"fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto",
@@ -54,10 +51,6 @@ const EditUserModal = ({
 		modal_form_button:
 			"bg-blue-600 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
 	}
-	// useEffect(() => {
-		// console.log(`user role: ${userRole}`)
-		// console.log(`user editing--> ${JSON.stringify(userEditing)}`)
-	// }, [userEditing])
 	
 	return (
 		<div

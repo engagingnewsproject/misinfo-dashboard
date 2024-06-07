@@ -62,7 +62,7 @@ const Dashboard = () => {
 
 
     return (
-        <div className="h-full w-full">
+        <div className="w-full">
             <Navbar tab={tab} setTab={setTab} handleNewReportSubmit={handleNewReportSubmit} customClaims={customClaims} setCustomClaims={setCustomClaims}/>
             <div className="sm:pl-16">
             { tab == 0 && (customClaims.admin || customClaims.agency) && <Home newReportSubmitted={newReportSubmitted} handleNewReportSubmit={handleNewReportSubmit} />}

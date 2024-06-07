@@ -90,7 +90,8 @@ const ReportsSection = ({
   const [reportsUpdated, setReportsUpdated] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [showCheckmark, setShowCheckmark] = useState(false);
-  const [open, setOpen] = useState(true);
+  const [open,setOpen] = useState(true);
+  
   useEffect(() => {
     if (customClaims.admin) {
       setIsAgency(false);
@@ -104,6 +105,7 @@ const ReportsSection = ({
 
   // Fetch data when new report is submitted or isAgency is set
   useEffect(() => {
+    // console.log('initial getData (from "isAgency" state change)')
     // Ensure isAgency is set before fetching data:
     if (isAgency !== null) {
       getData();
@@ -364,7 +366,7 @@ const ReportsSection = ({
 
     // setReport(docRef.data())
     // get note
-    console.log(docRef.data().note)
+    // console.log(docRef.data().note)
     setNote(docRef.data().note);
     setReportTitle(docRef.data().title);
     setDetail(docRef.data().detail);
@@ -391,45 +393,65 @@ const ReportsSection = ({
     setReportModalShow(true);
   }; // end handleReportModalShow
 
+  // list item handle read change
+  const handleRowChangeRead = async (reportId,checked) => {
+    // Optimistic UI update
+    setReports((prevReports) =>
+			prevReports.map((report) =>
+				report.reportID === reportId ? { ...report, read: checked } : report
+			)
+    )
+    
+		setFilteredReports((prevFilteredReports) =>
+			prevFilteredReports.map((report) =>
+				report.reportID === reportId ? { ...report, read: checked } : report
+			)
+		)
+
+		setReportsReadState((prevState) => ({
+			...prevState,
+			[reportId]: checked,
+		}))
+
+		// Firestore update
+		try {
+			const docRef = doc(db, 'reports', reportId)
+			await updateDoc(docRef, { read: checked })
+		} catch (error) {
+			console.error('Error updating read status:', error)
+			// Revert the optimistic update in case of error
+			setReports((prevReports) =>
+				prevReports.map((report) =>
+					report.reportID === reportId ? { ...report, read: !checked } : report
+				)
+			)
+
+			setFilteredReports((prevFilteredReports) =>
+				prevFilteredReports.map((report) =>
+					report.reportID === reportId ? { ...report, read: !checked } : report
+				)
+			)
+
+			setReportsReadState((prevState) => ({
+				...prevState,
+				[reportId]: !checked,
+			}))
+		}
+  };
+
+  
   useEffect(() => {
     if (reportModalShow && reportModalId) {
       // When a report's modal opens set the report as read
       // since someone clicked on it - so they read it
       // but only if it is an agency user.
-      isAgency === true && handleChangeRead(reportModalId, true);
+      isAgency === true && handleRowChangeRead(reportModalId, true);
     } else {
       setReportModalId('');
       setReportModalShow(false);
     }
   },[reportModalShow]) // this effect runs when the report modal is opened/closed
   
-  // list item handle read change
-  const handleChangeRead = async (reportId, checked) => {
-    setReports((prevReports) =>
-      prevReports.map((report) =>
-        report.reportID === reportId ? { ...report, read: checked } : report
-      )
-    );
-
-    setFilteredReports((prevFilteredReports) =>
-      prevFilteredReports.map((report) =>
-        report.reportID === reportId ? { ...report, read: checked } : report
-      )
-    );
-
-    setReportsReadState((prevState) => ({
-      ...prevState,
-      [reportId]: checked,
-    }));
-
-    try {
-      const docRef = doc(db, 'reports', reportId);
-      await updateDoc(docRef, { read: checked });
-    } catch (error) {
-      console.error('Error updating read status:', error);
-    }
-  };
-
 
   // modal item read change
   // function runs when report modal is displayed
@@ -567,7 +589,7 @@ const ReportsSection = ({
 
   return (
     <>
-      <Card className="h-full w-full mt-4">
+      <Card className="w-full mt-4">
         <CardHeader floated={false} shadow={false} className="rounded-none">
           <div className="mb-8 flex items-center justify-between gap-8">
             <Typography variant="h5" color="blue">
@@ -631,9 +653,6 @@ const ReportsSection = ({
             loader={<h4>Loading...</h4>}
             scrollableTarget="scrollableDiv"
             reportTitle={reportTitle}>
-            {/* TODO: change here*/}
-            {/* Switched to table as tailwind supports that feature better. See: https://tailwind-elements.com/docs/standard/data/tables/ */}
-
             <table className="mt-4 w-full min-w-max table-fixed text-left">
               <TableHead columns={columns} handleSorting={handleSorting} />
 
@@ -642,7 +661,7 @@ const ReportsSection = ({
                 columns={columns}
                 endIndex={endIndex}
                 onReportModalShow={handleReportModalShow}
-                onChangeRead={handleChangeRead}
+                onRowChangeRead={handleRowChangeRead}
                 onReportDelete={handleReportDelete}
                 reportsReadState={reportsReadState}
               />
@@ -656,7 +675,7 @@ const ReportsSection = ({
                 key={reportModalId}
                 note={note}
                 detail={detail}
-                checked={reportsRead[report.id]} // Pass the checked state for the selected report
+                checked={reportsReadState[reportModalId]} // Pass the checked state for the clicked report
                 onReadChange={handleChangeReadModal}
                 reportSubmitBy={reportSubmitBy}
                 setReportModalShow={setReportModalShow}

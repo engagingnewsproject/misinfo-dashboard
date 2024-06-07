@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import Switch from "react-switch"
+import { Switch } from "@material-tailwind/react";
 import ButtonEmailSend from "../partials/ButtonEmailSend"
 import ShareReportModal from "../partials/modals/ShareReportModal"
 import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"
@@ -32,8 +32,8 @@ const ReportModal = ({
 	note,
 	detail,
 	// read status
-	checked,
-	onReadChange,
+  checked,
+  onReadChange,
 	update,
 	// read status END
 	postedDate,
@@ -330,19 +330,11 @@ const ReportModal = ({
 											<MdMarkAsUnread size={20} />
 										)}
 									</div>
-
+									
 									<Switch
-										onColor='#2563eb'
-										offColor='#e5e7eb'
-										uncheckedIcon={false}
-										checkedIcon={false}
-										height={23}
-										width={43}
-										onChange={(checked) => onReadChange(reportModalId, checked)}
 										checked={checked}
-										className={`${
-											checked ? "bg-blue-600" : "bg-gray-200"
-										} relative inline-flex h-6 w-11 items-center rounded-full`}
+										onChange={(e) => onReadChange(reportModalId, e.target.checked)}
+										color="blue"
 									/>
 									{checked ? (
 										<span className="ml-2">Read</span>

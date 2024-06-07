@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import globalStyles from '../../../styles/globalStyles';
 import { Typography } from '@material-tailwind/react';
-import Switch from 'react-switch';
+import { Switch } from "@material-tailwind/react";
 import { IoTrash } from 'react-icons/io5';
 const TableBody = ({
   filteredReports,
   columns,
   endIndex,
   onReportModalShow,
-  onChangeRead,
+  onRowChangeRead,
   onReportDelete,
   reportsReadState
 }) => {
@@ -63,23 +63,11 @@ const TableBody = ({
                 } else if (accessor === 'read') {
                   // Special handling for read/unread column
                   tData = (
-                    <div
-                      className={globalStyles.column.data_center}
-                      onClick={(e) => e.stopPropagation()}>
-                     <Switch
-                        onChange={(checked) =>
-                          onChangeRead(report['reportID'], checked)
-                        }
-                        checked={reportsReadState[report['reportID']]} // Use reportsReadState
-                        onColor="#2563eb"
-                        offColor="#e5e7eb"
-                        uncheckedIcon={false}
-                        checkedIcon={false}
-                        height={23}
-                        width={43}
-                        className={`${
-                          report['read'] ? 'bg-blue-600' : 'bg-gray-200'
-                        } relative inline-flex h-6 w-11 items-center rounded-full`}
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Switch
+                        checked={reportsReadState[report.reportID]}
+                        onChange={(e) => onRowChangeRead(report.reportID,e.target.checked)}
+                        color="blue" 
                       />
                       <button
                         onClick={() => onReportDelete(report['reportID'])}

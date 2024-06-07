@@ -16,6 +16,7 @@ import { MdOutlineRemoveRedEye } from "react-icons/md";
 import { Country, State, City }  from 'country-state-city';
 import moment from 'moment'
 import { RiContactsBookLine } from 'react-icons/ri'
+import { Button } from '@material-tailwind/react'
 const SignUp = () => {
     const router = useRouter()
     const { t } = useTranslation(['Welcome', 'NewReport']);
@@ -324,14 +325,14 @@ const SignUp = () => {
                     {data.password !== data.confirmPW && <span className="text-red-500 text-sm font-light">{t("password_error")}</span>}
                     {signUpError && <div className="text-red-500 text-sm font-normal pt-3">{signUpError}</div>}
              
-                    <div className="flex-col items-center content-center mt-7">
-                        <button 
-                        disabled={data.password !== data.confirmPW} 
-                        className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" 
-                        type="submit">
-                           {t("signup")}
-                        </button>
-                    </div>
+                  <div className="flex-col items-center content-center mt-7">
+                    <Button 
+                      loading={data.password !== data.confirmPW} 
+                      fullWidth
+                      type="submit">
+                      {t("signup")}
+                    </Button>
+                  </div>
                 </form>
                 <p className="text-center text-gray-500 text-sm">
                     {t("haveAccount")}
@@ -339,8 +340,8 @@ const SignUp = () => {
                         {t("login_action")}
                     </Link>
                 </p>
-                <div className="flex justify-between items-center p-6 gap-1">
-              <span className="text-blue-500 text-md uppercase font-bold py-2 px-2">{t("select")}</span>
+                <div className="flex justify-center items-center p-6 gap-1">
+              {/* <span className="text-blue-500 text-md uppercase font-bold py-2 px-2">{t("select")}</span> */}
               <LanguageSwitcher/>
                </div>
             </div>

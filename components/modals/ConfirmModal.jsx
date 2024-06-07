@@ -2,10 +2,15 @@ import React, { useState } from 'react'
 import { RiDeleteBin2Fill } from 'react-icons/ri'
 import { BiLogOut } from 'react-icons/bi'
 import { IoMdRefresh } from "react-icons/io"
+import { Button } from '@material-tailwind/react'
 const ConfirmModal = ({ func,title,subtitle,CTA,closeModal }) => {
-        const handleSubmit = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault(); // Prevent the default form submission behavior
-        func(); // Call the provided function on form submission
+        func(e); // Call the provided function on form submission
+    };
+    const handleCancel = (e) => {
+        e.stopPropagation(); // Prevent event propagation
+        closeModal(false); // Close the modal
     };
     return (
         <div>
@@ -30,15 +35,21 @@ const ConfirmModal = ({ func,title,subtitle,CTA,closeModal }) => {
                     </div>
                     <form onSubmit={handleSubmit}>
                         <div className="mt-6 flex justify-between">
-                            <button
-                                onClick={() => closeModal(false)}
-                                className="bg-white hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline">
+                            <Button
+                                type='button'
+                                onClick={handleCancel}
+                                color='red'
+                                // className="bg-white hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                            >
                                 Cancel
-                            </button>
-                            <button
-                                className="bg-blue-600 hover:bg-white text-white text-sm hover:text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit" autoFocus>
+                            </Button>
+                            <Button
+                                // className="bg-blue-600 hover:bg-white text-white text-sm hover:text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" 
+                                type="submit" 
+                                autoFocus
+                            >
                                 {CTA}
-                            </button>
+                            </Button>
                         </div>
                     </form>
                 </div>
