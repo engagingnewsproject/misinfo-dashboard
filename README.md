@@ -8,6 +8,9 @@
 
 This project project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) of the [Next.js](https://nextjs.org/) framework. To learn more about Next.js features and API, take a look at [Next.js Documentation](https://nextjs.org/docs).
 
+**See [Technical Documentation](https://github.com/engagingnewsproject/misinfo-dashboard/blob/main/technicalDocumentation.md)** for Project Structure, Firebase, Components and Git Usage docs.
+
+
 ## Already set up?
 
 Simple. Run two commands in separate terminal tabs:
@@ -25,8 +28,6 @@ yarn dev
 Not set up? Keep reading...
 
 ## Getting Started
-
-**See [Technical Documentation](https://github.com/engagingnewsproject/misinfo-dashboard/blob/main/technicalDocumentation.md)** for Project Structure, Firebase, Components and Git Usage docs.
 
 ### 1. Clone repo
 
@@ -288,3 +289,5 @@ Project Lead Links: [Firebase CLI Tools](https://firebase.google.com/docs/firest
 #### [TailwindCSS Docs](https://tailwindcss.com/docs/installation)
 
 #### [Deprecated: Misinfo Dashboard Documentation GitBook](https://app.gitbook.com/o/tmOnCbkSzYuWj7EVbFqg/s/h5B8zKreIfyiUKOT1awO/)
+
+#### [Markdown Badges](https://github.com/Ileriayo/markdown-badges)
