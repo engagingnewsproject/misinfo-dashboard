@@ -8,7 +8,7 @@ const TableBody = ({
   columns,
   endIndex,
   onReportModalShow,
-  onChangeRead,
+  onRowChangeRead,
   onReportDelete,
   reportsReadState
 }) => {
@@ -64,29 +64,11 @@ const TableBody = ({
                   // Special handling for read/unread column
                   tData = (
                     <div onClick={(e) => e.stopPropagation()}>
-                      { console.log('report is read? ', report.read) }
                       <Switch
                         checked={reportsReadState[report.reportID]}
-                        onChange={(e) => onChangeRead(report.reportID, e.target.checked)}
+                        onChange={(e) => onRowChangeRead(report.reportID,e.target.checked)}
+                        color="blue" 
                       />
-                      {/* Below is the old switch element (commented out), above is the material tailwind switch element */}
-                      {/* 
-                        <Switch
-                          onChange={(checked) =>
-                            onChangeRead(report['reportID'], checked)
-                          }
-                          checked={reportsReadState[report['reportID']]} // Use reportsReadState
-                          onColor="#2563eb"
-                          offColor="#e5e7eb"
-                          uncheckedIcon={false}
-                          checkedIcon={false}
-                          height={23}
-                          width={43}
-                          className={`${
-                            report['read'] ? 'bg-blue-600' : 'bg-gray-200'
-                          } relative inline-flex h-6 w-11 items-center rounded-full`}
-                        /> 
-                      */}
                       <button
                         onClick={() => onReportDelete(report['reportID'])}
                         data-tip="Delete report"

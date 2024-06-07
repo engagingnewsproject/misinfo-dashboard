@@ -439,10 +439,6 @@ const ReportsSection = ({
 		}
   };
 
-useEffect(() => {
-  console.log('reportRead: ',reportRead)
-  console.log('reportModalShow: ', reportModalShow)
-}, [reportRead, reportModalShow])
   
   useEffect(() => {
     if (reportModalShow && reportModalId) {
@@ -665,7 +661,7 @@ useEffect(() => {
                 columns={columns}
                 endIndex={endIndex}
                 onReportModalShow={handleReportModalShow}
-                onChangeRead={handleRowChangeRead}
+                onRowChangeRead={handleRowChangeRead}
                 onReportDelete={handleReportDelete}
                 reportsReadState={reportsReadState}
               />
@@ -679,7 +675,7 @@ useEffect(() => {
                 key={reportModalId}
                 note={note}
                 detail={detail}
-                checked={reportsRead[report.id]} // Pass the checked state for the selected report
+                checked={reportsReadState[reportModalId]} // Pass the checked state for the clicked report
                 onReadChange={handleChangeReadModal}
                 reportSubmitBy={reportSubmitBy}
                 setReportModalShow={setReportModalShow}

@@ -32,8 +32,8 @@ const ReportModal = ({
 	note,
 	detail,
 	// read status
-	checked,
-	onReadChange,
+  checked,
+  onReadChange,
 	update,
 	// read status END
 	postedDate,
@@ -330,24 +330,12 @@ const ReportModal = ({
 											<MdMarkAsUnread size={20} />
 										)}
 									</div>
-
+									
 									<Switch
-										onChange={(checked) => onReadChange(reportModalId, checked)}
 										checked={checked}
+										onChange={(e) => onReadChange(reportModalId, e.target.checked)}
+										color="blue"
 									/>
-									{/* <Switch
-										onColor='#2563eb'
-										offColor='#e5e7eb'
-										uncheckedIcon={false}
-										checkedIcon={false}
-										height={23}
-										width={43}
-										onChange={(checked) => onReadChange(reportModalId, checked)}
-										checked={checked}
-										className={`${
-											checked ? "bg-blue-600" : "bg-gray-200"
-										} relative inline-flex h-6 w-11 items-center rounded-full`}
-									/> */}
 									{checked ? (
 										<span className="ml-2">Read</span>
 									) : (
