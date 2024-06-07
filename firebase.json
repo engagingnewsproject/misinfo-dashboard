@@ -48,28 +48,18 @@
     "ui": {
       "enabled": true
     },
-    "singleProjectMode": true
+    "singleProjectMode": true,
+    "storage": {
+      "port": 9199
+    }
   },
   "storage": {
-    "rules": "storage.rules",
-    "cors": [
-      {
-        "origin": [
-          "https://misinfo-dashboard.netlify.app",
-          "https://dev-misinfo-dashboard.netlify.app",
-          "http://localhost:3000"
-        ],
-        "method": [
-          "GET",
-          "PUT",
-          "POST",
-          "DELETE"
-        ],
-        "maxAgeSeconds": 3600
-      }
-    ]
+    "rules": "storage.rules"
   },
   "extensions": {
     "firestore-send-email-6bt9": "firebase/firestore-send-email@0.1.33"
+  },
+  "scripts": {
+    "prestart": "node initializeFirestore.js"
   }
 }
