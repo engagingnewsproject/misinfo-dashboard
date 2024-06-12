@@ -373,7 +373,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
 
   return (
     <div className="bk-white h-full w-full">
-      <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-[1200]">
+      <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-[9999]">
         <div
           onClick={handleNewReportModalClose}
           className={`flex overflow-y-auto justify-center items-center z-[1300] absolute top-6 left-0 w-full h-full`}>

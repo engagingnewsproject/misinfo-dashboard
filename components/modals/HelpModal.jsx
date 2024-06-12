@@ -4,7 +4,7 @@ import { IoClose } from "react-icons/io5";
 const HelpModal = ({ setHelpModal }) => {
   return (
     <>
-      <div onClick={() => setHelpModal(false)} className="fixed z-[1900] insert-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full">
+      <div onClick={() => setHelpModal(false)} className="fixed z-[9999] insert-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full">
         <div className="relative top-20 mx-auto p-5 border w-10/12 lg:w-6/12 shadow-lg rounded-md bg-white">
           <div className="flex flex-col overflow-y-auto bg-white h-auto rounded-2xl mt-4 lg:mt-autopy-10 px-10" onClick={(e) => { e.stopPropagation() }}>
             <div className="flex justify-between w-full mb-5">

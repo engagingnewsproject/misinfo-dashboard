@@ -50,10 +50,10 @@ const UpdatePwModal = ({ setOpenModal }) => {
 
     return (
         <div>
-            <div className="flex justify-center items-center z-[1200] fixed top-0 left-0 w-full h-screen bg-black opacity-60">
+            <div className="flex justify-center items-center z-[9998] fixed top-0 left-0 w-full h-screen bg-black opacity-60">
             </div>
             <div 
-            className="flex justify-center items-center z-[1300] fixed top-0 left-0 w-full h-screen"
+            className="flex justify-center items-center z-[9999] fixed top-0 left-0 w-full h-screen"
             onClick={() => setOpenModal(false)}>
                 <div className="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10"
                 onClick={(e) => {
