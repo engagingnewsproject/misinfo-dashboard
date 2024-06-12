@@ -155,10 +155,10 @@ const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
 	}, [update])
 
 	return (
-		<div className='fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto'>
+		<div className='fixed z-[9998] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto'>
 			<div
 				onClick={handleContactHelpClose}
-				className={`flex overflow-y-auto justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full`}>
+				className={`flex overflow-y-auto justify-center items-center z-[9999] absolute top-0 left-0 w-full h-full`}>
 				<div
 					onClick={(e) => {
 						e.stopPropagation()
