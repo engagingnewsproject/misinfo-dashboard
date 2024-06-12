@@ -107,7 +107,7 @@ export const AuthContextProvider = ({children}) => {
     });
   }
 
-  const signup = (name, email, password) => {
+  const signup = (name, email, password, state, city) => {
 		return new Promise((resolve, reject) => {
 			// Create a new Promise that wraps the asynchronous user creation process
 			createUserWithEmailAndPassword(auth, email, password) // Attempt to create a new user with the provided email and password
@@ -118,25 +118,31 @@ export const AuthContextProvider = ({children}) => {
 						.then((verified) => {
 							// If email verification is successful, execute the following callback function with the 'verified' boolean value
 							if (verified) {
+                console.log("verified")
 								// If the email is verified, proceed with the following actions
-								const uid = userCredential.user.uid // Extract the UID (unique identifier) of the newly created user
-								const mobileUserDocRef = doc(db, "mobileUsers", uid) // Create a reference to the document in the 'mobileUsers' collection with the user's UID
-								const userData = {
-									// Define the data to be stored in the user document
-									name: name,
-									email: email,
-									joiningDate: moment().utc().unix(),
-									isBanned: false,
-									userRole: "User",
-								}
+								// const uid = userCredential.user.uid // Extract the UID (unique identifier) of the newly created user
+								// const mobileUserDocRef = doc(db, "mobileUsers", uid) // Create a reference to the document in the 'mobileUsers' collection with the user's UID
+								// const userData = {
+								// 	// Define the data to be stored in the user document
+                //   name: data.name,
+                //   email: data.email,
+                //   phone: (data.phone ? data.phone : ""),
+                //   joiningDate: moment().utc().unix(),
+                //   state: data.state,
+                //   city: data.city,
+                //   isBanned: false,
+                //   userRole: privilege,
+                //   contact: data.contact
+								// }
 								// Create a new document in the 'mobileUsers' collection with the provided user data
-								setDoc(mobileUserDocRef, userData)
-									.then(() => {
+								// setDoc(mobileUserDocRef, userData)
+								// 	.then(() => {
 										resolve(userCredential) // If document creation is successful, resolve the Promise with the userCredential object
-									})
-									.catch((error) => {
-										reject(error) // If there's an error creating the document, reject the Promise with the error
-									})
+									// })
+									// .catch((error) => {
+                  //   console.log("doc error")
+									// 	reject(error) // If there's an error creating the document, reject the Promise with the error
+									// })
 							} else {
 								reject(new Error("Email verification failed")) // If email verification fails, reject the Promise with an error
 							}
