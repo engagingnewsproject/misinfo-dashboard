@@ -89,9 +89,6 @@ const TableBody = ({
                   // Special handling for read/unread column
                   tData = (
                     <div onClick={(e) => e.stopPropagation()}>
-                      {
-                      console.log(reportsReadState[report.reportID] !== undefined && reportsReadState[report.reportID])
-                      }
                       <Switch
                         checked={reportsReadState[report.reportID] !== undefined && reportsReadState[report.reportID]}
                         onChange={(e) => onRowChangeRead(report.reportID,e.target.checked)}
