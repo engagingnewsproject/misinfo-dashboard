@@ -485,6 +485,7 @@ const Profile = ({ customClaims }) => {
                       alt={`${agency.name} logo`}
                       width={70}
                       height={100}
+                      className='h-auto'
                     />
                   )}
                 </div>
