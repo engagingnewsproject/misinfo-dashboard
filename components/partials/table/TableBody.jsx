@@ -34,7 +34,7 @@ const TableBody = ({
           </td>
         </tr>
       ) : (
-        filteredReports.slice(0, endIndex).map((reportObj) => {
+        filteredReports.slice(0, endIndex).map((reportObj, i = self.crypto.randomUUID()) => {
           const report = reportObj;
           let details = report.detail
           details = trimToWordCount(details, 25);
@@ -58,6 +58,7 @@ const TableBody = ({
                 </Typography>
               </div>
             }
+              key={i}
             >
             <tr
               onClick={() => onReportModalShow(report['reportID'])}
@@ -89,7 +90,7 @@ const TableBody = ({
                   tData = (
                     <div onClick={(e) => e.stopPropagation()}>
                       <Switch
-                        checked={reportsReadState[report.reportID]}
+                        checked={reportsReadState[report.reportID] !== undefined && reportsReadState[report.reportID]}
                         onChange={(e) => onRowChangeRead(report.reportID,e.target.checked)}
                         color="blue" 
                       />

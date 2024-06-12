@@ -136,6 +136,7 @@ const SignUp = () => {
                 console.log('not agency 135')
                 signup(data.name, data.email, data.password, data.state, data.city)
                   .then((userCredential) => {
+                    console.log("sign up successful")
                     setSignUpError("")
                     addMobileUser("User")
                     router.push('/verifyEmail');

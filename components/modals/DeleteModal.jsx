@@ -12,9 +12,9 @@ const DeleteModal = ({ func, title, subtitle, CTA, closeModal }) => {
 
 	return (
 		<div>
-			<div className='flex justify-center items-center z-[1900] absolute top-0 left-0 w-full h-full bg-black opacity-60'></div>
+			<div className='flex justify-center items-center z-[9998] fixed top-0 left-0 w-full h-screen bg-black opacity-60'></div>
 			<div
-				className='flex justify-center items-center z-[1900] absolute top-0 left-0 w-full h-full'
+				className='flex justify-center items-center z-[9999] fixed top-0 left-0 w-full h-screen'
 				onClick={() => closeModal(false)}>
 				<div
 					className='flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10'
