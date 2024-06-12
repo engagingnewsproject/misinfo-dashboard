@@ -9,8 +9,7 @@ import {
 	doc, 
 	updateDoc,
 	arrayUnion,
-
-	} from '@firebase/firestore'
+	} from 'firebase/firestore'
 
 import { auth } from '../../config/firebase'
 
@@ -90,8 +89,8 @@ const handleImageChange = (e) => {
 				setSendEmail(`${userEmail} is already an admin for this agency.`)
 				break
 			}
-      await sendSignIn(userEmail)
-      setSendEmail("Sign-in link was sent.")
+      // await sendSignIn(userEmail)
+      // setSendEmail("Sign-in link was sent.")
 
     }
     const agencyRef = doc(db, "agency", agencyId);
@@ -236,11 +235,11 @@ const handleImageChange = (e) => {
 		modal_form_data: 'col-span-2 text-sm bg-white rounded-xl p-4 mb-5',
     modal_form_add_agency: 'col-span-2 text-sm rounded-xl p-1 mb-5',
 		modal_form_upload_image: 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
-		modal_form_button: 'bg-blue-500 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold ml-1 py-2 px-6 rounded-md focus:outline-none focus:shadow-outline',
+		modal_form_button: 'bg-blue-600 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold ml-1 py-2 px-6 rounded-md focus:outline-none focus:shadow-outline',
     modal_form_button_sent: "bg-green-500 col-start-3 self-end hover:bg-green-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
     modal_notification_text: "text-green-700",
     modal_dismiss_button: "bg-green-700 self-end hover:bg-green-800 text-sm text-white font-semibold ml-1 px-2 rounded-lg focus:outline-none focus:shadow-outline",
-    modal_resend_button: "bg-blue-500 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold ml-1 px-2 rounded-lg focus:outline-none focus:shadow-outline",
+    modal_resend_button: "bg-blue-600 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold ml-1 px-2 rounded-lg focus:outline-none focus:shadow-outline",
     modal_delete:"bg-red-500 text-white font-semibold ml-1 px-1 mr-2 rounded-lg"
   }
 	// TODO: filter reports, tags & users by agency login
@@ -275,15 +274,15 @@ const handleImageChange = (e) => {
                       <p>{txt}</p>
 
                     </div>
-                    <div>
+                    {/* <div>
                       <button onClick={()=>sendAgencyLinks(txt)} className={style.modal_resend_button} type="submit">Resend link</button>
-                    </div> 
+                    </div>  */}
                   </div>)}
-                  {resendEmail && 
+                  {/* {resendEmail && 
                         <div className="flex py-2">
                           <p className={style.modal_notification_text}>{resendEmail}</p>                       
                           <span><button onClick={()=>setResendEmail("")} className={style.modal_dismiss_button} type="submit">Dismiss</button></span>
-                        </div>}
+                        </div>} */}
               </div>
               <div className={style.modal_form_label}>
                 Add agency user
@@ -303,7 +302,7 @@ const handleImageChange = (e) => {
                         Email should be at least 15 characters long
                         </p>
                         ) : null}
-                      <button onClick={handleAddAgencyUsers} className={style.modal_form_button} type="submit">Send sign-in link</button>
+                      <button onClick={handleAddAgencyUsers} className={style.modal_form_button} type="submit">Add agency user</button>
                       {sendEmail && 
                         <div className="flex py-2">
                           <p className={style.modal_notification_text}>{sendEmail}</p>                       

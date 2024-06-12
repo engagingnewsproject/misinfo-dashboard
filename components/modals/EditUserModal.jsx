@@ -11,6 +11,7 @@ const EditUserModal = ({
 	// agency
 	agenciesArray,
 	selectedAgency,
+	agencyName,
 	onAgencyChange,
 	onNameChange,
 	name,
@@ -48,12 +49,8 @@ const EditUserModal = ({
 		modal_form_input:
 			"shadow border-none rounded-xl min-w-full col-span-2 p-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
 		modal_form_button:
-			"bg-blue-500 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
+			"bg-blue-600 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
 	}
-	// useEffect(() => {
-		// console.log(`user role: ${userRole}`)
-		// console.log(`user editing--> ${JSON.stringify(userEditing)}`)
-	// }, [userEditing])
 	
 	return (
 		<div
@@ -173,11 +170,11 @@ const EditUserModal = ({
 												<select
 													id='agency'
 													onChange={onAgencyChange}
-													value={selectedAgency}
+													value={agencyName}
 													className={`${style.modal_form_input}`}>
 													{agenciesArray.map((agency, i) => (
-														<option value={agency.data.name} key={i}>
-															{agency.data.name}
+														<option value={agency} key={i}>
+															{agency}
 														</option>
 													))}
 												</select>

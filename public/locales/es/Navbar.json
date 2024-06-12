@@ -1,0 +1,9 @@
+{
+  "chfModalTitle": "Formulario de Ayuda de Contacto",
+  "chfModalSubject": "Añade un asunto",
+  "chfModalMessage": "Añade un mensaje",
+  "chfModalScreenshots": "Subir capturas de pantalla",
+  "chfModalChooseFiles": "Seleccionar archivos",
+  "chfModalNoChosenFile": "Ningún archivo elegido",
+  "chfModalSubmit": "Enviar"
+}

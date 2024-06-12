@@ -62,7 +62,7 @@ const RenameTagModal = ({ replaceTag, selected, list, setRenameTagModal, addNewT
                                 Replace
                             </button>
                             <button
-                                className="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                                className="bg-white hover:bg-blue-600 hover:text-white text-sm text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
                                 type="submit">
                                 Keep Both
                             </button>

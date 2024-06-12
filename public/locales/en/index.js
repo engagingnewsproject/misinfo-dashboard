@@ -12,6 +12,7 @@ import report from "./Report";
 import createAccount from "./CreateAccount"
 import forgotPassword from "./ForgotPassword";
 import agency from "./Agency";
+import navbar from "./Navbar";
 
 export default {
   home,
@@ -27,5 +28,6 @@ export default {
   report,
   createAccount,
   forgotPassword,
-  agency
+  agency,
+  navbar
 };

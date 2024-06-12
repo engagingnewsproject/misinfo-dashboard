@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import {isSignInWithEmailLink, signInWithEmailLink, signOut, createUserWithEmailAndPassword, verifyEmail } from 'firebase/auth'
-import { doc, setDoc, collection, addDoc, arrayUnion} from '@firebase/firestore'
+import { doc, setDoc, collection, addDoc, arrayUnion} from 'firebase/firestore'
 import { db, auth } from '../config/firebase'
 import Select from "react-select";
 import PhoneInput from 'react-phone-input-2'
@@ -16,6 +16,7 @@ import { MdOutlineRemoveRedEye } from "react-icons/md";
 import { Country, State, City }  from 'country-state-city';
 import moment from 'moment'
 import { RiContactsBookLine } from 'react-icons/ri'
+import { Button } from '@material-tailwind/react'
 const SignUp = () => {
     const router = useRouter()
     const { t } = useTranslation(['Welcome', 'NewReport']);
@@ -40,12 +41,14 @@ const SignUp = () => {
     const [icon, setIcon] = useState(false)
     
     const addMobileUser = (privilege) => {
-        // Get user object
+      // Get user object
+      console.log('addMobileUser start', privilege)
         const user = auth.currentUser;
-     
-        // if (user) {
+        console.log(user)
+        if (user) {
             // Set user uid
-            // console.log("adding mobile user")
+          console.log("adding mobile user")
+          console.log(data)
             const uid = user.uid;
             // create a new mobileUsers doc with signed in user's uid
             setDoc(doc(db, "mobileUsers", uid), {
@@ -60,12 +63,13 @@ const SignUp = () => {
                 contact: data.contact
             });
             // console.log("user was added with uid" + uid)
-        // } else {
-            // console.log('no user');
-        // }
+        } else {
+            console.log('no user');
+        }
     }
 
-    const handleSignUp = async (e) => {
+  const handleSignUp = async (e) => {
+      console.log('handleSignUp')
         e.preventDefault()
         // console.log("signing up")
         if (data.password.length < 8) {
@@ -77,7 +81,6 @@ const SignUp = () => {
             allErrors.state = t("NewReport:state")
         }
         if (data.city == null) {
-            // Don't display the report, show an error message
             console.log("city error")
             allErrors.city = t("NewReport:city")
             if (data.state != null && City.getCitiesOfState(
@@ -130,7 +133,8 @@ const SignUp = () => {
                   });
                 
               } else {
-                signup(data.name, data.email, data.password)
+                console.log('not agency 135')
+                signup(data.name, data.email, data.password, data.state, data.city)
                   .then((userCredential) => {
                     setSignUpError("")
                     addMobileUser("User")
@@ -321,14 +325,14 @@ const SignUp = () => {
                     {data.password !== data.confirmPW && <span className="text-red-500 text-sm font-light">{t("password_error")}</span>}
                     {signUpError && <div className="text-red-500 text-sm font-normal pt-3">{signUpError}</div>}
              
-                    <div className="flex-col items-center content-center mt-7">
-                        <button 
-                        disabled={data.password !== data.confirmPW} 
-                        className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" 
-                        type="submit">
-                           {t("signup")}
-                        </button>
-                    </div>
+                  <div className="flex-col items-center content-center mt-7">
+                    <Button 
+                      loading={data.password !== data.confirmPW} 
+                      fullWidth
+                      type="submit">
+                      {t("signup")}
+                    </Button>
+                  </div>
                 </form>
                 <p className="text-center text-gray-500 text-sm">
                     {t("haveAccount")}
@@ -336,8 +340,8 @@ const SignUp = () => {
                         {t("login_action")}
                     </Link>
                 </p>
-                <div className="flex justify-between items-center p-6 gap-1">
-              <span className="text-blue-500 text-md uppercase font-bold py-2 px-2">{t("select")}</span>
+                <div className="flex justify-center items-center p-6 gap-1">
+              {/* <span className="text-blue-500 text-md uppercase font-bold py-2 px-2">{t("select")}</span> */}
               <LanguageSwitcher/>
                </div>
             </div>

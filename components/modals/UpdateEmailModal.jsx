@@ -60,7 +60,7 @@ const UpdateEmailModal = ({ setEmailModal }) => {
                                 required
                                 value={data.currentEmail}
                                 onChange={handleChange}
-                                autocomplete="email"
+                                autoComplete="email"
                                 />
                         </div>
                         <div className={incorrectPassword ? 'mb-0' : 'mb-4'}>
@@ -85,7 +85,7 @@ const UpdateEmailModal = ({ setEmailModal }) => {
                                 required
                                 value={data.newEmail}
                                 onChange={handleChange}
-                                autocomplete="email"
+                                autoComplete="email"
                                 />
                         </div>
                         {data.newEmail.length > 0 && data.newEmail.length < 8 && <span className="text-red-500 text-sm font-light">{t('incorrectEmail')}.</span>}
@@ -93,7 +93,7 @@ const UpdateEmailModal = ({ setEmailModal }) => {
                         <div className="mt-6">
                             <button
                                 disabled={!data.newEmail || data.newEmail.length > 0 && data.newEmail.length < 8}
-                                className="w-full bg-blue-500 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
                                 type="submit">
                                 {t('resetEmail')}
                             </button>
