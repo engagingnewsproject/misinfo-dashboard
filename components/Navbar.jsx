@@ -97,9 +97,9 @@ const Navbar = ({
       <Drawer
         open={windowSize[0] > 640 ? true : open}
         onClose={closeDrawer}
-        size={60}
+        size={65}
         overlay={disableOverlay}
-        className='z-30'
+        className='z-[9997]'
       >
         <div className="fixed top-0 left-0 w-16">
           <div className="flex-col bg-white h-screen max-h-screen">
@@ -114,8 +114,11 @@ const Navbar = ({
                 </Button>
                 {(customClaims.admin || customClaims.agency) && (
                   <button // Home/Reports view
-                    onClick={() => setTab(0)}
-                    className={`${basicStyle} ${
+                    onClick={() => {
+                      setTab(0);
+                      closeDrawer();
+                    }}
+                    className={`${ basicStyle } ${
                       tab === 0 ? 'text-indigo-500 bg-indigo-100' : ''
                     } tooltip-home`}>
                     <IoHomeOutline size={30} />
@@ -129,7 +132,10 @@ const Navbar = ({
                 )}
                 {customClaims.admin && (
                   <button // Agencies
-                    onClick={() => setTab(4)}
+                    onClick={() => {
+                      setTab(4) 
+                      closeDrawer()
+                    }}
                     className={`${basicStyle} ${
                       tab === 4 ? 'text-indigo-500 bg-indigo-100' : ''
                     } tooltip-agencies`}>
@@ -144,7 +150,10 @@ const Navbar = ({
                 )}
                 {(customClaims.agency || customClaims.admin) && (
                   <button // Tags
-                    onClick={() => setTab(2)}
+                    onClick={() => {
+                      setTab(2)
+                      closeDrawer()
+                    }}
                     className={`${basicStyle} ${
                       tab === 2 ? ' text-indigo-500 bg-indigo-100' : ''
                     } tooltip-tags`}>
@@ -159,8 +168,11 @@ const Navbar = ({
                 )}
                 {customClaims.agency && ( // if admin user or agency user show the add report & users icons
                   <button //  Agency user create report
-                    onClick={handleNewReportModal}
-                    className={`${basicStyle} tooltip-new-report`}>
+                    onClick={(e) => {
+                      handleNewReportModal(e)
+                      closeDrawer()
+                    }}
+                    className={`${ basicStyle } tooltip-new-report`}>
                     <IoAddCircleOutline size={30} />
                     <Tooltip
                       anchorSelect=".tooltip-new-report"
@@ -172,7 +184,10 @@ const Navbar = ({
                 )}
                 {(customClaims.admin || customClaims.agency) && (
                   <button // Users
-                    onClick={() => setTab(3)}
+                    onClick={() => {
+                      setTab(3)
+                      closeDrawer()
+                    }}
                     className={`${basicStyle} ${
                       tab === 3 ? ' text-indigo-500 bg-indigo-100' : ''
                     } tooltip-users`}>
@@ -187,8 +202,11 @@ const Navbar = ({
                 )}
                 {!customClaims.admin && !customClaims.agency && (
                   <button // General User create report
-                    onClick={onReportTabClick}
-                    className={`${basicStyle} tooltip-create-report`}>
+                    onClick={(e) => {
+                      onReportTabClick(e);
+                      closeDrawer();
+                    }}
+                    className={`${ basicStyle } tooltip-create-report`}>
                     <HiOutlineDocumentPlus size={30} />
                     <Tooltip
                       anchorSelect=".tooltip-create-report"
@@ -202,8 +220,11 @@ const Navbar = ({
               <div className="self-end">
                 {(customClaims.admin || customClaims.agency) && (
                   <button
-                    onClick={() => setHelpModal(true)}
-                    className={`${basicStyle} tooltip-help`}>
+                    onClick={() => {
+                      setHelpModal(true)
+                      closeDrawer()
+                    }}
+                    className={`${ basicStyle } tooltip-help`}>
                     <IoHelpCircleOutline size={30} />
                     <Tooltip
                       anchorSelect=".tooltip-help"
@@ -214,7 +235,10 @@ const Navbar = ({
                   </button>
                 )}
                 <button
-                  onClick={() => setContactHelpModal(true)}
+                  onClick={() => {
+                    setContactHelpModal(true);
+                    closeDrawer();
+                  }}
                   className={`${basicStyle} tooltip-contact-us-for-help`}>
                   <IoChatboxEllipsesOutline size={30} />
                   <Tooltip
@@ -225,7 +249,10 @@ const Navbar = ({
                   </Tooltip>
                 </button>
                 <button
-                  onClick={() => setTab(1)}
+                  onClick={() => {
+                    setTab(1)
+                    closeDrawer()
+                  }}
                   className={`${basicStyle} ${
                     tab === 1 ? ' text-indigo-500 bg-indigo-100' : ''
                   } tooltip-profile`}>
