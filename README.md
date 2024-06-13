@@ -88,6 +88,36 @@ Next, to run the app on the emulator and import the testing db data, in a _new_ 
 firebase emulators:start --import=./emulator-data
 ``` 
 
+See [Emulator Tips](https://github.com/engagingnewsproject/misinfo-dashboard?tab=readme-ov-file#emulator-tips) for more info.
+
+### 5. Start dev server
+
+To boot up the development server run:
+
+```
+yarn dev
+# or
+npm run dev
+```
+
+> _If you open `http://localhost:3000` and you see the "unhandled error" `FirebaseError: Failed to get document because the client is offline.` this means you have not started the Firebase Emulator. Return to step #4 to Install and run the Firebase Emulator._
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. If you have the emulator running you will see a banner `Running in emulator mode. Do not use with production credentials.` at the bottom of your screen as well as Console log messages letting you know that the emulator is running:
+
+![emulator-running](https://media.github.austin.utexas.edu/user/3619/files/fa9f1c63-1f3a-4dd2-b0d3-2ca3ab6b86f0)
+
+> NOTE: You will have 2 terminal tabs running while developing:
+- > 1 terminal tab for `yarn dev` (or `npm run dev`), 
+- > 1 terminal tab for `firebase emulators:start --import=./emulator-data`. 
+
+> NOTE: You will also have 2 browser tabs open while developing:
+- > 1 browser tab for `localhost:3000` (actual misinfo dashboard), 
+- > 1 browser tab for "Firebase Emulator Suite" 
+
+Develop away! And good luck :)
+
+## Emulator Tips:
+
 > _If you get `command not found` you might have to be added as a user for the Firebase project. Contact the lead developer to do this for you. Or contact mediaengagement@austin.utexas.edu_
 
 The Firebase Emulator should boot up and provide you an emulator link (look for `View Emulator UI at` in your command line output). 
@@ -98,7 +128,7 @@ Open that link to view the Emulator UI:
 
 **See Emulator Tips** for more info.
 
-### 5. Add yourself as a user via the "Emulator Authentication" tab. 
+### Add yourself as a user via the "Emulator Authentication" tab. 
 
 #### Two options:
 
@@ -128,33 +158,6 @@ Open that link to view the Emulator UI:
 
     In the "Custom Claims" input enter `{"admin":true}` & save.
     
-### 6. Start dev server
-
-To boot up the development server run:
-
-```
-yarn dev
-# or
-npm run dev
-```
-
-> _If you open `http://localhost:3000` and you see the "unhandled error" `FirebaseError: Failed to get document because the client is offline.` this means you have not started the Firebase Emulator. Return to step #4 to Install and run the Firebase Emulator._
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. If you have the emulator running you will see a banner `Running in emulator mode. Do not use with production credentials.` at the bottom of your screen as well as Console log messages letting you know that the emulator is running:
-
-![emulator-running](https://media.github.austin.utexas.edu/user/3619/files/fa9f1c63-1f3a-4dd2-b0d3-2ca3ab6b86f0)
-
-> NOTE: You will have 2 terminal tabs running while developing:
-- > 1 terminal tab for `yarn dev` (or `npm run dev`), 
-- > 1 terminal tab for `firebase emulators:start --import=./emulator-data`. 
-
-> NOTE: You will also have 2 browser tabs open while developing:
-- > 1 browser tab for `localhost:3000` (actual misinfo dashboard), 
-- > 1 browser tab for "Firebase Emulator Suite" 
-
-Develop away! And good luck :)
-
-## Emulator Tips:
 
 #### Emulator UI
 - Database: find the imported database under the Emulator UI / Firestore tab.
