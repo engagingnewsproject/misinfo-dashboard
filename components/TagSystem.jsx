@@ -11,24 +11,39 @@ import { MdModeEditOutline } from 'react-icons/md'
 import { TiDelete } from 'react-icons/ti'
 import { IoIosRadioButtonOn } from 'react-icons/io'
 import { BsXCircleFill } from "react-icons/bs";
-import { setDoc, getDoc, doc } from "firebase/firestore"; 
+import { collection, query, where, setDoc, getDoc, getDocs, doc } from "firebase/firestore"; 
 import { useAuth } from '../context/AuthContext'
 import { db } from '../config/firebase'
 import Image from 'next/image'
 
 const maxTags = [0, 7, 10, 7] // default, Topic, Source, Labels (respectively)
 
-const setData = async(tagSystem, list, active, user) => {
-    const docRef = await getDoc(doc(db, "tags", user.uid))
-    const updatedDocRef = await setDoc(doc(db, "tags", user.uid), {
+const setData = async(tagSystem, list, active, agency) => {
+
+  const docRef = await doc(db, "tags", agencyId)
+  const docSnap = await getDoc(docRef);
+
+  let updatedDocRef;
+  if (docSnap.exists()) {
+    updatedDocRef = await setDoc(doc(db, "tags", agency), {
         ...docRef.data(),
         [tagSystems[tagSystem]]: {
             list: list,
             active: active
         }
     });
+
+  // if doc doesn't already exist for agency in tags collection, create one.
+  } else {
+    updatedDocRef = await setDoc(doc(db, "tags", agency), {
+      [tagSystems[tagSystem]]: {
+        list: list,
+        active: active
+      }
+    })
+
+  }
     return updatedDocRef
-    
 }
 
 const TagSystem = ({ tagSystem, setTagSystem}) => {
@@ -36,6 +51,8 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
     const [active, setActive] = useState([])
     //const docRef = getDoc(db, "tags", tagSystem)
     const { user, customClaims, setCustomClaims} = useAuth()
+
+    const [agencyID, setAgencyID] = useState("") // holds agency UID
     const [selected, setSelected] = useState("")
     const [search, setSearch] = useState("")
     const [searchResult, setSearchResult] = useState(list)
@@ -50,10 +67,29 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
     }, [])
 
     const getData = async() => {
-        const docRef = await getDoc(doc(db, "tags", user.uid))
 
-        try {
-            const { [tagSystems[tagSystem]]: tagsData } = docRef.data()
+        // determine which agency the current user is a part of
+        const agencyCollection = collection(db,"agency")
+        console.log(user)
+        const q = query(agencyCollection, where('agencyUsers', "array-contains", user.email));
+        let agencyId;
+
+        // TODO: FIX THIS
+
+        const querySnapshot = await getDocs(q)        
+        querySnapshot.forEach((doc) => { // Set initial values
+          console.log(doc.id)
+          agencyId = doc.id
+          setAgencyID(agencyId)
+        })
+        
+        console.log("current agency's ID is " + agencyId);
+        const docRef = await doc(db, "tags", agencyId)
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+          console.log("Document data:", docSnap.data());
+          const { [tagSystems[tagSystem]]: tagsData } = docRef.data()
             setList(tagsData.list)
             tagsData.active.sort((a, b) => {
                 if (a === "Other") return 1; // Move "Other" to the end
@@ -61,10 +97,14 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                 return a.localeCompare(b); // Default sorting for other elements
             });
             setActive(tagsData.active)
-        } catch (error) {
-            setData(tagSystem, list, active, user)
-            console.log(error)
+        } else {
+          // docSnap.data() will be undefined in this case
+          console.log("No such document!");
+          setData(tagSystem, list, active, agencyId)
+          console.log(error)
         }
+       
+
     }
 
     const updateTag = (e, updateType) => {
@@ -91,7 +131,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                 setRenameTagModal(true)
                 break
         }
-        setData(tagSystem, list, active, user)
+        setData(tagSystem, list, active, agencyID)
     }
 
     const deleteTag = () => {
@@ -103,7 +143,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
             active.splice(active.indexOf(selected), 1)
         }
         setSelected("")
-        setData(tagSystem, list, active, user)
+        setData(tagSystem, list, active, agencyID)
         setDeleteModal(false)
     }
 
@@ -112,7 +152,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
         if (active.includes(selected)) {
             active[active.indexOf(selected)] = tag
         }
-        setData(tagSystem, list, active, user)
+        setData(tagSystem, list, active, agencyID)
         setSelected("")
     }
 
@@ -120,7 +160,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
         let arr = list
         arr.push(tag)
         setList(arr)
-        setData(tagSystem, list, active, user)
+        setData(tagSystem, list, active, agencyID)
         setSearch("")
     }
 
