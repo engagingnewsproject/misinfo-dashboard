@@ -22,10 +22,10 @@ const NewTagModal = ({ tagSystems, tagSystem, list, setNewTagModal, addNewTag })
 
 
     return (
-        <div className='z-50'>
-            <div className="flex justify-center items-center z-10 absolute top-0 left-0 w-full h-full bg-black opacity-60">
+        <div>
+            <div className="flex z-[9998] justify-center items-center absolute top-0 left-0 w-full h-full bg-black opacity-60">
             </div>
-            <div onClick={() => setNewTagModal(false)} className="flex justify-center items-center z-20 absolute top-0 left-0 w-full h-full">
+            <div onClick={() => setNewTagModal(false)} className="flex justify-center items-center z-[9999] absolute top-0 left-0 w-full h-full">
                 <div className="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10"
                     onClick={(e) => {
                         e.stopPropagation()
