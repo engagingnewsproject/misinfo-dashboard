@@ -20,13 +20,13 @@ const maxTags = [0, 7, 10, 7] // default, Topic, Source, Labels (respectively)
 
 const setData = async(tagSystem, list, active, agency) => {
 
-  const docRef = await doc(db, "tags", agencyId)
+  const docRef = await doc(db, "tags", agency)
   const docSnap = await getDoc(docRef);
 
   let updatedDocRef;
   if (docSnap.exists()) {
     updatedDocRef = await setDoc(doc(db, "tags", agency), {
-        ...docRef.data(),
+        ...docSnap.data(),
         [tagSystems[tagSystem]]: {
             list: list,
             active: active
@@ -49,6 +49,10 @@ const setData = async(tagSystem, list, active, agency) => {
 const TagSystem = ({ tagSystem, setTagSystem}) => {
     const [list, setList] = useState([])
     const [active, setActive] = useState([])
+
+    const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
+    const defaultSources = ["Newspaper", "Other/Otro","Social","Website"] // tag system 2
+    const defaultLabels = ["Important", "Flagged"] // tag system 3
     //const docRef = getDoc(db, "tags", tagSystem)
     const { user, customClaims, setCustomClaims} = useAuth()
 
@@ -71,40 +75,52 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
         // determine which agency the current user is a part of
         const agencyCollection = collection(db,"agency")
         console.log(user)
-        const q = query(agencyCollection, where('agencyUsers', "array-contains", user.email));
-        let agencyId;
 
-        // TODO: FIX THIS
+        // If current user is an agency, determine which agency
+        if (!customClaims.admin) {
+          const q = query(agencyCollection, where('agencyUsers', "array-contains", user.email));
+          let agencyId;
 
-        const querySnapshot = await getDocs(q)        
-        querySnapshot.forEach((doc) => { // Set initial values
-          console.log(doc.id)
-          agencyId = doc.id
-          setAgencyID(agencyId)
-        })
+          // TODO: FIX THIS
+          
+          const querySnapshot = await getDocs(q)        
+          querySnapshot.forEach((doc) => { // Set initial values
+            console.log(doc.id)
+            agencyId = doc.id
+            setAgencyID(agencyId)
+          })
         
-        console.log("current agency's ID is " + agencyId);
-        const docRef = await doc(db, "tags", agencyId)
-        const docSnap = await getDoc(docRef);
+          console.log("current agency's ID is " + agencyId);
+          const docRef = await doc(db, "tags", agencyId)
+          const docSnap = await getDoc(docRef);
         
-        if (docSnap.exists()) {
-          console.log("Document data:", docSnap.data());
-          const { [tagSystems[tagSystem]]: tagsData } = docRef.data()
-            setList(tagsData.list)
-            tagsData.active.sort((a, b) => {
-                if (a === "Other") return 1; // Move "Other" to the end
-                if (b === "Other") return -1; // Move "Other" to the end
-                return a.localeCompare(b); // Default sorting for other elements
-            });
-            setActive(tagsData.active)
-        } else {
-          // docSnap.data() will be undefined in this case
-          console.log("No such document!");
-          setData(tagSystem, list, active, agencyId)
-          console.log(error)
-        }
-       
+          if (docSnap.exists()) {
+            console.log("Document data:", docSnap.data());
+            const { [tagSystems[tagSystem]]: tagsData } = docSnap.data()
+              setList(tagsData.list)
+              tagsData.active.sort((a, b) => {
+                  if (a === "Other") return 1; // Move "Other" to the end
+                  if (b === "Other") return -1; // Move "Other" to the end
+                  return a.localeCompare(b); // Default sorting for other elements
+              });
+              setActive(tagsData.active)
+          } else {
+            // docSnap.data() will be undefined in this case
+            console.log("No such document!");
+            if (tagSystem == 1) {
+              setData(tagSystem, defaultTopics, defaultTopics, agencyId)
 
+            } else if (tagSystem == 2) {
+              setData(tagSystem, defaultSources, defaultSources, agencyId)
+
+            } else if (tagSystem == 3) {
+              setData(tagSystem, defaultLabels, defaultLabels, agencyId)
+
+            } else {
+              console.log("tag system not correctly configured")
+            }
+          }
+      }
     }
 
     const updateTag = (e, updateType) => {
