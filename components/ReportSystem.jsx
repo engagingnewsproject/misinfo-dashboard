@@ -578,13 +578,13 @@ const ReportSystem = ({
 						<Typography>{t("description")}</Typography>
 						<Typography>{t("example")}</Typography>
 						<List>
-							<ListItem disabled='true' className='opacity-100'>
+							<ListItem disabled={true} className='opacity-100'>
 								<ListItemPrefix>
 									<BiCheckCircle size={25} color='green' />
 								</ListItemPrefix>
 								<Typography color='black'>{t("correct")}</Typography>
 							</ListItem>
-							<ListItem disabled='true' className='opacity-100'>
+							<ListItem disabled={true} className='opacity-100'>
 								<ListItemPrefix>
 									<BiXCircle size={25} color='red' />
 								</ListItemPrefix>
