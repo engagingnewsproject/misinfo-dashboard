@@ -39,7 +39,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [endIndex, setEndIndex] = useState(10)
 	const [deleteModal, setDeleteModal] = useState(false)
 	// NEW Agency Modal
-	const { user, sendSignIn } = useAuth() // Add agency user send signup email
+  const { user } = useAuth()
 	const [newAgencyModal, setNewAgencyModal] = useState(false)
 	const [newAgencySubmitted, setNewAgencySubmitted] = useState(0);
 	const [newAgencyName, setNewAgencyName] = useState("")

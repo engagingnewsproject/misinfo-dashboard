@@ -180,37 +180,48 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
     // If current user is an agency, determine which agency
     
     const q = query(agencyCollection, where("name", "==", e.value), where("state","==", data.state.name))
-        
+    let agencyId;
     getDocs(q).then((querySnapshot) => {       
-      querySnapshot.forEach((doc) => { // Set initial values
-        console.log(doc.id)
-        agencyId = doc.id
+      querySnapshot.forEach((docAgency) => { // Set initial values
+        console.log("im here")
+        agencyId = docAgency.id
+        console.log(agencyId)
         setSelectedAgencyID(agencyId)
-
-        getDoc(doc(db, 'tags', agencyId)).then((docRef)=> {
+        console.log(agencyId)
+        const docRef = doc(db, 'tags', agencyId)
+        getDoc(docRef).then((docSnap)=> {
        // TODO: test to make sure not null
 
         // create tags collection if current agency does not have one
-        if (!docRef.exists()) {
+        if (!docSnap.exists()) {
             const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
             const defaultSources = ["Newspaper", "Other/Otro","Social","Website"] // tag system 2
             const defaultLabels = ["Important", "Flagged"] // tag system 3
 
-            // create topics collection for the new agency
-            addDoc(collection(db, "tags", agencyId), {
-            Topics: {
-                list: defaultTopics,
-                active: defaultTopics
-              },
-              Sources: {
-                list: defaultSources,
-                active: defaultSources
-              },
+            // reference to tags collection 
+            const tagsCollection = collection(db, "tags")
+
+            const myDocRef = doc(tagsCollection, agencyId)
+
+            // create topics document for the new agency
+            setDoc(myDocRef, {
+         
               Labels: {
                 list: defaultLabels,
                 active: defaultLabels
+              },
+           
+              Source: {
+                list: defaultSources,
+                active: defaultSources
+              },
+              Topic: {
+                list: defaultTopics,
+                active: defaultTopics
               }
           })
+        } else {
+          console.log("Tags collection for this agency exists.")
         }
       });
     })
@@ -260,57 +271,79 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
 
   const getTopicList = async () => {
     try {
+      console.log("Current agency's ID is " + agencyID)
       let docRef = await getDoc(doc(db, 'tags', agencyID));
        // TODO: test to make sure not null
 
        // create tags collection if current agency does not have one
        if (!docRef.exists()) {
+          console.log("Need to create tag collection for agency. ")
           const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
           const defaultSources = ["Newspaper", "Other/Otro","Social","Website"] // tag system 2
           const defaultLabels = ["Important", "Flagged"] // tag system 3
 
-          // create topics collection for the new agency
-          addDoc(collection(db, "tags", agencyID), {
-          Topics: {
+          // reference to tags collection 
+          const myDocRef = doc(db, "tags", agencyID);
+          setTopics(defaultTopics)
+          setActive(defaultTopics['active'])
+
+          // create topics document for the new agency
+          await setDoc(myDocRef, {
+          Labels: {
+            list: defaultLabels,
+            active: defaultLabels
+          },
+          Source: {
+            list: defaultSources,
+            active: defaultSources
+          },
+          Topic: {
               list: defaultTopics,
               active: defaultTopics
-            },
-            Sources: {
-              list: defaultSources,
-              active: defaultSources
-            },
-            Labels: {
-              list: defaultLabels,
-              active: defaultLabels
-            }
+          }
         })
         // retrieve list of topics again after creating document of tags for agency
-        docRef = await getDoc(doc(db, 'tags', agencyID));
-       }
-      const { ['Topic']: tagsData } = docRef.data();
-      setList(tagsData.list);
-      tagsData.active.sort((a, b) => {
-        if (a === t('Other')) return 1; // Move "Other" to the end
-        if (b === t('Other')) return -1; // Move "Other" to the end
-        return a.localeCompare(b); // Default sorting for other elements
-      });
-      setActive(tagsData.active);
+        console.log("in if statement")
+       
+    
+  
+
+      // Otherwise, tag collection already exists.
+      } else {
+        const tagsData  = docRef.data()['Topic']
+        setTopics(docRef.data()['Topic']['list']);
+        tagsData['active'].sort((a, b) => {
+          if (a === t('Other')) return 1; // Move "Other" to the end
+          if (b === t('Other')) return -1; // Move "Other" to the end
+          return a.localeCompare(b); // Default sorting for other elements
+        });
+        console.log(tagsData['active'])
+        setActive(tagsData['active']);
+      }
+  
     } catch (error) {
       console.log(error);
-    }
+    } finally {
+      console.log('Cleanup here'); // cleanup, always executed
+  }
   };
 
   const getSourceList = async () => {
     try {
-      const docRef = await getDoc(doc(db, 'tags', agencyID));
-      const { ['Source']: tagsData } = docRef.data();
-      setSourceList(tagsData.list);
-      tagsData.active.sort((a, b) => {
-        if (a === 'Other') return 1; // Move "Other" to the end
-        if (b === 'Other') return -1; // Move "Other" to the end
-        return a.localeCompare(b); // Default sorting for other elements
-      });
-      setActiveSources(tagsData.active);
+      getDoc(doc(db, 'tags', agencyID)).then((docRef)=> {
+        if (docRef.exists()) {
+          console.log(docRef.data())
+          const tagsData  = docRef.data()['Source']
+          setSources(docRef.data()['Source']['active'])
+          setSourceList(docRef.data()['Source']['list'])
+          tagsData['active'].sort((a, b) => {
+            if (a === 'Other') return 1; // Move "Other" to the end
+            if (b === 'Other') return -1; // Move "Other" to the end
+            return a.localeCompare(b); // Default sorting for other elements
+          });
+        setActiveSources(docRef.data()['Source']['active']);
+        }
+      })
     } catch (error) {
       console.log(error);
     }
@@ -401,16 +434,25 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
   // to add to drop down list
   useEffect(() => {
     getAllAgencies();
-    getAllTopics();
-    getAllSources();
-    getTopicList();
-    getSourceList();
+
   }, []);
 
   useEffect(()=> {
-    getAllTopics();
-    getAllSources();
+    console.log(agencyID)
+    if (agencyID) {
+      getTopicList();
+      // getAllTopics();
+      // getAllSources();
+    }
   }, [agencyID])
+
+  useEffect(()=> {
+    // waits to retrieve sources until topics are retrieved
+    if (agencyID && allTopicsArr.length > 0) {
+      console.log(active)
+      getSourceList()
+    }
+  }, [allTopicsArr])
 
   async function getAllAgencies() {
     // Get agency collection docs
