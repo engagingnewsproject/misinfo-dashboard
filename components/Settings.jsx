@@ -6,6 +6,7 @@ import { collection, query, where, setDoc, getDoc, getDocs, doc } from "firebase
 import { db, auth } from "../config/firebase"
 import {List,ListItem} from "@material-tailwind/react"
 import Select from 'react-select';
+import { Country, State, City } from 'country-state-city';
 
 export const tagSystems = ['default', 'Topic', 'Source', 'Labels'];
 
@@ -49,25 +50,31 @@ const Settings = () => {
      
   }
 
-  const handleAgencyChange= (name, id) => {
-    setAgencyID(id)
+  const handleAgencyChange= (e) => {
+    console.log("Item is " + e)
+    console.log("Agency id is " + e.id);
+    setAgencyID(e.id)
+    setSelectedAgency(e.name)
   }
 
-  const handleStateChange = (eD) => {
+  const handleStateChange = (e) => {
     console.log(e)
     setStateSelected(e)
+    setAgencyID(null)
+    setSelectedAgency(null)
 
     getDocs(collection(db, "agency")).then((agencyRef)=> {
       try {
         // build an array of agency names
         var arr = []
         agencyRef.forEach((doc) => {
-          // console.log("doc state is " +doc.data()['state'] )
+          console.log("doc state is " +doc.data()['state'] )
           // console.log("user location is " +userData?.state?.name )
-          if (doc.data()["state"] == e?.state?.name) {
-            arr.push({state: doc.data()["name"], id: doc.id})
+          if (doc.data()["state"] == e?.name) {
+            arr.push({state: doc.data()['state'], name: doc.data()["name"], id: doc.id})
           }
         })
+        console.log(arr)
         setAgencies(arr)
       } catch (error) {
         console.log(error)
@@ -130,14 +137,17 @@ const Settings = () => {
       {tagSystem == 0 ?
       <div className="z-0 flex-col p-16">
         <div className={globalStyles.heading.h1.blue}>Tagging Systems</div>
-        {/* {customClaims.admin && 
+        {customClaims.admin && 
         <div>
+            <div className={globalStyles.heading.h2.blue}>Agency Location</div>
+
             <Select
             className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="state"
             type="text"
             required
-            placeholder={"State"}
+            placeholder="State"
+
             value={stateSelected.state }
             options={State.getStatesOfCountry('US')}
             getOptionLabel={(options) => {
@@ -149,29 +159,35 @@ const Settings = () => {
             label="state"
             onChange={handleStateChange}
           />
-          <List>
-            {agencies.length == 0 && t("noAgencies")}
-            {agencies.map((agency, id) => (
-              <ListItem
-                id='agency'
-                key={id}
-                selected={id === agencyID}
-                value={agency}
-                onClick={() => handleAgencyChange(agency, id)}>
-                {agency}
-              </ListItem>
-            ))}
-                    
-          </List>
-        </div>
-        } */}
+          <div className={globalStyles.heading.h2.blue}>Agencies</div>
 
+          <Select
+            className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            options={agencies}
+            placeholder="Agency Name"
+
+            getOptionLabel={(options) => {
+              return options['name']
+            }}
+            getOptionValue={(options) => {
+              return options['name'];
+            }}
+            onChange={handleAgencyChange}/>
+          {customClaims.admin && <div className={globalStyles.heading.h2.blue}>Tags</div>}
+          {agencyID == null &&        
+            <div>
+                Select an agency to view and edit their tags.
+            </div> }
+        </div>
+        }
+        {agencyID && 
+        <div>
         <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">Topic Tags</div>
             <button
                 onClick={() => setTagSystem(1)}
                 className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                {customClaims.admin ? `View ` : `Edit `}Topics
+                Edit Topics
             </button>
         </div>
         <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
@@ -179,7 +195,7 @@ const Settings = () => {
             <button
                 onClick={() => setTagSystem(2)}
                 className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                {customClaims.admin ? `View ` : `Edit `}Sources
+                Edit Sources
             </button>
         </div>
         <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
@@ -187,11 +203,16 @@ const Settings = () => {
             <button
                 onClick={() => setTagSystem(3)}
                 className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                {customClaims.admin ? `View ` : `Edit `}Labels
+                Edit Labels
             </button>
         </div>
-      </div> :
-        <TagSystem tagSystem={tagSystem} setTagSystem={setTagSystem} agencyID={agencyID} />}
+      </div> 
+      }
+      </div>
+      
+    
+    :
+        <TagSystem tagSystem={tagSystem} setTagSystem={setTagSystem} agencyID={agencyID} stateSelected={stateSelected} agency={agency} />}
       {/* TODO: add "custom tags section for approval" */}
     </div>
 

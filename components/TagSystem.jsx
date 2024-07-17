@@ -215,8 +215,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
                         <div className="px-2 font-normal tracking-wide">{"New " + tagSystems[tagSystem]}</div>
                     </button> :
                     <div className="flex items-center ml-auto">
-                        {!customClaims.admin &&
-                        <>
+                       
                             <button
                                 className="flex items-center shadow mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
                                 type="submit"
@@ -238,8 +237,6 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
                                 <IoIosRadioButtonOn className={active.includes(search) ? "text-red-600" : "text-green-600"} size={18}/>
                                 <div className="px-2 font-normal tracking-wide">{active.includes(search) ? "Mark as Inactive" : "Mark as Active"}</div>
                             </button>
-                        </>
-                        }
                     </div>}
                 </div>
                 <div className="relative">
@@ -290,7 +287,6 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
                         }}>
                             {active.map((item) => {
                                 return (
-                                !customClaims.admin ?
                                     !item.includes('Other') ?
                                         <div onClick={() => setSelected(item)} className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center" key={item}>
                                             <GoDotFill size={25} className="text-green-600"/>
@@ -300,11 +296,11 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
                                             <GoDotFill size={25} className="text-gray-400"/>
                                             <div className="pl-2">{`Other*`}</div>
                                         </div>
-                                    :
-                                    <div className="text-md font-light my-5 leading-normal flex items-center justify-center" key={item}>
-                                        <GoDotFill size={25} className="text-green-600"/>
-                                        <div className="pl-2">{item}</div>
-                                    </div>
+                                    // :
+                                    // <div className="text-md font-light my-5 leading-normal flex items-center justify-center" key={item}>
+                                    //     <GoDotFill size={25} className="text-green-600"/>
+                                    //     <div className="pl-2">{item}</div>
+                                    // </div>
                                 )
                             })}
                         </div>}
@@ -320,17 +316,16 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
                             const selectedStyles = normStyles + " bg-blue-600 text-white rounded-lg"
                             const randomKey = self.crypto.randomUUID(); // Generate random UUID
                             return (
-                                !customClaims.admin ?
                                     !item.includes('Other') &&
                                     <div onClick={() => setSelected(item)} className={selected == item ? selectedStyles : normStyles} key={randomKey}>
                                         { active.includes(item) && <GoDotFill size={25} className="text-green-600"/> }
                                         <div className="pl-2">{item}</div>
                                     </div>
-                                :
-                                <div className={`text-md font-light p-2 my-3 md:mx-2 leading-normal flex items-center justify-center`} key={randomKey}>
-                                    { active.includes(item) && <GoDotFill size={25} className="text-green-600"/> }
-                                    <div className="pl-2">{item}</div>
-                                </div>
+                                // :
+                                // <div className={`text-md font-light p-2 my-3 md:mx-2 leading-normal flex items-center justify-center`} key={randomKey}>
+                                //     { active.includes(item) && <GoDotFill size={25} className="text-green-600"/> }
+                                //     <div className="pl-2">{item}</div>
+                                // </div>
                             )
                         })}
                         </div>
