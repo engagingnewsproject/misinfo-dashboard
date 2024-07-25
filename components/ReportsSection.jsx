@@ -657,7 +657,7 @@ const ReportsSection = ({
             loader={<h4>Loading...</h4>}
             scrollableTarget="scrollableDiv"
             reportTitle={reportTitle}>
-            <table className="mt-4 w-full min-w-max table-fixed text-left">
+            <table className="mt-4 w-full min-w-full table-fixed text-left">
               <TableHead columns={columns} handleSorting={handleSorting} />
 
               <TableBody
