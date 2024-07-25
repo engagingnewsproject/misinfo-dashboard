@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { useAuth } from '../context/AuthContext'
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 import {
   collection,
@@ -11,24 +11,24 @@ import {
   updateDoc,
   deleteDoc,
   onSnapshot,
-} from 'firebase/firestore'
-import { db } from '../config/firebase'
+} from 'firebase/firestore';
+import { db } from '../config/firebase';
 // Icons
 import {
   IoMdRefresh,
   IoIosInformationCircle,
   IoMdCheckmark,
-} from 'react-icons/io'
-import { IoAdd, IoTrash } from 'react-icons/io5'
+} from 'react-icons/io';
+import { IoAdd, IoTrash } from 'react-icons/io5';
 // Icons END
 // import ReactTooltip from "react-tooltip"
-import InfiniteScroll from 'react-infinite-scroll-component'
-import NewReport from './modals/NewReportModal'
-import ReportModal from './modals/ReportModal'
-import ConfirmModal from './modals/ConfirmModal'
-import globalStyles from '../styles/globalStyles'
-import TableHead from './partials/table/TableHead'
-import TableBody from './partials/table/TableBody'
+import InfiniteScroll from 'react-infinite-scroll-component';
+import NewReport from './modals/NewReportModal';
+import ReportModal from './modals/ReportModal';
+import ConfirmModal from './modals/ConfirmModal';
+import globalStyles from '../styles/globalStyles';
+import TableHead from './partials/table/TableHead';
+import TableBody from './partials/table/TableBody';
 import {
   Button,
   Card,
@@ -43,112 +43,115 @@ import {
   TabsHeader,
   Tab,
   CardBody,
-} from '@material-tailwind/react'
+} from '@material-tailwind/react';
 const ReportsSection = ({
   search,
   newReportSubmitted,
-  handleNewReportSubmit,
+  handleNewReportSubmit
 }) => {
-  const userId = localStorage.getItem('userId')
-  const [reports, setReports] = useState([])
+  const userId = localStorage.getItem('userId');
+  const [reports, setReports] = useState([]);
   // const [reporterInfo, setReporterInfo] = useState({})
-  const [newReportModal, setNewReportModal] = useState(false)
-  const [filteredReports, setFilteredReports] = useState([])
-  const [loadedReports, setLoadedReports] = useState([])
-  const [endIndex, setEndIndex] = useState(0)
-  const [hasMore, setHasMore] = useState(true)
-  const [reportWeek, setReportWeek] = useState('4')
-  const [readFilter, setReadFilter] = useState('all')
-  const [reportTitle, setReportTitle] = useState('')
+  const [newReportModal, setNewReportModal] = useState(false);
+  const [filteredReports, setFilteredReports] = useState([]);
+  const [loadedReports, setLoadedReports] = useState([]);
+  const [endIndex, setEndIndex] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [reportWeek, setReportWeek] = useState('4');
+  const [readFilter, setReadFilter] = useState('all');
+  const [reportTitle, setReportTitle] = useState('');
   const [agencyName, setAgencyName] = useState('')
-  const [isAgency, setIsAgency] = useState(null)
-  const { user, customClaims } = useAuth()
+  const [isAgency, setIsAgency] = useState(null);
+  const { user, customClaims } = useAuth();
 
   // Report modal states
-  const [report, setReport] = useState('')
-  const [reportId, setReportId] = useState('')
-  const [reportModalShow, setReportModalShow] = useState(false)
-  const [reportModalId, setReportModalId] = useState('')
-  const [note, setNote] = useState('')
-  const [title, setTitle] = useState('')
-  const [detail, setDetail] = useState()
-  const [reportSubmitBy, setReportSubmitBy] = useState('')
-  const [reportRead, setReportRead] = useState(false)
-  const [reportsRead, setReportsRead] = useState({}) // Store checked state for each report
+  const [report, setReport] = useState('');
+  const [reportId, setReportId] = useState('');
+  const [reportModalShow, setReportModalShow] = useState(false);
+  const [reportModalId, setReportModalId] = useState('');
+  const [note, setNote] = useState('');
+  const [title, setTitle] = useState('');
+  const [detail, setDetail] = useState();
+  const [reportSubmitBy, setReportSubmitBy] = useState('');
+  const [reportRead, setReportRead] = useState(false);
+  const [reportsRead,setReportsRead] = useState({}) // Store checked state for each report
   const [reportsReadState, setReportsReadState] = useState({})
-  const [info, setInfo] = useState({})
-  const [selectedLabel, setSelectedLabel] = useState('')
-  const [activeLabels, setActiveLabels] = useState([])
-  const [changeStatus, setChangeStatus] = useState('')
-  const [postedDate, setPostedDate] = useState('')
-  const [reportLocation, setReportLocation] = useState('')
+  const [info, setInfo] = useState({});
+  const [selectedLabel, setSelectedLabel] = useState('');
+  const [activeLabels, setActiveLabels] = useState([]);
+  const [changeStatus, setChangeStatus] = useState('');
+  const [postedDate, setPostedDate] = useState('');
+  const [reportLocation, setReportLocation] = useState('');
   // const [update,setUpdate] = useState("")
-  const [update, setUpdate] = useState(false)
-  const [deleteModal, setDeleteModal] = useState(false)
+  const [update, setUpdate] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
 
   // Indicates when reports have been updated once user presses the refresh button.
-  const [reportsUpdated, setReportsUpdated] = useState(false)
-  const [refresh, setRefresh] = useState(false)
-  const [showCheckmark, setShowCheckmark] = useState(false)
-  const [open, setOpen] = useState(true)
-
+  const [reportsUpdated, setReportsUpdated] = useState(false);
+  const [refresh, setRefresh] = useState(false);
+  const [showCheckmark, setShowCheckmark] = useState(false);
+  const [open,setOpen] = useState(true);
+  
   useEffect(() => {
     if (customClaims.admin) {
-      setIsAgency(false)
+      setIsAgency(false);
     } else if (customClaims.agency) {
-      setIsAgency(true)
+      setIsAgency(true);
     }
     return () => {
       isAgency
     }
-  })
+  });
 
   // Fetch data when new report is submitted or isAgency is set
   useEffect(() => {
     // console.log('initial getData (from "isAgency" state change)')
     // Ensure isAgency is set before fetching data:
     if (isAgency !== null) {
-      getData()
+      getData();
     }
-  }, [newReportSubmitted, isAgency])
+  }, [newReportSubmitted, isAgency]);
 
   const getData = async () => {
-    let reportArr = []
+    let reportArr = [];
     let a
     if (isAgency) {
       const q = query(
         collection(db, 'agency'),
-        where('agencyUsers', 'array-contains', user.email),
-      )
-      const querySnapshot = await getDocs(q)
+        where('agencyUsers', 'array-contains', user.email)
+      );
+      const querySnapshot = await getDocs(q);
       querySnapshot.forEach((doc) => {
-        a = doc.data().name
-      })
-      const r = query(collection(db, 'reports'), where('agency', '==', a))
-      const reportSnapshot = await getDocs(r)
+        a = doc.data().name;
+      });
+      const r = query(
+        collection(db, 'reports'),
+        where('agency', '==', a)
+      );
+      const reportSnapshot = await getDocs(r);
       reportSnapshot.forEach((doc) => {
-        const data = doc.data()
-        data.reportID = doc.id
-        reportArr.push(data)
-      })
+        const data = doc.data();
+        data.reportID = doc.id;
+        reportArr.push(data);
+      });
     } else {
-      const reportSnapshot = await getDocs(collection(db, 'reports'))
+      const reportSnapshot = await getDocs(collection(db, 'reports'));
       reportSnapshot.forEach((doc) => {
-        const data = doc.data()
-        data.reportID = doc.id
-        reportArr.push(data)
-      })
+        const data = doc.data();
+        data.reportID = doc.id;
+        reportArr.push(data);
+      });
     }
-    setReports(reportArr)
+    setReports(reportArr);
     setReportsReadState(
       reportArr.reduce((acc, report) => {
-        acc[report.reportID] = report.read
-        return acc
-      }, {}),
-    )
-  }
+        acc[report.reportID] = report.read;
+        return acc;
+      }, {})
+    );
+  };
 
-  useEffect(() => {
+  useEffect(() => {    
     setLoadedReports(reports)
     setFilteredReports(reports) // Initialize filteredReports with reports when component mounts
   }, [reports])
@@ -156,30 +159,30 @@ const ReportsSection = ({
   useEffect(() => {
     const filteredReports = loadedReports.filter((report) => {
       if (readFilter === 'all') {
-        return true // Show all reports
+        return true; // Show all reports
       } else if (readFilter === 'true') {
-        return report.read === true // Show only read reports
+        return report.read === true; // Show only read reports
       } else if (readFilter === 'false') {
-        return report.read === false // Show only unread reports
+        return report.read === false; // Show only unread reports
       }
-    })
-    setFilteredReports(filteredReports)
-  }, [readFilter, loadedReports])
-
+    });
+    setFilteredReports(filteredReports);
+  }, [readFilter, loadedReports]);
+  
   // Handler that is run once user wants to refresh the reports section
   const handleRefresh = async () => {
-    setRefresh(true)
-    await getData()
-    setReportsUpdated(true)
-    setShowCheckmark(true)
+    setRefresh(true);
+    await getData();
+    setReportsUpdated(true);
+    setShowCheckmark(true);
     // setReadFilter('all')
     // Set a timer to hide the checkmark icon after 2 seconds
     setTimeout(() => {
       setRefresh(false)
-      setShowCheckmark(false)
-      setReportsUpdated(false)
-    }, 2000)
-  }
+      setShowCheckmark(false);
+      setReportsUpdated(false);
+    }, 2000);
+  };
 
   useEffect(() => {
     if (readFilter !== 'all') {
@@ -189,30 +192,31 @@ const ReportsSection = ({
       readFilter
     }
   }, [refresh])
-
+  
+  
   // Filter
   const handleDateChanged = (e) => {
-    e.preventDefault()
-    setReportWeek(e.target.value)
-    setEndIndex(0)
+    e.preventDefault();
+    setReportWeek(e.target.value);
+    setEndIndex(0);
 
     // Updates loaded reports so that they only feature reports within the selected date range
     let arr = filteredReports.filter((reportObj) => {
-      const report = reportObj
+      const report = reportObj;
       return (
         report['createdDate'].toDate() >=
         new Date(new Date().setDate(new Date().getDate() - e.target.value * 7))
-      )
-    })
+      );
+    });
 
     arr = arr.sort((objA, objB) =>
       Object.values(objA)[0]['createdDate'] >
       Object.values(objB)[0]['createdDate']
         ? -1
-        : 1,
-    )
-    setLoadedReports(arr)
-  }
+        : 1
+    );
+    setLoadedReports(arr);
+  };
 
   // Filter the reports based on the search text
   useEffect(() => {
@@ -220,17 +224,17 @@ const ReportsSection = ({
       if (readFilter != 'all') {
         setFilteredReports(
           reports.filter((reportObj) => {
-            return reportObj.read.toString() === readFilter
-          }),
-        )
+            return reportObj.read.toString() === readFilter;
+          })
+        );
       } else {
-        setFilteredReports(reports)
+        setFilteredReports(reports);
       }
     } else {
       setFilteredReports(
         reports.filter((reportObj) => {
-          const report = Object.values(reportObj)
-          var arr = []
+          const report = Object.values(reportObj);
+          var arr = [];
           // Collect the searchable fields of the reports data
           for (const key in report) {
             if (report[key]) {
@@ -240,10 +244,10 @@ const ReportsSection = ({
                     .toDate()
                     .toLocaleString('en-US', dateOptions)
                     .replace(/,/g, '')
-                    .replace('at', '')
-                  arr.push(posted.toLowerCase())
+                    .replace('at', '');
+                  arr.push(posted.toLowerCase());
                 } else {
-                  arr.push(report[key].toString().toLowerCase())
+                  arr.push(report[key].toString().toLowerCase());
                 }
               }
             }
@@ -252,13 +256,13 @@ const ReportsSection = ({
           // check if the search text is in the collected fields
           for (const str of arr) {
             if (str.includes(search.toLowerCase())) {
-              return true
+              return true;
             }
           }
-        }),
-      )
+        })
+      );
     }
-  }, [search])
+  }, [search]);
 
   // Updates the loaded reports whenever a user filters reports based on search.
   useEffect(() => {
@@ -272,233 +276,235 @@ const ReportsSection = ({
           return (
             report.createdDate.toDate() >=
             new Date(new Date().setDate(new Date().getDate() - reportWeek * 7))
-          )
+          );
         } else {
-          console.error(`Invalid createdDate in report.`)
-          return false
+          console.error(`Invalid createdDate in report.`);
+          return false;
         }
       } catch (error) {
-        console.error(`Error processing report: ${report}`, error)
-        return false
+        console.error(`Error processing report: ${report}`, error);
+        return false;
       }
-    })
+    });
     arr = arr.sort((objA, objB) =>
       Object.values(objA)[0]['createdDate'] >
       Object.values(objB)[0]['createdDate']
         ? -1
-        : 1,
-    )
+        : 1
+    );
 
     // Default values for infinite scrolling, will load reports as they are populated.
     // FIXED SCROLLING BUG MAYBE???? *****
     // setEndIndex(0)
     // setHasMore(true)
     if (arr.length === 0) {
-      setHasMore(false)
+      setHasMore(false);
     } else {
-      setHasMore(true)
+      setHasMore(true);
     }
-    setLoadedReports(arr)
-  }, [reportWeek]) //filteredReports
+    setLoadedReports(arr);
+  }, [ reportWeek]) //filteredReports
 
   // Populates the loaded reports as the user scrolls to bottom of page
   useEffect(() => {
     if (loadedReports.length != 0) {
-      handleReportScroll()
+      handleReportScroll();
     }
-  }, [loadedReports])
+  }, [loadedReports]);
 
   // Determines if there are more reports to be shown.
   const handleReportScroll = () => {
     // If all of the reports have been loaded
     if (endIndex >= loadedReports.length) {
-      setHasMore(false)
+      setHasMore(false);
 
       // If there is less than 14 reports to load, load remaining reports
     } else if (endIndex + 14 >= loadedReports.length) {
-      setEndIndex(loadedReports.length)
-      setHasMore(true)
+      setEndIndex(loadedReports.length);
+      setHasMore(true);
 
       // Load only 14 additional reports
     } else {
-      setEndIndex(endIndex + 14)
-      setHasMore(true)
+      setEndIndex(endIndex + 14);
+      setHasMore(true);
     }
-  }
+  };
 
   const handleReadFilterChanged = (value) => {
     setReadFilter(value) // Update the readFilter state first
     if (value !== 'all') {
-      const filterValue = value === 'true'
+      const filterValue = value === 'true';
       setFilteredReports(
         reports.filter((report) => {
-          return report.read === filterValue
-        }),
-      )
+          return report.read === filterValue;
+        })
+      );
     } else {
-      setFilteredReports(reports)
+      setFilteredReports(reports);
     }
-  }
+  };
 
   const handleUserSendEmail = (reportURI) => {
-    const subject = 'Misinfo Report'
-    const body = `Link to report:\n${reportURI}`
+    const subject = 'Misinfo Report';
+    const body = `Link to report:\n${reportURI}`;
     const uri = `mailto:?subject=${encodeURIComponent(
-      subject,
-    )}&body=${encodeURIComponent(body)}`
-    window.open(uri)
-  }
+      subject
+    )}&body=${encodeURIComponent(body)}`;
+    window.open(uri);
+  };
 
   const handleNewReportModal = (e) => {
-    e.preventDefault()
-    setNewReportModal(true)
-  }
+    e.preventDefault();
+    setNewReportModal(true);
+  };
 
   const handleReportModalShow = async (reportId) => {
     // get doc
-    const docRef = await getDoc(doc(db, 'reports', reportId))
-    const reportData = docRef.data()
-    setReport({ id: reportId, ...reportData })
+    const docRef = await getDoc(doc(db, 'reports', reportId));
+    const reportData = docRef.data();
+    setReport({ id: reportId, ...reportData });
 
     // setReport(docRef.data())
     // get note
     // console.log(docRef.data().note)
-    setNote(docRef.data().note)
-    setReportTitle(docRef.data().title)
-    setDetail(docRef.data().detail)
-    setSelectedLabel(docRef.data().selectedLabel)
-    setReportRead(docRef.data().read)
-    setInfo(docRef.data())
-    setReportModalId(reportId)
+    setNote(docRef.data().note);
+    setReportTitle(docRef.data().title);
+    setDetail(docRef.data().detail);
+    setSelectedLabel(docRef.data().selectedLabel);
+    setReportRead(docRef.data().read);
+    setInfo(docRef.data());
+    setReportModalId(reportId);
 
-    const tagsRef = await getDoc(doc(db, 'tags', userId))
-    setActiveLabels(tagsRef.data()['Labels']['active'])
+    const tagsRef = await getDoc(doc(db,'tags',userId));
+    setActiveLabels(tagsRef.data()['Labels']['active']);
 
     // Get report submission user info
     // const mobileUserRef = doc(db,"mobileUsers",docRef.data().userID);
     // const docSnap = await getDoc(mobileUserRef);
 
-    const mUserRef = doc(db, 'mobileUsers', docRef.data().userID)
-    const docSnap = await getDoc(mUserRef)
+    const mUserRef = doc(db, 'mobileUsers', docRef.data().userID);
+    const docSnap = await getDoc(mUserRef);
 
     if (docSnap.exists()) {
-      setReportSubmitBy(docSnap.data())
+      setReportSubmitBy(docSnap.data());
     } else {
-      console.log('No such document!')
+      console.log('No such document!');
     }
-    setReportModalShow(true)
-  } // end handleReportModalShow
+    setReportModalShow(true);
+  }; // end handleReportModalShow
 
   // list item handle read change
-  const handleRowChangeRead = async (reportId, checked) => {
+  const handleRowChangeRead = async (reportId,checked) => {
     // Optimistic UI update
     setReports((prevReports) =>
-      prevReports.map((report) =>
-        report.reportID === reportId ? { ...report, read: checked } : report,
-      ),
+			prevReports.map((report) =>
+				report.reportID === reportId ? { ...report, read: checked } : report
+			)
     )
+    
+		setFilteredReports((prevFilteredReports) =>
+			prevFilteredReports.map((report) =>
+				report.reportID === reportId ? { ...report, read: checked } : report
+			)
+		)
 
-    setFilteredReports((prevFilteredReports) =>
-      prevFilteredReports.map((report) =>
-        report.reportID === reportId ? { ...report, read: checked } : report,
-      ),
-    )
+		setReportsReadState((prevState) => ({
+			...prevState,
+			[reportId]: checked,
+		}))
 
-    setReportsReadState((prevState) => ({
-      ...prevState,
-      [reportId]: checked,
-    }))
+		// Firestore update
+		try {
+			const docRef = doc(db, 'reports', reportId)
+			await updateDoc(docRef, { read: checked })
+		} catch (error) {
+			console.error('Error updating read status:', error)
+			// Revert the optimistic update in case of error
+			setReports((prevReports) =>
+				prevReports.map((report) =>
+					report.reportID === reportId ? { ...report, read: !checked } : report
+				)
+			)
 
-    // Firestore update
-    try {
-      const docRef = doc(db, 'reports', reportId)
-      await updateDoc(docRef, { read: checked })
-    } catch (error) {
-      console.error('Error updating read status:', error)
-      // Revert the optimistic update in case of error
-      setReports((prevReports) =>
-        prevReports.map((report) =>
-          report.reportID === reportId ? { ...report, read: !checked } : report,
-        ),
-      )
+			setFilteredReports((prevFilteredReports) =>
+				prevFilteredReports.map((report) =>
+					report.reportID === reportId ? { ...report, read: !checked } : report
+				)
+			)
 
-      setFilteredReports((prevFilteredReports) =>
-        prevFilteredReports.map((report) =>
-          report.reportID === reportId ? { ...report, read: !checked } : report,
-        ),
-      )
+			setReportsReadState((prevState) => ({
+				...prevState,
+				[reportId]: !checked,
+			}))
+		}
+  };
 
-      setReportsReadState((prevState) => ({
-        ...prevState,
-        [reportId]: !checked,
-      }))
-    }
-  }
-
+  
   useEffect(() => {
     if (reportModalShow && reportModalId) {
       // When a report's modal opens set the report as read
       // since someone clicked on it - so they read it
       // but only if it is an agency user.
-      isAgency === true && handleRowChangeRead(reportModalId, true)
+      isAgency === true && handleRowChangeRead(reportModalId, true);
     } else {
-      setReportModalId('')
-      setReportModalShow(false)
+      setReportModalId('');
+      setReportModalShow(false);
     }
-  }, [reportModalShow]) // this effect runs when the report modal is opened/closed
+  },[reportModalShow]) // this effect runs when the report modal is opened/closed
+  
 
   // modal item read change
   // function runs when report modal is displayed
   // and user clicks the read/unread toggle
   const handleChangeReadModal = async (reportId, checked) => {
-    const docRef = doc(db, 'reports', reportId)
-    await updateDoc(docRef, { read: checked })
-    setUpdate(!update)
-  }
+    const docRef = doc(db, 'reports', reportId);
+    await updateDoc(docRef, { read: checked });
+    setUpdate(!update);
+  };
 
   const handleFormSubmit = async (e) => {
-    e.preventDefault()
-    setReportModalShow(false)
-  }
+    e.preventDefault();
+    setReportModalShow(false);
+  };
   const handleNoteChange = async (e) => {
-    e.preventDefault()
-    let reportId = reportModalId
+    e.preventDefault();
+    let reportId = reportModalId;
     if (e.target.value !== report['note']) {
-      const docRef = doc(db, 'reports', reportId)
-      await updateDoc(docRef, { note: e.target.value })
-      setUpdate(e.target.value)
+      const docRef = doc(db, 'reports', reportId);
+      await updateDoc(docRef, { note: e.target.value });
+      setUpdate(e.target.value);
     } else {
-      setUpdate('')
+      setUpdate('');
     }
-  }
+  };
   const handleLabelChange = async (e) => {
-    e.preventDefault()
-    let reportId = reportModalId
+    e.preventDefault();
+    let reportId = reportModalId;
     if (e.target.value !== report['label']) {
-      const docRef = doc(db, 'reports', reportId)
-      await updateDoc(docRef, { label: e.target.value })
-      setUpdate(e.target.value)
+      const docRef = doc(db, 'reports', reportId);
+      await updateDoc(docRef, { label: e.target.value });
+      setUpdate(e.target.value);
     } else {
-      setUpdate('')
+      setUpdate('');
     }
-  }
+  };
   // Delete report
   const handleReportDelete = async (e) => {
-    reportModalShow ? e.preventDefault() : setReportModalId(e)
-    setDeleteModal(true)
-  }
+    reportModalShow ? e.preventDefault() : setReportModalId(e);
+    setDeleteModal(true);
+  };
   const handleDelete = async (e) => {
-    const docRef = doc(db, 'reports', reportModalId)
+    const docRef = doc(db, 'reports', reportModalId);
     deleteDoc(docRef)
       .then(() => {
-        getData()
-        setReportModalShow(false)
-        setDeleteModal(false)
+        getData();
+        setReportModalShow(false);
+        setDeleteModal(false);
       })
       .catch((error) => {
-        console.log('The write failed' + error)
-      })
-  }
+        console.log('The write failed' + error);
+      });
+  };
   useEffect(() => {
     // getData()
     if (report['createdDate']) {
@@ -508,19 +514,19 @@ const ReportsSection = ({
         month: 'short',
         hour: 'numeric',
         minute: 'numeric',
-      }
+      };
       setPostedDate(
         report['createdDate']
           .toDate()
           .toLocaleString('en-US', options)
           .replace(/,/g, '')
-          .replace('at', ''),
-      )
+          .replace('at', '')
+      );
     }
     if (report['city'] || report['state']) {
-      setReportLocation(report['city'] + ', ' + report['state'])
+      setReportLocation(report['city'] + ', ' + report['state']);
     }
-  }, [reportModalShow])
+  }, [reportModalShow]);
 
   useEffect(() => {
     if (report['createdDate']) {
@@ -530,23 +536,23 @@ const ReportsSection = ({
         month: 'short',
         hour: 'numeric',
         minute: 'numeric',
-      }
+      };
       setPostedDate(
         report['createdDate']
           .toDate()
           .toLocaleString('en-US', options)
           .replace(/,/g, '')
-          .replace('at', ''),
-      )
+          .replace('at', '')
+      );
     }
     if (report['label']) {
-      setSelectedLabel(report['label'])
+      setSelectedLabel(report['label']);
     }
-  }, [reportModalShow]) // report
+  }, [reportModalShow]); // report
 
   useEffect(() => {
-    getData()
-  }, [update])
+    getData();
+  }, [update]);
 
   const columns = [
     { label: 'Title', accessor: 'title', sortable: true },
@@ -556,30 +562,30 @@ const ReportsSection = ({
     { label: 'Sources', accessor: 'hearFrom', sortable: false },
     { label: 'Labels', accessor: 'label', sortable: false },
     { label: 'Read/Unread', accessor: 'read', sortable: true },
-  ]
+  ];
 
   const readValues = [
     { label: 'All', value: 'all' },
     { label: 'Read', value: 'true' },
     { label: 'Unread', value: 'false' },
-  ]
+  ];
 
   const handleSorting = (sortField, sortOrder) => {
     if (sortField) {
       const sorted = [...loadedReports].sort((a, b) => {
         // column that includes null values
-        if (a[sortField] === null) return 1
-        if (b[sortField] === null) return -1
-        if (a[sortField] === null && b[sortField] === null) return 0
+        if (a[sortField] === null) return 1;
+        if (b[sortField] === null) return -1;
+        if (a[sortField] === null && b[sortField] === null) return 0;
         return (
           a[sortField].toString().localeCompare(b[sortField].toString(), 'en', {
             numeric: true,
           }) * (sortOrder === 'asc' ? 1 : -1)
-        )
-      })
-      setLoadedReports(sorted)
+        );
+      });
+      setLoadedReports(sorted);
     }
-  }
+  };
 
   return (
     <>
@@ -590,13 +596,13 @@ const ReportsSection = ({
               List of Reports
             </Typography>
             <Tooltip content="New Report">
-              <Button
-                onClick={() => setNewReportModal(true)}
-                className="flex items-center gap-2">
-                <IoAdd className="mr-1" size={15} />
-                New Report
+            <Button
+              onClick={() => setNewReportModal(true)}
+              className="flex items-center gap-2">
+              <IoAdd className="mr-1" size={15} />
+              New Report
               </Button>
-            </Tooltip>
+              </Tooltip>
           </div>
           <div className="flex items-center justify-between gap-8">
             <div className="flex">
@@ -709,7 +715,7 @@ const ReportsSection = ({
         />
       )}
     </>
-  )
-}
+  );
+};
 
-export default ReportsSection
+export default ReportsSection;
