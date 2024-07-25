@@ -39,7 +39,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [endIndex, setEndIndex] = useState(10)
 	const [deleteModal, setDeleteModal] = useState(false)
 	// NEW Agency Modal
-	const { user, sendSignIn } = useAuth() // Add agency user send signup email
+  const { user } = useAuth()
 	const [newAgencyModal, setNewAgencyModal] = useState(false)
 	const [newAgencySubmitted, setNewAgencySubmitted] = useState(0);
 	const [newAgencyName, setNewAgencyName] = useState("")
@@ -103,12 +103,34 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			state: data.state.name,
 			city: data.city == null ? "N/A" : data.city.name,
 			logo: []
-		}).then(async() => { // send email to agency admin emails
+		}).then((agencyID) => { // send email to agency admin emails
 			try {
-				await sendSignIn(...newAgencyEmails)
+				sendSignIn(...newAgencyEmails)
 				// When user signs in from the email they recieved,
 				// they will added to the mobileUsers database collection
 				setEmailSent(true)
+        const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
+        const defaultSources = ["Newspaper", "Other/Otro","Social","Website"] // tag system 2
+        const defaultLabels = ["Important", "Flagged"] // tag system 3
+
+
+        // create topics collection for the new agency
+        setDoc(doc(db, "tags", agencyID), {
+         Topics: {
+            list: defaultTopics,
+            active: defaultTopics
+          },
+          Sources: {
+            list: defaultSources,
+            active: defaultSources
+          },
+          Labels: {
+            list: defaultLabels,
+            active: defaultLabels
+          }
+      })
+    
+
 			} catch (err) {
 				console.log(err)
 			} finally {

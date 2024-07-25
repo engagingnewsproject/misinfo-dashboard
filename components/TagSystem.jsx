@@ -11,31 +11,54 @@ import { MdModeEditOutline } from 'react-icons/md'
 import { TiDelete } from 'react-icons/ti'
 import { IoIosRadioButtonOn } from 'react-icons/io'
 import { BsXCircleFill } from "react-icons/bs";
-import { setDoc, getDoc, doc } from "firebase/firestore"; 
+import { collection, query, where, setDoc, getDoc, getDocs, doc } from "firebase/firestore"; 
 import { useAuth } from '../context/AuthContext'
 import { db } from '../config/firebase'
 import Image from 'next/image'
 
 const maxTags = [0, 7, 10, 7] // default, Topic, Source, Labels (respectively)
 
-const setData = async(tagSystem, list, active, user) => {
-    const docRef = await getDoc(doc(db, "tags", user.uid))
-    const updatedDocRef = await setDoc(doc(db, "tags", user.uid), {
-        ...docRef.data(),
+const setData = async(tagSystem, list, active, agency) => {
+
+  const docRef = await doc(db, "tags", agency)
+  const docSnap = await getDoc(docRef);
+  
+  let updatedDocRef;
+  if (docSnap.exists()) {
+    updatedDocRef = await setDoc(doc(db, "tags", agency), {
+        ...docSnap.data(),
         [tagSystems[tagSystem]]: {
             list: list,
             active: active
         }
     });
+
+  // if doc doesn't already exist for agency in tags collection, create one.
+  } else {
+    console.log("Doc has not been created for the agency")
+    // updatedDocRef = await setDoc(doc(db, "tags", agency), {
+    //   [tagSystems[tagSystem]]: {
+    //     list: list,
+    //     active: active
+    //   }
+    // })
+
+  }
     return updatedDocRef
-    
 }
 
-const TagSystem = ({ tagSystem, setTagSystem}) => {
+const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
     const [list, setList] = useState([])
     const [active, setActive] = useState([])
+
+    const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
+    const defaultSources = ["Newspaper", "Other/Otro","Social","Website"] // tag system 2
+    const defaultLabels = ["Important", "Flagged"] // tag system 3
+
+    const tags = ["Topic", "Source", "Labels"]
     //const docRef = getDoc(db, "tags", tagSystem)
     const { user, customClaims, setCustomClaims} = useAuth()
+
     const [selected, setSelected] = useState("")
     const [search, setSearch] = useState("")
     const [searchResult, setSearchResult] = useState(list)
@@ -46,25 +69,42 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
 
     // On page load (mount), update the tags from firebase
     useEffect(() => {
-        getData()
+        getData(agencyID)
     }, [])
 
-    const getData = async() => {
-        const docRef = await getDoc(doc(db, "tags", user.uid))
+    const getData = (agencyID) => {
 
-        try {
-            const { [tagSystems[tagSystem]]: tagsData } = docRef.data()
-            setList(tagsData.list)
-            tagsData.active.sort((a, b) => {
-                if (a === "Other") return 1; // Move "Other" to the end
-                if (b === "Other") return -1; // Move "Other" to the end
-                return a.localeCompare(b); // Default sorting for other elements
-            });
-            setActive(tagsData.active)
-        } catch (error) {
-            setData(tagSystem, list, active, user)
-            console.log(error)
-        }
+        // determine which agency the current user is a part of
+        const agencyCollection = collection(db,"agency")
+     
+          console.log("current agency's ID is " + agencyID);
+          const docRef = doc(db, "tags", agencyID)
+          getDoc(docRef).then((docSnap)=> {
+        
+          if (docSnap.exists()) {
+            console.log(tagSystem)
+            console.log(tags[tagSystem - 1])
+            console.log("Document data:", docSnap.get(tags[tagSystem - 1]));
+            const tagsData = docSnap.get(tags[tagSystem - 1])
+            console.log(tagsData)
+              setList(tagsData.list)
+              tagsData.active.sort((a, b) => {
+                  if (a === "Other") return 1; // Move "Other" to the end
+                  if (b === "Other") return -1; // Move "Other" to the end
+                  return a.localeCompare(b); // Default sorting for other elements
+              });
+              setActive(tagsData.active)
+          } else {
+            // docSnap.data() will be undefined in this case
+            console.log("No such document!");
+            setData(tagSystem, defaultTopics, defaultTopics, agencyId)
+            setData(tagSystem, defaultLabels, defaultLabels, agencyId)
+            setData(tagSystem, defaultSources, defaultSources, agencyId)
+
+            console.log("tag system not correctly configured")
+            
+          }
+        })
     }
 
     const updateTag = (e, updateType) => {
@@ -91,7 +131,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                 setRenameTagModal(true)
                 break
         }
-        setData(tagSystem, list, active, user)
+        setData(tagSystem, list, active, agencyID)
     }
 
     const deleteTag = () => {
@@ -103,7 +143,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
             active.splice(active.indexOf(selected), 1)
         }
         setSelected("")
-        setData(tagSystem, list, active, user)
+        setData(tagSystem, list, active, agencyID)
         setDeleteModal(false)
     }
 
@@ -112,7 +152,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
         if (active.includes(selected)) {
             active[active.indexOf(selected)] = tag
         }
-        setData(tagSystem, list, active, user)
+        setData(tagSystem, list, active, agencyID)
         setSelected("")
     }
 
@@ -120,7 +160,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
         let arr = list
         arr.push(tag)
         setList(arr)
-        setData(tagSystem, list, active, user)
+        setData(tagSystem, list, active, agencyID)
         setSearch("")
     }
 
@@ -175,8 +215,7 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                         <div className="px-2 font-normal tracking-wide">{"New " + tagSystems[tagSystem]}</div>
                     </button> :
                     <div className="flex items-center ml-auto">
-                        {!customClaims.admin &&
-                        <>
+                       
                             <button
                                 className="flex items-center shadow mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
                                 type="submit"
@@ -198,8 +237,6 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                                 <IoIosRadioButtonOn className={active.includes(search) ? "text-red-600" : "text-green-600"} size={18}/>
                                 <div className="px-2 font-normal tracking-wide">{active.includes(search) ? "Mark as Inactive" : "Mark as Active"}</div>
                             </button>
-                        </>
-                        }
                     </div>}
                 </div>
                 <div className="relative">
@@ -250,7 +287,6 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                         }}>
                             {active.map((item) => {
                                 return (
-                                !customClaims.admin ?
                                     !item.includes('Other') ?
                                         <div onClick={() => setSelected(item)} className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center" key={item}>
                                             <GoDotFill size={25} className="text-green-600"/>
@@ -260,11 +296,11 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                                             <GoDotFill size={25} className="text-gray-400"/>
                                             <div className="pl-2">{`Other*`}</div>
                                         </div>
-                                    :
-                                    <div className="text-md font-light my-5 leading-normal flex items-center justify-center" key={item}>
-                                        <GoDotFill size={25} className="text-green-600"/>
-                                        <div className="pl-2">{item}</div>
-                                    </div>
+                                    // :
+                                    // <div className="text-md font-light my-5 leading-normal flex items-center justify-center" key={item}>
+                                    //     <GoDotFill size={25} className="text-green-600"/>
+                                    //     <div className="pl-2">{item}</div>
+                                    // </div>
                                 )
                             })}
                         </div>}
@@ -280,17 +316,16 @@ const TagSystem = ({ tagSystem, setTagSystem}) => {
                             const selectedStyles = normStyles + " bg-blue-600 text-white rounded-lg"
                             const randomKey = self.crypto.randomUUID(); // Generate random UUID
                             return (
-                                !customClaims.admin ?
                                     !item.includes('Other') &&
                                     <div onClick={() => setSelected(item)} className={selected == item ? selectedStyles : normStyles} key={randomKey}>
                                         { active.includes(item) && <GoDotFill size={25} className="text-green-600"/> }
                                         <div className="pl-2">{item}</div>
                                     </div>
-                                :
-                                <div className={`text-md font-light p-2 my-3 md:mx-2 leading-normal flex items-center justify-center`} key={randomKey}>
-                                    { active.includes(item) && <GoDotFill size={25} className="text-green-600"/> }
-                                    <div className="pl-2">{item}</div>
-                                </div>
+                                // :
+                                // <div className={`text-md font-light p-2 my-3 md:mx-2 leading-normal flex items-center justify-center`} key={randomKey}>
+                                //     { active.includes(item) && <GoDotFill size={25} className="text-green-600"/> }
+                                //     <div className="pl-2">{item}</div>
+                                // </div>
                             )
                         })}
                         </div>
