@@ -60,3 +60,8 @@ functions/sendgrid.env
 functions/node_modules
 extensions/firestore-send-email-6bt9.env
 functions/sendgrid.env
+# Sentry Config File
+.env.sentry-build-plugin
+
+# Sentry Config File
+.env.sentry-build-plugin

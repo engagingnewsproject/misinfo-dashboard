@@ -1,7 +1,6 @@
 {
   "extends": [
-    "next/core-web-vitals",
-    "plugin:prettier/recommended"
+    "next/core-web-vitals"
     ],
   "rules": {
     "react/no-unknown-property": "off",
