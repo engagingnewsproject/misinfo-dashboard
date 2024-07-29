@@ -10,12 +10,21 @@ export default function Custom404() {
 	const [homeLink,setHomeLink] = useState('')
 	
   useEffect(() => {
-    if (customClaims.admin || customClaims.agency) {
-      setHomeLink('/dashboard');
-      router.prefetch('/dashboard');
-    } else {
-      setHomeLink('/report');
-      router.prefetch('/report');
+    console.log("customClaims:", customClaims);
+    if (customClaims && customClaims.customClaims) {
+      if (customClaims.customClaims.admin) {
+        console.log("User is admin");
+        setHomeLink('/dashboard');
+        router.prefetch('/dashboard');
+      } else if (customClaims.customClaims.agency) {
+        console.log("User is agency");
+        setHomeLink('/dashboard');
+        router.prefetch('/dashboard');
+      } else {
+        console.log("User is neither admin nor agency");
+        setHomeLink('/report');
+        router.prefetch('/report');
+      }
     }
   }, [customClaims, router]);
 	
