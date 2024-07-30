@@ -31,5 +31,7 @@
   "updateLocation": "Actualizar ubicación",
   "cancelChanges": "Cancelar cambios",
   "editLocation": "Editar tu ubicación",
-  "addLocation":"Selecciona una ubicación"
+  "addLocation":"Selecciona una ubicación",
+  "city":"Ciudad",
+  "state":"Estado"
 }
