@@ -193,7 +193,7 @@ const ReportSystem = ({
           // create tags collection if current agency does not have one
           if (!docSnap.exists()) {
               const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
-              const defaultSources = ["Newspaper", "Other/Otro","Social","Website"] // tag system 2
+              const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
               const defaultLabels = ["Important", "Flagged"] // tag system 3
 
               // reference to tags collection 
@@ -260,7 +260,7 @@ const ReportSystem = ({
        if (!docRef.exists()) {
           console.log("Need to create tag collection for agency. ")
           const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
-          const defaultSources = ["Newspaper", "Other/Otro","Social","Website"] // tag system 2
+          const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
           const defaultLabels = ["Important", "Flagged"] // tag system 3
 
           // reference to tags collection 
@@ -660,7 +660,7 @@ const ReportSystem = ({
 												selected={topic === selectedTopic}
 												value={topic}
 												onClick={() => handleTopicChange(topic)}>
-												{topic}
+												{t("topics."+topic)}
 											</ListItem>
 										))}
 									</List>
@@ -671,7 +671,7 @@ const ReportSystem = ({
 								{showOtherTopic && (
 									<div className='w-full'>
 										<Input
-											label='Custom topic'
+											label={t("custom_topic")}
 											value={otherTopic}
 											onChange={handleOtherTopicChange}
 										/>
@@ -706,9 +706,9 @@ const ReportSystem = ({
 												id='source'
 												key={i}
 												selected={source === selectedSource}
-												value={source}
+												value={t(source)}
 												onClick={() => handleSourceChange(source)}>
-												{source}
+												{t("sources."+source)}
 											</ListItem>
 										))}
 									</List>
@@ -719,7 +719,7 @@ const ReportSystem = ({
 								{showOtherSource && (
 									<div className='w-full'>
 										<Input
-											label='Custom source'
+											label={t("custom_source")}
 											value={otherSource}
 											onChange={handleOtherSourceChange}
 										/>
