@@ -23,14 +23,18 @@ const ReportList = ({reportView, setReportView}) => {
 		const snapshot = await getDocs(q)
 		try {
 			var arr = []
-			var reportId
 			snapshot.forEach((doc) => {
 				setReportId(doc.id) // get and set the report ID
 				arr.push({
 					[doc.id]: doc.data(),
 				})
 			})
-			arr.sort((a, b) => a > b ? -1 : 1)
+			// sort based on a specific property (createdDate)
+			arr.sort((a, b) => {
+				const dateA = Object.values(a)[0].createdDate.toDate();
+				const dateB = Object.values(b)[0].createdDate.toDate();
+				return dateB - dateA; // Sort descending by date
+			});
 			setReports(arr)
 		} catch (error) {
 			console.log(error)
@@ -48,8 +52,10 @@ const ReportList = ({reportView, setReportView}) => {
 	}
 	
 	useEffect(() => {
-		getData()
-	})
+		if (user && user.accountId) {
+			getData();
+		}
+	}, [user])
 
 	return (
 		<>
