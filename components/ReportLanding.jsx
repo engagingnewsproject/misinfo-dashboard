@@ -55,20 +55,26 @@ const ReportLanding = ({
 	const userEmail = auth.currentUser.email
 	useEffect(()=> {
 		// TODO: debugging callback function to verify user role before displaying dashboard view
-		auth.currentUser.getIdTokenResult()
-			.then((idTokenResult) => {
-			if (idTokenResult.claims.admin) {
-					setCustomClaims({admin: true})
-			} else if (idTokenResult.claims.agency) {
-					setCustomClaims({agency: true})
-			} else {
-				// console.log('GENERAL USER')
+		const unsubscribe = auth.onAuthStateChanged((user) => {
+			if (user) {
+				// Add check for auth.currentUser (performance)
+				auth.currentUser.getIdTokenResult()
+					.then((idTokenResult) => {
+						if (idTokenResult.claims.admin) {
+							setCustomClaims({ admin: true })
+						} else if (idTokenResult.claims.agency) {
+							setCustomClaims({ agency: true })
+						} else {
+							// console.log('GENERAL USER')
+						}
+					})
+					.catch((error) => {
+						console.log(error)
+					})
 			}
 		})
-		.catch((error) => {
-			console.log(error);
-		});
-	}, [])
+		return () => unsubscribe();
+	}, [setCustomClaims])
 	return (
 		<div className={style.container}>
 			{/* Headbar */}

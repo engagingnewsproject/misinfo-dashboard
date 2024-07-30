@@ -27,10 +27,12 @@
   "agencies": "Agencies",
   "agency": "Agency",
   "cancel": "Cancel",
+  "changeLocation":"Change Location",
   "location": "Location updated",
   "updateLocation": "Update location",
   "cancelChanges": "Cancel changes",
   "editLocation": "Edit Your Location",
-  "addLocation":"Select a location"
-
+  "addLocation":"Select a location",
+  "city":"City",
+  "state":"State"
 }

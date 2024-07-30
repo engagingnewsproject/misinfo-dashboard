@@ -52,7 +52,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
     const [active, setActive] = useState([])
 
     const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
-    const defaultSources = ["Newspaper", "Other/Otro","Social","Website"] // tag system 2
+    const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
     const defaultLabels = ["Important", "Flagged"] // tag system 3
 
     const tags = ["Topic", "Source", "Labels"]

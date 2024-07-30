@@ -131,14 +131,14 @@ const LocationUpdate = ({ user, userData, setUserData }) => {
       </div>
       {/* List the user's location information */}
       <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
-        <div className="font-light">City</div>
+        <div className="font-light">{t('city')}</div>
         {/* check if user data has a value */}
         {userData && userData.city && (
           <div className="font-light">{userData.city.name}</div>
         )}
       </div>
       <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
-        <div className="font-light">State</div>
+        <div className="font-light">{t('state')}</div>
         {userData && userData.state && (
           <div className="font-light">{userData.state.name}</div>
         )}
@@ -230,7 +230,7 @@ const LocationUpdate = ({ user, userData, setUserData }) => {
               variant="outlined"
               color='blue'
               onClick={() => handleUserClickLocationChange()}>
-              Change Location
+              {t('changeLocation')}
             </Button>
           )}
         </div>

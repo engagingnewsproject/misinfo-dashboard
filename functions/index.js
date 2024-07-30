@@ -5,8 +5,9 @@ const sgMail = require('@sendgrid/mail')
 
 admin.initializeApp()
 
-// // Initialize SendGrid API with your SendGrid API key from environment variables
-sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+// Access SendGrid API key from Firebase environment configuration
+const sendgridApiKey = functions.config().sendgrid.api_key;
+sgMail.setApiKey(sendgridApiKey);
 
 exports.addUserRole = functions.https.onCall((data,context) => {
   // get user and add custom claim to user

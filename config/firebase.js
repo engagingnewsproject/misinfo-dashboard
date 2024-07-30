@@ -29,36 +29,29 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig)
 
-// Create a ReCaptchaEnterpriseProvider instance using your reCAPTCHA Enterprise
-// site key and pass it to initializeAppCheck().
-// Docs: https://firebase.google.com/docs/app-check/web/recaptcha-enterprise-provider?authuser=0&hl=en#initialize
+// Initialize Analytics and Performance Monitoring if running in the browser
+let analytics = null; // Initialize to null
+let perf = null;
+
 // Check if we're running in a browser environment
 if (typeof window !== 'undefined') {
-  // Use App Check with the debug provider in web apps
+    // Initialize Analytics
+  analytics = getAnalytics(app);
+    // Initialize Performance Monitoring
+  perf = getPerformance(app);
+  // Initialize App Check with ReCaptcha Enterprise
   // Docs: https://firebase.google.com/docs/app-check/web/debug-provider?authuser=0
   self.FIREBASE_APPCHECK_DEBUG_TOKEN = process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN;
-  // Initialize Firebase App Check with ReCaptcha Enterprise
-  const appCheck = initializeAppCheck(app, {
+  initializeAppCheck(app, {
       provider: new ReCaptchaEnterpriseProvider(process.env.NEXT_PUBLIC_FIREBASE_RECAPTCHA_ENTERPRISE_SITE_KEY),
       isTokenAutoRefreshEnabled: true // Set to true to allow auto-refresh.
   });
-}
-
-// Initialize Analytics and get a reference to the service
-let analytics = null; // Initialize to null
-let perf = null;
-// Check if window object is defined (client-side)
-if (typeof window !== 'undefined') {
-  // Initialize Analytics if running in the browser
-  analytics = getAnalytics(app);
-  perf = getPerformance(app);
 }
 
 export { app, analytics, perf }
 
 export const db = getFirestore(app);
 export const storage = getStorage(app);
-
 export const auth = getAuth(app);
 export const functions = getFunctions(app);
 

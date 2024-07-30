@@ -7,6 +7,10 @@ import { appWithTranslation } from "next-i18next"
 import { ThemeProvider } from "@material-tailwind/react"
 import style from '../styles/style.js'
 
+// Import Sentry configuration
+import "../sentry.client.config.js"
+import "../sentry.server.config";
+
 const noAuthRequired = ["/login", "/signup", "/resetPassword", "/testPage"]
 // for testing page add '/testPage' above
 function MyApp({ Component, pageProps }) {
