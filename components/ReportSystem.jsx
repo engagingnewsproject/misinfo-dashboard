@@ -173,7 +173,7 @@ const ReportSystem = ({
 
       
       const agencyCollection = collection(db,"agency")
-      console.log(user)
+      // console.log(user)
 
       // If current user is an agency, determine which agency
       
@@ -181,11 +181,11 @@ const ReportSystem = ({
       let agencyId;
       getDocs(q).then((querySnapshot) => {       
         querySnapshot.forEach((docAgency) => { // Set initial values
-          console.log("im here")
+          // console.log("im here")
           agencyId = docAgency.id
-          console.log(agencyId)
+          // console.log(agencyId)
           setSelectedAgencyID(agencyId)
-          console.log(agencyId)
+          // console.log(agencyId)
           const docRef = doc(db, 'tags', agencyId)
           getDoc(docRef).then((docSnap)=> {
         // TODO: test to make sure not null
@@ -219,7 +219,7 @@ const ReportSystem = ({
                 }
             })
           } else {
-            console.log("Tags collection for this agency exists.")
+            // console.log("Tags collection for this agency exists.")
           }
         });
       })
@@ -247,18 +247,18 @@ const ReportSystem = ({
       getTopicList()
       getSourceList()
     }
-  })
+  }, [allTopicsArr])
 
 	// Get topics
 	async function getAllTopics() {
     try {
-      console.log("Current agency's ID is " + agencyID)
+      // console.log("Current agency's ID is " + agencyID)
       let docRef = await getDoc(doc(db, 'tags', agencyID));
        // TODO: test to make sure not null
 
        // create tags collection if current agency does not have one
        if (!docRef.exists()) {
-          console.log("Need to create tag collection for agency. ")
+          // console.log("Need to create tag collection for agency. ")
           const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
           const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
           const defaultLabels = ["Important", "Flagged"] // tag system 3
@@ -284,7 +284,7 @@ const ReportSystem = ({
           }
         })
         // retrieve list of topics again after creating document of tags for agency
-        console.log("in if statement")
+        // console.log("in if statement")
        
     
   
@@ -298,14 +298,14 @@ const ReportSystem = ({
           if (b === t('Other')) return -1; // Move "Other" to the end
           return a.localeCompare(b); // Default sorting for other elements
         });
-        console.log(tagsData['active'])
+        // console.log(tagsData['active'])
         setActive(tagsData['active']);
       }
   
     } catch (error) {
       console.log(error);
     } finally {
-      console.log('Cleanup here'); // cleanup, always executed
+      // console.log('Cleanup here'); // cleanup, always executed
   }		
   // const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
 		// const topicRef = await getDoc(topicDoc)
@@ -503,7 +503,7 @@ const ReportSystem = ({
 		}
 	}
 	const handleChange = (e) => {
-		console.log(e.target.id)
+		// console.log(e.target.id)
 		if (titleError) {
 			e.target.id == 'title' && setTitleError(false)
 		} else if (detailError) {
@@ -532,8 +532,8 @@ const ReportSystem = ({
 	const ForwardArrow = () => {
 		return (
 			<IconButton
-				variant='text'
-				color='blue'
+				// variant='text'
+				// color='blue'
 				onClick={() => setReportSystem(reportSystem + 1)}>
 				<IoMdArrowRoundForward size={30} />
 			</IconButton>
@@ -542,8 +542,8 @@ const ReportSystem = ({
 	const BackArrow = () => {
 		return (
 			<IconButton
-				variant='text'
-				color='blue-gray'
+				// variant='text'
+				// color='blue-gray'
 				onClick={onReportSystemPrevStep}>
 				<IoMdArrowRoundBack size={30} />
 			</IconButton>
@@ -638,9 +638,7 @@ const ReportSystem = ({
 								)}
 								{/* FORWARD ARROW */}
 								{selectedAgency != "" && (
-									<div className='absolute bottom-4 right-4 sm:right-6'>
-										<ForwardArrow />
-									</div>
+									<ForwardArrow />
 								)}
 							</div>
 						)}
@@ -686,7 +684,7 @@ const ReportSystem = ({
 								)}
 								{/* FORWARD ARROW */}
 								{selectedTopic != "" && (
-									<div className='absolute bottom-4 right-4 sm:right-6'>
+									<div className='absolute bottom-4 z-50 right-4 sm:right-6'>
 										<ForwardArrow />
 									</div>
 								)}
@@ -733,7 +731,7 @@ const ReportSystem = ({
 									</div>
 								)}
 								{selectedSource != "" && (
-									<div className='absolute bottom-4 right-4 sm:right-6'>
+									<div className='absolute bottom-4 z-50 right-4 sm:right-6'>
 										<ForwardArrow />
 									</div>
 								)}
@@ -753,7 +751,7 @@ const ReportSystem = ({
 								{/* TITLE */}
 								<div className='block'>
 									<Input
-										variant='small'
+										variant='outlined'
 										color='gray'
 										id='title'
 										type='text'
@@ -776,7 +774,7 @@ const ReportSystem = ({
 								{/* LINKS */}
 								<div className='block'>
 									<Input
-										variant='small'
+										variant='outlined'
 										color='gray'
 										label={t("linkFirst")}
 										id='link'
@@ -798,7 +796,7 @@ const ReportSystem = ({
 										<>
 											<div className='mt-2'>
 												<Input
-													variant='small'
+													variant='outlined'
 													color='gray'
 													label={t("linkFirst")}
 													id='secondLink'
