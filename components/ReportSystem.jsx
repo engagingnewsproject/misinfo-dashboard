@@ -64,7 +64,7 @@ const ReportSystem = ({
 	disableReminder,
 }) => {
 	// used for Spanish translations
-	const { t } = useTranslation("NewReport")
+	const { t, i18n } = useTranslation("NewReport")
 	const { user } = useAuth()
 	const [key, setKey] = useState(self.crypto.randomUUID())
 	const [data, setData] = useState({ country: "US", state: null, city: null })
@@ -102,6 +102,12 @@ const ReportSystem = ({
 	const [reportResetModal, setReportResetModal] = useState(false)
 	const [refresh, setRefresh] = useState(false)
 	const formRef = useRef(null)
+
+
+
+  const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
+  const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
+  const defaultLabels = ["Important", "Flagged"] // tag system 3
 
 	// On page load (mount), update the tags from firebase
 	useEffect(() => {
@@ -192,10 +198,7 @@ const ReportSystem = ({
 
           // create tags collection if current agency does not have one
           if (!docSnap.exists()) {
-              const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
-              const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
-              const defaultLabels = ["Important", "Flagged"] // tag system 3
-
+         
               // reference to tags collection 
               const tagsCollection = collection(db, "tags")
 
@@ -236,7 +239,6 @@ const ReportSystem = ({
   useEffect(()=> {
     if (agencyID){
       getAllTopics()
-      getAllSources()
     }
   }, [agencyID])
 
@@ -244,10 +246,9 @@ const ReportSystem = ({
   useEffect(()=> {
     if (allTopicsArr.length > 0) {
       getAllSources()
-      getTopicList()
-      getSourceList()
+      
     }
-  })
+  }, [allTopicsArr])
 
 	// Get topics
 	async function getAllTopics() {
@@ -660,7 +661,7 @@ const ReportSystem = ({
 												selected={topic === selectedTopic}
 												value={topic}
 												onClick={() => handleTopicChange(topic)}>
-												{t("topics."+topic)}
+												{defaultTopics.includes(topic) ? t("topics."+topic) : topic}
 											</ListItem>
 										))}
 									</List>
@@ -708,7 +709,7 @@ const ReportSystem = ({
 												selected={source === selectedSource}
 												value={t(source)}
 												onClick={() => handleSourceChange(source)}>
-												{t("sources."+source)}
+												{defaultSources.includes(source) ? t("sources."+source) : source}
 											</ListItem>
 										))}
 									</List>
