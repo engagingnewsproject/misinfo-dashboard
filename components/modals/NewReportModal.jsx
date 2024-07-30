@@ -606,8 +606,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                   type="text"
                   placeholder={t('topic')}
                   options={allTopicsArr.map((topic) => ({
-                    label: topic,
-                    value: topic,
+                    label: t("topics."+topic),
+                    value: t("topics."+topic),
                   }))}
                   onChange={handleTopicChange}
                   value={selectedTopic.topic}
@@ -641,8 +641,8 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                   type="text"
                   placeholder="Source"
                   options={allSourcesArr.map((source) => ({
-                    label: t(source),
-                    value: t(source),
+                    label: t("sources."+source),
+                    value: t("sources."+source),
                   }))}
                   onChange={handleSourceChangeOther}
                   value={selectedSource.hearFrom}
