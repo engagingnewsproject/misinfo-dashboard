@@ -230,7 +230,7 @@ const LocationUpdate = ({ user, userData, setUserData }) => {
               variant="outlined"
               color='blue'
               onClick={() => handleUserClickLocationChange()}>
-              Change Location
+              {t('changeLocation')}
             </Button>
           )}
         </div>
