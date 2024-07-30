@@ -171,8 +171,14 @@ const ReportSystem = ({
 			console.log(error)
 		}
 	}
-
-
+	// 
+	useEffect(() => {
+		console.log(reportSystem);
+		if (reportSystem >= 2) {
+			getAllSources()
+		}
+	},[allTopicsArr])
+	
   // When agency is selected, keep track of agency ID
   useEffect(()=> {
     if (selectedAgency != "") {
@@ -243,17 +249,17 @@ const ReportSystem = ({
   }, [agencyID])
 
 
-  useEffect(()=> {
-    if (allTopicsArr.length > 0) {
-      getAllSources()
+  // useEffect(()=> {
+  //   if (allTopicsArr.length > 0) {
+  //     getAllSources()
       
-    }
-  }, [allTopicsArr])
+  //   }
+  // }, [allTopicsArr])
 
 	// Get topics
 	async function getAllTopics() {
     try {
-      // console.log("Current agency's ID is " + agencyID)
+      console.log("Current agency's ID is " + agencyID)
       let docRef = await getDoc(doc(db, 'tags', agencyID));
        // TODO: test to make sure not null
 
