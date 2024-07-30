@@ -330,6 +330,10 @@ const ReportSystem = ({
       setSources(sources);
     }
 	}
+	useEffect(() => {
+		console.log(sources);
+	}, [sources])
+	
 	// Handlers
 	const handleSubmitClick = (e) => {
 		e.preventDefault()
