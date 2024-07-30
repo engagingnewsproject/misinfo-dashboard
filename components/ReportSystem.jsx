@@ -532,8 +532,8 @@ const ReportSystem = ({
 	const ForwardArrow = () => {
 		return (
 			<IconButton
-				// variant='text'
-				// color='blue'
+				variant='text'
+				color='blue'
 				onClick={() => setReportSystem(reportSystem + 1)}>
 				<IoMdArrowRoundForward size={30} />
 			</IconButton>
@@ -542,8 +542,8 @@ const ReportSystem = ({
 	const BackArrow = () => {
 		return (
 			<IconButton
-				// variant='text'
-				// color='blue-gray'
+				variant='text'
+				color='blue-gray'
 				onClick={onReportSystemPrevStep}>
 				<IoMdArrowRoundBack size={30} />
 			</IconButton>
@@ -638,7 +638,9 @@ const ReportSystem = ({
 								)}
 								{/* FORWARD ARROW */}
 								{selectedAgency != "" && (
-									<ForwardArrow />
+									<div className='absolute bottom-4 right-4 sm:right-6'>
+										<ForwardArrow />
+									</div>
 								)}
 							</div>
 						)}
@@ -684,7 +686,7 @@ const ReportSystem = ({
 								)}
 								{/* FORWARD ARROW */}
 								{selectedTopic != "" && (
-									<div className='absolute bottom-4 z-50 right-4 sm:right-6'>
+									<div className='absolute bottom-4 right-4 sm:right-6'>
 										<ForwardArrow />
 									</div>
 								)}
@@ -731,7 +733,7 @@ const ReportSystem = ({
 									</div>
 								)}
 								{selectedSource != "" && (
-									<div className='absolute bottom-4 z-50 right-4 sm:right-6'>
+									<div className='absolute bottom-4 right-4 sm:right-6'>
 										<ForwardArrow />
 									</div>
 								)}
