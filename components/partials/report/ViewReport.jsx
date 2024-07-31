@@ -1,12 +1,21 @@
-import React from 'react';
-import { Card, Link, Button, Typography } from '@material-tailwind/react';
-import { useTranslation } from 'next-i18next'; // Import the useTranslation hook
-import globalStyles from '../../../styles/globalStyles';
+import React from 'react'
+import { Card, Link, Button, Typography } from '@material-tailwind/react'
+import { useTranslation } from 'next-i18next' // Import the useTranslation hook
+import globalStyles from '../../../styles/globalStyles'
+import Image from 'next/image'
 
-const ViewReport = ({ title, link, secondLink, imageURLs, detail, reportSystem, setReportSystem }) => {
-  const { t } = useTranslation('NewReport'); // Use the useTranslation hook
+const ViewReport = ({
+	title,
+	link,
+	secondLink,
+	imageURLs,
+	detail,
+	reportSystem,
+	setReportSystem,
+}) => {
+	const { t } = useTranslation('NewReport') // Use the useTranslation hook
 
-  return (
+	return (
 		<>
 			<Card
 				className={`${globalStyles.form.view} ${reportSystem === 7 ? '' : 'hidden'}`}>
@@ -74,4 +83,4 @@ const ViewReport = ({ title, link, secondLink, imageURLs, detail, reportSystem, 
 	)
 }
 
-export default ViewReport;
+export default ViewReport
