@@ -87,9 +87,7 @@ const Login = () => {
         await verifyEmail(auth.currentUser)
         await router.push("/verifyEmail")
       }
-      if (process.env.NODE_ENV !== 'development') {
-        analytics.logEvent('login', { method: 'email' }); // Log 'login' event
-      }
+
     } catch (error) {
       // Login error occurred, handle and display it
       // console.error("Login error:", error)
