@@ -12,7 +12,7 @@
   "share": "¡Comparta la información!",
   "title": "Título *",
   "max": "(Máximo: 160 caracteres.)",
-  "detail": "Detalles",
+  "details": "Detalles",
   "detailDescription":
     "Por favor, especifique lo más que pueda. Necesitamos por lo menos: un enlace, una foto o una descripción detallada.",
   "linkFirst": "Enlace",

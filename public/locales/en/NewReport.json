@@ -13,7 +13,7 @@
   "links": "Links",
   "title": "Add a Report Title",
   "max": "(Max: 160 characters.)",
-  "detail": "Details",
+  "details": "Details",
   "detailDescription":
     "Please share as much as you can. We need at least one of the following: a link, a photo, or a detailed description.",
   "linkFirst": "Link",
