@@ -92,7 +92,6 @@ const ReportSystem = ({
 	const [activeSources, setActiveSources] = useState([])
 	const [reportResetModal, setReportResetModal] = useState(false)
 
-	const [isSubmitting, setIsSubmitting] = useState(false)
 	const formRef = useRef(null)
 
 	const defaultTopics = ['Health', 'Other', 'Politics', 'Weather'] // tag system 1
@@ -104,7 +103,7 @@ const ReportSystem = ({
 	// USER
 	const getUserData = async () => {
 		if (!user) {
-			console.log('User is not set.')
+			// console.log('User is not set.')
 			return // Exit the function if user is not set
 		}
 		const response = await getDoc(doc(db, 'mobileUsers', user.accountId))
@@ -156,10 +155,10 @@ const ReportSystem = ({
 	}, [selectedAgency, userData])
 
 	// Log the selectedAgencyId when it changes
-	useEffect(() => {
-		console.log('Selected agency name:', selectedAgency)
-		console.log('Selected agency id:', selectedAgencyId)
-	}, [selectedAgencyId])
+	// useEffect(() => {
+	// 	console.log('Selected agency name:', selectedAgency)
+	// 	console.log('Selected agency id:', selectedAgencyId)
+	// }, [selectedAgencyId])
 
 	const checkAndCreateTags = (agencyId) => {
 		const docRef = doc(db, 'tags', agencyId)
@@ -182,7 +181,7 @@ const ReportSystem = ({
 					},
 				})
 			} else {
-				console.log('Tags collection for this agency exists.')
+				// console.log('Tags collection for this agency exists.')
 			}
 		})
 	}
@@ -203,12 +202,12 @@ const ReportSystem = ({
 		}
 	}, [selectedAgencyId])
 
-	useEffect(() => {
-		console.log('Selected topic:', selectedTopic)
-	}, [selectedTopic])
+	// useEffect(() => {
+	// 	console.log('Selected topic:', selectedTopic)
+	// }, [selectedTopic])
 
 	async function getAllTopics() {
-		console.log('Fetching topics for Agency ID:', selectedAgencyId)
+		// console.log('Fetching topics for Agency ID:', selectedAgencyId)
 		try {
 			const docRef = await getDoc(doc(db, 'tags', selectedAgencyId))
 			if (!docRef.exists()) {
@@ -264,7 +263,7 @@ const ReportSystem = ({
 		try {
 			const docSnapshot = await getDoc(tagsDocRef)
 			if (!docSnapshot.exists()) {
-				console.log('Document does not exist:', selectedAgencyId)
+				// console.log('Document does not exist:', selectedAgencyId)
 				return
 			}
 			const data = docSnapshot.data()
@@ -284,9 +283,9 @@ const ReportSystem = ({
 		}
 	}, [selectedAgencyId])
 
-	useEffect(() => {
-		console.log('Selected source:', selectedSource)
-	}, [selectedSource])
+	// useEffect(() => {
+	// 	console.log('Selected source:', selectedSource)
+	// }, [selectedSource])
 
 	const handleSourceChange = (source) => {
 		if (source.includes('Other')) {
@@ -335,7 +334,7 @@ const ReportSystem = ({
 					'Source.list': sourceList,
 					'Source.active': activeSources,
 				})
-				console.log('Tags updated successfully')
+				// console.log('Tags updated successfully')
 			} else {
 				console.error('Document does not exist:', agencyId)
 			}
@@ -365,7 +364,7 @@ const handleUpload = () => {
                 'state_changed',
                 (snapshot) => {
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    console.log('Upload is ' + progress + '% done');
+                    // console.log('Upload is ' + progress + '% done');
                 },
                 (error) => {
                     console.error('Upload error:', error);
@@ -373,7 +372,7 @@ const handleUpload = () => {
                 },
                 () => {
                     getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                        console.log('File available at', downloadURL);
+                        // console.log('File available at', downloadURL);
                         setImageURLs(prev => [...prev, downloadURL]);
                         resolve(downloadURL);
                     }).catch(reject);
@@ -384,7 +383,7 @@ const handleUpload = () => {
 
     Promise.all(uploadPromises)
         .then((downloadURLs) => {
-            console.log('All files uploaded:', downloadURLs);
+            // console.log('All files uploaded:', downloadURLs);
             updateFirestoreDocument(downloadURLs); // Call function to update Firestore
         })
         .catch(error => console.error('Error in uploading one or more files:', error));
@@ -473,19 +472,16 @@ const handleUpload = () => {
 				topic: selectedTopic,
 				hearFrom: selectedSource,
 			})
-			console.log("Document written with ID: ", docRef.id);
+			// console.log("Document written with ID: ", docRef.id);
 			addNewTag(selectedTopic, selectedSource, agencyID) // Make sure this is not async or handle it properly
 			// Additional actions after successful write
 		} catch (error) {
 			console.error('Error during form submission:', error)
 		} finally {
 			resetForm() // Reset the form regardless of the outcome
-			console.log('reset report: done')
+			// console.log('reset report: done')
 		}
 	}
-	useEffect(() => {
-		console.log(reportSystem);
-	}, [reportSystem])
 	
 	// Elements
 	const ForwardArrow = () => {
