@@ -129,10 +129,7 @@ const ReportSystem = ({
 			addNewTag(selectedTopic, selectedSource, agencyID)
 		})
 	}
-	// Data
-	const getData = async () => {
-		const docRef = await getDoc(doc(db, "reports", user.uid))
-	}
+
 	const getUserData = async () => {
 		await getDoc(doc(db, "mobileUsers", user.accountId)).then((mobileRef) =>
 			setUserData(mobileRef.data())
@@ -168,8 +165,6 @@ const ReportSystem = ({
   // When agency is selected, keep track of agency ID
   useEffect(()=> {
     if (selectedAgency != "") {
-
-      
       const agencyCollection = collection(db,"agency")
       // console.log(user)
 
@@ -233,14 +228,6 @@ const ReportSystem = ({
       getAllTopics()
     }
   }, [agencyID])
-
-
-  // useEffect(()=> {
-  //   if (allTopicsArr.length > 0) {
-  //     getAllSources()
-      
-  //   }
-  // }, [allTopicsArr])
 
 	// Get topics
 	async function getAllTopics() {
@@ -469,36 +456,6 @@ const ReportSystem = ({
 		})
 		return updatedDocRef
 	}
-	const getTopicList = async () => {
-		try {
-			const docRef = await getDoc(doc(db, "tags", agencyID))
-			const { ["Topic"]: tagsData } = docRef.data()
-			setList(tagsData.list)
-			tagsData.active.sort((a, b) => {
-				if (a === "Other") return 1 // Move "Other" to the end
-				if (b === "Other") return -1 // Move "Other" to the end
-				return a.localeCompare(b) // Default sorting for other elements
-			})
-			setActive(tagsData.active)
-		} catch (error) {
-			console.log(error)
-		}
-	}
-	const getSourceList = async () => {
-		try {
-			const docRef = await getDoc(doc(db, "tags", agencyID))
-			const { ["Source"]: tagsData } = docRef.data()
-			setSourceList(tagsData.list)
-			tagsData.active.sort((a, b) => {
-				if (a === "Other") return 1 // Move "Other" to the end
-				if (b === "Other") return -1 // Move "Other" to the end
-				return a.localeCompare(b) // Default sorting for other elements
-			})
-			setActiveSources(tagsData.active)
-		} catch (error) {
-			console.log(error)
-		}
-	}
 	const handleChange = (e) => {
 		// console.log(e.target.id)
 		if (titleError) {
@@ -510,20 +467,8 @@ const ReportSystem = ({
 	}
 	const handleRefresh = () => {
 		setKey(self.crypto.randomUUID())
-		// if (formRef.current) {
-		// setSelectedAgency("")
-		// setSelectedTopic("")
-		// setSelectedSource("")
-		// setTitle("")
-		// setLink("")
-		// setSecondLink("")
-		// setImages([])
-		// setDetail("")
 		setReportResetModal(false)
 		setReportSystem(0)
-		// } else {
-		// console.log("not current form")
-		// }
 	}
 
 	const ForwardArrow = () => {
