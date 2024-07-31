@@ -42,6 +42,11 @@ import {
 	ListItemPrefix,
 } from "@material-tailwind/react"
 
+import AgencySelector from "./partials/report/AgencySelector"
+import TopicSelector from "./partials/report/TopicSelector"
+import SourceSelector from "./partials/report/SourceSelector"
+import ImageUploader from "./partials/report/ImageUploader"
+
 const ReportSystem = ({
 	reportSystem,
 	setReportSystem,
@@ -76,7 +81,10 @@ const ReportSystem = ({
 
 	const [selectedTopic, setSelectedTopic] = useState("")
 	const [sources, setSources] = useState([])
-	const [selectedSource, setSelectedSource] = useState("")
+	const [selectedSource,setSelectedSource] = useState("")
+	
+	const [showForwardArrow, setShowForwardArrow] = useState(false);
+	
 	const [errors, setErrors] = useState({})
 	const [showOtherTopic, setShowOtherTopic] = useState(false)
 	const [showOtherSource, setShowOtherSource] = useState(false)
@@ -263,11 +271,6 @@ const ReportSystem = ({
               active: defaultTopics
           }
         })
-        // retrieve list of topics again after creating document of tags for agency
-        // console.log("in if statement")
-       
-    
-  
 
       // Otherwise, tag collection already exists.
       } else {
@@ -413,6 +416,7 @@ const ReportSystem = ({
 		} else {
 			setShowOtherTopic(false)
 			setSelectedTopic(e)
+			setShowForwardArrow(true); // Show the arrow when a topic is selected
 		}
 	}
 	const handleOtherTopicChange = (e) => {
@@ -426,6 +430,7 @@ const ReportSystem = ({
 		} else {
 			setShowOtherSource(false)
 			setSelectedSource(e)
+			setShowForwardArrow(true); // Show the arrow when a topic is selected
 		}
 	}
 	const handleOtherSourceChange = (e) => {
@@ -476,7 +481,12 @@ const ReportSystem = ({
 			<IconButton
 				variant='text'
 				color='blue'
-				onClick={() => setReportSystem(reportSystem + 1)}>
+				className={`${showForwardArrow ? 'visible' : 'hidden'}`}
+				onClick={() => {
+						setReportSystem(reportSystem + 1);
+						setShowForwardArrow(false);
+				}}
+			>
 				<IoMdArrowRoundForward size={30} />
 			</IconButton>
 		)
@@ -502,6 +512,10 @@ const ReportSystem = ({
 			</IconButton>
 		)
 	}
+	useEffect(() => {
+		console.log(selectedAgency);
+	}, [selectedAgency])
+	
 	return (
 		<div className={globalStyles.sectionContainer} key={key}>
 			<>
@@ -556,131 +570,75 @@ const ReportSystem = ({
 						className={globalStyles.form.element}
 						ref={formRef}
 						id={key}>
-						{/* Agency */}
-						{reportSystem == 2 && (
-							<div className={globalStyles.form.viewWrapper}>
-								<Typography variant='h5'>{t("which_agency")}</Typography>
-								<Card>
-									<List>
-										{agencies.length == 0 && t("noAgencies")}
-										{agencies.map((agency, i = self.crypto.randomUUID()) => (
-											<ListItem
-												id='agency'
-												key={i}
-												selected={agency === selectedAgency}
-												value={agency}
-												onClick={() => setSelectedAgency(agency)}>
-												{agency}
-											</ListItem>
-										))}
-									</List>
-								</Card>
-								{errors.agency && selectedAgency === "" && (
-									<span className='text-red-500'>{errors.agency}</span>
-								)}
-								{/* FORWARD ARROW */}
-								{selectedAgency != "" && (
-									<div className='absolute bottom-4 right-4 sm:right-6'>
-										<ForwardArrow />
-									</div>
-								)}
+						{showForwardArrow && (
+							<div className='absolute bottom-4 right-4 sm:right-6'>
+								<ForwardArrow />
 							</div>
 						)}
+						{/* Agency */}
+						{reportSystem === 2 && (
+							<div className={globalStyles.form.viewWrapper}>
+								<AgencySelector
+									agencies={agencies}
+									selectedAgency={selectedAgency}
+									handleAgencyChange={setSelectedAgency}
+									showForwardArrow={setShowForwardArrow}
+								/>
+							</div>
+						)}
+
+						
 						{/* Topic tag */}
 						{reportSystem == 3 && (
 							<div className={globalStyles.form.viewWrapper}>
 								<Typography variant='h5'>{t("about")}</Typography>
 								<Card>
 									<List>
-										{[
-											...allTopicsArr.filter((topic) => topic !== "Other"),
-											...allTopicsArr.filter((topic) => topic === "Other"),
-										].map((topic, i = self.crypto.randomUUID()) => (
-											<ListItem
-												id='topic'
-												key={i}
-												selected={topic === selectedTopic}
-												value={topic}
-												onClick={() => handleTopicChange(topic)}>
-												{defaultTopics.includes(topic) ? t("topics."+topic) : topic}
-											</ListItem>
-										))}
+										<TopicSelector
+											topics={[
+												...allTopicsArr.filter((topic) => topic !== "Other"),
+												...allTopicsArr.filter((topic) => topic === "Other")
+											]}
+											selectedTopic={selectedTopic}
+											handleTopicChange={handleTopicChange}
+											showOtherTopic={showOtherTopic}
+											handleOtherTopicChange={handleOtherTopicChange}
+											otherTopic={otherTopic}
+										/>
 									</List>
 								</Card>
 								{errors.topic && selectedTopic === "" && (
 									<span className='text-red-500'>{errors.topic}</span>
 								)}
-								{showOtherTopic && (
-									<div className='w-full'>
-										<Input
-											label={t("custom_topic")}
-											value={otherTopic}
-											onChange={handleOtherTopicChange}
-										/>
-										<Typography
-											variant='small'
-											color='gray'
-											className={globalStyles.mdInput.hint}>
-											<IoIosInformationCircle />
-											{t("specify_topic")}
-										</Typography>
-									</div>
-								)}
-								{/* FORWARD ARROW */}
-								{selectedTopic != "" && (
-									<div className='absolute bottom-4 right-4 sm:right-6'>
-										<ForwardArrow />
-									</div>
-								)}
 							</div>
 						)}
+
 						{/* Source tag */}
 						{reportSystem == 4 && (
 							<div className={globalStyles.form.viewWrapper}>
 								<Typography variant='h5'>{t("where")}</Typography>
 								<Card>
 									<List>
-										{[
-											...sources.filter((source) => source !== "Other"),
-											...sources.filter((source) => source === "Other"),
-										].map((source, i = self.crypto.randomUUID()) => (
-											<ListItem
-												id='source'
-												key={i}
-												selected={source === selectedSource}
-												value={t(source)}
-												onClick={() => handleSourceChange(source)}>
-												{defaultSources.includes(source) ? t("sources."+source) : source}
-											</ListItem>
-										))}
+										<SourceSelector
+											sources={[
+												...sources.filter((source) => source !== "Other"),
+												...sources.filter((source) => source === "Other")
+											]}
+											selectedSource={selectedSource}
+											handleSourceChange={handleSourceChange}
+											showOtherSource={showOtherSource}
+											handleOtherSourceChange={handleOtherSourceChange}
+											otherSource={otherSource}
+											t={t}
+										/>
 									</List>
 								</Card>
 								{errors.source && selectedSource === "" && (
 									<span className='text-red-500'>{errors.source}</span>
 								)}
-								{showOtherSource && (
-									<div className='w-full'>
-										<Input
-											label={t("custom_source")}
-											value={otherSource}
-											onChange={handleOtherSourceChange}
-										/>
-										<Typography
-											variant='small'
-											color='gray'
-											className={globalStyles.mdInput.hint}>
-											<IoIosInformationCircle />
-											{t("custom_source")}
-										</Typography>
-									</div>
-								)}
-								{selectedSource != "" && (
-									<div className='absolute bottom-4 right-4 sm:right-6'>
-										<ForwardArrow />
-									</div>
-								)}
 							</div>
 						)}
+
 						{/* Details */}
 						{reportSystem == 5 && (
 							<div className='flex flex-col gap-6 mb-1'>
@@ -760,26 +718,12 @@ const ReportSystem = ({
 									)}
 								</div>
 								{/* IMAGE UPLOAD */}
-								<div className='block'>
-									<Input
-										variant='static'
-										id='multiple_files'
-										multiple
-										className={globalStyles.inputImage}
-										accept='image/*'
-										onChange={handleImageChange}
-										ref={imgPicker}
-										type='file'
-										label={t("image")}
-									/>
-									<Typography
-										variant='small'
-										color='gray'
-										className='mt-2 flex items-start gap-1'>
-										<IoIosInformationCircle size="15" className='mt-1' />
-										{t("imageDescription")}
-									</Typography>
-								</div>
+								<ImageUploader
+									handleImageChange={handleImageChange}
+									imgPicker={imgPicker}
+									imageDescription="imageDescription"
+								/>
+
 								{/* DESCRIBE IN DETAIL */}
 								<div className='block'>
 									<Textarea
