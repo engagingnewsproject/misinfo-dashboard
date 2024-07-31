@@ -20,6 +20,7 @@ const SourceSelector = ({ sources, selectedSource, handleSourceChange, showOther
             {showOtherSource && (
                 <div className='w-full'>
                     <Input
+                        type='text'
                         label={t("custom_source")}
                         value={otherSource}
                         onChange={handleOtherSourceChange}

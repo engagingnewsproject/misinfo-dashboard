@@ -21,6 +21,7 @@ const TopicSelector = ({ topics, selectedTopic, handleTopicChange, showOtherTopi
       {showOtherTopic && (
         <div className='w-full'>
           <Input
+            type='text'
             label={t("custom_topic")}
             value={otherTopic}
             onChange={handleOtherTopicChange}

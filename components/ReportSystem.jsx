@@ -9,6 +9,7 @@ import {
 	getDocs,
 	query,
 	where,
+	updateDoc
 } from 'firebase/firestore'
 import {
 	getStorage,
@@ -74,8 +75,8 @@ const ReportSystem = ({
 	const [allTopicsArr, setAllTopicsArr] = useState([])
 	const [agencies, setAgencies] = useState([])
 	const [selectedAgency, setSelectedAgency] = useState('')
-	const [agencyID,setSelectedAgencyID] = useState('')
-	
+	const [agencyID, setSelectedAgencyID] = useState('')
+	const [selectedAgencyId, setSelectedAgencyId] = useState('')
 	const [selectedTopic, setSelectedTopic] = useState('')
 	const [sources, setSources] = useState([])
 	const [selectedSource, setSelectedSource] = useState('')
@@ -92,64 +93,83 @@ const ReportSystem = ({
 	const [active, setActive] = useState([])
 	const [activeSources, setActiveSources] = useState([])
 	const [reportResetModal, setReportResetModal] = useState(false)
+
+	const [isSubmitting, setIsSubmitting] = useState(false)
 	const formRef = useRef(null)
 
 	const defaultTopics = ['Health', 'Other', 'Politics', 'Weather'] // tag system 1
 	const defaultSources = ['Newspaper', 'Other', 'Social', 'Website'] // tag system 2
 	const defaultLabels = ['Important', 'Flagged'] // tag system 3
 
-	// On page load (mount), update the tags from firebase
+	// USER
+	// USER
+	// USER
+	const getUserData = async () => {
+		if (!user) {
+			console.log('User is not set.')
+			return // Exit the function if user is not set
+		}
+		const response = await getDoc(doc(db, 'mobileUsers', user.accountId))
+		// console.log('User data fetched:', response.data())
+		setUserData(response.data())
+	}
 	useEffect(() => {
 		getUserData()
 	}, [])
 
-
-	const getUserData = async () => {
-		console.log('Fetching user data...')
-		const response = await getDoc(doc(db, 'mobileUsers', user.accountId))
-		console.log('User data fetched:', response.data())
-		setUserData(response.data())
-	}
+	// AGENCIES
+	// AGENCIES
+	// AGENCIES
+	// uses filter and map to avoid direct mutation of the array
 	async function getAllAgencies() {
-		// Get agency collection docs
 		const agencyRef = await getDocs(collection(db, 'agency'))
 		try {
-			// build an array of agency names
-			var arr = []
-			agencyRef.forEach((doc) => {
-				// console.log("doc state is " +doc.data()['state'] )
-				// console.log("user location is " +userData?.state?.name )
-				if (doc.data()['state'] == userData?.state?.name) {
-					arr.push(doc.data()['name'])
-				}
-			})
-			// set the agencies state with the agency names
+			const arr = agencyRef.docs
+				.filter((doc) => doc.data()['state'] === userData?.state?.name)
+				.map((doc) => doc.data()['name'])
 			setAgencies(arr)
 		} catch (error) {
 			console.log(error)
 		}
 	}
-	// Get topics
-	async function getAllTopics() {
-		try {
-			// console.log("Current agency's ID is " + agencyID)
-			let docRef = await getDoc(doc(db, 'tags', agencyID))
-			// TODO: test to make sure not null
+	// This function is called when an agency is selected in the AgencySelector component
+	const handleAgencyChange = (agency) => {
+		setSelectedAgency(agency) // Update the selected agency state
+		setShowForwardArrow(true) // Show the arrow when a agency is selected
+	}
+	// Fetch and set agency ID
+	useEffect(() => {
+		if (selectedAgency) {
+			const agencyCollection = collection(db, 'agency')
+			const q = query(
+				agencyCollection,
+				where('name', '==', selectedAgency),
+				where('state', '==', userData.state.name),
+			)
 
-			// create tags collection if current agency does not have one
-			if (!docRef.exists()) {
-				// console.log("Need to create tag collection for agency. ")
-				const defaultTopics = ['Health', 'Other', 'Politics', 'Weather'] // tag system 1
-				const defaultSources = ['Newspaper', 'Other', 'Social', 'Website'] // tag system 2
-				const defaultLabels = ['Important', 'Flagged'] // tag system 3
+			getDocs(q).then((querySnapshot) => {
+				querySnapshot.forEach((docAgency) => {
+					const agencyId = docAgency.id
+					setSelectedAgencyId(agencyId) // Set the agency ID state
+					checkAndCreateTags(agencyId) // Check for and possibly create tags
+				})
+			})
+		}
+	}, [selectedAgency, userData])
 
-				// reference to tags collection
-				const myDocRef = doc(db, 'tags', agencyID)
-				setAllTopicsArr(defaultTopics)
-				setActive(defaultTopics['active'])
+	// Log the selectedAgencyId when it changes
+	useEffect(() => {
+		console.log('Selected agency name:', selectedAgency)
+		console.log('Selected agency id:', selectedAgencyId)
+	}, [selectedAgencyId])
 
-				// create topics document for the new agency
-				await setDoc(myDocRef, {
+	const checkAndCreateTags = (agencyId) => {
+		const docRef = doc(db, 'tags', agencyId)
+		getDoc(docRef).then((docSnap) => {
+			if (!docSnap.exists()) {
+				const tagsCollection = collection(db, 'tags')
+				const myDocRef = doc(tagsCollection, agencyId)
+				setDoc(myDocRef, {
 					Labels: {
 						list: defaultLabels,
 						active: defaultLabels,
@@ -163,281 +183,228 @@ const ReportSystem = ({
 						active: defaultTopics,
 					},
 				})
-
-				// Otherwise, tag collection already exists.
 			} else {
-				const tagsData = docRef.data()['Topic']
-				setAllTopicsArr(docRef.data()['Topic']['active'])
-				tagsData['active'].sort((a, b) => {
-					if (a === t('Other')) return 1 // Move "Other" to the end
-					if (b === t('Other')) return -1 // Move "Other" to the end
-					return a.localeCompare(b) // Default sorting for other elements
-				})
-				// console.log(tagsData['active'])
-				setActive(tagsData['active'])
+				console.log('Tags collection for this agency exists.')
 			}
-		} catch (error) {
-			console.log(error)
-		} finally {
-			console.log('Cleanup here'); // cleanup, always executed
-		}
-	}
-	// Get sources
-	async function getAllSources() {
-    if (!agencyID) {
-        console.log("Agency ID is not set.");
-        return; // Exit the function if agencyID is not set
-    }
-    // console.log('Fetching sources for agency ID:', agencyID);
-    const sourceDoc = doc(db, 'tags', agencyID);
-    try {
-        const sourceRef = await getDoc(sourceDoc);
-        const sources = sourceRef.exists() ? sourceRef.data()['Source']['active'] : [];
-        // console.log('Sources fetched:', sources);
-        setSources(sources);
-    } catch (error) {
-        console.error("Failed to fetch sources:", error);
-    }
+		})
 	}
 
-	useEffect(() => {
-		if (update) {
-			handleUpload()
-		}
-	},[update])
-	
-	useEffect(() => {
-		console.log('all topics array', allTopicsArr)
-		if (reportSystem >= 2) {
-			getAllSources()
-		}
-	}, [allTopicsArr])
-
-	// When agency is selected, keep track of agency ID
-	useEffect(() => {
-		if (selectedAgency != '') {
-			console.log('selectedAngency is', selectedAgency);
-			const agencyCollection = collection(db, 'agency')
-			// If current user is an agency user, determine which agency
-			const q = query(
-				agencyCollection,
-				where('name', '==', selectedAgency),
-				where('state', '==', userData.state.name),
-			)
-			let agencyId
-			getDocs(q).then((querySnapshot) => {
-				querySnapshot.forEach((docAgency) => {
-					// Set initial values
-					// console.log("im here")
-					agencyId = docAgency.id
-					console.log(agencyId)
-					setSelectedAgencyID(agencyId)
-					// console.log(agencyId)
-					const docRef = doc(db, 'tags', agencyId)
-					getDoc(docRef).then((docSnap) => {
-						// TODO: test to make sure not null
-
-						// create tags collection if current agency does not have one
-						if (!docSnap.exists()) {
-							// reference to tags collection
-							const tagsCollection = collection(db, 'tags')
-
-							const myDocRef = doc(tagsCollection, agencyId)
-
-							// create topics document for the new agency
-							setDoc(myDocRef, {
-								Labels: {
-									list: defaultLabels,
-									active: defaultLabels,
-								},
-
-								Source: {
-									list: defaultSources,
-									active: defaultSources,
-								},
-								Topic: {
-									list: defaultTopics,
-									active: defaultTopics,
-								},
-							})
-						} else {
-							console.log('Tags collection for this agency exists.')
-						}
-					})
-				})
-			})
-		}
-	}, [selectedAgency])
-
+	// get all agencies when userData is set
 	useEffect(() => {
 		if (userData) {
 			getAllAgencies()
 		}
 	}, [userData])
 
+	// TOPICS
+	// TOPICS
+	// TOPICS
 	useEffect(() => {
-		if (agencyID) {
+		if (selectedAgencyId) {
 			getAllTopics()
 		}
-	}, [agencyID])
+	}, [selectedAgencyId])
 
-	const handleImageChange = (image) => {
-		// Image upload:
-		// (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js,
-		// https://www.youtube.com/watch?v=S4zaZvM8IeI)
-		// console.log('handle image change run');
-		for (let i = 0; i < image.target.files.length; i++) {
-			const newImage = image.target.files[i]
-			setImages((prevState) => [...prevState, newImage])
-			setUpdate(!update)
+	useEffect(() => {
+		console.log('Selected topic:', selectedTopic)
+	}, [selectedTopic])
+
+	async function getAllTopics() {
+		console.log('Fetching topics for Agency ID:', selectedAgencyId)
+		try {
+			const docRef = await getDoc(doc(db, 'tags', selectedAgencyId))
+			if (!docRef.exists()) {
+				const defaultTopics = ['Health', 'Other', 'Politics', 'Weather']
+				const defaultSources = ['Newspaper', 'Other', 'Social', 'Website']
+				const defaultLabels = ['Important', 'Flagged']
+
+				await setDoc(doc(db, 'tags', selectedAgencyId), {
+					Labels: { list: defaultLabels, active: defaultLabels },
+					Source: { list: defaultSources, active: defaultSources },
+					Topic: { list: defaultTopics, active: defaultTopics },
+				})
+				setAllTopicsArr(defaultTopics)
+				setActive(defaultTopics) // Assuming setActive is meant to be another state setter. Make sure it's defined.
+			} else {
+				const activeTopics = docRef.data()['Topic']['active']
+				activeTopics.sort((a, b) => {
+					if (a === t('Other')) return 1
+					if (b === t('Other')) return -1
+					return a.localeCompare(b)
+				})
+				setAllTopicsArr(activeTopics)
+			}
+		} catch (error) {
+			console.error('Failed to fetch topics:', error)
 		}
 	}
-	const handleUpload = () => {
-		// Image upload to firebase
-		const promises = []
-		images.map((image) => {
-			const storageRef = ref(
-				storage,
-				`report_${new Date().getTime().toString()}.png`,
-			)
-			const uploadTask = uploadBytesResumable(storageRef, image)
-			promises.push(uploadTask)
-			uploadTask.on(
-				'state_changed',
-				(snapshot) => {
-					// console.log(snapshot);
-				},
-				(error) => {
-					console.log(error)
-				},
-				() => {
-					getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-						// console.log('File available at', downloadURL);
-						setImageURLs((prev) => [...prev, downloadURL])
-					})
-				},
-			)
-		})
-		Promise.all(promises).catch((err) => console.log(err))
-	}
+
+	// Handlers
 	const handleTopicChange = (topic) => {
 		if (topic.includes('Other')) {
 			setSelectedTopic('')
 			setShowOtherTopic(true)
 		} else {
-			setShowOtherTopic(false)
 			setSelectedTopic(topic)
-			setShowForwardArrow(true) // Show the arrow when a topic is selected
+			setShowOtherTopic(false)
+			setShowForwardArrow(true)
 		}
 	}
-	const handleOtherTopicChange = (topicOther) => {
-		setOtherTopic(topicOther.target.value)
-		setSelectedTopic(topicOther.target.value)
+
+	const handleOtherTopicChange = (event) => {
+		const value = event.target.value
+		setOtherTopic(value) // Assuming setOtherTopic is a state setter. Make sure it's defined.
+		setSelectedTopic(value)
+		setShowForwardArrow(!!value)
 	}
+
+	// SOURCES
+	// SOURCES
+	// SOURCES
+	const fetchData = async () => {
+		const tagsDocRef = doc(db, 'tags', selectedAgencyId)
+		try {
+			const docSnapshot = await getDoc(tagsDocRef)
+			if (!docSnapshot.exists()) {
+				console.log('Document does not exist:', selectedAgencyId)
+				return
+			}
+			const data = docSnapshot.data()
+			const activeTopics = data.Topic?.active || []
+			const activeSources = data.Source?.active || []
+
+			setAllTopicsArr(activeTopics)
+			setSources(activeSources)
+		} catch (error) {
+			console.error('Failed to fetch data:', error)
+		}
+	}
+
+	useEffect(() => {
+		if (selectedAgencyId) {
+			fetchData()
+		}
+	}, [selectedAgencyId])
+
+	useEffect(() => {
+		console.log('Selected source:', selectedSource)
+	}, [selectedSource])
+
 	const handleSourceChange = (source) => {
 		if (source.includes('Other')) {
 			setSelectedSource('')
 			setShowOtherSource(true)
 		} else {
-			setShowOtherSource(false)
 			setSelectedSource(source)
-			setShowForwardArrow(true) // Show the arrow when a topic is selected
+			setShowOtherSource(false)
+			setShowForwardArrow(true)
 		}
 	}
-	const handleOtherSourceChange = (sourceOther) => {
-		setOtherSource(sourceOther.target.value)
-		setSelectedSource(sourceOther.target.value)
+
+	const handleOtherSourceChange = (event) => {
+		const value = event.target.value
+		setOtherSource(value) // Update the state bound to the input field
+		setSelectedSource(value) // Update the state that holds the currently selected source
+		setShowForwardArrow(!!value) // Show or hide the forward arrow based on input presence
+		setShowOtherSource(!!value) // Potentially redundant but ensures logic consistency if needed elsewhere
 	}
-	const addNewTag = (tag, source, agencyId) => {
-		let topicArr = list
-		let sourceArr = sourceList
-		topicArr.push(tag)
-		sourceArr.push(source)
-		setList(topicArr)
-		setSourceList(sourceArr)
-		updateTopicTags(list, agencyId, sourceList)
-	}
-	const updateTopicTags = async (topicList, agencyId, sourceList) => {
-		const docRef = await getDoc(doc(db, 'tags', agencyId))
-		const updatedDocRef = await setDoc(doc(db, 'tags', agencyId), {
-			...docRef.data(),
-			['Topic']: {
-				list: topicList,
-				active: active,
-			},
-			['Source']: {
-				list: sourceList,
-				active: activeSources,
-			},
-		})
-		return updatedDocRef
-	}
-	const handleChange = (e) => {
-		// console.log(e.target.id)
-		if (titleError) {
-			e.target.id == 'title' && setTitleError(false)
-		} else if (detailError) {
-			e.target.id == 'link' ||
-				'multiple_files' ||
-				('detail' && setTitleError(false))
+
+
+	// MANAGE NEW TAGS
+	// MANAGE NEW TAGS
+	// MANAGE NEW TAGS
+	const addNewTag = (tag, source) => {
+		const updatedTopics = [...list, tag]
+		const updatedSources = [...sourceList, source]
+
+		setList(updatedTopics)
+		setSourceList(updatedSources)
+
+		// Only update Firestore if the agency ID is available
+		if (selectedAgencyId) {
+			updateTopicTags(updatedTopics, updatedSources, selectedAgencyId)
 		}
-		// console.log('REPORT VALUE CHANGED: ' + e.target.id + ': ' + e.target.value);
 	}
+
+	const updateTopicTags = async (topicList, sourceList, agencyId) => {
+		const tagsDocRef = doc(db, 'tags', agencyId)
+		try {
+			const docSnapshot = await getDoc(tagsDocRef)
+			if (docSnapshot.exists()) {
+				await updateDoc(tagsDocRef, {
+					'Topic.list': topicList,
+					'Topic.active': active, 
+					'Source.list': sourceList,
+					'Source.active': activeSources, 
+				})
+				console.log('Tags updated successfully')
+			} else {
+				console.error('Document does not exist:', agencyId)
+			}
+		} catch (error) {
+			console.error('Failed to update tags:', error)
+		}
+	}
+
+
+	// IMAGES
+	// IMAGES
+	// IMAGES
+  const handleImageChange = (event) => {
+    const files = Array.from(event.target.files);
+    setImages(prevState => [...prevState, ...files]); // Append new files to existing state array
+    // Assume handleUpload() function is available here to start the upload process
+  };
+const handleUpload = () => {
+    const uploadPromises = images.map((image, index) => {
+        const timestamp = new Date().getTime();
+        const storageRef = ref(storage, `images/report_${timestamp}_${index}.png`); // Ensure unique path for each image
+
+        return uploadBytesResumable(storageRef, image).on(
+            'state_changed',
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                console.log('Upload is ' + progress + '% done');
+            },
+            (error) => {
+                console.error('Upload error:', error); // More specific error logging
+            },
+            async () => {
+                const downloadURL = await getDownloadURL(storageRef);
+                setImageURLs(prev => [...prev, downloadURL]);
+                console.log('File available at', downloadURL);
+            }
+        );
+    });
+
+    Promise.all(uploadPromises)
+        .then(() => console.log('All files uploaded'))
+        .catch(error => console.error('Error in uploading one or more files:', error));
+};
+// Example of a direct upload trigger, e.g., from a submit button handler
+const handleSubmit = () => {
+    if (images.length > 0) {
+        handleUpload();
+    }
+};
+
+	// FORM REFRESH
+	// FORM REFRESH
+	// FORM REFRESH
 	const handleRefresh = () => {
 		setKey(self.crypto.randomUUID())
 		setReportResetModal(false)
 		setReportSystem(0)
 	}
 
-	// handle form submit
+	// FORM SUBMIT
+	// FORM SUBMIT
+	// FORM SUBMIT
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
 		console.log('Submitting form...')
 
-		const allErrors = {}
-		let isValid = true // Flag to check if form data is valid
-
-		// Validate form fields
-		if (!title) {
-			console.log('Validation error: Title is required.')
-			setTitleError(true)
-			allErrors.title = t('titleRequired')
-			isValid = false
-		}
-
-		if (images.length === 0 && !detail && !link) {
-			console.log('Validation error: Image, detail and links are required.')
-			setDetailError(true)
-			allErrors.detail = t('atLeast')
-			isValid = false
-		}
-
-		setErrors(allErrors)
-
-		if (!isValid) {
-			console.log('Form validation failed with errors:', allErrors)
-			return
-		}
-		try {
-			// Assume saveReport is an async function
-			await saveReport(imageURLs) // You might want to ensure saveReport is defined and handled properly
-			console.log('Form submitted and data saved successfully.')
-
-			setReportSystem(7) // Advance the report system state on successful save
-			console.log('Report saved successfully.')
-		} catch (error) {
-			console.error('Error during form submission:', error)
-		} finally {
-			resetForm() // Reset the form regardless of the outcome
-		}
-	}
-
-	// Save Report
-	const saveReport = async (imageURLs) => {
-		console.log('Saving report with image URLs:', imageURLs)
-
 		const newReportRef = doc(collection(db, 'reports'))
-		setReportId(newReportRef.id) // set report id
 		try {
 			await setDoc(newReportRef, {
 				userID: user.accountId,
@@ -449,36 +416,55 @@ const ReportSystem = ({
 				secondLink: secondLink,
 				images: imageURLs,
 				detail: detail,
-				createdDate: moment().toDate(),
-				isApproved: false,
+				createdDate: new Date(), // Use new Date() directly if you're not using moment-specific features
+				isApproved: true,
 				read: false,
 				topic: selectedTopic,
 				hearFrom: selectedSource,
 			})
-			console.log('Report saved successfully with ID:', newReportRef.id)
-			addNewTag(selectedTopic, selectedSource, agencyID)
+			console.log('Success: report saved with ID:', newReportRef.id)
+
+			// Tags handling might need error handling as well
+			addNewTag(selectedTopic, selectedSource, selectedAgencyId)
+
+			// Reset form or redirect user
+			resetForm() // Define this function to reset all states managing form inputs
+			// Optionally redirect user or display a success message
 		} catch (error) {
-			console.error('Failed to save report:', error)
+			console.error('Error saving report:', error)
+			// Optionally set an error state and display it to the user
+			setErrors('Failed to submit report.') // Define this setErrors function
 		}
 	}
 
+
+	// RESET FORM
+	// RESET FORM
+	// RESET FORM
 	const resetForm = () => {
-		setTitle('')
-		setLink('')
-		setSecondLink('')
-		setDetail('')
-		setSelectedTopic('')
-		setSelectedSource('')
-		setSelectedAgency('')
-		setImageURLs([])
-		setImages([])
-		setErrors({})
-		setShowOtherTopic(false)
-		setShowOtherSource(false)
-		setOtherTopic('')
-		setOtherSource('')
-		formRef.current.reset()
-	}
+    // Reset all related states
+    setTitle('');
+    setLink('');
+    setSecondLink('');
+    setImageURLs([]);
+    setDetail('');
+    setSelectedTopic(null);
+    setSelectedSource(null);
+    // etc.
+};
+
+
+	// 	console.log('Report saved successfully with ID:', newReportRef.id)
+	// 	// addNewTag(selectedTopic,selectedSource,selectedAgencyId)
+	// 	setReportSystem(7) // Advance the report system state on successful save
+	// 	console.log('Transitioning to thank you view.')
+	// } catch (error) {
+	// 	console.error('Error during form submission:', error)
+	// } finally {
+	// 	resetForm() // Reset the form regardless of the outcome
+	// 	console.log('reset report: done', isSubmitting)
+	// }
+	// }
 
 	// Elements
 	const ForwardArrow = () => {
@@ -517,23 +503,16 @@ const ReportSystem = ({
 		)
 	}
 	// Effects
-	useEffect(() => {
-		console.log('Report system updated to:', reportSystem)
-	}, [reportSystem])
+	// useEffect(() => {
+	// 	console.log('Report system updated to:', reportSystem)
+	// }, [reportSystem])
 
-	useEffect(() => {
-		console.log('User data updated:', userData)
-	}, [userData])
-
-	useEffect(() => {
-		if (selectedAgency) {
-			console.log(
-				'Selected agency changed, fetching sources for:',
-				selectedAgency,
-			)
-			getAllSources()
-		}
-	}, [selectedAgency])
+	// useEffect(() => {
+	// 	console.log('User data updated:', userData)
+	// }, [userData])
+	// useEffect(() => {
+	// 	console.log(newReportRef);
+	// }, [newReportRef])
 
 	return (
 		<div className={globalStyles.sectionContainer} key={key}>
@@ -595,18 +574,18 @@ const ReportSystem = ({
 						)}
 						{/* Agency */}
 						{reportSystem === 2 && (
-							<div className={globalStyles.form.viewWrapper}>
+							<div className={`${globalStyles.form.viewWrapper} ${reportSystem === 2 ? '' : 'hidden'}`}>
 								<AgencySelector
 									agencies={agencies}
 									selectedAgency={selectedAgency}
-									handleAgencyChange={setSelectedAgency}
+									onAgencyChange={handleAgencyChange}
 									showForwardArrow={setShowForwardArrow}
 								/>
 							</div>
 						)}
 						{/* Topic tag */}
 						{reportSystem == 3 && (
-							<div className={globalStyles.form.viewWrapper}>
+							<div className={`${globalStyles.form.viewWrapper} ${reportSystem === 3 ? '' : 'hidden'}`}>
 								<Typography variant="h5">{t('about')}</Typography>
 								<Card>
 									<List>
@@ -630,7 +609,7 @@ const ReportSystem = ({
 						)}
 						{/* Source tag */}
 						{reportSystem == 4 && (
-							<div className={globalStyles.form.viewWrapper}>
+							<div className={`${globalStyles.form.viewWrapper} ${reportSystem === 4 ? '' : 'hidden'}`}>
 								<Typography variant="h5">{t('where')}</Typography>
 								<Card>
 									<List>
@@ -655,7 +634,7 @@ const ReportSystem = ({
 						)}
 						{/* Details & Submit */}
 						{reportSystem == 5 && (
-							<div className="flex flex-col gap-6 mb-1">
+							<div className={`flex flex-col gap-6 mb-1 ${reportSystem === 5 ? '' : 'hidden'}`}>
 								<Typography variant="h5">{t('share')}</Typography>
 								{/* DESCRIPTION - details */}
 								<div className="block">
@@ -739,6 +718,10 @@ const ReportSystem = ({
 									imgPicker={imgPicker}
 									imageDescription="imageDescription"
 								/>
+								{/* Display uploaded images */}
+								{imageURLs.map((url, index) => (
+									<Image key={index} src={url} alt={`Uploaded #${index + 1}`} />
+								))}
 
 								{/* DESCRIBE IN DETAIL */}
 								<div className="block">
@@ -766,7 +749,7 @@ const ReportSystem = ({
 						)}
 						{/* REFRESH REPORT BUTTON */}
 						{reportSystem >= 2 && (
-							<div className="flex justify-center">
+							<div className={`flex justify-center ${reportSystem >= 2 ? '' : 'hidden'}`}>
 								<div className="w-50 opacity-50 hover:opacity-100 mt-2 sm:mt-4">
 									<RefreshButton />
 								</div>
@@ -774,7 +757,7 @@ const ReportSystem = ({
 						)}
 						{/* BACK ICON */}
 						{reportSystem > 0 && reportSystem < 7 && (
-							<div className="absolute opacity-50 hover:opacity-100 bottom-4 left-4 sm:left-6">
+							<div className={`absolute opacity-50 hover:opacity-100 bottom-4 left-4 sm:left-6  ${reportSystem > 0 && reportSystem < 7 ? '' : 'hidden'}`}>
 								<BackArrow />
 							</div>
 						)}
@@ -782,11 +765,11 @@ const ReportSystem = ({
 				</div>
 			)}
 			{reportSystem === 7 && (
-				<div className={`${globalStyles.form.wrap} sm:p-6`}>
+				<div className={`${globalStyles.form.wrap} sm:p-6 ${reportSystem === 7 ? '' : 'hidden'}`}>
 					<>
 						{/* THANK YOU */}
 						{reportSystem == 6 && (
-							<div className={globalStyles.form.viewWrapper + ' items-center'}>
+							<div className={`${globalStyles.form.viewWrapper} items-center ${reportSystem === 6 ? '' : 'hidden'}`}>
 								<Image
 									src="/img/reportSuccess.png"
 									width={156}
@@ -807,7 +790,7 @@ const ReportSystem = ({
 						)}
 						{/* View Report */}
 						{reportSystem == 7 && (
-							<Card className={globalStyles.form.view}>
+							<Card className={`globalStyles.form.view ${reportSystem === 7 ? '' : 'hidden'}`}>
 								{/* Title */}
 								<div className="mb-6 p-0">
 									<Typography variant="h6" color="blue">
