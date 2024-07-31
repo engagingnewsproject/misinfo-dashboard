@@ -353,35 +353,43 @@ const ReportSystem = ({
 		setImages((prevState) => [...prevState, ...files]) // Append new files to existing state array
 		// Assume handleUpload() function is available here to start the upload process
 	}
-	const handleUpload = () => {
-		const uploadPromises = images.map((image, index) => {
-			const timestamp = new Date().getTime()
-			const storageRef = ref(storage, `images/report_${timestamp}_${index}.png`) // Ensure unique path for each image
+const handleUpload = () => {
+    const uploadPromises = images.map((image, index) => {
+        const timestamp = new Date().getTime();
+        const fileRef = ref(storage, `report_${timestamp}_${index}.png`);
 
-			return uploadBytesResumable(storageRef, image).on(
-				'state_changed',
-				(snapshot) => {
-					const progress =
-						(snapshot.bytesTransferred / snapshot.totalBytes) * 100
-					console.log('Upload is ' + progress + '% done')
-				},
-				(error) => {
-					console.error('Upload error:', error) // More specific error logging
-				},
-				async () => {
-					const downloadURL = await getDownloadURL(storageRef)
-					setImageURLs((prev) => [...prev, downloadURL])
-					console.log('File available at', downloadURL)
-				},
-			)
-		})
+        const uploadTask = uploadBytesResumable(fileRef, image);
 
-		Promise.all(uploadPromises)
-			.then(() => console.log('All files uploaded'))
-			.catch((error) =>
-				console.error('Error in uploading one or more files:', error),
-			)
-	}
+        return new Promise((resolve, reject) => {
+            uploadTask.on(
+                'state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    console.log('Upload is ' + progress + '% done');
+                },
+                (error) => {
+                    console.error('Upload error:', error);
+                    reject(error);
+                },
+                () => {
+                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                        console.log('File available at', downloadURL);
+                        setImageURLs(prev => [...prev, downloadURL]);
+                        resolve(downloadURL);
+                    }).catch(reject);
+                }
+            );
+        });
+    });
+
+    Promise.all(uploadPromises)
+        .then((downloadURLs) => {
+            console.log('All files uploaded:', downloadURLs);
+            updateFirestoreDocument(downloadURLs); // Call function to update Firestore
+        })
+        .catch(error => console.error('Error in uploading one or more files:', error));
+};
+
 	// Example of a direct upload trigger, e.g., from a submit button handler
 	const handleSubmit = () => {
 		if (images.length > 0) {
@@ -393,7 +401,7 @@ const ReportSystem = ({
 	// FORM REFRESH
 	// FORM REFRESH
 	const handleRefresh = () => {
-		setKey(self.crypto.randomUUID())
+		resetForm()
 		setReportResetModal(false)
 		setReportSystem(0)
 	}
@@ -446,6 +454,9 @@ const ReportSystem = ({
 		}
 
 		try {
+			if (images.length > 0) {
+				handleUpload()
+			}
 			const docRef = await addDoc(collection(db, 'reports'), {
 				userID: user.accountId,
 				state: userData.state.name,
@@ -472,6 +483,9 @@ const ReportSystem = ({
 			console.log('reset report: done')
 		}
 	}
+	useEffect(() => {
+		console.log(reportSystem);
+	}, [reportSystem])
 	
 	// Elements
 	const ForwardArrow = () => {
@@ -720,7 +734,7 @@ const ReportSystem = ({
 								/>
 								{/* Display uploaded images */}
 								{imageURLs.map((url, index) => (
-									<Image key={index} src={url} alt={`Uploaded #${index + 1}`} />
+									<Image key={index} src={url} alt={`Uploaded #${index + 1}`} width={100} height={100}/>
 								))}
 
 								{/* DESCRIBE IN DETAIL */}
@@ -730,7 +744,7 @@ const ReportSystem = ({
 										id="detail"
 										onChange={(e) => setDetail(e.target.value)}
 										value={detail}
-										label={t('detailed')}
+										label={t('details')}
 										rows={8}
 									/>
 									<Typography
@@ -745,6 +759,7 @@ const ReportSystem = ({
 								<button
 									className={globalStyles.button.md_block}
 									type="submit"
+									onClick={() => setReportSystem(7)}
 								>
 									{t('submit')}
 								</button>
@@ -803,6 +818,8 @@ const ReportSystem = ({
 								secondLink={secondLink}
 								imageURLs={imageURLs}
 								detail={detail}
+								reportSystem={reportSystem}
+								setReportSystem={setReportSystem}
 							/>
 						)}
 					</>

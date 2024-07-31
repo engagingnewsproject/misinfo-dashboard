@@ -30,7 +30,7 @@ const SourceSelector = ({ sources, selectedSource, handleSourceChange, showOther
                         color='gray'
                         className='mt-2 flex items-start gap-1 font-normal'>
                         <IoIosInformationCircle size="15" className='mt-1' />
-                        {t("specify_custom_source")} {/* Updated translation key for clarity */}
+                        {t("source")} {/* Updated translation key for clarity */}
                     </Typography>
                 </div>
             )}
