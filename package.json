@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "export": "next export"
+    "lint": "next lint"
   },
   "dependencies": {
     "@firebase/app": "0.x",
@@ -53,6 +52,7 @@
     "eslint-config-next": "^14.2.3",
     "netlify-cli": "^17.23.8",
     "postcss": "^8.4.38",
+    "prettier": "^3.3.3",
     "tailwindcss": "^3.4.3"
   },
   "engines": {
