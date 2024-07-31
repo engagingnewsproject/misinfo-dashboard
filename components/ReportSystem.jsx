@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from "react"
-import { reportSystems } from "../pages/report"
 import { IoMdArrowRoundForward, IoMdArrowRoundBack } from "react-icons/io"
-import { BiCheckCircle, BiXCircle, BiRightArrowCircle } from "react-icons/bi"
+import { BiCheckCircle, BiXCircle } from "react-icons/bi"
 import {
 	setDoc,
 	getDoc,
 	doc,
-	addDoc,
 	collection,
 	getDocs,
   query,
@@ -16,8 +14,6 @@ import {
 	getStorage,
 	ref,
 	getDownloadURL,
-	uploadBytes,
-	deleteObject,
 	uploadBytesResumable,
 } from "firebase/storage"
 import { useAuth } from "../context/AuthContext"
@@ -26,14 +22,11 @@ import { State, City } from "country-state-city"
 import Link from "next/link"
 import moment from "moment"
 import Image from "next/image"
-import Select from "react-select"
 import { useTranslation } from "next-i18next"
-import { RiPrinterLine } from "react-icons/ri"
 import ConfirmModal from "./modals/ConfirmModal"
 import {
 	IoMdRefresh,
 	IoIosInformationCircle,
-	IoMdCheckmark,
 } from "react-icons/io"
 import globalStyles from "../styles/globalStyles"
 import {
@@ -46,10 +39,7 @@ import {
 	Typography,
 	Textarea,
 	Checkbox,
-	Tooltip,
 	ListItemPrefix,
-	ListItemSuffix,
-	Chip,
 } from "@material-tailwind/react"
 
 const ReportSystem = ({
