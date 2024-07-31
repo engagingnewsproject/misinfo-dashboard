@@ -389,13 +389,6 @@ const handleUpload = () => {
         .catch(error => console.error('Error in uploading one or more files:', error));
 };
 
-	// Example of a direct upload trigger, e.g., from a submit button handler
-	const handleSubmit = () => {
-		if (images.length > 0) {
-			handleUpload()
-		}
-	}
-
 	// FORM REFRESH
 	// FORM REFRESH
 	// FORM REFRESH
@@ -426,13 +419,26 @@ const handleUpload = () => {
     setOtherSource('');
 	}
 
+	// TODO: title error reset if user clicks
+	/* example:
+	const handleTitleChange = (event) => {
+    const newTitle = event.target.value;
+    setTitle(newTitle);
+    
+    // Clear the title error state if it was set
+    if (titleError && newTitle.trim() !== "") {
+        setTitleError(false);
+    }
+};
+	*/
+	
 	// FORM SUBMIT
 	// FORM SUBMIT
 	// FORM SUBMIT
-	const handleFormSubmit = async (e) => {
-		e.preventDefault()
+	const handleFormSubmit = async (event) => {
+		event.preventDefault()
 		const allErrors = {}
-    let isValid = true; // Flag to check if form data is valid
+		let isValid = true // Flag to check if form data is valid
 
 		if (!title) {
 			setTitleError(true)
@@ -440,11 +446,16 @@ const handleUpload = () => {
 			isValid = false;
 		}
 
-		if (images === '' && !detail && !link) {
+		if (images.length > 0) {
+			handleUpload()
+		}
+		
+		if (images.length === 0 && !link && !detail) {
 			setDetailError(true)
 			allErrors.detail = t('atLeast')
 			isValid = false
 		}
+
 		setErrors(allErrors)
 
 		if (!isValid) {
@@ -453,9 +464,6 @@ const handleUpload = () => {
 		}
 
 		try {
-			if (images.length > 0) {
-				handleUpload()
-			}
 			const docRef = await addDoc(collection(db, 'reports'), {
 				userID: user.accountId,
 				state: userData.state.name,
@@ -472,14 +480,14 @@ const handleUpload = () => {
 				topic: selectedTopic,
 				hearFrom: selectedSource,
 			})
-			// console.log("Document written with ID: ", docRef.id);
+			console.log("Document written with ID: ", docRef.id);
 			addNewTag(selectedTopic, selectedSource, agencyID) // Make sure this is not async or handle it properly
 			// Additional actions after successful write
 		} catch (error) {
 			console.error('Error during form submission:', error)
 		} finally {
 			resetForm() // Reset the form regardless of the outcome
-			// console.log('reset report: done')
+			setReportSystem(7)
 		}
 	}
 	
@@ -571,8 +579,7 @@ const handleUpload = () => {
 					<form
 						onSubmit={handleFormSubmit}
 						className={globalStyles.form.element}
-						ref={formRef}
-						id={key}>
+						ref={formRef}>
 						{showForwardArrow && (
 							<div className="absolute bottom-4 right-4 sm:right-6">
 								<ForwardArrow />
@@ -672,11 +679,6 @@ const handleUpload = () => {
 										<IoIosInformationCircle size="15" className="mt-1" />
 										{t('provide_title')} {t('max')}
 									</Typography>
-									{detailError && (
-										<Typography color="red" className="mt-2">
-											{t('atLeast')}
-										</Typography>
-									)}
 								</div>
 								{/* LINKS */}
 								<div className="block">
@@ -688,6 +690,7 @@ const handleUpload = () => {
 										type="text"
 										onChange={(e) => setLink(e.target.value)}
 										value={link}
+										error={detailError}
 									/>
 									{!link && (
 										<Typography
@@ -727,6 +730,7 @@ const handleUpload = () => {
 									handleImageChange={handleImageChange}
 									imgPicker={imgPicker}
 									imageDescription="imageDescription"
+									detailError={detailError}
 								/>
 								{/* Display uploaded images */}
 								{imageURLs.map((url, index) => (
@@ -742,7 +746,13 @@ const handleUpload = () => {
 										value={detail}
 										label={t('details')}
 										rows={8}
+										error={detailError}
 									/>
+									{detailError && (
+										<Typography color="red" className="mt-2">
+											{t('atLeast')}
+										</Typography>
+									)}
 									<Typography
 										variant="small"
 										color="gray"
@@ -755,7 +765,6 @@ const handleUpload = () => {
 								<button
 									className={globalStyles.button.md_block}
 									type="submit"
-									onClick={() => setReportSystem(7)}
 								>
 									{t('submit')}
 								</button>

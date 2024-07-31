@@ -4,7 +4,7 @@ import { IoIosInformationCircle } from "react-icons/io";
 import { useTranslation } from 'next-i18next';
 import globalStyles from '../../../styles/globalStyles';
 
-const ImageUploader = ({ handleImageChange, imgPicker, imageDescription }) => {
+const ImageUploader = ({ handleImageChange, imgPicker, imageDescription, detailError }) => {
   const { t } = useTranslation('NewReport');
 
   return (
@@ -19,6 +19,7 @@ const ImageUploader = ({ handleImageChange, imgPicker, imageDescription }) => {
         ref={imgPicker}
         type='file'
         label={t("image")}
+        error={detailError}
       />
       <Typography
         variant='small'
