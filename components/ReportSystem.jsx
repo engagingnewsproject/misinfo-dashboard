@@ -43,8 +43,6 @@ import {
 } from "@material-tailwind/react"
 
 const ReportSystem = ({
-	tab,
-	setTab,
 	reportSystem,
 	setReportSystem,
 	reminderShow,
@@ -58,7 +56,6 @@ const ReportSystem = ({
 	const { user } = useAuth()
 	const [key, setKey] = useState(self.crypto.randomUUID())
 	const [data, setData] = useState({ country: "US", state: null, city: null })
-	const [isSearchable, setIsSearchable] = useState(true)
 	const [userData, setUserData] = useState(null)
 	const storage = getStorage()
 	const [reportId, setReportId] = useState("")
@@ -90,7 +87,6 @@ const ReportSystem = ({
 	const [active, setActive] = useState([])
 	const [activeSources, setActiveSources] = useState([])
 	const [reportResetModal, setReportResetModal] = useState(false)
-	const [refresh, setRefresh] = useState(false)
 	const formRef = useRef(null)
 
 
