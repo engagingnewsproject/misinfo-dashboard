@@ -136,14 +136,14 @@ const ReportSystem = ({
 	}
 	// Fetch and set agency ID
 	useEffect(() => {
-		if (selectedAgency) {
+		if (selectedAgency != "") {
 			const agencyCollection = collection(db, 'agency')
 			const q = query(
 				agencyCollection,
 				where('name', '==', selectedAgency),
 				where('state', '==', userData.state.name),
 			)
-
+			
 			getDocs(q).then((querySnapshot) => {
 				querySnapshot.forEach((docAgency) => {
 					const agencyId = docAgency.id
@@ -207,9 +207,9 @@ const ReportSystem = ({
 	// }, [selectedTopic])
 
 	async function getAllTopics() {
-		// console.log('Fetching topics for Agency ID:', selectedAgencyId)
+		console.log('Fetching topics for Agency ID:', selectedAgencyId)
 		try {
-			const docRef = await getDoc(doc(db, 'tags', selectedAgencyId))
+			const docRef = await getDoc(doc(db,'tags',selectedAgencyId))
 			if (!docRef.exists()) {
 				const defaultTopics = ['Health', 'Other', 'Politics', 'Weather']
 				const defaultSources = ['Newspaper', 'Other', 'Social', 'Website']
