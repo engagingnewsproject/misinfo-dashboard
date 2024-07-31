@@ -9,7 +9,8 @@ import {
 	getDocs,
 	query,
 	where,
-	updateDoc
+	updateDoc,
+	addDoc,
 } from 'firebase/firestore'
 import {
 	getStorage,
@@ -19,9 +20,6 @@ import {
 } from 'firebase/storage'
 import { useAuth } from '../context/AuthContext'
 import { db } from '../config/firebase'
-import { State, City } from 'country-state-city'
-import Link from 'next/link'
-import moment from 'moment'
 import Image from 'next/image'
 import { useTranslation } from 'next-i18next'
 import ConfirmModal from './modals/ConfirmModal'
@@ -44,6 +42,7 @@ import AgencySelector from './partials/report/AgencySelector'
 import TopicSelector from './partials/report/TopicSelector'
 import SourceSelector from './partials/report/SourceSelector'
 import ImageUploader from './partials/report/ImageUploader'
+import ViewReport from './partials/report/ViewReport'
 
 const ReportSystem = ({
 	reportSystem,
@@ -58,7 +57,6 @@ const ReportSystem = ({
 	const { t, i18n } = useTranslation('NewReport')
 	const { user } = useAuth()
 	const [key, setKey] = useState(self.crypto.randomUUID())
-	const [data, setData] = useState({ country: 'US', state: null, city: null })
 	const [userData, setUserData] = useState(null)
 	const storage = getStorage()
 	const [reportId, setReportId] = useState('')
@@ -333,9 +331,9 @@ const ReportSystem = ({
 			if (docSnapshot.exists()) {
 				await updateDoc(tagsDocRef, {
 					'Topic.list': topicList,
-					'Topic.active': active, 
+					'Topic.active': active,
 					'Source.list': sourceList,
-					'Source.active': activeSources, 
+					'Source.active': activeSources,
 				})
 				console.log('Tags updated successfully')
 			} else {
@@ -350,43 +348,46 @@ const ReportSystem = ({
 	// IMAGES
 	// IMAGES
 	// IMAGES
-  const handleImageChange = (event) => {
-    const files = Array.from(event.target.files);
-    setImages(prevState => [...prevState, ...files]); // Append new files to existing state array
-    // Assume handleUpload() function is available here to start the upload process
-  };
-const handleUpload = () => {
-    const uploadPromises = images.map((image, index) => {
-        const timestamp = new Date().getTime();
-        const storageRef = ref(storage, `images/report_${timestamp}_${index}.png`); // Ensure unique path for each image
+	const handleImageChange = (event) => {
+		const files = Array.from(event.target.files)
+		setImages((prevState) => [...prevState, ...files]) // Append new files to existing state array
+		// Assume handleUpload() function is available here to start the upload process
+	}
+	const handleUpload = () => {
+		const uploadPromises = images.map((image, index) => {
+			const timestamp = new Date().getTime()
+			const storageRef = ref(storage, `images/report_${timestamp}_${index}.png`) // Ensure unique path for each image
 
-        return uploadBytesResumable(storageRef, image).on(
-            'state_changed',
-            (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                console.log('Upload is ' + progress + '% done');
-            },
-            (error) => {
-                console.error('Upload error:', error); // More specific error logging
-            },
-            async () => {
-                const downloadURL = await getDownloadURL(storageRef);
-                setImageURLs(prev => [...prev, downloadURL]);
-                console.log('File available at', downloadURL);
-            }
-        );
-    });
+			return uploadBytesResumable(storageRef, image).on(
+				'state_changed',
+				(snapshot) => {
+					const progress =
+						(snapshot.bytesTransferred / snapshot.totalBytes) * 100
+					console.log('Upload is ' + progress + '% done')
+				},
+				(error) => {
+					console.error('Upload error:', error) // More specific error logging
+				},
+				async () => {
+					const downloadURL = await getDownloadURL(storageRef)
+					setImageURLs((prev) => [...prev, downloadURL])
+					console.log('File available at', downloadURL)
+				},
+			)
+		})
 
-    Promise.all(uploadPromises)
-        .then(() => console.log('All files uploaded'))
-        .catch(error => console.error('Error in uploading one or more files:', error));
-};
-// Example of a direct upload trigger, e.g., from a submit button handler
-const handleSubmit = () => {
-    if (images.length > 0) {
-        handleUpload();
-    }
-};
+		Promise.all(uploadPromises)
+			.then(() => console.log('All files uploaded'))
+			.catch((error) =>
+				console.error('Error in uploading one or more files:', error),
+			)
+	}
+	// Example of a direct upload trigger, e.g., from a submit button handler
+	const handleSubmit = () => {
+		if (images.length > 0) {
+			handleUpload()
+		}
+	}
 
 	// FORM REFRESH
 	// FORM REFRESH
@@ -397,16 +398,55 @@ const handleSubmit = () => {
 		setReportSystem(0)
 	}
 
+	// RESET FORM
+	// RESET FORM
+	// RESET FORM
+	const resetForm = () => {
+		// Reset all related states
+    setTitle('');
+    setLink('');
+    setSecondLink('');
+    setDetail('');
+    setSelectedTopic('');
+    setSelectedSource('');
+    setSelectedAgency('');
+    setImageURLs([]);
+    setImages([]);
+    setErrors({});
+    setShowOtherTopic(false);
+    setShowOtherSource(false);
+    setOtherTopic('');
+    setOtherSource('');
+	}
+
 	// FORM SUBMIT
 	// FORM SUBMIT
 	// FORM SUBMIT
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
-		console.log('Submitting form...')
+		const allErrors = {}
+    let isValid = true; // Flag to check if form data is valid
 
-		const newReportRef = doc(collection(db, 'reports'))
+		if (!title) {
+			setTitleError(true)
+			allErrors.title = t('titleRequired')
+			isValid = false;
+		}
+
+		if (images === '' && !detail && !link) {
+			setDetailError(true)
+			allErrors.detail = t('atLeast')
+			isValid = false
+		}
+		setErrors(allErrors)
+
+		if (!isValid) {
+			console.log('Form validation failed with errors:', allErrors)
+			return
+		}
+
 		try {
-			await setDoc(newReportRef, {
+			const docRef = await addDoc(collection(db, 'reports'), {
 				userID: user.accountId,
 				state: userData.state.name,
 				city: userData.city.name,
@@ -422,50 +462,17 @@ const handleSubmit = () => {
 				topic: selectedTopic,
 				hearFrom: selectedSource,
 			})
-			console.log('Success: report saved with ID:', newReportRef.id)
-
-			// Tags handling might need error handling as well
-			addNewTag(selectedTopic, selectedSource, selectedAgencyId)
-
-			// Reset form or redirect user
-			resetForm() // Define this function to reset all states managing form inputs
-			// Optionally redirect user or display a success message
+			console.log("Document written with ID: ", docRef.id);
+			addNewTag(selectedTopic, selectedSource, agencyID) // Make sure this is not async or handle it properly
+			// Additional actions after successful write
 		} catch (error) {
-			console.error('Error saving report:', error)
-			// Optionally set an error state and display it to the user
-			setErrors('Failed to submit report.') // Define this setErrors function
+			console.error('Error during form submission:', error)
+		} finally {
+			resetForm() // Reset the form regardless of the outcome
+			console.log('reset report: done')
 		}
 	}
-
-
-	// RESET FORM
-	// RESET FORM
-	// RESET FORM
-	const resetForm = () => {
-    // Reset all related states
-    setTitle('');
-    setLink('');
-    setSecondLink('');
-    setImageURLs([]);
-    setDetail('');
-    setSelectedTopic(null);
-    setSelectedSource(null);
-    // etc.
-};
-
-
-	// 	console.log('Report saved successfully with ID:', newReportRef.id)
-	// 	// addNewTag(selectedTopic,selectedSource,selectedAgencyId)
-	// 	setReportSystem(7) // Advance the report system state on successful save
-	// 	console.log('Transitioning to thank you view.')
-	// } catch (error) {
-	// 	console.error('Error during form submission:', error)
-	// } finally {
-	// 	resetForm() // Reset the form regardless of the outcome
-	// 	console.log('reset report: done', isSubmitting)
-	// }
-	// }
-
+	
 	// Elements
 	const ForwardArrow = () => {
 		return (
@@ -502,17 +509,6 @@ const handleSubmit = () => {
 			</IconButton>
 		)
 	}
-	// Effects
-	// useEffect(() => {
-	// 	console.log('Report system updated to:', reportSystem)
-	// }, [reportSystem])
-
-	// useEffect(() => {
-	// 	console.log('User data updated:', userData)
-	// }, [userData])
-	// useEffect(() => {
-	// 	console.log(newReportRef);
-	// }, [newReportRef])
 
 	return (
 		<div className={globalStyles.sectionContainer} key={key}>
@@ -574,7 +570,8 @@ const handleSubmit = () => {
 						)}
 						{/* Agency */}
 						{reportSystem === 2 && (
-							<div className={`${globalStyles.form.viewWrapper} ${reportSystem === 2 ? '' : 'hidden'}`}>
+							<div
+								className={`${globalStyles.form.viewWrapper} ${reportSystem === 2 ? '' : 'hidden'}`}>
 								<AgencySelector
 									agencies={agencies}
 									selectedAgency={selectedAgency}
@@ -585,7 +582,8 @@ const handleSubmit = () => {
 						)}
 						{/* Topic tag */}
 						{reportSystem == 3 && (
-							<div className={`${globalStyles.form.viewWrapper} ${reportSystem === 3 ? '' : 'hidden'}`}>
+							<div
+								className={`${globalStyles.form.viewWrapper} ${reportSystem === 3 ? '' : 'hidden'}`}>
 								<Typography variant="h5">{t('about')}</Typography>
 								<Card>
 									<List>
@@ -609,7 +607,8 @@ const handleSubmit = () => {
 						)}
 						{/* Source tag */}
 						{reportSystem == 4 && (
-							<div className={`${globalStyles.form.viewWrapper} ${reportSystem === 4 ? '' : 'hidden'}`}>
+							<div
+								className={`${globalStyles.form.viewWrapper} ${reportSystem === 4 ? '' : 'hidden'}`}>
 								<Typography variant="h5">{t('where')}</Typography>
 								<Card>
 									<List>
@@ -634,7 +633,8 @@ const handleSubmit = () => {
 						)}
 						{/* Details & Submit */}
 						{reportSystem == 5 && (
-							<div className={`flex flex-col gap-6 mb-1 ${reportSystem === 5 ? '' : 'hidden'}`}>
+							<div
+								className={`flex flex-col gap-6 mb-1 ${reportSystem === 5 ? '' : 'hidden'}`}>
 								<Typography variant="h5">{t('share')}</Typography>
 								{/* DESCRIPTION - details */}
 								<div className="block">
@@ -742,14 +742,18 @@ const handleSubmit = () => {
 									</Typography>
 								</div>
 								{/* SUBMIT BUTTON */}
-								<button className={globalStyles.button.md_block} type="submit">
+								<button
+									className={globalStyles.button.md_block}
+									type="submit"
+								>
 									{t('submit')}
 								</button>
 							</div>
 						)}
 						{/* REFRESH REPORT BUTTON */}
 						{reportSystem >= 2 && (
-							<div className={`flex justify-center ${reportSystem >= 2 ? '' : 'hidden'}`}>
+							<div
+								className={`flex justify-center ${reportSystem >= 2 ? '' : 'hidden'}`}>
 								<div className="w-50 opacity-50 hover:opacity-100 mt-2 sm:mt-4">
 									<RefreshButton />
 								</div>
@@ -757,7 +761,8 @@ const handleSubmit = () => {
 						)}
 						{/* BACK ICON */}
 						{reportSystem > 0 && reportSystem < 7 && (
-							<div className={`absolute opacity-50 hover:opacity-100 bottom-4 left-4 sm:left-6  ${reportSystem > 0 && reportSystem < 7 ? '' : 'hidden'}`}>
+							<div
+								className={`absolute opacity-50 hover:opacity-100 bottom-4 left-4 sm:left-6  ${reportSystem > 0 && reportSystem < 7 ? '' : 'hidden'}`}>
 								<BackArrow />
 							</div>
 						)}
@@ -765,11 +770,13 @@ const handleSubmit = () => {
 				</div>
 			)}
 			{reportSystem === 7 && (
-				<div className={`${globalStyles.form.wrap} sm:p-6 ${reportSystem === 7 ? '' : 'hidden'}`}>
+				<div
+					className={`${globalStyles.form.wrap} sm:p-6 ${reportSystem === 7 ? '' : 'hidden'}`}>
 					<>
 						{/* THANK YOU */}
 						{reportSystem == 6 && (
-							<div className={`${globalStyles.form.viewWrapper} items-center ${reportSystem === 6 ? '' : 'hidden'}`}>
+							<div
+								className={`${globalStyles.form.viewWrapper} items-center ${reportSystem === 6 ? '' : 'hidden'}`}>
 								<Image
 									src="/img/reportSuccess.png"
 									width={156}
@@ -790,67 +797,13 @@ const handleSubmit = () => {
 						)}
 						{/* View Report */}
 						{reportSystem == 7 && (
-							<Card className={`globalStyles.form.view ${reportSystem === 7 ? '' : 'hidden'}`}>
-								{/* Title */}
-								<div className="mb-6 p-0">
-									<Typography variant="h6" color="blue">
-										{t('title_text')}
-									</Typography>
-									<Typography>{title}</Typography>
-								</div>
-								{/* Links */}
-								<div className="mb-6 p-0">
-									<Typography variant="h6" color="blue">
-										{t('links')}
-									</Typography>
-									<Typography>
-										{link || secondLink != '' ? (
-											<>
-												{link}
-												<br></br>
-												{secondLink}
-											</>
-										) : (
-											t('noLinks')
-										)}
-									</Typography>
-								</div>
-								{/* Image upload */}
-								<div className="mb-6 p-0">
-									<Typography variant="h6" color="blue">
-										{t('image')}
-									</Typography>
-									<div className="flex w-full overflow-y-auto">
-										{imageURLs.map((image, i = self.crypto.randomUUID()) => {
-											return (
-												<div className="flex mr-2" key={i}>
-													<Link href={image} target="_blank">
-														<Image
-															src={image}
-															width={100}
-															height={100}
-															alt="image"
-															className="object-cover w-auto"
-														/>
-													</Link>
-												</div>
-											)
-										})}
-									</div>
-								</div>
-								{/* Details */}
-								<div className="mb-6 p-0">
-									<Typography variant="h6" color="blue">
-										{t('detailed')}
-									</Typography>
-									<Typography>
-										{detail ? detail : `No description provided.`}
-									</Typography>
-								</div>
-								<Button color="blue" onClick={() => setReportSystem(0)}>
-									{t('backReports')}
-								</Button>
-							</Card>
+							<ViewReport
+								title={title}
+								link={link}
+								secondLink={secondLink}
+								imageURLs={imageURLs}
+								detail={detail}
+							/>
 						)}
 					</>
 				</div>
