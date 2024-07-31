@@ -13,11 +13,20 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 	// Data
 	// //
 	const getData = async () => {
-		const unsub = onSnapshot(doc(db, "reports", reportId), (doc) => {
-				// console.log("Current data: ", doc.data());
-				setData(doc.data())
-		});
-	}
+  if (!reportId) {
+    console.log("Report ID is undefined.");
+    return; // Exit if no reportId is provided
+  }
+  const docRef = doc(db, "reports", reportId);
+  const unsub = onSnapshot(docRef, (doc) => {
+    if (doc.exists()) {
+      // console.log("Current data:", doc.data());
+      setData(doc.data());
+    } else {
+      console.log("Document does not exist");
+    }
+  });
+};
 	// On page load (mount), update the tags from firebase
 	useEffect(() => {
 		getData()
