@@ -337,7 +337,7 @@ const ReportSystem = ({
     }
 	}
 	useEffect(() => {
-		console.log(sources);
+		// console.log(sources);
 	}, [sources])
 	
 	// Handlers
@@ -524,15 +524,21 @@ const ReportSystem = ({
 	}
 	const handleRefresh = () => {
 		setKey(self.crypto.randomUUID())
+		// Reset the form directly if the ref is currently pointing to the form element
+    if (formRef.current) {
+        formRef.current.reset();  // Resets all input fields to their initial values
+    }
 		// if (formRef.current) {
-		// setSelectedAgency("")
-		// setSelectedTopic("")
-		// setSelectedSource("")
-		// setTitle("")
-		// setLink("")
-		// setSecondLink("")
-		// setImages([])
-		// setDetail("")
+		setSelectedAgency("")
+		setSelectedAgencyID('')
+		setSelectedTopic("")
+		setSelectedSource("")
+		setTitle("")
+		setLink("")
+		setSecondLink("")
+		setImageURLs([])
+		setDetail("")
+		setReportId('')
 		setReportResetModal(false)
 		setReportSystem(0)
 		// } else {
@@ -994,6 +1000,20 @@ const ReportSystem = ({
 					closeModal={() => setReportResetModal(false)}
 				/>
 			)}
+			{/* debugging block */}
+			<div className="flex flex-col">
+				<div>Agency: {selectedAgency}</div>
+				<div>Agency ID: {agencyID}</div>
+				<div>Topic: {selectedTopic}</div>
+				<div>Source: {selectedSource}</div>
+				<div>Report title: {title}</div>
+				<div>Report link1: {link}</div>
+				<div>Report link2: {secondLink}</div>
+				<div>Report images: {imageURLs}</div>
+				<div>Report description: {detail}</div>
+				<div>Report ID: {reportId}</div>
+				{/* <pre>Errors: {errors}</pre> */}
+			</div>
 		</div>
 	)
 }
