@@ -40,10 +40,11 @@ const globalStyles = {
     }
   },
   form: {
-    wrap: 'flex h-auto justify-center md:py-6 bg-white shadow-none rounded-xl bg-clip-border min-h-[220px] sm:min-w-72',
+    element: 'relative bg-white lg:max-w-56 mx-auto max-h-80',
+    this: 'flex justify-center md:py-6 bg-white shadow-none rounded-xl bg-clip-border min-h-10 sm:min-w-72',
     view: 'min-w-full bg-clip-border p-6',
-    element: 'relative max-w-screen-lg min-w-96 p-4 sm:w-96',
-    viewWrapper: 'flex flex-col justify-center gap-2 sm:px-5',
+    wrap: 'relative max-w-screen-lg min-w-96 p-4 sm:w-96',
+    viewWrapper: 'flex flex-col rounded-lg justify-center items-center gap-2 sm:px-5',
     input_title:
       'block -mb-3 font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-blue-600',
     input_wrap: 'relative h-11 w-full min-w-[200px]'
@@ -112,7 +113,7 @@ const globalStyles = {
     'border-gray-300 rounded-md w-full pb-14 border-none border-transparent text-gray-700 bg-white leading-tight focus:outline-none focus:shadow-outline',
   viewWrapperCenter: 'flex flex-col gap-2 mt-8 items-center',
   sectionWrapper: 'flex items-center',
-  sectionContainer: 'w-full h-full flex flex-col mb-5 overflow-y-visible'
+  sectionContainer: 'w-full h-auto mb-5 overflow-y-visible'
 };
 
 export default globalStyles

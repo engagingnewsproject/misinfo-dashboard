@@ -1,6 +1,6 @@
 import React from 'react'
 import { Card, Link, Button, Typography } from '@material-tailwind/react'
-import { useTranslation } from 'next-i18next' // Import the useTranslation hook
+import { useTranslation } from 'next-i18next' 
 import globalStyles from '../../../styles/globalStyles'
 import Image from 'next/image'
 

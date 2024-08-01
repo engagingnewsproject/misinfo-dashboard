@@ -27,7 +27,7 @@ const AgencySelector = ({
 								onAgencyChange(agency)
 								showForwardArrow(true)
 							}}
-							className={`cursor-pointer ${agency === selectedAgency ? 'bg-blue-500 text-white' : 'bg-white text-black'}`}>
+							className={`cursor-pointer text-center`}>
 							{agency}
 						</ListItem>
 					))}

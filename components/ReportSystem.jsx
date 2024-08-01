@@ -43,6 +43,7 @@ import TopicSelector from './partials/report/TopicSelector'
 import SourceSelector from './partials/report/SourceSelector'
 import ImageUploader from './partials/report/ImageUploader'
 import ViewReport from './partials/report/ViewReport'
+import Link from 'next/link'
 
 const ReportSystem = ({
 	reportSystem,
@@ -310,7 +311,8 @@ const ReportSystem = ({
 	// MANAGE NEW TAGS
 	// MANAGE NEW TAGS
 	// MANAGE NEW TAGS
-	const addNewTag = (tag, source) => {
+	const addNewTag = (tag,source) => {
+		console.log('addNewTag function running');
 		const updatedTopics = [...list, tag]
 		const updatedSources = [...sourceList, source]
 
@@ -347,16 +349,31 @@ const ReportSystem = ({
 	// IMAGES
 	// IMAGES
 	// IMAGES
-	const handleImageChange = (event) => {
-		const files = Array.from(event.target.files)
-		setImages((prevState) => [...prevState, ...files]) // Append new files to existing state array
-		// Assume handleUpload() function is available here to start the upload process
-	}
-const handleUpload = () => {
-    const uploadPromises = images.map((image, index) => {
-        const timestamp = new Date().getTime();
-        const fileRef = ref(storage, `report_${timestamp}_${index}.png`);
+	// handleImageChange
+const handleImageChange = (event) => {
+    const newFiles = Array.from(event.target.files);
+    if (newFiles.length === 0) return;  // Early exit if no files selected
 
+    setImages(prev => [...prev, ...newFiles]);  // Append new files to existing state array
+};
+
+// UseEffect to handle uploads when 'images' state updates
+useEffect(() => {
+    if (images.length > 0) {
+        handleUpload(images);
+    }
+}, [images]); // Dependency on 'images' ensures the upload happens after the state is updated
+
+
+const handleUpload = async (filesToUpload) => {
+    if (!Array.isArray(filesToUpload) || filesToUpload.length === 0) {
+        console.error("Invalid or empty array passed to handleUpload.");
+        return;
+    }
+
+    const uploadPromises = filesToUpload.map((image, index) => {
+        const timestamp = new Date().getTime();
+        const fileRef = ref(storage, `images/report_${timestamp}_${index}.png`);
         const uploadTask = uploadBytesResumable(fileRef, image);
 
         return new Promise((resolve, reject) => {
@@ -364,31 +381,27 @@ const handleUpload = () => {
                 'state_changed',
                 (snapshot) => {
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    // console.log('Upload is ' + progress + '% done');
+                    console.log(`Upload is ${progress}% done`);
                 },
                 (error) => {
-                    console.error('Upload error:', error);
+                    console.error("Upload error:", error);
                     reject(error);
                 },
                 () => {
-                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                        // console.log('File available at', downloadURL);
-                        setImageURLs(prev => [...prev, downloadURL]);
-                        resolve(downloadURL);
-                    }).catch(reject);
+                    getDownloadURL(uploadTask.snapshot.ref).then(resolve).catch(reject);
                 }
             );
         });
     });
 
-    Promise.all(uploadPromises)
-        .then((downloadURLs) => {
-            // console.log('All files uploaded:', downloadURLs);
-            updateFirestoreDocument(downloadURLs); // Call function to update Firestore
-        })
-        .catch(error => console.error('Error in uploading one or more files:', error));
+    try {
+        const downloadURLs = await Promise.all(uploadPromises);
+        setImageURLs(prev => [...prev, ...downloadURLs]);
+        console.log('All files uploaded:', downloadURLs);
+    } catch (error) {
+        console.error('Error in uploading files:', error);
+    }
 };
-
 	// FORM REFRESH
 	// FORM REFRESH
 	// FORM REFRESH
@@ -397,7 +410,6 @@ const handleUpload = () => {
 		setReportResetModal(false)
 		setReportSystem(0)
 	}
-
 	// RESET FORM
 	// RESET FORM
 	// RESET FORM
@@ -418,7 +430,6 @@ const handleUpload = () => {
     setOtherTopic('');
     setOtherSource('');
 	}
-
 	// TODO: title error reset if user clicks
 	/* example:
 	const handleTitleChange = (event) => {
@@ -431,7 +442,7 @@ const handleUpload = () => {
     }
 };
 	*/
-	
+
 	// FORM SUBMIT
 	// FORM SUBMIT
 	// FORM SUBMIT
@@ -446,9 +457,14 @@ const handleUpload = () => {
 			isValid = false;
 		}
 
-		if (images.length > 0) {
-			handleUpload()
-		}
+//  if (!images || images.length === 0) {
+//         console.error("No images to upload.");
+//         // Handle the error or notify the user
+//         return;
+//     }
+
+//     // If there are images, proceed to upload
+//     handleUpload(images);
 		
 		if (images.length === 0 && !link && !detail) {
 			setDetailError(true)
@@ -462,8 +478,12 @@ const handleUpload = () => {
 			console.log('Form validation failed with errors:', allErrors)
 			return
 		}
-
+		console.log(selectedAgency)
+		console.log(title)
+		console.log(detail)
+		console.log(imageURLs);
 		try {
+			console.log('saving');
 			const docRef = await addDoc(collection(db, 'reports'), {
 				userID: user.accountId,
 				state: userData.state.name,
@@ -486,10 +506,15 @@ const handleUpload = () => {
 		} catch (error) {
 			console.error('Error during form submission:', error)
 		} finally {
+			console.log('finally');
 			resetForm() // Reset the form regardless of the outcome
-			setReportSystem(7)
+			setReportSystem(6)
 		}
 	}
+	useEffect(() => {
+		console.log(reportSystem);
+	}, [reportSystem])
+	
 	
 	// Elements
 	const ForwardArrow = () => {
@@ -529,317 +554,368 @@ const handleUpload = () => {
 	}
 
 	return (
-		<div className={globalStyles.sectionContainer} key={key}>
-			<>
-				{reminderShow != false && reportSystem == 1 && (
-					<div className={globalStyles.viewWrapperCenter}>
-						<Image
-							src="/img/reminder.png"
-							width={156}
-							height={120}
-							alt="reminderShow"
-							className="object-cover w-auto"
+		<div className={globalStyles.sectionContainer}>
+			<form
+				onSubmit={handleFormSubmit}
+				className={`relative lg:max-w-[60rem] lg:min-h-[35rem] mx-auto p-10 bg-white rounded-lg ${reportSystem == 0 && 'hidden'}`}
+				ref={formRef}>
+				{/* Reminder */}
+
+				<div
+					className={`${reminderShow != false && reportSystem == 1 ? '' : 'hidden'} ${globalStyles.viewWrapperCenter}`}>
+					<Image
+						src="/img/reminder.png"
+						width={156}
+						height={120}
+						alt="reminderShow"
+						className="object-cover w-auto"
+					/>
+					<Typography variant="h5" color="blue">
+						{t('reminder')}
+					</Typography>
+					<Typography>{t('description')}</Typography>
+					<Typography>{t('example')}</Typography>
+					<List>
+						<ListItem disabled={true} className="opacity-100">
+							<ListItemPrefix>
+								<BiCheckCircle size={25} color="green" />
+							</ListItemPrefix>
+							<Typography color="black">{t('correct')}</Typography>
+						</ListItem>
+						<ListItem disabled={true} className="opacity-100">
+							<ListItemPrefix>
+								<BiXCircle size={25} color="red" />
+							</ListItemPrefix>
+							<Typography color="black">{t('incorrect')}</Typography>
+						</ListItem>
+					</List>
+					<Button onClick={onReminderStart} color="blue">
+						{t('start')}
+					</Button>
+					{/* DO NOT SHOW AGAIN CHECKBOX */}
+					<div className="inline-flex items-center">
+						<Checkbox
+							onChange={onChangeCheckbox}
+							checked={disableReminder}
+							label={t('noShow')}
+							color="blue"
 						/>
-						<Typography variant="h5" color="blue">
-							{t('reminder')}
-						</Typography>
-						<Typography>{t('description')}</Typography>
-						<Typography>{t('example')}</Typography>
-						<List>
-							<ListItem disabled={true} className="opacity-100">
-								<ListItemPrefix>
-									<BiCheckCircle size={25} color="green" />
-								</ListItemPrefix>
-								<Typography color="black">{t('correct')}</Typography>
-							</ListItem>
-							<ListItem disabled={true} className="opacity-100">
-								<ListItemPrefix>
-									<BiXCircle size={25} color="red" />
-								</ListItemPrefix>
-								<Typography color="black">{t('incorrect')}</Typography>
-							</ListItem>
-						</List>
-						<Button onClick={onReminderStart} color="blue">
-							{t('start')}
-						</Button>
-						{/* DO NOT SHOW AGAIN CHECKBOX */}
-						<div className="inline-flex items-center">
-							<Checkbox
-								onChange={onChangeCheckbox}
-								checked={disableReminder}
-								label={t('noShow')}
-								color="blue"
-							/>
-						</div>
 					</div>
-				)}
-			</>
-			{reportSystem >= 2 && reportSystem <= 6 && (
-				<div className={globalStyles.form.wrap}>
-					<form
-						onSubmit={handleFormSubmit}
-						className={globalStyles.form.element}
-						ref={formRef}>
-						{showForwardArrow && (
-							<div className="absolute bottom-4 right-4 sm:right-6">
-								<ForwardArrow />
-							</div>
+				</div>
+
+				{/* Agency */}
+				<div
+					className={`${globalStyles.form.viewWrapper} ${reportSystem === 2 ? '' : 'hidden'}`}>
+					<AgencySelector
+						agencies={agencies}
+						selectedAgency={selectedAgency}
+						onAgencyChange={handleAgencyChange}
+						showForwardArrow={setShowForwardArrow}
+					/>
+				</div>
+
+				{/* Topic tag */}
+
+				<div
+					className={`${globalStyles.form.viewWrapper} ${reportSystem === 3 ? '' : 'hidden'}`}>
+					<Typography variant="h5">{t('about')}</Typography>
+					<Card>
+						<List>
+							<TopicSelector
+								topics={[
+									...allTopicsArr.filter((topic) => topic !== 'Other'),
+									...allTopicsArr.filter((topic) => topic === 'Other'),
+								]}
+								selectedTopic={selectedTopic}
+								handleTopicChange={handleTopicChange}
+								showOtherTopic={showOtherTopic}
+								handleOtherTopicChange={handleOtherTopicChange}
+								otherTopic={otherTopic}
+							/>
+						</List>
+					</Card>
+					{errors.topic && selectedTopic === '' && (
+						<span className="text-red-500">{errors.topic}</span>
+					)}
+				</div>
+
+				{/* Source tag */}
+
+				<div
+					className={`${globalStyles.form.viewWrapper} ${reportSystem === 4 ? '' : 'hidden'}`}>
+					<Typography variant="h5">{t('where')}</Typography>
+					<Card>
+						<List>
+							<SourceSelector
+								sources={[
+									...sources.filter((source) => source !== 'Other'),
+									...sources.filter((source) => source === 'Other'),
+								]}
+								selectedSource={selectedSource}
+								handleSourceChange={handleSourceChange}
+								showOtherSource={showOtherSource}
+								handleOtherSourceChange={handleOtherSourceChange}
+								otherSource={otherSource}
+								t={t}
+							/>
+						</List>
+					</Card>
+					{errors.source && selectedSource === '' && (
+						<span className="text-red-500">{errors.source}</span>
+					)}
+				</div>
+
+				{/* Details & Submit */}
+
+				<div
+					className={`flex bg-white p-6 flex-col rounded-lg gap-6 mb-1 ${reportSystem === 5 ? '' : 'hidden'}`}>
+					<Typography variant="h5">{t('share')}</Typography>
+					{/* DESCRIPTION - details */}
+					<div className="block">
+						<Typography variant="h6" color="blue">
+							{t('detail')}
+						</Typography>
+						<Typography>{t('detailDescription')}</Typography>
+					</div>
+					{/* TITLE */}
+					<div className="block">
+						<Input
+							variant="outlined"
+							color="gray"
+							id="title"
+							type="text"
+							label={t('title')}
+							onChange={(e) => setTitle(e.target.value)}
+							value={title}
+							error={titleError}
+						/>
+						<Typography
+							variant="small"
+							color={titleError ? 'red' : 'gray'}
+							className="mt-2 flex items-start gap-1 font-normal">
+							<IoIosInformationCircle size="15" className="mt-1" />
+							{t('provide_title')} {t('max')}
+						</Typography>
+					</div>
+					{/* LINKS */}
+					<div className="block">
+						<Input
+							variant="outlined"
+							color="gray"
+							label={t('linkFirst')}
+							id="link"
+							type="text"
+							onChange={(e) => setLink(e.target.value)}
+							value={link}
+							error={detailError}
+						/>
+						{!link && (
+							<Typography
+								variant="small"
+								color="gray"
+								className="mt-2 flex items-start gap-1 font-normal">
+								<IoIosInformationCircle size="15" className="mt-1" />
+								{t('example')} https://
+							</Typography>
 						)}
-						{/* Agency */}
-						{reportSystem === 2 && (
-							<div
-								className={`${globalStyles.form.viewWrapper} ${reportSystem === 2 ? '' : 'hidden'}`}>
-								<AgencySelector
-									agencies={agencies}
-									selectedAgency={selectedAgency}
-									onAgencyChange={handleAgencyChange}
-									showForwardArrow={setShowForwardArrow}
-								/>
-							</div>
-						)}
-						{/* Topic tag */}
-						{reportSystem == 3 && (
-							<div
-								className={`${globalStyles.form.viewWrapper} ${reportSystem === 3 ? '' : 'hidden'}`}>
-								<Typography variant="h5">{t('about')}</Typography>
-								<Card>
-									<List>
-										<TopicSelector
-											topics={[
-												...allTopicsArr.filter((topic) => topic !== 'Other'),
-												...allTopicsArr.filter((topic) => topic === 'Other'),
-											]}
-											selectedTopic={selectedTopic}
-											handleTopicChange={handleTopicChange}
-											showOtherTopic={showOtherTopic}
-											handleOtherTopicChange={handleOtherTopicChange}
-											otherTopic={otherTopic}
-										/>
-									</List>
-								</Card>
-								{errors.topic && selectedTopic === '' && (
-									<span className="text-red-500">{errors.topic}</span>
-								)}
-							</div>
-						)}
-						{/* Source tag */}
-						{reportSystem == 4 && (
-							<div
-								className={`${globalStyles.form.viewWrapper} ${reportSystem === 4 ? '' : 'hidden'}`}>
-								<Typography variant="h5">{t('where')}</Typography>
-								<Card>
-									<List>
-										<SourceSelector
-											sources={[
-												...sources.filter((source) => source !== 'Other'),
-												...sources.filter((source) => source === 'Other'),
-											]}
-											selectedSource={selectedSource}
-											handleSourceChange={handleSourceChange}
-											showOtherSource={showOtherSource}
-											handleOtherSourceChange={handleOtherSourceChange}
-											otherSource={otherSource}
-											t={t}
-										/>
-									</List>
-								</Card>
-								{errors.source && selectedSource === '' && (
-									<span className="text-red-500">{errors.source}</span>
-								)}
-							</div>
-						)}
-						{/* Details & Submit */}
-						{reportSystem == 5 && (
-							<div
-								className={`flex flex-col gap-6 mb-1 ${reportSystem === 5 ? '' : 'hidden'}`}>
-								<Typography variant="h5">{t('share')}</Typography>
-								{/* DESCRIPTION - details */}
-								<div className="block">
-									<Typography variant="h6" color="blue">
-										{t('detail')}
-									</Typography>
-									<Typography>{t('detailDescription')}</Typography>
-								</div>
-								{/* TITLE */}
-								<div className="block">
-									<Input
-										variant="outlined"
-										color="gray"
-										id="title"
-										type="text"
-										label={t('title')}
-										onChange={(e) => setTitle(e.target.value)}
-										value={title}
-										error={titleError}
-									/>
-									<Typography
-										variant="small"
-										color={titleError ? 'red' : 'gray'}
-										className="mt-2 flex items-start gap-1 font-normal">
-										<IoIosInformationCircle size="15" className="mt-1" />
-										{t('provide_title')} {t('max')}
-									</Typography>
-								</div>
-								{/* LINKS */}
-								<div className="block">
+						{/* Link 02 */}
+						{link && (
+							<>
+								<div className="mt-2">
 									<Input
 										variant="outlined"
 										color="gray"
 										label={t('linkFirst')}
-										id="link"
+										id="secondLink"
 										type="text"
-										onChange={(e) => setLink(e.target.value)}
-										value={link}
-										error={detailError}
+										onChange={(e) => setSecondLink(e.target.value)}
+										value={secondLink}
 									/>
-									{!link && (
-										<Typography
-											variant="small"
-											color="gray"
-											className="mt-2 flex items-start gap-1 font-normal">
-											<IoIosInformationCircle size="15" className="mt-1" />
-											{t('example')} https://
-										</Typography>
-									)}
-									{/* Link 02 */}
-									{link && (
-										<>
-											<div className="mt-2">
-												<Input
-													variant="outlined"
-													color="gray"
-													label={t('linkFirst')}
-													id="secondLink"
-													type="text"
-													onChange={(e) => setSecondLink(e.target.value)}
-													value={secondLink}
-												/>
-											</div>
-											<Typography
-												variant="small"
-												color="gray"
-												className="mt-2 flex items-start gap-1 font-normal">
-												<IoIosInformationCircle size="15" className="mt-1" />
-												{t('example')} https://
-											</Typography>
-										</>
-									)}
 								</div>
-								{/* IMAGE UPLOAD */}
-								<ImageUploader
-									handleImageChange={handleImageChange}
-									imgPicker={imgPicker}
-									imageDescription="imageDescription"
-									detailError={detailError}
-								/>
-								{/* Display uploaded images */}
-								{imageURLs.map((url, index) => (
-									<Image key={index} src={url} alt={`Uploaded #${index + 1}`} width={100} height={100}/>
-								))}
+								<Typography
+									variant="small"
+									color="gray"
+									className="mt-2 flex items-start gap-1 font-normal">
+									<IoIosInformationCircle size="15" className="mt-1" />
+									{t('example')} https://
+								</Typography>
+							</>
+						)}
+					</div>
+					{/* IMAGE UPLOAD */}
+					<ImageUploader
+						handleImageChange={handleImageChange}
+						imgPicker={imgPicker}
+						imageDescription="imageDescription"
+						detailError={detailError}
+					/>
+					{/* Display uploaded images */}
+					<div className="flex gap-2">
+						{imageURLs.map((url, index) => (
+							<Image
+								key={index}
+								src={url}
+								alt={`Uploaded #${index + 1}`}
+								width={100}
+								height={100}
+							/>
+						))}
+					</div>
 
-								{/* DESCRIBE IN DETAIL */}
-								<div className="block">
-									<Textarea
-										type="textarea"
-										id="detail"
-										onChange={(e) => setDetail(e.target.value)}
-										value={detail}
-										label={t('details')}
-										rows={8}
-										error={detailError}
-									/>
-									{detailError && (
-										<Typography color="red" className="mt-2">
-											{t('atLeast')}
-										</Typography>
-									)}
-									<Typography
-										variant="small"
-										color="gray"
-										className="mt-2 flex items-start gap-1">
-										<IoIosInformationCircle size="15" className="mt-1" />
-										{t('detailedDescription')}
-									</Typography>
-								</div>
-								{/* SUBMIT BUTTON */}
-								<button
-									className={globalStyles.button.md_block}
-									type="submit"
-								>
-									{t('submit')}
-								</button>
-							</div>
+					{/* DESCRIBE IN DETAIL */}
+					<div className="block">
+						<Textarea
+							type="textarea"
+							id="detail"
+							onChange={(e) => setDetail(e.target.value)}
+							value={detail}
+							label={t('details')}
+							rows={8}
+							error={detailError}
+						/>
+						{detailError && (
+							<Typography color="red" className="mt-2">
+								{t('atLeast')}
+							</Typography>
 						)}
-						{/* REFRESH REPORT BUTTON */}
-						{reportSystem >= 2 && (
-							<div
-								className={`flex justify-center ${reportSystem >= 2 ? '' : 'hidden'}`}>
-								<div className="w-50 opacity-50 hover:opacity-100 mt-2 sm:mt-4">
-									<RefreshButton />
-								</div>
-							</div>
-						)}
-						{/* BACK ICON */}
-						{reportSystem > 0 && reportSystem < 7 && (
-							<div
-								className={`absolute opacity-50 hover:opacity-100 bottom-4 left-4 sm:left-6  ${reportSystem > 0 && reportSystem < 7 ? '' : 'hidden'}`}>
-								<BackArrow />
-							</div>
-						)}
-					</form>
+						<Typography
+							variant="small"
+							color="gray"
+							className="mt-2 flex items-start gap-1">
+							<IoIosInformationCircle size="15" className="mt-1" />
+							{t('detailedDescription')}
+						</Typography>
+					</div>
+					{/* SUBMIT BUTTON */}
+					<button
+						className={globalStyles.button.md_block}
+						type="submit"
+						onClick={() => setReportSystem(7)}>
+						{t('submit')}
+					</button>
 				</div>
-			)}
-			{reportSystem === 7 && (
+
+				{/* View Report */}
+
 				<div
 					className={`${globalStyles.form.wrap} sm:p-6 ${reportSystem === 7 ? '' : 'hidden'}`}>
 					<>
-						{/* THANK YOU */}
-						{reportSystem == 6 && (
-							<div
-								className={`${globalStyles.form.viewWrapper} items-center ${reportSystem === 6 ? '' : 'hidden'}`}>
-								<Image
-									src="/img/reportSuccess.png"
-									width={156}
-									height={120}
-									alt="report success"
-									className="object-cover w-auto"
-								/>
-								<div className={globalStyles.heading.h1.black}>
-									{t('thankyou')}
-								</div>
-								<div className="text-center">{t('thanksText')}</div>
-								<button
-									onClick={() => setReportSystem(reportSystem + 1)}
-									className={globalStyles.button.md}>
-									{t('view')}
-								</button>
+						<Card
+							className={`${globalStyles.form.view} ${reportSystem === 7 ? '' : 'hidden'}`}>
+							{/* Title */}
+							<div className="mb-6 p-0">
+								<Typography variant="h6" color="blue">
+									{t('title_text')}
+								</Typography>
+								<Typography>{title}</Typography>
 							</div>
-						)}
-						{/* View Report */}
-						{reportSystem == 7 && (
-							<ViewReport
-								title={title}
-								link={link}
-								secondLink={secondLink}
-								imageURLs={imageURLs}
-								detail={detail}
-								reportSystem={reportSystem}
-								setReportSystem={setReportSystem}
-							/>
-						)}
+							{/* Links */}
+							<div className="mb-6 p-0">
+								<Typography variant="h6" color="blue">
+									{t('links')}
+								</Typography>
+								<Typography>
+									{link || secondLink != '' ? (
+										<>
+											{link}
+											<br></br>
+											{secondLink}
+										</>
+									) : (
+										t('noLinks')
+									)}
+								</Typography>
+							</div>
+							{/* Image upload */}
+							<div className="mb-6 p-0">
+								<Typography variant="h6" color="blue">
+									{t('image')}
+								</Typography>
+								<div className="flex w-full overflow-y-auto">
+									{imageURLs.map((image, i = self.crypto.randomUUID()) => {
+										return (
+											<div className="flex mr-2" key={i}>
+												<Link href={image} target="_blank">
+													<Image
+														src={image}
+														width={100}
+														height={100}
+														alt="image"
+														className="object-cover w-auto"
+													/>
+												</Link>
+											</div>
+										)
+									})}
+								</div>
+							</div>
+							{/* Details */}
+							<div className="mb-6 p-0">
+								<Typography variant="h6" color="blue">
+									{t('detailed')}
+								</Typography>
+								<Typography>
+									{detail ? detail : `No description provided.`}
+								</Typography>
+							</div>
+							<Button color="blue" onClick={() => setReportSystem(0)}>
+								{t('backReports')}
+							</Button>
+						</Card>
 					</>
 				</div>
-			)}
-			{/* Reset MODAL */}
-			{reportResetModal && (
-				<ConfirmModal
-					func={handleRefresh} // Pass the handleRefresh function to the ConfirmModal component
-					title="Are you sure you want to reset the report?"
-					subtitle="You cannot undo this action."
-					CTA="Reset Report"
-					closeModal={() => setReportResetModal(false)}
-				/>
-			)}
+
+				{/* THANK YOU */}
+
+				<div
+					className={`${globalStyles.form.viewWrapper} items-center ${reportSystem === 6 ? '' : 'hidden'}`}>
+					<Image
+						src="/img/reportSuccess.png"
+						width={156}
+						height={120}
+						alt="report success"
+						className="object-cover w-auto"
+					/>
+					<div className={globalStyles.heading.h1.black}>{t('thankyou')}</div>
+					<div className="text-center">{t('thanksText')}</div>
+					<button
+						onClick={() => setReportSystem(reportSystem + 1)}
+						className={globalStyles.button.md}>
+						{t('view')}
+					</button>
+				</div>
+				{/* Nav */}
+				<div className="flex justify-between self-end ">
+					{/* BACK ICON */}
+					<div
+						className={` opacity-50 hover:opacity-100   ${reportSystem > 0 && reportSystem < 7 ? '' : 'hidden'}`}>
+						<BackArrow />
+					</div>
+					{/* REFRESH REPORT BUTTON */}
+					<div
+						className={`flex justify-center ${reportSystem >= 2 ? '' : 'hidden'}`}>
+						<div className="w-50 opacity-50 hover:opacity-100 mt-2 sm:mt-4">
+							<RefreshButton />
+						</div>
+					</div>
+					{showForwardArrow && (
+						<div className={`${showForwardArrow ? 'opacity-100' : 'opacity-0'}`}>
+							<ForwardArrow />
+						</div>
+					)}
+				</div>
+
+				{/* Reset MODAL */}
+				{reportResetModal && (
+					<ConfirmModal
+						func={handleRefresh} // Pass the handleRefresh function to the ConfirmModal component
+						title="Are you sure you want to reset the report?"
+						subtitle="You cannot undo this action."
+						CTA="Reset Report"
+						closeModal={() => setReportResetModal(false)}
+					/>
+				)}
+			</form>
 		</div>
 	)
 }
