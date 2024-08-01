@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from "next/image"
 import { useAuth } from '../context/AuthContext'
+import { Button } from '@material-tailwind/react'
 
 const ResetPassword = () => {
     const router = useRouter()
@@ -72,12 +73,14 @@ const ResetPassword = () => {
 							</div>
 						)}
 						<div className="flex-col items-center content-center">
-							<button
-								className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline"
+							<Button
+								color="blue"
 								type="submit"
+								variant="filled"
+								className="hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline"
 								disabled={btn}>
 								{template.btnText}
-							</button>
+							</Button>
 						</div>
 					</form>
 					{btn && (

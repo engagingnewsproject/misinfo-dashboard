@@ -8,6 +8,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher'
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { MdOutlineRemoveRedEye } from "react-icons/md"; // <MdOutlineRemoveRedEye />
+import { Button } from '@material-tailwind/react'
 import {
 	collection,
 	getDocs,
@@ -155,8 +156,12 @@ const Login = () => {
                 </div>
                 {error && <span className="text-red-500 text-sm font-light">{error}</span>}
                 <div className="mt-5 flex-col items-center content-center">
-                    <button 
-                    className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-4 px-6 rounded focus:outline-none focus:shadow-outline"
+                    <Button 
+                    //className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-4 px-6 rounded focus:outline-none focus:shadow-outline"
+                    color="blue"  // Sets the text and border color to blue
+                    buttonType="filled"  // Renders the button with a filled style
+                    size="regular"  // Sets the button size to regular
+                    className="hover:bg-blue-700 text-white font-bold py-2 mb-4 px-6 rounded focus:outline-none focus:shadow-outline"
                     type="submit">
                         {loading ?        
                           <svg aria-hidden="true" className="m-auto h-4 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">	
@@ -165,7 +170,7 @@ const Login = () => {
                           </svg>
                               
                           : t("login") }
-                    </button>
+                    </Button>
                     <div className="flex items-center justify-between">
                         <div className="content-center">
                             <input type="checkbox" name='remember-me' className="form-checkbox rounded-sm border-transparent focus:border-transparent focus:ring-0" onChange={handleChange} />

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import {signOut} from 'firebase/auth'
 import { auth } from '../config/firebase'
+import { Button } from '@material-tailwind/react'
 
 const VerifyEmail = () => {
     const router = useRouter()
@@ -68,12 +69,21 @@ const VerifyEmail = () => {
                 </div>
              
                 <p className="text-center text-gray-500 text-sm">
-                <button className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" onClick={handleVerifyEmail}>
-                        Resend email
-                    </button>
-                    <button className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" onClick={handleLogin}>
+                <Button 
+                      //className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" 
+                      color="blue" 
+                      variant="filled"
+                      className="hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline"
+                      onClick={handleVerifyEmail}>
+                      Resend email
+                    </Button>
+                    <Button 
+                        color="blue" 
+                        variant="filled"
+                        className="hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline" 
+                        onClick={handleLogin}>
                         Log In
-                    </button>
+                    </Button>
                 </p>
             </div>
         </div>

@@ -311,12 +311,12 @@ const handleDelete = async (e) => {
 									})}
 									</td>
 									<td className={style.table_td} onClick={(e) => e.stopPropagation()}>
-										<button
+										<Button
 											onClick={() => handleAgencyDelete(Object.keys(agencyObj)[0]) }
 											className={`${style.table_button} tooltip-delete`}>
 											<IoTrash size={20} className={style.table_icon} />
 											<Tooltip anchorSelect=".tooltip-delete" place="bottom" delayShow={500}>Delete Agency</Tooltip>
-										</button>
+										</Button>
 									</td>
 								</tr>
 							)

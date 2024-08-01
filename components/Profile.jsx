@@ -67,6 +67,7 @@ const Profile = ({ customClaims }) => {
   const style = {
     sectionContainer: 'w-full h-full flex flex-col mb-5 overflow-visible',
     sectionWrapper: 'flex flex-col',
+    //is this material tailwind?? - have to check syntax for changing to and from material tailwind
     button:
       'bg-blue-600 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline',
     buttonHollow:
@@ -510,11 +511,15 @@ const Profile = ({ customClaims }) => {
     <div className="self-end m-6">
       <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
         <div className="font-light mr-4">{t('delete')}</div>
-        <button
+        <Button
           onClick={() => setDeleteModal(true)}
-          className="bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl">
+          //className="bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl">
+          variant="outlined"
+          color="red"
+          ripple="light"
+          className="hover:bg-red-200 text-red-600">
           {t('request')}
-        </button>
+        </Button>
       </div>
     </div>
   )
