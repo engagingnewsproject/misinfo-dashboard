@@ -101,8 +101,8 @@ const Navbar = ({
         overlay={disableOverlay}
         className='z-[9997]'
       >
-        <div className="fixed top-0 left-0 w-16">
-          <div className="flex-col bg-white h-screen max-h-screen">
+        <div className="fixed top-0 left-0 w-16 h-screen max-h-screen overflow-y-hidden">
+          <div className="flex-col h-full max-h-[81vh] md:h-screen md:max-h-screen">
             <div className="grid grid-rows-2 justify-between w-full h-full">
               <div className="row-span-1">
 
