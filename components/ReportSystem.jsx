@@ -105,8 +105,6 @@ const ReportSystem = ({
 	const [refresh, setRefresh] = useState(false)
 	const formRef = useRef(null)
 
-
-
   const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
   const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
   const defaultLabels = ["Important", "Flagged"] // tag system 3
@@ -252,7 +250,6 @@ const ReportSystem = ({
     }
   }, [agencyID])
 
-
   // useEffect(()=> {
   //   if (allTopicsArr.length > 0) {
   //     getAllSources()
@@ -342,9 +339,6 @@ const ReportSystem = ({
       setSources(sources);
 			}
     }
-	useEffect(() => {
-		// console.log(sources);
-	}, [sources])
 	
 	// Handlers
 	const handleSubmitClick = (e) => {
@@ -488,7 +482,6 @@ const ReportSystem = ({
 			setSourceArray([])
 		})
 	}
-
 	const updateTopicTags = async (topic, source, agencyId) => {
 		try {
 			// Reference to the document
@@ -541,38 +534,6 @@ const ReportSystem = ({
 			console.error('Error updating document: ', error)
 		}
 	}
-
-	const getTopicList = async () => {
-		try {
-			const docRef = await getDoc(doc(db, "tags", agencyID))
-			const { ["Topic"]: tagsData } = docRef.data()
-			console.log('tagsData.list--> ', tagsData.list);
-			setTopicList(tagsData.list)
-			tagsData.active.sort((a, b) => {
-				if (a === "Other") return 1 // Move "Other" to the end
-				if (b === "Other") return -1 // Move "Other" to the end
-				return a.localeCompare(b) // Default sorting for other elements
-			})
-			setActive(tagsData.active)
-		} catch (error) {
-			console.log(error)
-		}
-	}
-	const getSourceList = async () => {
-		try {
-			const docRef = await getDoc(doc(db, "tags", agencyID))
-			const { ["Source"]: tagsData } = docRef.data()
-			setSourceList(tagsData.list)
-			tagsData.active.sort((a, b) => {
-				if (a === "Other") return 1 // Move "Other" to the end
-				if (b === "Other") return -1 // Move "Other" to the end
-				return a.localeCompare(b) // Default sorting for other elements
-			})
-			setActiveSources(tagsData.active)
-		} catch (error) {
-			console.log(error)
-		}
-	}
 	const handleChange = (e) => {
 		// console.log('handleChange--> ', e.target.value)
 		if (titleError) {
@@ -612,7 +573,7 @@ const ReportSystem = ({
 		// console.log("not current form")
 		// }
 	}
-
+	// Elements
 	const ForwardArrow = () => {
 		return (
 			<IconButton
