@@ -10,7 +10,9 @@ import {
 	collection,
 	getDocs,
   query,
-  where
+	where,
+	updateDoc,
+	arrayUnion
 } from "firebase/firestore"
 import {
 	getStorage,
@@ -95,7 +97,7 @@ const ReportSystem = ({
 	const [showOtherSource, setShowOtherSource] = useState(false)
 	const [otherTopic, setOtherTopic] = useState("")
 	const [otherSource, setOtherSource] = useState("")
-	const [list, setList] = useState([])
+	const [topicList, setTopicList] = useState([])
 	const [sourceList, setSourceList] = useState([])
 	const [active, setActive] = useState([])
 	const [activeSources, setActiveSources] = useState([])
@@ -140,13 +142,15 @@ const ReportSystem = ({
 			hearFrom: selectedSource,
 		}).then(() => {
 			console.log("Success: report saved: " + reportId)
-			addNewTag(selectedTopic, selectedSource, agencyID)
-		})
+			console.log('SAVE Report: ',selectedTopic,selectedSource);
+			if (showOtherSource || showOtherTopic) {
+				addNewTag(selectedTopic,selectedSource,agencyID)
+			}
+		}).catch((error) => {
+      console.error("Error saving report: ", error);
+    });
 	}
-	// Data
-	const getData = async () => {
-		const docRef = await getDoc(doc(db, "reports", user.uid))
-	}
+
 	const getUserData = async () => {
 		await getDoc(doc(db, "mobileUsers", user.accountId)).then((mobileRef) =>
 			setUserData(mobileRef.data())
@@ -213,28 +217,28 @@ const ReportSystem = ({
               // create topics document for the new agency
               setDoc(myDocRef, {
           
-                Labels: {
-                  list: defaultLabels,
+								Labels: {
+									list: defaultLabels,
                   active: defaultLabels
-                },
-            
-                Source: {
-                  list: defaultSources,
+								},
+
+								Source: {
+									list: defaultSources,
                   active: defaultSources
-                },
-                Topic: {
-                  list: defaultTopics,
+								},
+								Topic: {
+									list: defaultTopics,
                   active: defaultTopics
                 }
-            })
-          } else {
+							})
+						} else {
             // console.log("Tags collection for this agency exists.")
           }
         });
-      })
-    })
-  }
-  }, [selectedAgency])
+				})
+			})
+		}
+	}, [selectedAgency])
 
   useEffect(()=> {
     if (userData) {
@@ -298,7 +302,9 @@ const ReportSystem = ({
 
       // Otherwise, tag collection already exists.
       } else {
-        const tagsData  = docRef.data()['Topic']
+				 const tagsData = docRef.data()['Topic']
+				 console.log(docRef.ref.path);
+				 console.log('tagData-> ', tagsData);
         setAllTopicsArr(docRef.data()['Topic']['active']);
         tagsData['active'].sort((a, b) => {
           if (a === t('Other')) return 1; // Move "Other" to the end
@@ -329,13 +335,13 @@ const ReportSystem = ({
 	async function getAllSources() {
     if (selectedAgency == "") {
       setSources([])
-    } else {
+		} else {
       const sourceDoc = doc(db, 'tags', agencyID);
       const sourceRef = await getDoc(sourceDoc);
-      const sources = sourceRef.get('Source')['active'];
+			const sources = sourceRef.get('Source')['active'];
       setSources(sources);
+			}
     }
-	}
 	useEffect(() => {
 		// console.log(sources);
 	}, [sources])
@@ -354,7 +360,7 @@ const ReportSystem = ({
 				setUpdate(!update)
 			}
 			saveReport(imageURLs)
-			setReportSystem(7)
+			// setReportSystem(7)
 		}
 	}
 	const handleNewReport = async (e) => {
@@ -460,34 +466,88 @@ const ReportSystem = ({
 		setSelectedSource(e.target.value)
 	}
 	const addNewTag = (tag, source, agencyId) => {
-		let topicArr = list
-		let sourceArr = sourceList
-		topicArr.push(tag)
-		sourceArr.push(source)
-		setList(topicArr)
-		setSourceList(sourceArr)
-		updateTopicTags(list, agencyId, sourceList)
-	}
-	const updateTopicTags = async (topicList, agencyId, sourceList) => {
-		const docRef = await getDoc(doc(db, "tags", agencyId))
-		const updatedDocRef = await setDoc(doc(db, "tags", agencyId), {
-			...docRef.data(),
-			["Topic"]: {
-				list: topicList,
-				active: active,
-			},
-			["Source"]: {
-				list: sourceList,
-				active: activeSources,
-			},
+		let tempTopicArr = [...topicList]
+		let tempSourceArr = [...sourceList]
+		if (tag) {
+			tempTopicArr.push(tag)
+			setTopicList(tempTopicArr)
+		}
+
+		if (source) {
+			tempSourceArr.push(source)
+			setSourceList(tempSourceArr)
+		}
+
+		updateTopicTags(
+			tag ? tempTopicArr : null,
+			source ? tempSourceArr : null,
+			agencyId,
+		).then(() => {
+			// Clear the temporary arrays after updating the document
+			setTopicList([])
+			setSourceArray([])
 		})
-		return updatedDocRef
 	}
+
+	const updateTopicTags = async (topic, source, agencyId) => {
+		try {
+			// Reference to the document
+			const docRef = doc(db, 'tags', agencyId)
+
+			// Fetch the current document data
+			const docSnap = await getDoc(docRef)
+
+			if (docSnap.exists()) {
+				const currentData = docSnap.data()
+				const updateData = {}
+
+				// Check if topic is provided and update it
+				if (topic) {
+					const currentTopicList = currentData.Topic?.list || []
+					const newTopicList = topic.filter(
+						(item) => !currentTopicList.includes(item),
+					)
+					if (newTopicList.length > 0) {
+						updateData['Topic.list'] = arrayUnion(...newTopicList)
+					}
+				}
+
+				// Check if source is provided and update it
+				if (source) {
+					const currentSourceList = currentData.Source?.list || []
+					console.log('currentSourceList--> ', currentSourceList);
+					const newSourceList = source.filter(
+						(item) => !currentSourceList.includes(item),
+					)
+					if (newSourceList.length > 0) {
+						updateData['Source.list'] = arrayUnion(...newSourceList)
+					}
+				}
+
+				// Update the document with the prepared update data
+				if (Object.keys(updateData).length > 0) {
+					await updateDoc(docRef, updateData)
+					console.log('Document updated successfully')
+				} else {
+					console.log('No new topics or sources to add')
+				}
+
+				return docRef
+			} else {
+				console.log('No such document!')
+				return null
+			}
+		} catch (error) {
+			console.error('Error updating document: ', error)
+		}
+	}
+
 	const getTopicList = async () => {
 		try {
 			const docRef = await getDoc(doc(db, "tags", agencyID))
 			const { ["Topic"]: tagsData } = docRef.data()
-			setList(tagsData.list)
+			console.log('tagsData.list--> ', tagsData.list);
+			setTopicList(tagsData.list)
 			tagsData.active.sort((a, b) => {
 				if (a === "Other") return 1 // Move "Other" to the end
 				if (b === "Other") return -1 // Move "Other" to the end
@@ -514,7 +574,7 @@ const ReportSystem = ({
 		}
 	}
 	const handleChange = (e) => {
-		// console.log(e.target.id)
+		// console.log('handleChange--> ', e.target.value)
 		if (titleError) {
 			e.target.id == 'title' && setTitleError(false)
 		} else if (detailError) {
@@ -531,8 +591,15 @@ const ReportSystem = ({
 		// if (formRef.current) {
 		setSelectedAgency("")
 		setSelectedAgencyID('')
+		// Topics
 		setSelectedTopic("")
+		setShowOtherTopic(false)
+		setOtherTopic('')
+		setAllTopicsArr([])
+		// Sources
 		setSelectedSource("")
+		setShowOtherSource(false)
+		setOtherSource('')
 		setTitle("")
 		setLink("")
 		setSecondLink("")
@@ -1004,14 +1071,22 @@ const ReportSystem = ({
 			<div className="flex flex-col">
 				<div>Agency: {selectedAgency}</div>
 				<div>Agency ID: {agencyID}</div>
+				<br/>
 				<div>Topic: {selectedTopic}</div>
+				<div>Show other Topic: {showOtherTopic ? 'true' : 'false'}</div>
+				<div>Other Topic: {otherTopic}</div>
 				<div>Source: {selectedSource}</div>
+				<div>Show other Source: {showOtherSource ? 'true' : 'false'}</div>
+				<div>Other Source: {otherSource}</div>
+				<br/>
 				<div>Report title: {title}</div>
 				<div>Report link1: {link}</div>
 				<div>Report link2: {secondLink}</div>
 				<div>Report images: {imageURLs}</div>
 				<div>Report description: {detail}</div>
+				<br />
 				<div>Report ID: {reportId}</div>
+				<div>Report KEY: {key}</div>
 				{/* <pre>Errors: {errors}</pre> */}
 			</div>
 		</div>
