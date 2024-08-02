@@ -149,7 +149,7 @@ const ReportSystem = ({
 			hearFrom: selectedSource,
 		}).then(() => {
 			console.log("Success: report saved: " + reportId)
-			console.log('SAVE Report: ',selectedTopic,selectedSource);
+			// console.log('SAVE Report: ',selectedTopic,selectedSource);
 			if (showOtherSource || showOtherTopic) {
 				addNewTag(selectedTopic,selectedSource,agencyID)
 			}
@@ -185,7 +185,7 @@ const ReportSystem = ({
 	}
 	// 
 	useEffect(() => {
-		console.log(reportSystem);
+		// console.log(reportSystem);
 		if (reportSystem >= 2) {
 			getAllSources()
 		}
@@ -270,7 +270,7 @@ const ReportSystem = ({
 	// Get topics
 	async function getAllTopics() {
     try {
-      console.log("Current agency's ID is " + agencyID)
+      // console.log("Current agency's ID is " + agencyID)
       let docRef = await getDoc(doc(db, 'tags', agencyID));
        // TODO: test to make sure not null
 
@@ -310,8 +310,8 @@ const ReportSystem = ({
       // Otherwise, tag collection already exists.
       } else {
 				 const tagsData = docRef.data()['Topic']
-				 console.log(docRef.ref.path);
-				 console.log('tagData-> ', tagsData);
+				//  console.log(docRef.ref.path);
+				//  console.log('tagData-> ', tagsData);
         setAllTopicsArr(docRef.data()['Topic']['active']);
         tagsData['active'].sort((a, b) => {
           if (a === t('Other')) return 1; // Move "Other" to the end
