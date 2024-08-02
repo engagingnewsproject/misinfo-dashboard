@@ -109,6 +109,11 @@ const ReportSystem = ({
   const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
   const defaultLabels = ["Important", "Flagged"] // tag system 3
 
+	useEffect(() => {
+		console.log('Authenticated user:', user);
+	}, [])
+	
+	
 	// On page load (mount), update the tags from firebase
 	useEffect(() => {
 		getUserData()
@@ -121,6 +126,10 @@ const ReportSystem = ({
 	}, [update])
 	// Save Report
 	const saveReport = (imageURLs) => {
+		if (!user) {
+			console.error('User is not authenticated');
+			return;
+		}
 		const newReportRef = doc(collection(db, "reports"))
 		setReportId(newReportRef.id) // set report id
 		setDoc(newReportRef, {
@@ -144,6 +153,7 @@ const ReportSystem = ({
 			if (showOtherSource || showOtherTopic) {
 				addNewTag(selectedTopic,selectedSource,agencyID)
 			}
+			handleRefresh()
 		}).catch((error) => {
       console.error("Error saving report: ", error);
     });
@@ -360,23 +370,23 @@ const ReportSystem = ({
 	const handleNewReport = async (e) => {
 		e.preventDefault()
 		const allErrors = {}
-		if (data.state == null) {
-			console.log("state error")
-			allErrors.state = t("state")
-		}
-		if (data.city == null) {
-			// Don't display the report, show an error message
-			console.log("city error")
-			allErrors.city = t("city")
-			if (
-				data.state != null &&
-				City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
-					.length == 0
-			) {
-				console.log("No cities here")
-				delete allErrors.city
-			}
-		}
+		// if (data.state == null) {
+		// 	console.log("state error")
+		// 	allErrors.state = t("state")
+		// }
+		// if (data.city == null) {
+		// 	// Don't display the report, show an error message
+		// 	console.log("city error")
+		// 	allErrors.city = t("city")
+		// 	if (
+		// 		data.state != null &&
+		// 		City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
+		// 			.length == 0
+		// 	) {
+		// 		console.log("No cities here")
+		// 		delete allErrors.city
+		// 	}
+		// }
 		if (selectedSource == "") {
 			console.log("No source error")
 			allErrors.source = t("source")
@@ -479,7 +489,7 @@ const ReportSystem = ({
 		).then(() => {
 			// Clear the temporary arrays after updating the document
 			setTopicList([])
-			setSourceArray([])
+			setSourceList([])
 		})
 	}
 	const updateTopicTags = async (topic, source, agencyId) => {
