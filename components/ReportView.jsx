@@ -6,7 +6,8 @@ import Image from 'next/image'
 import {  useTranslation } from 'next-i18next'
 
 const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,reportId,setReportId }) => {
-	const [data, setData ] = useState([])
+	const [data,setData] = useState([])
+	const [imageErrors, setImageErrors] = useState({});
   const {t} = useTranslation("NewReport")
 
 	// //
@@ -22,10 +23,10 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 	useEffect(() => {
 		getData()
 	},[])
-	
-	// //
-	// Text content
-	// //
+  // Handle image loading errors
+  const handleImageError = (index) => {
+    setImageErrors((prevErrors) => ({ ...prevErrors, [index]: true }));
+  };
 
 	// //
 	// Styles
@@ -77,13 +78,24 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 									{t('image_text')}
 								</div>
 							</div>
-							{data['images'].map((image, i) => {
-								return (
-									<div className="grid-cols-subgrid" key={i}>
-										<Image src={image} alt="image" width={200} height={200} className='object-cover w-auto'/>
-									</div>
-								)
-							})}
+							 {data.images.map((image, i) => {
+                return (
+                  <div className="grid-cols-subgrid" key={i}>
+                    {imageErrors[i] ? (
+                      <div className="text-red-500">{t('imageError')}</div>
+                    ) : (
+                      <Image
+                        src={image}
+                        alt="image"
+                        width={200}
+                        height={200}
+                        className="object-cover w-auto"
+                        onError={() => handleImageError(i)}
+                      />
+                    )}
+                  </div>
+                );
+              })}
 						</div>
 					</div> :
 					<div className={style.inputSingle}>{t('noImages')}</div>
