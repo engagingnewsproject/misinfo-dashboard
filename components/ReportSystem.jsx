@@ -1,30 +1,43 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { IoMdArrowRoundForward, IoMdArrowRoundBack } from 'react-icons/io'
-import { BiCheckCircle, BiXCircle } from 'react-icons/bi'
+import React, { useState, useEffect, useRef } from "react"
+import { reportSystems } from "../pages/report"
+import { IoMdArrowRoundForward, IoMdArrowRoundBack } from "react-icons/io"
+import { BiCheckCircle, BiXCircle, BiRightArrowCircle } from "react-icons/bi"
 import {
 	setDoc,
 	getDoc,
 	doc,
+	addDoc,
 	collection,
 	getDocs,
-	query,
+  query,
 	where,
 	updateDoc,
-	addDoc,
-} from 'firebase/firestore'
+	arrayUnion
+} from "firebase/firestore"
 import {
 	getStorage,
 	ref,
 	getDownloadURL,
+	uploadBytes,
+	deleteObject,
 	uploadBytesResumable,
-} from 'firebase/storage'
-import { useAuth } from '../context/AuthContext'
-import { db } from '../config/firebase'
-import Image from 'next/image'
-import { useTranslation } from 'next-i18next'
-import ConfirmModal from './modals/ConfirmModal'
-import { IoMdRefresh, IoIosInformationCircle } from 'react-icons/io'
-import globalStyles from '../styles/globalStyles'
+} from "firebase/storage"
+import { useAuth } from "../context/AuthContext"
+import { db } from "../config/firebase"
+import { State, City } from "country-state-city"
+import Link from "next/link"
+import moment from "moment"
+import Image from "next/image"
+import Select from "react-select"
+import { useTranslation } from "next-i18next"
+import { RiPrinterLine } from "react-icons/ri"
+import ConfirmModal from "./modals/ConfirmModal"
+import {
+	IoMdRefresh,
+	IoIosInformationCircle,
+	IoMdCheckmark,
+} from "react-icons/io"
+import globalStyles from "../styles/globalStyles"
 import {
 	Button,
 	IconButton,
@@ -35,16 +48,15 @@ import {
 	Typography,
 	Textarea,
 	Checkbox,
+	Tooltip,
 	ListItemPrefix,
-} from '@material-tailwind/react'
-
-import AgencySelector from './partials/report/AgencySelector'
-import TopicSelector from './partials/report/TopicSelector'
-import SourceSelector from './partials/report/SourceSelector'
-import ImageUploader from './partials/report/ImageUploader'
-import ViewReport from './partials/report/ViewReport'
+	ListItemSuffix,
+	Chip,
+} from "@material-tailwind/react"
 
 const ReportSystem = ({
+	tab,
+	setTab,
 	reportSystem,
 	setReportSystem,
 	reminderShow,
@@ -54,454 +66,555 @@ const ReportSystem = ({
 	disableReminder,
 }) => {
 	// used for Spanish translations
-	const { t, i18n } = useTranslation('NewReport')
+	const { t, i18n } = useTranslation("NewReport")
 	const { user } = useAuth()
 	const [key, setKey] = useState(self.crypto.randomUUID())
+	const [data, setData] = useState({ country: "US", state: null, city: null })
+	const [isSearchable, setIsSearchable] = useState(true)
 	const [userData, setUserData] = useState(null)
 	const storage = getStorage()
-	const [reportId, setReportId] = useState('')
+	const [reportId, setReportId] = useState("")
 	const imgPicker = useRef(null)
 	const [images, setImages] = useState([])
 	const [imageURLs, setImageURLs] = useState([])
 	const [update, setUpdate] = useState(false)
-	const [title, setTitle] = useState('')
+	const [title,setTitle] = useState("")
 	const [titleError, setTitleError] = useState(false)
-	const [link, setLink] = useState('')
-	const [secondLink, setSecondLink] = useState('')
-	const [detail, setDetail] = useState('')
+	const [link, setLink] = useState("")
+	const [secondLink, setSecondLink] = useState("")
+	const [detail,setDetail] = useState("")
 	const [detailError, setDetailError] = useState(false)
 	const [allTopicsArr, setAllTopicsArr] = useState([])
 	const [agencies, setAgencies] = useState([])
-	const [selectedAgency, setSelectedAgency] = useState('')
-	const [agencyID, setSelectedAgencyID] = useState('')
-	const [selectedAgencyId, setSelectedAgencyId] = useState('')
-	const [selectedTopic, setSelectedTopic] = useState('')
+	const [selectedAgency, setSelectedAgency] = useState("")
+  const [agencyID, setSelectedAgencyID] = useState("");
+
+	const [selectedTopic, setSelectedTopic] = useState("")
 	const [sources, setSources] = useState([])
-	const [selectedSource, setSelectedSource] = useState('')
-
-	const [showForwardArrow, setShowForwardArrow] = useState(false)
-
+	const [selectedSource, setSelectedSource] = useState("")
 	const [errors, setErrors] = useState({})
 	const [showOtherTopic, setShowOtherTopic] = useState(false)
 	const [showOtherSource, setShowOtherSource] = useState(false)
-	const [otherTopic, setOtherTopic] = useState('')
-	const [otherSource, setOtherSource] = useState('')
-	const [list, setList] = useState([])
+	const [otherTopic, setOtherTopic] = useState("")
+	const [otherSource, setOtherSource] = useState("")
+	const [topicList, setTopicList] = useState([])
 	const [sourceList, setSourceList] = useState([])
 	const [active, setActive] = useState([])
 	const [activeSources, setActiveSources] = useState([])
 	const [reportResetModal, setReportResetModal] = useState(false)
-
+	const [refresh, setRefresh] = useState(false)
 	const formRef = useRef(null)
 
-	const defaultTopics = ['Health', 'Other', 'Politics', 'Weather'] // tag system 1
-	const defaultSources = ['Newspaper', 'Other', 'Social', 'Website'] // tag system 2
-	const defaultLabels = ['Important', 'Flagged'] // tag system 3
+  const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
+  const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
+  const defaultLabels = ["Important", "Flagged"] // tag system 3
 
-	// USER
-	// USER
-	// USER
-	const getUserData = async () => {
-		if (!user) {
-			// console.log('User is not set.')
-			return // Exit the function if user is not set
-		}
-		const response = await getDoc(doc(db, 'mobileUsers', user.accountId))
-		// console.log('User data fetched:', response.data())
-		setUserData(response.data())
-	}
+	useEffect(() => {
+		console.log('Authenticated user:', user);
+	}, [])
+	
+	
+	// On page load (mount), update the tags from firebase
 	useEffect(() => {
 		getUserData()
 	}, [])
 
-	// AGENCIES
-	// AGENCIES
-	// AGENCIES
-	// uses filter and map to avoid direct mutation of the array
+	useEffect(() => {
+		if (update) {
+			handleUpload()
+		}
+	}, [update])
+	// Save Report
+	const saveReport = (imageURLs) => {
+		if (!user) {
+			console.error('User is not authenticated');
+			return;
+		}
+		const newReportRef = doc(collection(db, "reports"))
+		setReportId(newReportRef.id) // set report id
+		setDoc(newReportRef, {
+			userID: user.accountId,
+			state: userData.state.name,
+			city: userData.city.name,
+			agency: selectedAgency,
+			title: title,
+			link: link,
+			secondLink: secondLink,
+			images: imageURLs,
+			detail: detail,
+			createdDate: moment().toDate(),
+			isApproved: true,
+			read: false,
+			topic: selectedTopic,
+			hearFrom: selectedSource,
+		}).then(() => {
+			console.log("Success: report saved: " + reportId)
+			console.log('SAVE Report: ',selectedTopic,selectedSource);
+			if (showOtherSource || showOtherTopic) {
+				addNewTag(selectedTopic,selectedSource,agencyID)
+			}
+			handleRefresh()
+		}).catch((error) => {
+      console.error("Error saving report: ", error);
+    });
+	}
+
+	const getUserData = async () => {
+		await getDoc(doc(db, "mobileUsers", user.accountId)).then((mobileRef) =>
+			setUserData(mobileRef.data())
+		)
+	}
 	async function getAllAgencies() {
-		const agencyRef = await getDocs(collection(db, 'agency'))
+		// Get agency collection docs
+		const agencyRef = await getDocs(collection(db, "agency"))
 		try {
-			const arr = agencyRef.docs
-				.filter((doc) => doc.data()['state'] === userData?.state?.name)
-				.map((doc) => doc.data()['name'])
+			// build an array of agency names
+			var arr = []
+			agencyRef.forEach((doc) => {
+				// console.log("doc state is " +doc.data()['state'] )
+				// console.log("user location is " +userData?.state?.name )
+				if (doc.data()["state"] == userData?.state?.name) {
+					arr.push(doc.data()["name"])
+				}
+			})
+			// set the agencies state with the agency names
 			setAgencies(arr)
 		} catch (error) {
 			console.log(error)
 		}
 	}
-	// This function is called when an agency is selected in the AgencySelector component
-	const handleAgencyChange = (agency) => {
-		setSelectedAgency(agency) // Update the selected agency state
-		setShowForwardArrow(true) // Show the arrow when a agency is selected
-	}
-	// Fetch and set agency ID
+	// 
 	useEffect(() => {
-		if (selectedAgency != "") {
-			const agencyCollection = collection(db, 'agency')
-			const q = query(
-				agencyCollection,
-				where('name', '==', selectedAgency),
-				where('state', '==', userData.state.name),
-			)
-			
-			getDocs(q).then((querySnapshot) => {
-				querySnapshot.forEach((docAgency) => {
-					const agencyId = docAgency.id
-					setSelectedAgencyId(agencyId) // Set the agency ID state
-					checkAndCreateTags(agencyId) // Check for and possibly create tags
+		console.log(reportSystem);
+		if (reportSystem >= 2) {
+			getAllSources()
+		}
+	},[allTopicsArr])
+	
+  // When agency is selected, keep track of agency ID
+  useEffect(()=> {
+    if (selectedAgency != "") {
+
+      
+      const agencyCollection = collection(db,"agency")
+      // console.log(user)
+
+      // If current user is an agency, determine which agency
+      
+      const q = query(agencyCollection, where("name", "==", selectedAgency), where("state","==", userData.state.name))
+      let agencyId;
+      getDocs(q).then((querySnapshot) => {       
+        querySnapshot.forEach((docAgency) => { // Set initial values
+          // console.log("im here")
+          agencyId = docAgency.id
+          // console.log(agencyId)
+          setSelectedAgencyID(agencyId)
+          // console.log(agencyId)
+          const docRef = doc(db, 'tags', agencyId)
+          getDoc(docRef).then((docSnap)=> {
+        // TODO: test to make sure not null
+
+          // create tags collection if current agency does not have one
+          if (!docSnap.exists()) {
+         
+              // reference to tags collection 
+              const tagsCollection = collection(db, "tags")
+
+              const myDocRef = doc(tagsCollection, agencyId)
+
+              // create topics document for the new agency
+              setDoc(myDocRef, {
+          
+								Labels: {
+									list: defaultLabels,
+                  active: defaultLabels
+								},
+
+								Source: {
+									list: defaultSources,
+                  active: defaultSources
+								},
+								Topic: {
+									list: defaultTopics,
+                  active: defaultTopics
+                }
+							})
+						} else {
+            // console.log("Tags collection for this agency exists.")
+          }
+        });
 				})
 			})
 		}
-	}, [selectedAgency, userData])
+	}, [selectedAgency])
 
-	// Log the selectedAgencyId when it changes
-	// useEffect(() => {
-	// 	console.log('Selected agency name:', selectedAgency)
-	// 	console.log('Selected agency id:', selectedAgencyId)
-	// }, [selectedAgencyId])
-
-	const checkAndCreateTags = (agencyId) => {
-		const docRef = doc(db, 'tags', agencyId)
-		getDoc(docRef).then((docSnap) => {
-			if (!docSnap.exists()) {
-				const tagsCollection = collection(db, 'tags')
-				const myDocRef = doc(tagsCollection, agencyId)
-				setDoc(myDocRef, {
-					Labels: {
-						list: defaultLabels,
-						active: defaultLabels,
-					},
-					Source: {
-						list: defaultSources,
-						active: defaultSources,
-					},
-					Topic: {
-						list: defaultTopics,
-						active: defaultTopics,
-					},
-				})
-			} else {
-				// console.log('Tags collection for this agency exists.')
-			}
-		})
-	}
-
-	// get all agencies when userData is set
-	useEffect(() => {
-		if (userData) {
-			getAllAgencies()
-		}
-	}, [userData])
-
-	// TOPICS
-	// TOPICS
-	// TOPICS
-	useEffect(() => {
-		if (selectedAgencyId) {
-			getAllTopics()
-		}
-	}, [selectedAgencyId])
-
-	// useEffect(() => {
-	// 	console.log('Selected topic:', selectedTopic)
-	// }, [selectedTopic])
-
-	async function getAllTopics() {
-		console.log('Fetching topics for Agency ID:', selectedAgencyId)
-		try {
-			const docRef = await getDoc(doc(db,'tags',selectedAgencyId))
-			if (!docRef.exists()) {
-				const defaultTopics = ['Health', 'Other', 'Politics', 'Weather']
-				const defaultSources = ['Newspaper', 'Other', 'Social', 'Website']
-				const defaultLabels = ['Important', 'Flagged']
-
-				await setDoc(doc(db, 'tags', selectedAgencyId), {
-					Labels: { list: defaultLabels, active: defaultLabels },
-					Source: { list: defaultSources, active: defaultSources },
-					Topic: { list: defaultTopics, active: defaultTopics },
-				})
-				setAllTopicsArr(defaultTopics)
-				setActive(defaultTopics) // Assuming setActive is meant to be another state setter. Make sure it's defined.
-			} else {
-				const activeTopics = docRef.data()['Topic']['active']
-				activeTopics.sort((a, b) => {
-					if (a === t('Other')) return 1
-					if (b === t('Other')) return -1
-					return a.localeCompare(b)
-				})
-				setAllTopicsArr(activeTopics)
-			}
-		} catch (error) {
-			console.error('Failed to fetch topics:', error)
-		}
-	}
-
-	// Handlers
-	const handleTopicChange = (topic) => {
-		if (topic.includes('Other')) {
-			setSelectedTopic('')
-			setShowOtherTopic(true)
-		} else {
-			setSelectedTopic(topic)
-			setShowOtherTopic(false)
-			setShowForwardArrow(true)
-		}
-	}
-
-	const handleOtherTopicChange = (event) => {
-		const value = event.target.value
-		setOtherTopic(value) // Assuming setOtherTopic is a state setter. Make sure it's defined.
-		setSelectedTopic(value)
-		setShowForwardArrow(!!value)
-	}
-
-	// SOURCES
-	// SOURCES
-	// SOURCES
-	const fetchData = async () => {
-		const tagsDocRef = doc(db, 'tags', selectedAgencyId)
-		try {
-			const docSnapshot = await getDoc(tagsDocRef)
-			if (!docSnapshot.exists()) {
-				// console.log('Document does not exist:', selectedAgencyId)
-				return
-			}
-			const data = docSnapshot.data()
-			const activeTopics = data.Topic?.active || []
-			const activeSources = data.Source?.active || []
-
-			setAllTopicsArr(activeTopics)
-			setSources(activeSources)
-		} catch (error) {
-			console.error('Failed to fetch data:', error)
-		}
-	}
-
-	useEffect(() => {
-		if (selectedAgencyId) {
-			fetchData()
-		}
-	}, [selectedAgencyId])
-
-	// useEffect(() => {
-	// 	console.log('Selected source:', selectedSource)
-	// }, [selectedSource])
-
-	const handleSourceChange = (source) => {
-		if (source.includes('Other')) {
-			setSelectedSource('')
-			setShowOtherSource(true)
-		} else {
-			setSelectedSource(source)
-			setShowOtherSource(false)
-			setShowForwardArrow(true)
-		}
-	}
-
-	const handleOtherSourceChange = (event) => {
-		const value = event.target.value
-		setOtherSource(value) // Update the state bound to the input field
-		setSelectedSource(value) // Update the state that holds the currently selected source
-		setShowForwardArrow(!!value) // Show or hide the forward arrow based on input presence
-		setShowOtherSource(!!value) // Potentially redundant but ensures logic consistency if needed elsewhere
-	}
-
-
-	// MANAGE NEW TAGS
-	// MANAGE NEW TAGS
-	// MANAGE NEW TAGS
-	const addNewTag = (tag, source) => {
-		const updatedTopics = [...list, tag]
-		const updatedSources = [...sourceList, source]
-
-		setList(updatedTopics)
-		setSourceList(updatedSources)
-
-		// Only update Firestore if the agency ID is available
-		if (selectedAgencyId) {
-			updateTopicTags(updatedTopics, updatedSources, selectedAgencyId)
-		}
-	}
-
-	const updateTopicTags = async (topicList, sourceList, agencyId) => {
-		const tagsDocRef = doc(db, 'tags', agencyId)
-		try {
-			const docSnapshot = await getDoc(tagsDocRef)
-			if (docSnapshot.exists()) {
-				await updateDoc(tagsDocRef, {
-					'Topic.list': topicList,
-					'Topic.active': active,
-					'Source.list': sourceList,
-					'Source.active': activeSources,
-				})
-				// console.log('Tags updated successfully')
-			} else {
-				console.error('Document does not exist:', agencyId)
-			}
-		} catch (error) {
-			console.error('Failed to update tags:', error)
-		}
-	}
-
-
-	// IMAGES
-	// IMAGES
-	// IMAGES
-	const handleImageChange = (event) => {
-		const files = Array.from(event.target.files)
-		setImages((prevState) => [...prevState, ...files]) // Append new files to existing state array
-		// Assume handleUpload() function is available here to start the upload process
-	}
-const handleUpload = () => {
-    const uploadPromises = images.map((image, index) => {
-        const timestamp = new Date().getTime();
-        const fileRef = ref(storage, `report_${timestamp}_${index}.png`);
-
-        const uploadTask = uploadBytesResumable(fileRef, image);
-
-        return new Promise((resolve, reject) => {
-            uploadTask.on(
-                'state_changed',
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    // console.log('Upload is ' + progress + '% done');
-                },
-                (error) => {
-                    console.error('Upload error:', error);
-                    reject(error);
-                },
-                () => {
-                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                        // console.log('File available at', downloadURL);
-                        setImageURLs(prev => [...prev, downloadURL]);
-                        resolve(downloadURL);
-                    }).catch(reject);
-                }
-            );
-        });
-    });
-
-    Promise.all(uploadPromises)
-        .then((downloadURLs) => {
-            // console.log('All files uploaded:', downloadURLs);
-            updateFirestoreDocument(downloadURLs); // Call function to update Firestore
-        })
-        .catch(error => console.error('Error in uploading one or more files:', error));
-};
-
-	// FORM REFRESH
-	// FORM REFRESH
-	// FORM REFRESH
-	const handleRefresh = () => {
-		resetForm()
-		setReportResetModal(false)
-		setReportSystem(0)
-	}
-
-	// RESET FORM
-	// RESET FORM
-	// RESET FORM
-	const resetForm = () => {
-		// Reset all related states
-    setTitle('');
-    setLink('');
-    setSecondLink('');
-    setDetail('');
-    setSelectedTopic('');
-    setSelectedSource('');
-    setSelectedAgency('');
-    setImageURLs([]);
-    setImages([]);
-    setErrors({});
-    setShowOtherTopic(false);
-    setShowOtherSource(false);
-    setOtherTopic('');
-    setOtherSource('');
-	}
-
-	// TODO: title error reset if user clicks
-	/* example:
-	const handleTitleChange = (event) => {
-    const newTitle = event.target.value;
-    setTitle(newTitle);
-    
-    // Clear the title error state if it was set
-    if (titleError && newTitle.trim() !== "") {
-        setTitleError(false);
+  useEffect(()=> {
+    if (userData) {
+      getAllAgencies()
     }
-};
-	*/
-	
-	// FORM SUBMIT
-	// FORM SUBMIT
-	// FORM SUBMIT
-	const handleFormSubmit = async (event) => {
-		event.preventDefault()
-		const allErrors = {}
-		let isValid = true // Flag to check if form data is valid
+  }, [userData])
 
+  useEffect(()=> {
+    if (agencyID){
+      getAllTopics()
+    }
+  }, [agencyID])
+
+  // useEffect(()=> {
+  //   if (allTopicsArr.length > 0) {
+  //     getAllSources()
+      
+  //   }
+  // }, [allTopicsArr])
+
+	// Get topics
+	async function getAllTopics() {
+    try {
+      console.log("Current agency's ID is " + agencyID)
+      let docRef = await getDoc(doc(db, 'tags', agencyID));
+       // TODO: test to make sure not null
+
+       // create tags collection if current agency does not have one
+       if (!docRef.exists()) {
+          // console.log("Need to create tag collection for agency. ")
+          const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
+          const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
+          const defaultLabels = ["Important", "Flagged"] // tag system 3
+
+          // reference to tags collection 
+          const myDocRef = doc(db, "tags", agencyID);
+          setAllTopicsArr(defaultTopics)
+          setActive(defaultTopics['active'])
+
+          // create topics document for the new agency
+          await setDoc(myDocRef, {
+          Labels: {
+            list: defaultLabels,
+            active: defaultLabels
+          },
+          Source: {
+            list: defaultSources,
+            active: defaultSources
+          },
+          Topic: {
+              list: defaultTopics,
+              active: defaultTopics
+          }
+        })
+        // retrieve list of topics again after creating document of tags for agency
+        // console.log("in if statement")
+       
+    
+  
+
+      // Otherwise, tag collection already exists.
+      } else {
+				 const tagsData = docRef.data()['Topic']
+				 console.log(docRef.ref.path);
+				 console.log('tagData-> ', tagsData);
+        setAllTopicsArr(docRef.data()['Topic']['active']);
+        tagsData['active'].sort((a, b) => {
+          if (a === t('Other')) return 1; // Move "Other" to the end
+          if (b === t('Other')) return -1; // Move "Other" to the end
+          return a.localeCompare(b); // Default sorting for other elements
+        });
+        // console.log(tagsData['active'])
+        setActive(tagsData['active']);
+      }
+  
+    } catch (error) {
+      console.log(error);
+    } finally {
+      // console.log('Cleanup here'); // cleanup, always executed
+  }		
+  // const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
+		// const topicRef = await getDoc(topicDoc)
+		// let topics = topicRef.get("Topic")["active"]
+		// let topicsSorted = topics
+		// topicsSorted.sort((a, b) => {
+		// 	if (a === "Other") return 1 // Move "Other" to the end
+		// 	if (b === "Other") return -1 // Move "Other" to the end
+		// 	return a.localeCompare(b) // Default sorting for other elements
+		// })
+		// setAllTopicsArr(topicsSorted)
+	}
+	// Get sources
+	async function getAllSources() {
+    if (selectedAgency == "") {
+      setSources([])
+		} else {
+      const sourceDoc = doc(db, 'tags', agencyID);
+      const sourceRef = await getDoc(sourceDoc);
+			const sources = sourceRef.get('Source')['active'];
+      setSources(sources);
+			}
+    }
+	
+	// Handlers
+	const handleSubmitClick = (e) => {
+		e.preventDefault()
 		if (!title) {
 			setTitleError(true)
-			allErrors.title = t('titleRequired')
-			isValid = false;
-		}
-
-		if (images.length > 0) {
-			handleUpload()
-		}
-		
-		if (images.length === 0 && !link && !detail) {
+			alert(t("titleRequired"))
+		} else if (images == "" && !detail && !link) {
 			setDetailError(true)
-			allErrors.detail = t('atLeast')
-			isValid = false
+			alert(t("atLeast"))
+		} else {
+			if (images.length > 0) {
+				setUpdate(!update)
+			}
+			saveReport(imageURLs)
+			// setReportSystem(7)
 		}
-
+	}
+	const handleNewReport = async (e) => {
+		e.preventDefault()
+		const allErrors = {}
+		// if (data.state == null) {
+		// 	console.log("state error")
+		// 	allErrors.state = t("state")
+		// }
+		// if (data.city == null) {
+		// 	// Don't display the report, show an error message
+		// 	console.log("city error")
+		// 	allErrors.city = t("city")
+		// 	if (
+		// 		data.state != null &&
+		// 		City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
+		// 			.length == 0
+		// 	) {
+		// 		console.log("No cities here")
+		// 		delete allErrors.city
+		// 	}
+		// }
+		if (selectedSource == "") {
+			console.log("No source error")
+			allErrors.source = t("source")
+		}
+		if (selectedTopic == "") {
+			console.log("No topic selected")
+			allErrors.topic = t("specify_topic")
+		}
+		if (images == "") {
+			console.log("no images")
+		}
 		setErrors(allErrors)
-
-		if (!isValid) {
-			console.log('Form validation failed with errors:', allErrors)
-			return
+		console.log(allErrors.length + "Error array length")
+		if (Object.keys(allErrors).length == 0) {
+			handleSubmitClick(e)
+		}
+	}
+	const handleImageChange = (e) => {
+		// Image upload:
+		// (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js,
+		// https://www.youtube.com/watch?v=S4zaZvM8IeI)
+		// console.log('handle image change run');
+		for (let i = 0; i < e.target.files.length; i++) {
+			const newImage = e.target.files[i]
+			setImages((prevState) => [...prevState, newImage])
+			setUpdate(!update)
+		}
+	}
+	const handleUpload = () => {
+		// Image upload to firebase
+		const promises = []
+		images.map((image) => {
+			const storageRef = ref(
+				storage,
+				`report_${new Date().getTime().toString()}.png`
+			)
+			const uploadTask = uploadBytesResumable(storageRef, image)
+			promises.push(uploadTask)
+			uploadTask.on(
+				"state_changed",
+				(snapshot) => {
+					// console.log(snapshot);
+				},
+				(error) => {
+					console.log(error)
+				},
+				() => {
+					getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+						// console.log('File available at', downloadURL);
+						setImageURLs((prev) => [...prev, downloadURL])
+					})
+				}
+			)
+		})
+		Promise.all(promises).catch((err) => console.log(err))
+	}
+	const handleTopicChange = (e) => {
+		if (e.includes("Other")) {
+			setSelectedTopic("")
+			setShowOtherTopic(true)
+		} else {
+			setShowOtherTopic(false)
+			setSelectedTopic(e)
+		}
+	}
+	const handleOtherTopicChange = (e) => {
+		setOtherTopic(e.target.value)
+		setSelectedTopic(e.target.value)
+	}
+	const handleSourceChange = (e) => {
+		if (e.includes("Other")) {
+			setSelectedSource("")
+			setShowOtherSource(true)
+		} else {
+			setShowOtherSource(false)
+			setSelectedSource(e)
+		}
+	}
+	const handleOtherSourceChange = (e) => {
+		setOtherSource(e.target.value)
+		setSelectedSource(e.target.value)
+	}
+	const addNewTag = (tag, source, agencyId) => {
+		let tempTopicArr = [...topicList]
+		let tempSourceArr = [...sourceList]
+		if (tag) {
+			tempTopicArr.push(tag)
+			setTopicList(tempTopicArr)
 		}
 
+		if (source) {
+			tempSourceArr.push(source)
+			setSourceList(tempSourceArr)
+		}
+
+		updateTopicTags(
+			tag ? tempTopicArr : null,
+			source ? tempSourceArr : null,
+			agencyId,
+		).then(() => {
+			// Clear the temporary arrays after updating the document
+			setTopicList([])
+			setSourceList([])
+		})
+	}
+	const updateTopicTags = async (topic, source, agencyId) => {
 		try {
-			const docRef = await addDoc(collection(db, 'reports'), {
-				userID: user.accountId,
-				state: userData.state.name,
-				city: userData.city.name,
-				agency: selectedAgency,
-				title: title,
-				link: link,
-				secondLink: secondLink,
-				images: imageURLs,
-				detail: detail,
-				createdDate: new Date(), // Use new Date() directly if you're not using moment-specific features
-				isApproved: true,
-				read: false,
-				topic: selectedTopic,
-				hearFrom: selectedSource,
-			})
-			console.log("Document written with ID: ", docRef.id);
-			addNewTag(selectedTopic, selectedSource, agencyID) // Make sure this is not async or handle it properly
-			// Additional actions after successful write
+			// Reference to the document
+			const docRef = doc(db, 'tags', agencyId)
+
+			// Fetch the current document data
+			const docSnap = await getDoc(docRef)
+
+			if (docSnap.exists()) {
+				const currentData = docSnap.data()
+				const updateData = {}
+
+				// Check if topic is provided and update it
+				if (topic) {
+					const currentTopicList = currentData.Topic?.list || []
+					const newTopicList = topic.filter(
+						(item) => !currentTopicList.includes(item),
+					)
+					if (newTopicList.length > 0) {
+						updateData['Topic.list'] = arrayUnion(...newTopicList)
+					}
+				}
+
+				// Check if source is provided and update it
+				if (source) {
+					const currentSourceList = currentData.Source?.list || []
+					console.log('currentSourceList--> ', currentSourceList);
+					const newSourceList = source.filter(
+						(item) => !currentSourceList.includes(item),
+					)
+					if (newSourceList.length > 0) {
+						updateData['Source.list'] = arrayUnion(...newSourceList)
+					}
+				}
+
+				// Update the document with the prepared update data
+				if (Object.keys(updateData).length > 0) {
+					await updateDoc(docRef, updateData)
+					console.log('Document updated successfully')
+				} else {
+					console.log('No new topics or sources to add')
+				}
+
+				return docRef
+			} else {
+				console.log('No such document!')
+				return null
+			}
 		} catch (error) {
-			console.error('Error during form submission:', error)
-		} finally {
-			resetForm() // Reset the form regardless of the outcome
-			setReportSystem(7)
+			console.error('Error updating document: ', error)
 		}
 	}
 	
+	const logFormData = () => {
+		const formData = {
+			Agency: selectedAgency,
+			"Agency ID": agencyID,
+			Topic: selectedTopic,
+			"Show other Topic": showOtherTopic ? 'true' : 'false',
+			"Other Topic": otherTopic,
+			Source: selectedSource,
+			"Show other Source": showOtherSource ? 'true' : 'false',
+			"Other Source": otherSource,
+			"Report title": title,
+			"Report link1": link,
+			"Report link2": secondLink,
+			"Report images": imageURLs,
+			"Report description": detail,
+			"Report ID": reportId,
+			"Report KEY": key
+		};
+		
+		console.log("Form Data: ", formData);
+	};
+	useEffect(() => {
+		logFormData()
+	}, [reportSystem, update])
+	
+	const handleChange = (e) => {
+		// console.log('handleChange--> ', e.target.value)
+		if (titleError) {
+			e.target.id == 'title' && setTitleError(false)
+		} else if (detailError) {
+			e.target.id == 'link' || 'multiple_files' || 'detail' && setTitleError(false)
+		}
+	}
+	const handleRefresh = () => {
+		setKey(self.crypto.randomUUID())
+		// Reset the form directly if the ref is currently pointing to the form element
+    if (formRef.current) {
+        formRef.current.reset();  // Resets all input fields to their initial values
+    }
+		// if (formRef.current) {
+		setSelectedAgency("")
+		setSelectedAgencyID('')
+		// Topics
+		setSelectedTopic("")
+		setShowOtherTopic(false)
+		setOtherTopic('')
+		setAllTopicsArr([])
+		// Sources
+		setSelectedSource("")
+		setShowOtherSource(false)
+		setOtherSource('')
+		setTitle("")
+		setLink("")
+		setSecondLink("")
+		setImageURLs([])
+		setDetail("")
+		setReportId('')
+		setReportResetModal(false)
+		setReportSystem(0)
+		// } else {
+		// console.log("not current form")
+		// }
+	}
 	// Elements
 	const ForwardArrow = () => {
 		return (
 			<IconButton
-				variant="text"
-				color="blue"
-				className={`${showForwardArrow ? 'visible' : 'hidden'}`}
-				onClick={() => {
-					setReportSystem(reportSystem + 1)
-					setShowForwardArrow(false)
-				}}>
+				variant='text'
+				color='blue'
+				onClick={() => setReportSystem(reportSystem + 1)}>
 				<IoMdArrowRoundForward size={30} />
 			</IconButton>
 		)
@@ -509,8 +622,8 @@ const handleUpload = () => {
 	const BackArrow = () => {
 		return (
 			<IconButton
-				variant="text"
-				color="blue-gray"
+				variant='text'
+				color='blue-gray'
 				onClick={onReportSystemPrevStep}>
 				<IoMdArrowRoundBack size={30} />
 			</IconButton>
@@ -519,56 +632,55 @@ const handleUpload = () => {
 	const RefreshButton = () => {
 		return (
 			<IconButton
-				variant="text"
-				color="blue-gray"
+				variant='text'
+				color='blue-gray'
 				onClick={() => setReportResetModal(true)}
-				type="button">
+				type='button'>
 				<IoMdRefresh size={30} />
 			</IconButton>
 		)
 	}
-
 	return (
 		<div className={globalStyles.sectionContainer} key={key}>
 			<>
 				{reminderShow != false && reportSystem == 1 && (
 					<div className={globalStyles.viewWrapperCenter}>
 						<Image
-							src="/img/reminder.png"
+							src='/img/reminder.png'
 							width={156}
 							height={120}
-							alt="reminderShow"
-							className="object-cover w-auto"
+							alt='reminderShow'
+							className='object-cover w-auto'
 						/>
-						<Typography variant="h5" color="blue">
-							{t('reminder')}
+						<Typography variant='h5' color='blue'>
+							{t("reminder")}
 						</Typography>
-						<Typography>{t('description')}</Typography>
-						<Typography>{t('example')}</Typography>
+						<Typography>{t("description")}</Typography>
+						<Typography>{t("example")}</Typography>
 						<List>
-							<ListItem disabled={true} className="opacity-100">
+							<ListItem disabled={true} className='opacity-100'>
 								<ListItemPrefix>
-									<BiCheckCircle size={25} color="green" />
+									<BiCheckCircle size={25} color='green' />
 								</ListItemPrefix>
-								<Typography color="black">{t('correct')}</Typography>
+								<Typography color='black'>{t("correct")}</Typography>
 							</ListItem>
-							<ListItem disabled={true} className="opacity-100">
+							<ListItem disabled={true} className='opacity-100'>
 								<ListItemPrefix>
-									<BiXCircle size={25} color="red" />
+									<BiXCircle size={25} color='red' />
 								</ListItemPrefix>
-								<Typography color="black">{t('incorrect')}</Typography>
+								<Typography color='black'>{t("incorrect")}</Typography>
 							</ListItem>
 						</List>
-						<Button onClick={onReminderStart} color="blue">
-							{t('start')}
+						<Button onClick={onReminderStart} color='blue'>
+							{t("start")}
 						</Button>
 						{/* DO NOT SHOW AGAIN CHECKBOX */}
-						<div className="inline-flex items-center">
+						<div className='inline-flex items-center'>
 							<Checkbox
 								onChange={onChangeCheckbox}
 								checked={disableReminder}
-								label={t('noShow')}
-								color="blue"
+								label={t("noShow")}
+								color='blue'
 							/>
 						</div>
 					</div>
@@ -577,212 +689,273 @@ const handleUpload = () => {
 			{reportSystem >= 2 && reportSystem <= 6 && (
 				<div className={globalStyles.form.wrap}>
 					<form
-						onSubmit={handleFormSubmit}
+						onChange={handleChange}
+						onSubmit={handleNewReport}
 						className={globalStyles.form.element}
-						ref={formRef}>
-						{showForwardArrow && (
-							<div className="absolute bottom-4 right-4 sm:right-6">
-								<ForwardArrow />
-							</div>
-						)}
+						ref={formRef}
+						id={key}>
 						{/* Agency */}
-						{reportSystem === 2 && (
-							<div
-								className={`${globalStyles.form.viewWrapper} ${reportSystem === 2 ? '' : 'hidden'}`}>
-								<AgencySelector
-									agencies={agencies}
-									selectedAgency={selectedAgency}
-									onAgencyChange={handleAgencyChange}
-									showForwardArrow={setShowForwardArrow}
-								/>
+						{reportSystem == 2 && (
+							<div className={globalStyles.form.viewWrapper}>
+								<Typography variant='h5'>{t("which_agency")}</Typography>
+								<Card>
+									<List>
+										{agencies.length == 0 && t("noAgencies")}
+										{agencies.map((agency, i = self.crypto.randomUUID()) => (
+											<ListItem
+												id='agency'
+												key={i}
+												selected={agency === selectedAgency}
+												value={agency}
+												onClick={() => setSelectedAgency(agency)}>
+												{agency}
+											</ListItem>
+										))}
+									</List>
+								</Card>
+								{errors.agency && selectedAgency === "" && (
+									<span className='text-red-500'>{errors.agency}</span>
+								)}
+								{/* FORWARD ARROW */}
+								{selectedAgency != "" && (
+									<div className='absolute bottom-4 right-4 sm:right-6'>
+										<ForwardArrow />
+									</div>
+								)}
 							</div>
 						)}
 						{/* Topic tag */}
 						{reportSystem == 3 && (
-							<div
-								className={`${globalStyles.form.viewWrapper} ${reportSystem === 3 ? '' : 'hidden'}`}>
-								<Typography variant="h5">{t('about')}</Typography>
+							<div className={globalStyles.form.viewWrapper}>
+								<Typography variant='h5'>{t("about")}</Typography>
 								<Card>
 									<List>
-										<TopicSelector
-											topics={[
-												...allTopicsArr.filter((topic) => topic !== 'Other'),
-												...allTopicsArr.filter((topic) => topic === 'Other'),
-											]}
-											selectedTopic={selectedTopic}
-											handleTopicChange={handleTopicChange}
-											showOtherTopic={showOtherTopic}
-											handleOtherTopicChange={handleOtherTopicChange}
-											otherTopic={otherTopic}
-										/>
+										{[
+											...allTopicsArr.filter((topic) => topic !== "Other"),
+											...allTopicsArr.filter((topic) => topic === "Other"),
+										].map((topic, i = self.crypto.randomUUID()) => (
+											<ListItem
+												id='topic'
+												key={i}
+												selected={topic === selectedTopic}
+												value={topic}
+												onClick={() => handleTopicChange(topic)}>
+												{defaultTopics.includes(topic) ? t("topics."+topic) : topic}
+											</ListItem>
+										))}
 									</List>
 								</Card>
-								{errors.topic && selectedTopic === '' && (
-									<span className="text-red-500">{errors.topic}</span>
+								{errors.topic && selectedTopic === "" && (
+									<span className='text-red-500'>{errors.topic}</span>
+								)}
+								{showOtherTopic && (
+									<div className='w-full'>
+										<Input
+											label={t("custom_topic")}
+											value={otherTopic}
+											onChange={handleOtherTopicChange}
+										/>
+										<Typography
+											variant='small'
+											color='gray'
+											className={globalStyles.mdInput.hint}>
+											<IoIosInformationCircle />
+											{t("specify_topic")}
+										</Typography>
+									</div>
+								)}
+								{/* FORWARD ARROW */}
+								{selectedTopic != "" && (
+									<div className='absolute bottom-4 right-4 sm:right-6'>
+										<ForwardArrow />
+									</div>
 								)}
 							</div>
 						)}
 						{/* Source tag */}
 						{reportSystem == 4 && (
-							<div
-								className={`${globalStyles.form.viewWrapper} ${reportSystem === 4 ? '' : 'hidden'}`}>
-								<Typography variant="h5">{t('where')}</Typography>
+							<div className={globalStyles.form.viewWrapper}>
+								<Typography variant='h5'>{t("where")}</Typography>
 								<Card>
 									<List>
-										<SourceSelector
-											sources={[
-												...sources.filter((source) => source !== 'Other'),
-												...sources.filter((source) => source === 'Other'),
-											]}
-											selectedSource={selectedSource}
-											handleSourceChange={handleSourceChange}
-											showOtherSource={showOtherSource}
-											handleOtherSourceChange={handleOtherSourceChange}
-											otherSource={otherSource}
-											t={t}
-										/>
+										{[
+											...sources.filter((source) => source !== "Other"),
+											...sources.filter((source) => source === "Other"),
+										].map((source, i = self.crypto.randomUUID()) => (
+											<ListItem
+												id='source'
+												key={i}
+												selected={source === selectedSource}
+												value={t(source)}
+												onClick={() => handleSourceChange(source)}>
+												{defaultSources.includes(source) ? t("sources."+source) : source}
+											</ListItem>
+										))}
 									</List>
 								</Card>
-								{errors.source && selectedSource === '' && (
-									<span className="text-red-500">{errors.source}</span>
+								{errors.source && selectedSource === "" && (
+									<span className='text-red-500'>{errors.source}</span>
+								)}
+								{showOtherSource && (
+									<div className='w-full'>
+										<Input
+											label={t("custom_source")}
+											value={otherSource}
+											onChange={handleOtherSourceChange}
+										/>
+										<Typography
+											variant='small'
+											color='gray'
+											className={globalStyles.mdInput.hint}>
+											<IoIosInformationCircle />
+											{t("custom_source")}
+										</Typography>
+									</div>
+								)}
+								{selectedSource != "" && (
+									<div className='absolute bottom-4 right-4 sm:right-6'>
+										<ForwardArrow />
+									</div>
 								)}
 							</div>
 						)}
-						{/* Details & Submit */}
+						{/* Details */}
 						{reportSystem == 5 && (
-							<div
-								className={`flex flex-col gap-6 mb-1 ${reportSystem === 5 ? '' : 'hidden'}`}>
-								<Typography variant="h5">{t('share')}</Typography>
+							<div className='flex flex-col gap-6 mb-1'>
+								<Typography variant='h5'>{t("share")}</Typography>
 								{/* DESCRIPTION - details */}
-								<div className="block">
-									<Typography variant="h6" color="blue">
-										{t('detail')}
+								<div className='block'>
+									<Typography variant='h6' color='blue'>
+										{t("detail")}
 									</Typography>
-									<Typography>{t('detailDescription')}</Typography>
+									<Typography>{t("detailDescription")}</Typography>
 								</div>
 								{/* TITLE */}
-								<div className="block">
+								<div className='block'>
 									<Input
-										variant="outlined"
-										color="gray"
-										id="title"
-										type="text"
-										label={t('title')}
+										variant='outlined'
+										color='gray'
+										id='title'
+										type='text'
+										label={t("title")}
 										onChange={(e) => setTitle(e.target.value)}
 										value={title}
 										error={titleError}
 									/>
 									<Typography
-										variant="small"
+										variant='small'
 										color={titleError ? 'red' : 'gray'}
-										className="mt-2 flex items-start gap-1 font-normal">
-										<IoIosInformationCircle size="15" className="mt-1" />
-										{t('provide_title')} {t('max')}
+										className='mt-2 flex items-start gap-1 font-normal'>
+										<IoIosInformationCircle size="15" className='mt-1' />
+										{t("provide_title")} {t("max")}
 									</Typography>
+									{detailError && (
+										<Typography color="red" className="mt-2">{t("atLeast")}</Typography>
+									)}
 								</div>
 								{/* LINKS */}
-								<div className="block">
+								<div className='block'>
 									<Input
-										variant="outlined"
-										color="gray"
-										label={t('linkFirst')}
-										id="link"
-										type="text"
+										variant='outlined'
+										color='gray'
+										label={t("linkFirst")}
+										id='link'
+										type='text'
 										onChange={(e) => setLink(e.target.value)}
 										value={link}
-										error={detailError}
 									/>
 									{!link && (
 										<Typography
-											variant="small"
-											color="gray"
-											className="mt-2 flex items-start gap-1 font-normal">
-											<IoIosInformationCircle size="15" className="mt-1" />
-											{t('example')} https://
+											variant='small'
+											color='gray'
+											className='mt-2 flex items-start gap-1 font-normal'>
+											<IoIosInformationCircle size="15" className='mt-1' />
+											{t("example")} https://
 										</Typography>
 									)}
 									{/* Link 02 */}
 									{link && (
 										<>
-											<div className="mt-2">
+											<div className='mt-2'>
 												<Input
-													variant="outlined"
-													color="gray"
-													label={t('linkFirst')}
-													id="secondLink"
-													type="text"
+													variant='outlined'
+													color='gray'
+													label={t("linkFirst")}
+													id='secondLink'
+													type='text'
 													onChange={(e) => setSecondLink(e.target.value)}
 													value={secondLink}
 												/>
 											</div>
 											<Typography
-												variant="small"
-												color="gray"
-												className="mt-2 flex items-start gap-1 font-normal">
-												<IoIosInformationCircle size="15" className="mt-1" />
-												{t('example')} https://
+												variant='small'
+												color='gray'
+												className='mt-2 flex items-start gap-1 font-normal'>
+												<IoIosInformationCircle size="15" className='mt-1' />
+												{t("example")} https://
 											</Typography>
 										</>
 									)}
 								</div>
 								{/* IMAGE UPLOAD */}
-								<ImageUploader
-									handleImageChange={handleImageChange}
-									imgPicker={imgPicker}
-									imageDescription="imageDescription"
-									detailError={detailError}
-								/>
-								{/* Display uploaded images */}
-								{imageURLs.map((url, index) => (
-									<Image key={index} src={url} alt={`Uploaded #${index + 1}`} width={100} height={100}/>
-								))}
-
+								<div className='block'>
+									<Input
+										variant='static'
+										id='multiple_files'
+										multiple
+										className={globalStyles.inputImage}
+										accept='image/*'
+										onChange={handleImageChange}
+										ref={imgPicker}
+										type='file'
+										label={t("image")}
+									/>
+									<Typography
+										variant='small'
+										color='gray'
+										className='mt-2 flex items-start gap-1'>
+										<IoIosInformationCircle size="15" className='mt-1' />
+										{t("imageDescription")}
+									</Typography>
+								</div>
 								{/* DESCRIBE IN DETAIL */}
-								<div className="block">
+								<div className='block'>
 									<Textarea
 										type="textarea"
-										id="detail"
+										id='detail'
 										onChange={(e) => setDetail(e.target.value)}
 										value={detail}
-										label={t('details')}
+										label={t("detailed")}
 										rows={8}
-										error={detailError}
-									/>
-									{detailError && (
-										<Typography color="red" className="mt-2">
-											{t('atLeast')}
-										</Typography>
-									)}
+										/>
 									<Typography
-										variant="small"
-										color="gray"
-										className="mt-2 flex items-start gap-1">
-										<IoIosInformationCircle size="15" className="mt-1" />
-										{t('detailedDescription')}
+										variant='small'
+										color='gray'
+										className='mt-2 flex items-start gap-1'>
+										<IoIosInformationCircle size="15" className='mt-1' />
+										{t("detailedDescription")}
 									</Typography>
 								</div>
 								{/* SUBMIT BUTTON */}
 								<button
+									onClick={handleSubmitClick}
 									className={globalStyles.button.md_block}
-									type="submit"
-								>
-									{t('submit')}
+									type='submit'>
+									{t("submit")}
 								</button>
 							</div>
 						)}
 						{/* REFRESH REPORT BUTTON */}
 						{reportSystem >= 2 && (
-							<div
-								className={`flex justify-center ${reportSystem >= 2 ? '' : 'hidden'}`}>
-								<div className="w-50 opacity-50 hover:opacity-100 mt-2 sm:mt-4">
+							<div className='flex justify-center'>
+								<div className='w-50 opacity-50 hover:opacity-100 mt-2 sm:mt-4'>
 									<RefreshButton />
 								</div>
 							</div>
 						)}
 						{/* BACK ICON */}
 						{reportSystem > 0 && reportSystem < 7 && (
-							<div
-								className={`absolute opacity-50 hover:opacity-100 bottom-4 left-4 sm:left-6  ${reportSystem > 0 && reportSystem < 7 ? '' : 'hidden'}`}>
+							<div className='absolute opacity-50 hover:opacity-100 bottom-4 left-4 sm:left-6'>
 								<BackArrow />
 							</div>
 						)}
@@ -790,42 +963,92 @@ const handleUpload = () => {
 				</div>
 			)}
 			{reportSystem === 7 && (
-				<div
-					className={`${globalStyles.form.wrap} sm:p-6 ${reportSystem === 7 ? '' : 'hidden'}`}>
+				<div className={`${globalStyles.form.wrap} sm:p-6`}>
 					<>
 						{/* THANK YOU */}
 						{reportSystem == 6 && (
-							<div
-								className={`${globalStyles.form.viewWrapper} items-center ${reportSystem === 6 ? '' : 'hidden'}`}>
+							<div className={globalStyles.form.viewWrapper + " items-center"}>
 								<Image
-									src="/img/reportSuccess.png"
+									src='/img/reportSuccess.png'
 									width={156}
 									height={120}
-									alt="report success"
-									className="object-cover w-auto"
+									alt='report success'
+									className='object-cover w-auto'
 								/>
 								<div className={globalStyles.heading.h1.black}>
-									{t('thankyou')}
+									{t("thankyou")}
 								</div>
-								<div className="text-center">{t('thanksText')}</div>
+								<div className='text-center'>{t("thanksText")}</div>
 								<button
 									onClick={() => setReportSystem(reportSystem + 1)}
 									className={globalStyles.button.md}>
-									{t('view')}
+									{t("view")}
 								</button>
 							</div>
 						)}
 						{/* View Report */}
 						{reportSystem == 7 && (
-							<ViewReport
-								title={title}
-								link={link}
-								secondLink={secondLink}
-								imageURLs={imageURLs}
-								detail={detail}
-								reportSystem={reportSystem}
-								setReportSystem={setReportSystem}
-							/>
+							<Card className={globalStyles.form.view}>
+								{/* Title */}
+								<div className='mb-6 p-0'>
+									<Typography variant='h6' color='blue'>
+										{t("title_text")}
+									</Typography>
+									<Typography>{title}</Typography>
+								</div>
+								{/* Links */}
+								<div className='mb-6 p-0'>
+									<Typography variant='h6' color='blue'>
+										{t("links")}
+									</Typography>
+									<Typography>
+										{link || secondLink != "" ? (
+											<>
+												{link}
+												<br></br>
+												{secondLink}
+											</>
+										) : (
+											t("noLinks")
+										)}
+									</Typography>
+								</div>
+								{/* Image upload */}
+								<div className='mb-6 p-0'>
+									<Typography variant='h6' color='blue'>
+										{t("image")}
+									</Typography>
+									<div className='flex w-full overflow-y-auto'>
+										{imageURLs.map((image, i = self.crypto.randomUUID()) => {
+											return (
+												<div className='flex mr-2' key={i}>
+													<Link href={image} target='_blank'>
+														<Image
+															src={image}
+															width={100}
+															height={100}
+															alt='image'
+															className='object-cover w-auto'
+														/>
+													</Link>
+												</div>
+											)
+										})}
+									</div>
+								</div>
+								{/* Details */}
+								<div className='mb-6 p-0'>
+									<Typography variant='h6' color='blue'>
+										{t("detailed")}
+									</Typography>
+									<Typography>
+										{detail ? detail : `No description provided.`}
+									</Typography>
+								</div>
+								<Button color='blue' onClick={() => setReportSystem(0)}>
+									{t("backReports")}
+								</Button>
+							</Card>
 						)}
 					</>
 				</div>
@@ -834,9 +1057,9 @@ const handleUpload = () => {
 			{reportResetModal && (
 				<ConfirmModal
 					func={handleRefresh} // Pass the handleRefresh function to the ConfirmModal component
-					title="Are you sure you want to reset the report?"
-					subtitle="You cannot undo this action."
-					CTA="Reset Report"
+					title='Are you sure you want to reset the report?'
+					subtitle='You cannot undo this action.'
+					CTA='Reset Report'
 					closeModal={() => setReportResetModal(false)}
 				/>
 			)}
