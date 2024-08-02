@@ -4,6 +4,9 @@
   functions = "netlify/functions"
   publish = ".next"
 
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
 [[redirects]]
   from = '/_next/image/*'
   query = { q = ':quality', url = ':url', w = ':width' }
