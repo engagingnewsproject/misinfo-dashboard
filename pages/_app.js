@@ -6,6 +6,7 @@ import "react-tooltip/dist/react-tooltip.css"
 import { appWithTranslation } from "next-i18next"
 import { ThemeProvider } from "@material-tailwind/react"
 import style from '../styles/style.js'
+import Head from 'next/head'
 
 // Import Sentry configuration
 import "../sentry.client.config.js"
@@ -18,21 +19,26 @@ function MyApp({ Component, pageProps }) {
 
 
 	return (
-		<ThemeProvider value={style}>
-			<AuthContextProvider>
-				<div className='bg-sky-100 w-full max-w-full overflow-x-hidden min-h-screen'>
-					<div className='w-screen content-center'>
-						{noAuthRequired.includes(router.pathname) ? (
-							<Component {...pageProps} />
-						) : (
-							<ProtectedRoute>
+		<>
+			<Head>
+				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+			</Head>
+			<ThemeProvider value={style}>
+				<AuthContextProvider>
+					<div className='bg-sky-100 w-full max-w-full overflow-x-hidden min-h-screen'>
+						<div className='w-screen content-center'>
+							{noAuthRequired.includes(router.pathname) ? (
 								<Component {...pageProps} />
-							</ProtectedRoute>
-						)}
+							) : (
+								<ProtectedRoute>
+									<Component {...pageProps} />
+								</ProtectedRoute>
+							)}
+						</div>
 					</div>
-				</div>
-			</AuthContextProvider>
-		</ThemeProvider>
+				</AuthContextProvider>
+			</ThemeProvider>
+		</>
 	)
 }
 
