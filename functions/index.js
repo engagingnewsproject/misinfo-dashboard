@@ -14,7 +14,41 @@ const SLACK_WEBHOOK_URL = functions.config().slack.webhook_url;
 // Function to post a message to Slack
 const postToSlack = async (message) => {
   try {
-    const payload = { text: message };
+    const payload = {
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: message
+              }
+            },
+            {
+              type: "section",
+              block_id: "section567",
+              text: {
+                type: "mrkdwn",
+                text: "<https://example.com|Overlook Hotel> \n :star: \n Doors had too many axe holes, guest in room 237 was far too rowdy, whole place felt stuck in the 1920s."
+              },
+              accessory: {
+                type: "image",
+                image_url: imageUrl,
+                alt_text: "Haunted hotel image"
+              }
+            },
+            {
+              type: "section",
+              block_id: "section789",
+              fields: [
+                {
+                  type: "mrkdwn",
+                  text: "*Average Rating*\n1.0"
+                }
+              ]
+            }
+          ]
+        };
+
     await axios.post(SLACK_WEBHOOK_URL, payload);
   } catch (error) {
     console.error('Error posting message to Slack:', error.message);
