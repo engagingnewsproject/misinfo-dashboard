@@ -12,69 +12,97 @@ const axios = require('axios'); // used for sending slack messages from help req
 const SLACK_WEBHOOK_URL = functions.config().slack.webhook_url;
 
 // Function to post a message to Slack
-const postToSlack = async (message) => {
-  try {
-    // Slack block kit builder: https://bit.ly/Slack-block-kit-builder
-    const payload = {
-          blocks: [
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: message
-              }
-            },
-            {
-              type: "section",
-              block_id: "section567",
-              text: {
-                type: "mrkdwn",
-                text: "<https://example.com|Overlook Hotel> \n :star: \n Doors had too many axe holes, guest in room 237 was far too rowdy, whole place felt stuck in the 1920s."
-              },
-              accessory: {
-                type: "image",
-                image_url: imageUrl,
-                alt_text: "Haunted hotel image"
-              }
-            },
-            {
-              type: "section",
-              block_id: "section789",
-              fields: [
-                {
-                  type: "mrkdwn",
-                  text: "*Average Rating*\n1.0"
-                }
-              ]
-            }
-          ]
-        };
-    await axios.post(SLACK_WEBHOOK_URL, payload);
-  } catch (error) {
-    console.error('Error posting message to Slack:', error.message);
-    if (error.response) {
-      console.log(error.response.data); // Log more detailed info about the error response
-    }
-  }
-};
+const postToSlack = async (
+	userID,
+	userName,
+	userEmail,
+	userRole,
+	subject,
+	messageText,
+	imageUrl,
+) => {
+	try {
+		const payload = {
+			blocks: [
+				{
+					type: 'section',
+					text: {
+						type: 'mrkdwn',
+						text: `*${userName}* - ${subject}`,
+					},
+				},
+				{
+					type: 'section',
+					block_id: 'section567',
+					text: {
+						type: 'mrkdwn',
+						text: messageText,
+					},
+					accessory: {
+						type: 'image',
+						image_url: imageUrl,
+						alt_text: 'User uploaded image',
+					},
+				},
+				{
+					type: 'section',
+					block_id: 'section789',
+					fields: [
+						{
+							type: 'mrkdwn',
+							text: `*User ID*\n${userID}\n*User Email*\n${userEmail}\n*User Role*\n${userRole}`,
+						},
+					],
+				},
+			],
+		}
+		await axios.post(SLACK_WEBHOOK_URL, payload)
+	} catch (error) {
+		console.error('Error posting message to Slack:', error.message)
+	}
+}
 
 exports.notifySlackOnNewHelpRequest = functions.firestore
-    .document('helpRequests/{requestId}')
-    .onCreate((snap) => { // might need 'context' parameter later
-      const newRequest = snap.data();
-      const userID = newRequest.userID || 'an unknown user';  // Default to 'an unknown user' if userID is undefined
-      const subject = newRequest.subject || 'No Subject'; // Default to 'No Subject' if subject is undefined
-      const messageText = `New help request from user ${userID} with subject "${subject}": ${newRequest.message}`;
+	.document('helpRequests/{requestId}')
+	.onCreate(async (snap) => {
+		const newRequest = snap.data()
+		const userID = newRequest.userID || 'unknown user'
+		let userName = 'Unknown'
+		let userEmail = 'No email provided'
+		let userRole = 'No role specified'
 
-      // Handle images
-      let imagesText = '';
-      if (newRequest.images && newRequest.images.length > 0) {
-        imagesText = newRequest.images.map((url, index) => `\nImage ${index + 1}: ${url}`).join('');
-      }
+		if (userID !== 'unknown user') {
+			const userRef = admin.firestore().collection('users').doc(userID)
+			const doc = await userRef.get()
+			if (doc.exists) {
+				const userData = doc.data()
+				userName = userData.name || userName
+				userEmail = userData.email || userEmail
+				userRole = userData.userRole || userRole
+			} else {
+				console.log('User not found')
+				return // Optionally exit if no user info is available
+			}
+		}
 
-      const fullMessage = messageText + imagesText;
-      return postToSlack(fullMessage);
-    });
+		const subject = newRequest.subject || 'No Subject'
+		const messageText = newRequest.message || 'No message provided'
+		const imageUrl =
+			newRequest.images && newRequest.images.length > 0
+				? newRequest.images[0]
+				: 'https://example.com/default-image.jpg'
+
+		return postToSlack(
+			userID,
+			userName,
+			userEmail,
+			userRole,
+			subject,
+			messageText,
+			imageUrl,
+		)
+	})
+
 
 exports.addUserRole = functions.https.onCall((data,context) => {
   // get user and add custom claim to user
