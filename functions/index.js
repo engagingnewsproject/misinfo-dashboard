@@ -288,26 +288,3 @@ function sendEmail(email, recipients, requestData) {
           console.error("Error sending email:", error.toString());
       });
 }
-
-// set default tags
-exports.setDefaultTags = functions.firestore
-    .document('tags/{tagId}')
-    .onWrite((change, context) => {
-      // Get the document data after the write
-      const data = change.after.exists ? change.after.data() : {};
-
-      // Check if the document has the required fields with default settings
-      const defaults = {
-        Labels: { active: ['Important', 'Flagged'], list: ['Important', 'Flagged'] },
-        Source: { active: ['Newspaper', 'Social Media', 'Website', 'Other'], list: ['Newspaper', 'Social Media', 'Website', 'Other'] },
-        Topic: { active: ['Health', 'Other', 'Politics', 'Weather'], list: ['Health', 'Other', 'Politics', 'Weather'] }
-      };
-
-      // Check if any field is missing or altered
-      if (JSON.stringify(data) !== JSON.stringify(defaults)) {
-        // If not correct, revert to default
-        return change.after.ref.set(defaults);
-      }
-
-      return null;
-    });
