@@ -22,9 +22,11 @@ const postToSlack = async (message) => {
 
 exports.notifySlackOnNewHelpRequest = functions.firestore
     .document('helpRequests/{requestId}')
-    .onCreate((snap, context) => {
+    .onCreate((snap) => { // might need 'context' parameter later
       const newRequest = snap.data();
-      const message = `New help request from ${newRequest.name || 'an unknown user'}: ${newRequest.message}`;
+      const email = newRequest.email || 'an unknown email'; // Default to 'an unknown email' if email is undefined
+      const subject = newRequest.subject || 'No Subject'; // Default to 'No Subject' if subject is undefined
+      const message = `New help request from ${email} with subject "${subject}": ${newRequest.message}`;
 
       return postToSlack(message);
     });
