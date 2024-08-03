@@ -8,7 +8,7 @@ admin.initializeApp()
 const axios = require('axios'); // used for sending slack messages from help requests form
 
 // Replace this URL with your Slack webhook URL
-const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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';
+const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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';
 
 // Function to post a message to Slack
 const postToSlack = async (message) => {
