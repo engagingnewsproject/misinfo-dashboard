@@ -24,11 +24,18 @@ exports.notifySlackOnNewHelpRequest = functions.firestore
     .document('helpRequests/{requestId}')
     .onCreate((snap) => { // might need 'context' parameter later
       const newRequest = snap.data();
-      const email = newRequest.email || 'an unknown email'; // Default to 'an unknown email' if email is undefined
+      const userID = newRequest.userID || 'an unknown user';  // Default to 'an unknown user' if userID is undefined
       const subject = newRequest.subject || 'No Subject'; // Default to 'No Subject' if subject is undefined
-      const message = `New help request from ${email} with subject "${subject}": ${newRequest.message}`;
+      const messageText = `New help request from user ${userID} with subject "${subject}": ${newRequest.message}`;
 
-      return postToSlack(message);
+      // Handle images
+      let imagesText = '';
+      if (newRequest.images && newRequest.images.length > 0) {
+        imagesText = newRequest.images.map((url, index) => `\nImage ${index + 1}: ${url}`).join('');
+      }
+
+      const fullMessage = messageText + imagesText;
+      return postToSlack(fullMessage);
     });
 
 
