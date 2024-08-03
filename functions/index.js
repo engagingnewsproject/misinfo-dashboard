@@ -5,6 +5,31 @@ const sgMail = require('@sendgrid/mail')
 
 admin.initializeApp()
 
+const axios = require('axios'); // used for sending slack messages from help requests form
+
+// Replace this URL with your Slack webhook URL
+const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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';
+
+// Function to post a message to Slack
+const postToSlack = async (message) => {
+  try {
+    const payload = { text: message };
+    await axios.post(SLACK_WEBHOOK_URL, payload);
+  } catch (error) {
+    console.error("Error posting message to Slack:", error);
+  }
+};
+
+exports.notifySlackOnNewHelpRequest = functions.firestore
+    .document('helpRequests/{requestId}')
+    .onCreate((snap, context) => {
+      const newRequest = snap.data();
+      const message = `New help request from ${newRequest.name || 'an unknown user'}: ${newRequest.message}`;
+
+      return postToSlack(message);
+    });
+
+
 // // Initialize SendGrid API with your SendGrid API key from environment variables
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
