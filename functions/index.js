@@ -6,8 +6,10 @@ admin.initializeApp()
 
 const axios = require('axios'); // used for sending slack messages from help requests form
 
-// Replace this URL with your Slack webhook URL
-const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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';
+// Slack <-> Firebase connection URL
+// To reset the Slack webhook url run:
+// `firebase functions:config:set slack.webhook_url="https://hooks.slack.com/services/SLACK_WEBHOOK_URL"`
+const SLACK_WEBHOOK_URL = functions.config().slack.webhook_url;
 
 // Function to post a message to Slack
 const postToSlack = async (message) => {
