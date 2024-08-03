@@ -14,6 +14,7 @@ const SLACK_WEBHOOK_URL = functions.config().slack.webhook_url;
 // Function to post a message to Slack
 const postToSlack = async (message) => {
   try {
+    // Slack block kit builder: https://bit.ly/Slack-block-kit-builder
     const payload = {
           blocks: [
             {
@@ -48,7 +49,6 @@ const postToSlack = async (message) => {
             }
           ]
         };
-
     await axios.post(SLACK_WEBHOOK_URL, payload);
   } catch (error) {
     console.error('Error posting message to Slack:', error.message);
