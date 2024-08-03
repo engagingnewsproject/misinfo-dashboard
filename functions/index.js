@@ -16,7 +16,10 @@ const postToSlack = async (message) => {
     const payload = { text: message };
     await axios.post(SLACK_WEBHOOK_URL, payload);
   } catch (error) {
-    console.error("Error posting message to Slack:", error);
+    console.error('Error posting message to Slack:', error.message);
+    if (error.response) {
+      console.log(error.response.data); // Log more detailed info about the error response
+    }
   }
 };
 
