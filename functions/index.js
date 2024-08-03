@@ -72,7 +72,7 @@ exports.notifySlackOnNewHelpRequest = functions.firestore
 		let userRole = 'No role specified'
 
 		if (userID !== 'unknown user') {
-			const userRef = admin.firestore().collection('users').doc(userID)
+			const userRef = admin.firestore().collection('mobileUsers').doc(userID)
 			const doc = await userRef.get()
 			if (doc.exists) {
 				const userData = doc.data()
