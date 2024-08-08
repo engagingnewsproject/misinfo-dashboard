@@ -289,7 +289,7 @@ const Profile = ({ customClaims }) => {
 
   const handleDelete = async () => {
     const uidToDelete = user.accountId
-
+    console.log(uidToDelete);
     if (
       !uidToDelete ||
       typeof uidToDelete !== 'string' ||
@@ -298,7 +298,8 @@ const Profile = ({ customClaims }) => {
       console.error('Invalid UID:', uidToDelete)
       return
     }
-    await disableUser({ uid: uidToDelete })
+    // await disableUser({ uid: uidToDelete })
+    await disableUser(uidToDelete)
       .then(() => {
         router.push('/login')
         console.log('User has been successfully disabled');
@@ -505,7 +506,7 @@ const Profile = ({ customClaims }) => {
       </div>
     </div>
   )
-
+// todo: change to "Disable account"
   const deleteAccount = () => (
     <div className="self-end m-6">
       <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
