@@ -285,3 +285,28 @@ exports.deleteUser = functions.https.onCall(async (data, context) => {
 		return { success: false, message: "Error deleting user", error }
 	}
 })
+
+exports.disableUser = functions.https.onCall((data, context) => {
+    // Ensure the user is authorized to disable users, usually an admin
+    if (!context.auth.token.admin) {
+        throw new functions.https.HttpsError('permission-denied', 'Only admins can disable users.');
+    }
+
+    const { uid } = data;
+
+    return admin.auth().getUser(uid)
+        .then((userRecord) => {
+            // Add 'disabled' claim to the user
+            const currentClaims = userRecord.customClaims || {};
+            currentClaims['disabled'] = true;
+
+            return admin.auth().setCustomUserClaims(uid, currentClaims);
+        })
+        .then(() => {
+            return { message: `Success! User ${uid} has been disabled.` };
+        })
+        .catch((error) => {
+            console.error('Error disabling user:', error);
+            throw new functions.https.HttpsError('internal', `Error disabling user: ${error.message}`);
+        });
+});

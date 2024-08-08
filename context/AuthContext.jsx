@@ -90,6 +90,8 @@ export const AuthContextProvider = ({children}) => {
     
   const deleteUser = httpsCallable(functions,'deleteUser')
   
+  const disableUser = httpsCallable(functions,'disableUser')
+  
   const verifyEmail = (user) => {
     return new Promise((resolve, reject) => {
       var actionCodeSettings = {
@@ -185,6 +187,18 @@ export const AuthContextProvider = ({children}) => {
         return deleteUser(user)
     }
 
+    const disableUserFunction = async (userId) => {
+        try {
+            const result = await disableUser({ uid: userId });
+            console.log('User disabled:', result.data.message);
+            return result.data;
+        } catch (error) {
+            console.error('Error disabling user:', error);
+            throw error;
+        }
+    }
+
+  
     const updateUserPassword = (auth, currentPassword, newPassword) => {
         const credential = EmailAuthProvider.credential(user.email, currentPassword)
         return new Promise((resolve, reject) => {
@@ -249,7 +263,7 @@ export const AuthContextProvider = ({children}) => {
     }
  
     return (
-        <AuthContext.Provider value={{ user, customClaims, setCustomClaims, login, signup, logout, resetPassword, deleteAdminUser, updateUserPassword, updateUserEmail, setPassword, verifyEmail, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole, getUserByEmail, deleteUser }}>
+        <AuthContext.Provider value={{ user, customClaims, setCustomClaims, login, signup, logout, resetPassword, deleteAdminUser, updateUserPassword, updateUserEmail, setPassword, verifyEmail, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole, getUserByEmail, deleteUser, disableUser: disableUserFunction }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )
