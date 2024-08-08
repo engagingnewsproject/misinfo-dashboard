@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { 
 	doc, 
+	setDoc,
 	collection, 
 	getDocs, 
 	getDoc, 
@@ -39,7 +40,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [endIndex, setEndIndex] = useState(10)
 	const [deleteModal, setDeleteModal] = useState(false)
 	// NEW Agency Modal
-  const { user } = useAuth()
+  const { user, sendSignIn } = useAuth()
 	const [newAgencyModal, setNewAgencyModal] = useState(false)
 	const [newAgencySubmitted, setNewAgencySubmitted] = useState(0);
 	const [newAgencyName, setNewAgencyName] = useState("")
@@ -96,6 +97,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	}
 	// Handler: new agency SAVE & send confirmation email to user
 	const saveAgency = () => {
+		console.log('save agency running', newAgencyName);
 		const dbInstance = collection(db, 'agency');
 		addDoc(dbInstance, {
 			name: newAgencyName,
@@ -105,6 +107,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			logo: []
 		}).then((agencyID) => { // send email to agency admin emails
 			try {
+				console.log('sendSignIn new agency emails: ', newAgencyEmails);
 				sendSignIn(...newAgencyEmails)
 				// When user signs in from the email they recieved,
 				// they will added to the mobileUsers database collection
@@ -114,7 +117,11 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
         const defaultLabels = ["Important", "Flagged"] // tag system 3
 
 
-        // create topics collection for the new agency
+				// create topics collection for the new agency
+				console.log('agencyID: ',agencyID);
+				console.log('defaultTopics: ', defaultTopics);
+				console.log('defaultSources: ', defaultSources);
+				console.log('defaultLabels: ', defaultLabels);
         setDoc(doc(db, "tags", agencyID), {
          Topics: {
             list: defaultTopics,
