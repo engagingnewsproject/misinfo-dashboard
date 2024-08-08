@@ -184,11 +184,15 @@ const Users = () => {
 			// get all mobile users and
 			// Filter the mobileUsersArr to include only users whose mobileUserId is in the ids array
 			const filteredUsers = mobileUsersArr.filter(user => userIds.includes(user.mobileUserId));
+						// Sort the array by joiningDate (assuming joiningDate is a timestamp in seconds)
+    	filteredUsers.sort((a, b) => b.joiningDate - a.joiningDate);
 			setLoadedMobileUsers(filteredUsers)
 			setIsLoading(false); // Set loading to false when data fetch is complete
 			// DONE
 			// ADMIN ONLY
 		} else {
+			// Sort the array by joiningDate (assuming joiningDate is a timestamp in seconds)
+    	mobileUsersArr.sort((a, b) => b.joiningDate - a.joiningDate);
 			setLoadedMobileUsers(mobileUsersArr)
 			setIsLoading(false); // Set loading to false when data fetch is complete
 		}
@@ -498,7 +502,7 @@ const Users = () => {
 													<td className={column.data_center}>
 														{(userObj.isBanned && 'yes') || 'no'}
 													</td>
-													<td className={column.data_center}>{userObj.disabled ? 'Disabled' : 'Active'}</td>
+													<td className={column.data_center}>{userObj.disabled ? 'Yes' : 'No'}</td>
 													{/* Delete */}
 													{customClaims.admin && (
 														<td
