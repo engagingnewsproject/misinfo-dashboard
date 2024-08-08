@@ -82,11 +82,12 @@ const SignUp = () => {
 
 	const handleSignUp = async (e) => {
 		e.preventDefault()
-		// console.log("signing up")
+
 		if (data.password.length < 8) {
-			return
+			return // Ensures the password length is at least 8 characters before proceeding.
 		}
-		const allErrors = {}
+		const allErrors = {} // Object to hold any validation errors.
+		// Manage form validation errors
 		if (data.state == null) {
 			console.log('state error')
 			allErrors.state = t('NewReport:state')
@@ -107,40 +108,42 @@ const SignUp = () => {
 		// console.log("should be given agency privilege " + isAgency)
 		try {
 			if (isAgency) {
+				console.log('DEV LOG - handleSignUp - Agency user')
 				// Sees if agency already exists -if it does, adds user to the agency's user list
 				signInWithEmailLink(auth, data.email, window.location.href)
 					.then((result) => {
-						const promise2 = addAgencyRole({ email: data.email })
-						const promise1 = auth.updateCurrentUser(result.user)
+						const promise2 = addAgencyRole({ email: data.email }) // Asynchronously adds agency role to the user.
+						const promise1 = auth.updateCurrentUser(result.user) // Updates the current user in Firebase.
 						auth.currentUser.reload().then(() => {
-							const promise3 = setPassword(data.password)
+							// Reloads the current user information.
+							const promise3 = setPassword(data.password) // Asynchronously sets the new password.
 							Promise.all([promise1, promise2, promise3]).then((values) => {
-								// console.log('verifyEmail(auth.currentUser) value--> ',verifyEmail(auth.currentUser))
-								// console.log('values prop--> ', values);
-								// Add new Agency issue is here. When the agency user goes through the
-								// signup process they are not added as a `mobileUser` and therefore
-								// they have no real profile
-								// -- or at least that is what my testing has shown.
-								// 1) Admin user adds a new agency
-								// 2) user's email is sent email subject:"Sign in to MisInfo App requested"
-								// 3) user clicks link in email
-								// 4) signup.jsx page with "** Must be the email you were sent the invite." text under Email input.
-								// 5) user submits
-								// 6) user's email is sent "Verify your email for MisInfo App"
-								// 7) user clicks link
-								// 8) verifyEmail.jsx page
-								// 9) user clicks link
-								// 10) https://misinfo-5d004.firebaseapp.com/__/auth/action?0000 page
-								// 11) user clicks "Continue" button
-								// 12) login.jsx page to log in
-								// notes: where is the user assigned the 'Agency' custom claim?
-								// notes: firestore `mobileUsers` db is not added the new user's doc
+								// Waits for all promises to complete.
+								/**
+                  Add new Agency issue is here. When the agency user goes through the
+                  signup process they are not added as a `mobileUser` and therefore
+                  they have no real profile
+                  -- or at least that is what my testing has shown.
+                  1) Admin user adds a new agency
+                  2) user's email is sent email subject:"Sign in to MisInfo App requested"
+                  3) user clicks link in email
+                  4) signup.jsx page with "** Must be the email you were sent the invite." text under Email input.
+                  5) user submits
+                  6) user's email is sent "Verify your email for MisInfo App"
+                  7) user clicks link
+                  8) verifyEmail.jsx page
+                  9) user clicks link
+                  10) https://misinfo-5d004.firebaseapp.com/__/auth/action?0000 page
+                  11) user clicks "Continue" button
+                  12) login.jsx page to log in
+                  notes: where is the user assigned the 'Agency' custom claim?
+                  notes: firestore `mobileUsers` db is not added the new user's doc
+                */
 								if (verifyEmail(auth.currentUser)) {
-									setSignUpError('')
-									// console.log("if in verifyEmail(auth.currentUser)")
-									// console.log('if SEND TO VERIFY EMAIL PAGE');
-									addMobileUser('Agency')
-									window.location.replace('/verifyEmail')
+									// Verifies the email of the logged-in user.
+									setSignUpError('') // Clears any previous sign-up errors.
+									addMobileUser('Agency') // Adds the user to the 'mobileUsers' collection with 'Agency' role.
+									window.location.replace('/verifyEmail') // Redirects to the verify email page.
 								} else {
 									// console.log("if in else where addMobileUser('Agency') runs")
 									addMobileUser('Agency')
@@ -167,15 +170,15 @@ const SignUp = () => {
 							console.log(err)
 						}
 					})
-				const userCredential = await auth.currentUser.linkWithCredential(
-					result.credential,
-				)
-				verifyEmail(auth.currentUser).then((verified) => {
-					// Handle email verification logic
-					// ...
-				})
+				// const userCredential = await auth.currentUser.linkWithCredential(
+				// 	result.credential,
+				// )
+				// verifyEmail(auth.currentUser).then((verified) => {
+				// 	// Handle email verification logic
+				// 	// ...
+				// })
 			} else {
-				console.log('not agency user')
+				console.log('DEV LOG - handleSignUp - not agency user')
 
 				// check if `mobileUsers` doc already exist with the user's email
 				/*
@@ -195,10 +198,13 @@ const SignUp = () => {
 
 				signup(data.name, data.email, data.password, data.state, data.city)
 					.then((userCredential) => {
-						console.log('sign up successful')
 						setSignUpError('')
 						addMobileUser('User')
 						router.push('/verifyEmail')
+						// console.log(
+						// 	'sign up successful user credentials--> ',
+						// 	userCredential,
+						// )
 					})
 					.catch((error) => {
 						if (error.code === 'auth/email-already-in-use') {
@@ -206,7 +212,7 @@ const SignUp = () => {
 						} else {
 							setSignUpError(error.message)
 						}
-						console.error(error)
+						console.error('Error in (non Agency) signup--> ', error)
 					})
 			}
 			// analytics.logEvent('sign_up', { method: 'email' }); // Log 'login' event
