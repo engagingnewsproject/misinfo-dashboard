@@ -237,30 +237,44 @@ export const AuthContextProvider = ({children}) => {
       
     }
     
-    const sendSignIn = async (email) => {
-        var actionCodeSettings = {
-            // URL you want to redirect back to. The domain (www.example.com) for this URL
-            // must be whitelisted in the Firebase Console.
-            // 'url': 'http://localhost:3000/signup',
+  const sendSignIn = async (email) => {
+		// Determine the base URL based on the environment
+		const isLocalhost = window.location.hostname === 'localhost'
+		const baseUrl = isLocalhost
+			? 'http://localhost:3000/signup'
+			: 'https://misinfo-dashboard.netlify.app/signup'
 
-            'url': 'https://misinfo-dashboard.netlify.app/signup',
-            // 'url': 'https://misinfo-dashboard.netlify.app/signup', // Here we redirect back to this same page.
-            'handleCodeInApp': true, // This must be true.
-        };
-        await sendSignInLinkToEmail(auth, email, actionCodeSettings)
-        .then(() => {
-            // The link was successfully sent. Inform the user.
-            // Save the email locally so you don't need to ask the user for it again
-            // if they open the link on the same device.
-            window.localStorage.setItem('emailForSignIn', email);
-            // ...
-        })
-        .catch((error) => {
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            console.log(errorMessage)
-        });
+		var actionCodeSettings = {
+			// URL you want to redirect back to. The domain for this URL must be whitelisted in the Firebase Console.
+			url: baseUrl,
+			handleCodeInApp: true, // This must be true.
+		}
+    try {
+      await sendSignInLinkToEmail(auth,email,actionCodeSettings)
+      // The link was successfully sent. Inform the user.
+      // Save the email locally so you don't need to ask the user for it again
+      // if they open the link on the same device.
+      window.localStorage.setItem('emailForSignIn',email)
+      console.log("Sign-in link sent to:", email);
+    } catch (error) {
+      const errorCode = error.code
+      const errorMessage = error.message
+      console.error("Error sending sign-in link:", errorMessage);
     }
+		// await sendSignInLinkToEmail(auth, email, actionCodeSettings)
+		// 	.then(() => {
+		// 		// The link was successfully sent. Inform the user.
+		// 		// Save the email locally so you don't need to ask the user for it again
+		// 		// if they open the link on the same device.
+		// 		window.localStorage.setItem('emailForSignIn', email)
+		// 		// ...
+		// 	})
+		// 	.catch((error) => {
+		// 		const errorCode = error.code
+		// 		const errorMessage = error.message
+		// 		console.log(errorMessage)
+		// 	})
+	}
  
     return (
         <AuthContext.Provider value={{ user, customClaims, setCustomClaims, login, signup, logout, resetPassword, deleteAdminUser, updateUserPassword, updateUserEmail, setPassword, verifyEmail, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole, getUserByEmail, deleteUser, disableUser: disableUserFunction }}>
