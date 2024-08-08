@@ -68,7 +68,7 @@ const NewAgencyModal = ({
 							placeholder="Agency User Email"
 							value={newAgencyEmails}
 							onChange={onNewAgencyEmails}
-							autoComplete='nope'
+							autoComplete='email'
 							/>
 							{errors.email ? (
 								<p className="error">
