@@ -202,9 +202,9 @@ const Users = () => {
 		getData();
 	}, []);
 
-	useEffect(() => {
-		console.log(loadedMobileUsers);
-	}, [loadedMobileUsers])
+	// useEffect(() => {
+	// 	console.log(loadedMobileUsers);
+	// }, [loadedMobileUsers])
 	
 	
 	// Function to trigger delete user modal
