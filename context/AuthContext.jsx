@@ -76,6 +76,7 @@ export const AuthContextProvider = ({children}) => {
         return () => unsubscribe()
     }, [])
 
+  const getUserRecord = httpsCallable(functions, 'getUserRecord');
 
   // add admin cloud function
   const addAdminRole = httpsCallable(functions,'addAdminRole')
@@ -91,6 +92,22 @@ export const AuthContextProvider = ({children}) => {
   const deleteUser = httpsCallable(functions,'deleteUser')
   
   const disableUser = httpsCallable(functions,'disableUser')
+  
+  const fetchUserRecord = async (uid) => {
+    try {
+      const result = await getUserRecord({ uid });
+      return result.data;
+    } catch (error) {
+      console.error('Error fetching user record:', error);
+      console.error('Error code--> ', error.code);
+      // Assuming error means user not found or deleted, treat as disabled
+      if (error.code === 'functions/not-found') {
+        return { disabled: true };
+      } else {
+        throw error;
+      }
+    }
+  }
   
   const verifyEmail = (user) => {
     return new Promise((resolve, reject) => {
@@ -277,7 +294,7 @@ export const AuthContextProvider = ({children}) => {
 	}
  
     return (
-        <AuthContext.Provider value={{ user, customClaims, setCustomClaims, login, signup, logout, resetPassword, deleteAdminUser, updateUserPassword, updateUserEmail, setPassword, verifyEmail, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole, getUserByEmail, deleteUser, disableUser: disableUserFunction }}>
+        <AuthContext.Provider value={{ user, customClaims, setCustomClaims, login, signup, logout, resetPassword, deleteAdminUser, updateUserPassword, updateUserEmail, setPassword, verifyEmail, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole, getUserByEmail, deleteUser, disableUser: disableUserFunction, fetchUserRecord }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )

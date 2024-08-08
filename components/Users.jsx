@@ -32,11 +32,13 @@ const Users = () => {
 		addUserRole,
 		sendSignIn,
 		customClaims,
+		fetchUserRecord
 	} = useAuth()
 
 	// State variables for managing user data
 	const [userRole, setUserRole] = useState("")
-	const [loadedMobileUsers, setLoadedMobileUsers] = useState([])
+	const [loadedMobileUsers,setLoadedMobileUsers] = useState([])
+	const [isLoading, setIsLoading] = useState(false);
 	const [endIndex, setEndIndex] = useState(0)
 	const [deleteModal, setDeleteModal] = useState(false)
 	const [userEditing, setUserEditing] = useState([])
@@ -136,13 +138,23 @@ const Users = () => {
 
 	// Function to fetch user data from Firebase
 	const getData = async () => {
+		setIsLoading(true); // Set loading to true when the data fetch starts
 		const mobileUsersQuerySnapshot = await getDocs(collection(db,'mobileUsers'))
 		const mobileUsersArr = []
-		mobileUsersQuerySnapshot.forEach((doc) => {
-			const data = doc.data()
-			data.mobileUserId = doc.id
-			mobileUsersArr.push(data)
-		});
+    for (const doc of mobileUsersQuerySnapshot.docs) {
+        const userData = doc.data();
+        userData.mobileUserId = doc.id;
+
+			try {
+					const authRecord = await fetchUserRecord(userData.mobileUserId);
+					userData.disabled = authRecord.disabled;
+			} catch (error) {
+					console.error('Failed to fetch or interpret disabled status for user:', userData.mobileUserId, error);
+					userData.disabled = true; // Assume deleted users are disabled
+			}
+
+			mobileUsersArr.push(userData);
+    };
 		
 		// AGNECY USERS ONLY
 		if (customClaims.agency) {
@@ -173,10 +185,12 @@ const Users = () => {
 			// Filter the mobileUsersArr to include only users whose mobileUserId is in the ids array
 			const filteredUsers = mobileUsersArr.filter(user => userIds.includes(user.mobileUserId));
 			setLoadedMobileUsers(filteredUsers)
+			setIsLoading(false); // Set loading to false when data fetch is complete
 			// DONE
 			// ADMIN ONLY
 		} else {
 			setLoadedMobileUsers(mobileUsersArr)
+			setIsLoading(false); // Set loading to false when data fetch is complete
 		}
 	}
 		
@@ -184,6 +198,11 @@ const Users = () => {
 		getData();
 	}, []);
 
+	useEffect(() => {
+		console.log(loadedMobileUsers);
+	}, [loadedMobileUsers])
+	
+	
 	// Function to trigger delete user modal
 	const handleMobileUserDelete = async (userId) => {
 		setDeleteModal(true)
@@ -234,12 +253,12 @@ const Users = () => {
 	const handleAgencyChange = async (e) => {
 		e.preventDefault()
 		const selectedValue = e.target.value
-		console.log(agenciesArray)
+		// console.log(agenciesArray)
 		setAgencyName(selectedValue)
 		const selectedAgency = agenciesArray.find(
 			(agency) => agency === selectedValue
 		)
-		console.log(selectedAgency)
+		// console.log(selectedAgency)
 
 		if (selectedAgency) {
 			try {
@@ -378,133 +397,137 @@ const Users = () => {
 			<div className={style.section_wrapper}>
 				<div className={style.section_header}>
 					<div className={style.section_title}>
-					{customClaims.admin ? (
-							<span className='text-xs'>{agencyName}</span>
+						{customClaims.admin ? (
+							<span className="text-xs">{agencyName}</span>
 						) : (
-							<span className='text-xs'>All Agency</span>
+							<span className="text-xs">All Agency</span>
 						)}
-						<div className={globalStyles.heading.h1.blue}>
-							Users
-						</div>
+						<div className={globalStyles.heading.h1.blue}>Users</div>
 					</div>
 					<div className={style.section_filtersWrap}>
 						<button className={style.button} onClick={handleAddNewUserModal}>
-							<FaPlus className="text-blue-600 mr-2" size={12}/>
+							<FaPlus className="text-blue-600 mr-2" size={12} />
 							Add User
 						</button>
 					</div>
 				</div>
 				<div className={style.table_main}>
-					<div className='flex flex-col h-full'>
+					<div className="flex flex-col h-full">
 						<InfiniteScroll
-							className='overflow-x-auto'
+							className="overflow-x-auto"
 							dataLength={endIndex}
 							inverse={false}
-							scrollableTarget='scrollableDiv'>
-							<table className='min-w-full bg-white rounded-xl p-1'>
-								<thead className='border-b dark:border-indigo-100 bg-slate-100'>
+							scrollableTarget="scrollableDiv">
+							<table className="min-w-full bg-white rounded-xl p-1">
+								<thead className="border-b dark:border-indigo-100 bg-slate-100">
 									<tr>
-										<th scope='col' className={tableHeading.default}>
-											Name
-										</th>
-										<th scope='col' className={tableHeading.default_center}>
-											Email
-										</th>
+										<th scope="col" className={tableHeading.default}>Name</th>
+										<th scope="col" className={tableHeading.default_center}>Email</th>
+										<th scope="col" className={tableHeading.default_center}>Join Date</th>
 										{customClaims.admin && (
-											<th scope='col' className={tableHeading.default_center}>
-												Agency
-											</th>
+											<th scope="col" className={tableHeading.default_center}>Agency</th>
 										)}
-										<th scope='col' className={tableHeading.default_center}>
-											Join Date
-										</th>
 										{customClaims.admin && (
-											<th scope='col' className={tableHeading.default_center}>
-												Role
-											</th>
+											<th scope="col" className={tableHeading.default_center}>Role</th>
 										)}
-										<th scope='col' className={tableHeading.default_center}>
-											Banned
-										</th>
+										<th scope="col" className={tableHeading.default_center}>Banned</th>
+										<th scope="col" className={tableHeading.default_center}>Disabled</th>
 										{customClaims.admin && (
 											<th
-												scope='col'
+												scope="col"
 												colSpan={2}
-												className={tableHeading.default_center}>
-												Delete
-											</th>
+												className={tableHeading.default_center}>Delete</th>
 										)}
 									</tr>
 								</thead>
 								<tbody>
-									{loadedMobileUsers.map((userObj, key) => {
-										// Directly access user details and user ID
-										let userId = userObj.mobileUserId
-										let joined = userObj.joiningDate
-										joined = joined * 1000
-										joined = new Date(joined)
-										joined = joined.toLocaleString("en-US", dateOptions)
-										return (
-											<tr
-												className='border-b transition duration-300 ease-in-out dark:border-indigo-100'
-												key={key}
-												onClick={
-													customClaims.admin
-														? () => handleEditUser(userObj, userId)
-														: undefined
-												}>
-												{/* Name */}
-												<td scope='row' className={column.data}>
-													{userObj.name}
-												</td>
-												{/* TODO: add geopoint fields as a column in table. */}
-												{/* Email */}
-												<td className={column.data_center}>{userObj.email}</td>
-												{/* Agency */}
-												{customClaims.admin && (
+									{isLoading ? (
+										<tr>
+											<td colSpan="100%" className="text-center">
+												{' '}
+												{/* Ensure it spans all columns */}
+												<div className="flex justify-center items-center h-32">
+													{' '}
+													{/* Adjust height as needed */}
+													Loading...{' '}
+													{/* You can replace this with a spinner or any loading animation */}
+												</div>
+											</td>
+										</tr>
+									) : (
+										loadedMobileUsers.map((userObj, key) => {
+											// Directly access user details and user ID
+											let userId = userObj.mobileUserId
+											let joined = userObj.joiningDate
+											joined = joined * 1000
+											joined = new Date(joined)
+											joined = joined.toLocaleString('en-US', dateOptions)
+											return (
+												<tr
+													className="border-b transition duration-300 ease-in-out dark:border-indigo-100"
+													key={key}
+													onClick={
+														customClaims.admin
+															? () => handleEditUser(userObj, userId)
+															: undefined
+													}>
+													{/* Name */}
+													<td scope="row" className={column.data}>
+														{userObj.name}
+													</td>
+													{/* TODO: add geopoint fields as a column in table. */}
+													{/* Email */}
 													<td className={column.data_center}>
-													{userObj.agencyName}
+														{userObj.email}
 													</td>
-												)}
-												{/* Joined date */}
-												<td className={column.data_center}>{joined}</td>
-												{/* Role */}
-												{customClaims.admin && (
+													{/* Joined date */}
+													<td className={column.data_center}>{joined}</td>
+													{/* Agency */}
+													{customClaims.admin && (
+														<td className={column.data_center}>
+															{userObj.agencyName}
+														</td>
+													)}
+													{/* Role */}
+													{customClaims.admin && (
+														<td className={column.data_center}>
+															{userObj.userRole}
+														</td>
+													)}
+													{/* Banned */}
 													<td className={column.data_center}>
-														{userObj.userRole}
+														{(userObj.isBanned && 'yes') || 'no'}
 													</td>
-												)}
-												{/* Banned */}
-												<td className={column.data_center}>
-													{(userObj.isBanned && "yes") || "no"}
-												</td>
-												{/* Delete */}
-												{customClaims.admin && (
-													<td
-														className={column.data_center}
-														onClick={(e) => e.stopPropagation()}>
-														<button
-															onClick={() => handleMobileUserDelete(userId)}
-															className={`${style.icon} tooltip-delete-user`}>
-															<IoTrash
-																size={20}
-																className='ml-4 fill-gray-400 hover:fill-red-600'
-															/>
-															<Tooltip
-																anchorSelect=".tooltip-delete-user"
-																place='top'
-																delayShow={500}
-															>Delete User</Tooltip>
-														</button>
-													</td>
-												)}
-											</tr>
-										)
-									})}
+													<td className={column.data_center}>{userObj.disabled ? 'Disabled' : 'Active'}</td>
+													{/* Delete */}
+													{customClaims.admin && (
+														<td
+															className={column.data_center}
+															onClick={(e) => e.stopPropagation()}>
+															<button
+																onClick={() => handleMobileUserDelete(userId)}
+																className={`${style.icon} tooltip-delete-user`}>
+																<IoTrash
+																	size={20}
+																	className="ml-4 fill-gray-400 hover:fill-red-600"
+																/>
+																<Tooltip
+																	anchorSelect=".tooltip-delete-user"
+																	place="top"
+																	delayShow={500}>
+																	Delete User
+																</Tooltip>
+															</button>
+														</td>
+													)}
+												</tr>
+											)
+										})
+									)}
 								</tbody>
 							</table>
 						</InfiniteScroll>
-						<div className='mt-2 self-end text-xs'>
+						<div className="mt-2 self-end text-xs">
 							Total users: {loadedMobileUsers.length}
 						</div>
 					</div>
@@ -513,9 +536,9 @@ const Users = () => {
 			{deleteModal && (
 				<ConfirmModal
 					func={handleDelete}
-					title='Are you sure you want to delete this user?'
-					subtitle=''
-					CTA='Delete'
+					title="Are you sure you want to delete this user?"
+					subtitle=""
+					CTA="Delete"
 					closeModal={setDeleteModal}
 				/>
 			)}
@@ -551,18 +574,19 @@ const Users = () => {
 					onFormSubmit={handleFormSubmit}
 				/>
 			)}
-			{newUserModal && 
-				<NewUserModal 
-				setNewUserModal={setNewUserModal}
-				// newUserName={newUserName}
-				// onNewUserName={handleNewUserName}
-				newUserEmail={newUserEmail}
-				onNewUserEmail={handleNewUserEmail}
-				// onNewAgencyState={handleNewAgencyState}
-				// onNewAgencyCity={handleNewAgencyCity}
-				onFormSubmit={handleAddNewUserFormSubmit} 
-				errors={errors}
-			/>}
+			{newUserModal && (
+				<NewUserModal
+					setNewUserModal={setNewUserModal}
+					// newUserName={newUserName}
+					// onNewUserName={handleNewUserName}
+					newUserEmail={newUserEmail}
+					onNewUserEmail={handleNewUserEmail}
+					// onNewAgencyState={handleNewAgencyState}
+					// onNewAgencyCity={handleNewAgencyCity}
+					onFormSubmit={handleAddNewUserFormSubmit}
+					errors={errors}
+				/>
+			)}
 		</div>
 	)
 }

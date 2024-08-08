@@ -287,26 +287,39 @@ exports.deleteUser = functions.https.onCall(async (data, context) => {
 })
 
 exports.disableUser = functions.https.onCall((data, context) => {
-    // Ensure the user is authorized to disable users, usually an admin
-    if (!context.auth.token.admin) {
-        throw new functions.https.HttpsError('permission-denied', 'Only admins can disable users.');
-    }
+  // Ensure the user is authenticated
+  if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'The user must be authenticated to disable their account.');
+  }
 
-    const { uid } = data;
+  const { uid } = data;
+  const callerUid = context.auth.uid;
 
-    return admin.auth().getUser(uid)
-        .then((userRecord) => {
-            // Add 'disabled' claim to the user
-            const currentClaims = userRecord.customClaims || {};
-            currentClaims['disabled'] = true;
+  // Check if the request is to disable their own account
+  if (uid !== callerUid) {
+      throw new functions.https.HttpsError('permission-denied', 'Users can only disable their own accounts.');
+  }
 
-            return admin.auth().setCustomUserClaims(uid, currentClaims);
-        })
-        .then(() => {
-            return { message: `Success! User ${uid} has been disabled.` };
-        })
-        .catch((error) => {
-            console.error('Error disabling user:', error);
-            throw new functions.https.HttpsError('internal', `Error disabling user: ${error.message}`);
-        });
+  return admin.auth().updateUser(uid, {
+      disabled: true  // Set the disabled property to true
+  })
+  .then(() => {
+      return { message: `Success! User ${uid} has been disabled.` };
+  })
+  .catch((error) => {
+      console.error('Error disabling user:', error);
+      throw new functions.https.HttpsError('internal', `Error disabling user: ${error.message}`);
+  });
 });
+
+exports.getUserRecord = functions.https.onCall(async (data, context) => {
+	try {
+		const userRecord = await admin.auth().getUser(data.uid)
+		console.log('User Record:', userRecord) // Check the output in Firebase logs
+		return userRecord
+	} catch (error) {
+		console.error('Failed to fetch user record:', error)
+    throw new functions.https.HttpsError('not-found', 'User record not found', error.message);
+	}
+})
+
