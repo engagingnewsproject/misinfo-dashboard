@@ -64,11 +64,11 @@ const NewAgencyModal = ({
 						<input // New agency emails
 							className={style.modal_form_input}
 							id="agencyUser"
-							type="text"
+							type="email"
 							placeholder="Agency User Email"
 							value={newAgencyEmails}
 							onChange={onNewAgencyEmails}
-							autoComplete='nope'
+							autoComplete='email'
 							/>
 							{errors.email ? (
 								<p className="error">

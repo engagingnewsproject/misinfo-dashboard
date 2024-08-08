@@ -109,9 +109,9 @@ const ReportSystem = ({
   const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
   const defaultLabels = ["Important", "Flagged"] // tag system 3
 
-	useEffect(() => {
-		console.log('Authenticated user:', user);
-	}, [])
+	// useEffect(() => {
+	// 	console.log('Authenticated user:', user);
+	// }, [])
 	
 	
 	// On page load (mount), update the tags from firebase
@@ -564,7 +564,7 @@ const ReportSystem = ({
 			"Report KEY": key
 		};
 		
-		console.log("Form Data: ", formData);
+		// console.log("Form Data: ", formData);
 	};
 	useEffect(() => {
 		logFormData()

@@ -1,12 +1,108 @@
 require('dotenv').config()
 const functions = require('firebase-functions')
 const admin = require('firebase-admin')
-const sgMail = require('@sendgrid/mail')
 
 admin.initializeApp()
 
-// // Initialize SendGrid API with your SendGrid API key from environment variables
-sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+const axios = require('axios'); // used for sending slack messages from help requests form
+
+// Slack <-> Firebase connection URL
+// To reset the Slack webhook url run:
+// `firebase functions:config:set slack.webhook_url="https://hooks.slack.com/services/SLACK_WEBHOOK_URL"`
+const SLACK_WEBHOOK_URL = functions.config().slack.webhook_url;
+
+// Function to post a message to Slack
+const postToSlack = async (
+	userID,
+	userName,
+	userEmail,
+	userRole,
+	subject,
+	messageText,
+	imageUrl,
+) => {
+	try {
+		const payload = {
+			blocks: [
+				{
+					type: 'section',
+					text: {
+						type: 'mrkdwn',
+						text: `*${userName}* - ${subject}`,
+					},
+				},
+				{
+					type: 'section',
+					block_id: 'section567',
+					text: {
+						type: 'mrkdwn',
+						text: messageText,
+					},
+					accessory: {
+						type: 'image',
+						image_url: imageUrl,
+						alt_text: 'User uploaded image',
+					},
+				},
+				{
+					type: 'section',
+					block_id: 'section789',
+					fields: [
+						{
+							type: 'mrkdwn',
+							text: `*User ID*\n${userID}\n*User Email*\n${userEmail}\n*User Role*\n${userRole}`,
+						},
+					],
+				},
+			],
+		}
+		await axios.post(SLACK_WEBHOOK_URL, payload)
+	} catch (error) {
+		console.error('Error posting message to Slack:', error.message)
+	}
+}
+
+exports.notifySlackOnNewHelpRequest = functions.firestore
+	.document('helpRequests/{requestId}')
+	.onCreate(async (snap) => {
+		const newRequest = snap.data()
+		const userID = newRequest.userID || 'unknown user'
+		let userName = 'Unknown'
+		let userEmail = 'No email provided'
+		let userRole = 'No role specified'
+
+		if (userID !== 'unknown user') {
+			const userRef = admin.firestore().collection('mobileUsers').doc(userID)
+			const doc = await userRef.get()
+			if (doc.exists) {
+				const userData = doc.data()
+				userName = userData.name || userName
+				userEmail = userData.email || userEmail
+				userRole = userData.userRole || userRole
+			} else {
+				console.log('User not found')
+				return // Optionally exit if no user info is available
+			}
+		}
+
+		const subject = newRequest.subject || 'No Subject'
+		const messageText = newRequest.message || 'No message provided'
+		const imageUrl =
+			newRequest.images && newRequest.images.length > 0
+				? newRequest.images[0]
+				: 'https://example.com/default-image.jpg'
+
+		return postToSlack(
+			userID,
+			userName,
+			userEmail,
+			userRole,
+			subject,
+			messageText,
+			imageUrl,
+		)
+	})
+
 
 exports.addUserRole = functions.https.onCall((data,context) => {
   // get user and add custom claim to user
@@ -190,87 +286,40 @@ exports.deleteUser = functions.https.onCall(async (data, context) => {
 	}
 })
 
-// Firestore trigger to send email when a new document is added to helpRequests collection
-exports.sendHelpRequestEmail = functions.firestore.document('helpRequests/{requestId}')
-    .onCreate((snap, context) => {
-        // Get the data of the newly added document
-        const requestData = snap.data();
-
-        // Get the user's email from the data (adjust according to your data structure)
-        const userEmail = requestData.email;
-        
-        // Define recipients
-        const recipients = ['luke@lukecarlhartman.com', 'mediaengagement@austin.utexas.edu']; // Add more recipients as needed
-
-        // Send the email
-        return sendEmail(userEmail, recipients, requestData);
-    });
-    
-// Function to send email
-function sendEmail(email, recipients, requestData) {
-  // Check if email exists
-  if (!email) {
-      console.log("Email not provided");
-      return;
+exports.disableUser = functions.https.onCall((data, context) => {
+  // Ensure the user is authenticated
+  if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'The user must be authenticated to disable their account.');
   }
 
-  // Set up image data
-  let imageHTML = '';
-  if (requestData.images && requestData.images.length > 0) {
-      imageHTML = '<p><strong>Images:</strong></p>';
-      requestData.images.forEach((imageUrl, index) => {
-          imageHTML += `<p><img src="${imageUrl}" alt="Image ${index + 1}" style="max-width: 100%; height: auto;"></p>`;
-      });
+  const { uid } = data;
+  const callerUid = context.auth.uid;
+
+  // Check if the request is to disable their own account
+  if (uid !== callerUid) {
+      throw new functions.https.HttpsError('permission-denied', 'Users can only disable their own accounts.');
   }
-  // Set up message data
-    const msg = {
-        to: recipients,
-        from: 'mediaengagement@austin.utexas.edu',
-        subject: 'New Help Request Submitted',
-        html: `
-            <p>Hello Misinfo Administrator,</p>
-            <p>A new help request has been submitted with the following details:</p>
-            <ul>
-                <li><strong>User ID:</strong> ${requestData.userID}</li>
-                <li><strong>Created Date:</strong> ${requestData.createdDate.toDate().toLocaleString()}</li>
-                <li><strong>Subject:</strong> ${requestData.subject}</li>
-                <li><strong>Message:</strong> ${requestData.message}</li>
-                <!-- Add other fields as needed -->
-            </ul>
-            ${imageHTML}
-            <p>Thank you.</p>
-        `
-    };
 
-  // Send email using SendGrid
-  return sgMail.send(msg)
-      .then(() => {
-          console.log("Email sent successfully");
-      })
-      .catch(error => {
-          console.error("Error sending email:", error.toString());
-      });
-}
+  return admin.auth().updateUser(uid, {
+      disabled: true  // Set the disabled property to true
+  })
+  .then(() => {
+      return { message: `Success! User ${uid} has been disabled.` };
+  })
+  .catch((error) => {
+      console.error('Error disabling user:', error);
+      throw new functions.https.HttpsError('internal', `Error disabling user: ${error.message}`);
+  });
+});
 
-// set default tags
-exports.setDefaultTags = functions.firestore
-    .document('tags/{tagId}')
-    .onWrite((change, context) => {
-      // Get the document data after the write
-      const data = change.after.exists ? change.after.data() : {};
+exports.getUserRecord = functions.https.onCall(async (data, context) => {
+	try {
+		const userRecord = await admin.auth().getUser(data.uid)
+		console.log('User Record:', userRecord) // Check the output in Firebase logs
+		return userRecord
+	} catch (error) {
+		console.error('Failed to fetch user record:', error)
+    throw new functions.https.HttpsError('not-found', 'User record not found', error.message);
+	}
+})
 
-      // Check if the document has the required fields with default settings
-      const defaults = {
-        Labels: { active: ['Important', 'Flagged'], list: ['Important', 'Flagged'] },
-        Source: { active: ['Newspaper', 'Social Media', 'Website', 'Other'], list: ['Newspaper', 'Social Media', 'Website', 'Other'] },
-        Topic: { active: ['Health', 'Other', 'Politics', 'Weather'], list: ['Health', 'Other', 'Politics', 'Weather'] }
-      };
-
-      // Check if any field is missing or altered
-      if (JSON.stringify(data) !== JSON.stringify(defaults)) {
-        // If not correct, revert to default
-        return change.after.ref.set(defaults);
-      }
-
-      return null;
-    });

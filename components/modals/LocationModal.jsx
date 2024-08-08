@@ -36,7 +36,8 @@ const LocationModal = ({ setLocationModal }) => {
     }
 
      // handle location change for users
-    const handleUserLocationChange = () => {
+  const handleUserLocationChange = (e) => {
+      e.preventDefault()
       // STATE
       const allErrors = {}
 
@@ -54,7 +55,6 @@ const LocationModal = ({ setLocationModal }) => {
         }).then(() => {
           // update state variables
           setLocationModal(false)
-          getData();
         })
       }
     }

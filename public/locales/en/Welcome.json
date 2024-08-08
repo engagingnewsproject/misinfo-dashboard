@@ -18,7 +18,7 @@
     "change":"You can change the language in Settings Page after Logging in",
     "continue":"Continue Login",
     "incorrect": "The password is incorrect.",
-    "not_found": "An account was not found with the provided email.",
+    "not_found": "An account was not found with the provided email. Click the sign up link below.",
     "error": "An error occurred when logging in.",
     "phone": "Phone number (optional)",
     "contact": "I agree that my local newsroom can contact me to follow-up on the reports I share",

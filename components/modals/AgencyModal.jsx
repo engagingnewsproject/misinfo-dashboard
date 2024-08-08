@@ -89,10 +89,10 @@ const handleImageChange = (e) => {
 				setSendEmail(`${userEmail} is already an admin for this agency.`)
 				break
 			}
-      // await sendSignIn(userEmail)
+      await sendSignIn(userEmail)
       // setSendEmail("Sign-in link was sent.")
 
-    }
+		}
     const agencyRef = doc(db, "agency", agencyId);
 		updateDoc(agencyRef, {
       agencyUsers: arrayUnion(...tempUsersArr),
@@ -183,13 +183,14 @@ const handleImageChange = (e) => {
       ...agencyUsersArr.slice(0, agencyUsersArr.indexOf(adminDelete)),
       ...agencyUsersArr.slice(agencyUsersArr.indexOf(adminDelete) + 1)
     ]
-    console.log(tempUsersArr)
     const agencyRef = doc(db, "agency", agencyId);
 		updateDoc(agencyRef, {
       agencyUsers: tempUsersArr,
 		}).then(() => {
       setUpdate(!update);
       // Send a signal to ReportsSection so that it updates the list 
+		}).catch((error) => {
+			console.log('Error deleting admin user--> ', error);
 		})
   }
 

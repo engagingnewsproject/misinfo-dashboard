@@ -32,7 +32,7 @@ import LocationUpdate from './partials/forms/LocationUpdate'
 import { Button } from '@material-tailwind/react'
 
 const Profile = ({ customClaims }) => {
-  const { user, logout, verifyRole, deleteUser } = useAuth()
+  const { user, logout, verifyRole, disableUser } = useAuth()
   const { t } = useTranslation('Profile')
   const [openModal, setOpenModal] = useState(false)
   const [emailModal, setEmailModal] = useState(false)
@@ -289,7 +289,7 @@ const Profile = ({ customClaims }) => {
 
   const handleDelete = async () => {
     const uidToDelete = user.accountId
-
+    console.log(uidToDelete);
     if (
       !uidToDelete ||
       typeof uidToDelete !== 'string' ||
@@ -298,14 +298,14 @@ const Profile = ({ customClaims }) => {
       console.error('Invalid UID:', uidToDelete)
       return
     }
-    await deleteUser({ uid: uidToDelete })
+    // await disableUser({ uid: uidToDelete })
+    await disableUser(uidToDelete)
       .then(() => {
         router.push('/login')
-        // console.log('User deleted successfully')
-      })
-      .catch((error) => {
-        console.error('Error deleting user:', error)
-      })
+        console.log('User has been successfully disabled');
+      }).catch(error => {
+        console.error('Failed to disable user:', error);
+      });
   }
 
   useEffect(() => {
@@ -506,7 +506,7 @@ const Profile = ({ customClaims }) => {
       </div>
     </div>
   )
-
+// todo: change to "Disable account"
   const deleteAccount = () => (
     <div className="self-end m-6">
       <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
