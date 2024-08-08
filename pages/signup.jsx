@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import {isSignInWithEmailLink, signInWithEmailLink, signOut, createUserWithEmailAndPassword, verifyEmail } from 'firebase/auth'
-import { doc, setDoc, collection, addDoc, arrayUnion} from 'firebase/firestore'
+import { doc, setDoc, getDoc, collection, addDoc, arrayUnion} from 'firebase/firestore'
 import { db, auth } from '../config/firebase'
 import Select from "react-select";
 import PhoneInput from 'react-phone-input-2'
@@ -69,7 +69,6 @@ const SignUp = () => {
     }
 
   const handleSignUp = async (e) => {
-      console.log('handleSignUp')
         e.preventDefault()
         // console.log("signing up")
         if (data.password.length < 8) {
@@ -105,14 +104,36 @@ const SignUp = () => {
                     const promise3 = setPassword(data.password)
                     Promise.all([promise1, promise2, promise3]).then((values) => {
                       
-                      // console.log(auth.currentUser.email)
+                      // console.log('verifyEmail(auth.currentUser) value--> ',verifyEmail(auth.currentUser))
+                      // console.log('values prop--> ', values);
+                      // Add new Agency issue is here. When the agency user goes through the
+                      // signup process they are not added as a `mobileUser` and therefore
+                      // they have no real profile
+                      // -- or at least that is what my testing has shown.
+                      // 1) Admin user adds a new agency
+                      // 2) user's email is sent email subject:"Sign in to MisInfo App requested"
+                      // 3) user clicks link in email
+                      // 4) signup.jsx page with "** Must be the email you were sent the invite." text under Email input.
+                      // 5) user submits
+                      // 6) user's email is sent "Verify your email for MisInfo App"
+                      // 7) user clicks link
+                      // 8) verifyEmail.jsx page
+                      // 9) user clicks link
+                      // 10) https://misinfo-5d004.firebaseapp.com/__/auth/action?0000 page
+                      // 11) user clicks "Continue" button
+                      // 12) login.jsx page to log in
+                      // notes: where is the user assigned the 'Agency' custom claim?
+                      // notes: firestore `mobileUsers` db is not added the new user's doc
                       if (verifyEmail(auth.currentUser)) {
                         setSignUpError("")
-                        // console.log("in try")
+                        // console.log("if in verifyEmail(auth.currentUser)")
+                        // console.log('if SEND TO VERIFY EMAIL PAGE');
+                        addMobileUser("Agency")
                         window.location.replace('/verifyEmail')
                       } else {
-                        // console.log("here = for agency")
+                        // console.log("if in else where addMobileUser('Agency') runs")
                         addMobileUser("Agency")
+                        // console.log('else SEND TO VERIFY EMAIL PAGE');
                         window.location.replace('/verifyEmail')
                       }
                     })
@@ -133,7 +154,28 @@ const SignUp = () => {
                   });
                 
               } else {
-                console.log('not agency 135')
+                console.log('not agency user')
+                
+                
+                
+                
+                // check if `mobileUsers` doc already exist with the user's email
+                /*
+                try {
+                  console.log('NEW CODE--> ', data.email);
+                  const mobileRef = getDoc(doc(db, 'mobileUsers', data.email))
+                  // setUserData(mobileRef.data())
+                  console.log(mobileRef);
+                } catch (err) {
+                  if (err.message == "Firebase: Error (firestore 'mobileUsers' doc already created).") {
+                      setSignUpError("An account has already been set up with this email. Please log in.")
+                  } else {
+                      setSignUpError(err.message)
+                  }
+                }
+                */
+                
+                
                 signup(data.name, data.email, data.password, data.state, data.city)
                   .then((userCredential) => {
                     console.log("sign up successful")
