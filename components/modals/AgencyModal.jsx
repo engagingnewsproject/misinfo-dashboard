@@ -190,6 +190,8 @@ const handleImageChange = (e) => {
 		}).then(() => {
       setUpdate(!update);
       // Send a signal to ReportsSection so that it updates the list 
+		}).catch((error) => {
+			console.log('Error deleting admin user--> ', error);
 		})
   }
 
