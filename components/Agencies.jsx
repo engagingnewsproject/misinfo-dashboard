@@ -139,7 +139,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
     
 
 			} catch (err) {
-				console.log(err)
+				console.log('Error adding new agency--> ', err)
 			} finally {
 				// Reset add agency form fields
 				setNewAgencyName('')
