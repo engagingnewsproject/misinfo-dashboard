@@ -56,7 +56,7 @@ const SignUp = () => {
 		// Get user object
 		console.log('addMobileUser start', privilege)
 		const user = auth.currentUser
-		console.log(user)
+		// console.log(user)
 		if (user) {
 			// Set user uid
 			console.log('adding mobile user')
