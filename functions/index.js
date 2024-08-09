@@ -323,3 +323,34 @@ exports.getUserRecord = functions.https.onCall(async (data, context) => {
 	}
 })
 
+exports.authGetUserList = functions.https.onCall(async (data,context) => {
+  // Ensure that the user is authenticated and optionally check if they have the required role/admin privileges
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Request not authenticated.');
+  }
+    const maxResults = 1000; // You can adjust this value up to a maximum of 1000
+
+  try {
+    const listUsersResult = await admin.auth().listUsers(maxResults)
+    const users = listUsersResult.users.map((userRecord) => ({
+      uid: userRecord.uid,
+      email: userRecord.email,
+      displayName: userRecord.displayName,
+      phoneNumber: userRecord.phoneNumber,
+      photoURL: userRecord.photoURL,
+      emailVerified: userRecord.emailVerified,
+      disabled: userRecord.disabled,
+      providerData: userRecord.providerData, // This includes provider-specific identifiers
+      customClaims: userRecord.customClaims,
+      metadata: {
+        creationTime: userRecord.metadata.creationTime,
+        lastSignInTime: userRecord.metadata.lastSignInTime
+      }
+    }))
+    return {users}
+  } catch (error) {
+    console.error('Failed to fetch user list: ',error)
+    throw new functions.https.HttpsError('unknown', 'Failed to fetch user list.', error)
+  }
+})
+
