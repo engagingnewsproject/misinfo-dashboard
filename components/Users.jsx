@@ -32,6 +32,7 @@ const Users = () => {
 		sendSignIn,
 		customClaims,
 		fetchUserRecord,
+		authGetUserList,
 	} = useAuth()
 
 	// State variables for managing user data
@@ -63,6 +64,122 @@ const Users = () => {
 	})
 	const [newUserEmail, setNewUserEmail] = useState('')
 	const [errors, setErrors] = useState({})
+
+	// fetching and setting agencies with id and name
+	const fetchAgencies = async () => {
+		const snapshot = await getDocs(collection(db, 'agency'))
+		const agencies = snapshot.docs.map((doc) => ({
+			id: doc.id,
+			name: doc.data().name,
+		}))
+		// console.log(agencies);
+		setAgenciesArray(agencies)
+	}
+	
+	const getAgencyUserIds = async (agencyName) => {
+			const reportQuery = query(
+					collection(db, "reports"),
+					where("agency", "==", agencyName)
+			);
+			const reportSnapshot = await getDocs(reportQuery);
+			const userIds = reportSnapshot.docs.map((doc) => doc.data().userID);
+			// console.log("User IDs from reports:", userIds); // Verify the IDs being captured
+			return userIds;
+	};
+	
+	const filterUsersByAgency = async (users, userEmail) => {
+    const q = query(
+        collection(db, 'agency'),
+        where('agencyUsers', 'array-contains', userEmail)
+    );
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.docs.length > 0) {
+        const agencyName = querySnapshot.docs[0].data().name; // Assuming the first result is the correct one
+        console.log("Agency Name found:", agencyName); // Log the agency name for debugging
+
+        const userIds = await getAgencyUserIds(agencyName); // Retrieve user IDs for this agency
+        const filteredUsers = users.filter(user => userIds.includes(user.mobileUserId));
+        // console.log("Filtered users:", filteredUsers); // Log the filtered users for debugging
+        return filteredUsers;
+    } else {
+        console.log("No agency found for this user.");
+        return []; // Return an empty array if no agency is found
+    }
+};
+
+	
+	const fetchUserDetails = async (userId) => {
+		try {
+			const userRecord = await fetchUserRecord(userId)
+			// console.log("User Data:", userRecord);
+			return userRecord.disabled || false // Assuming fetchUserRecord correctly returns the user data
+		} catch (error) {
+			console.error('Error fetching user data:', userId, error)
+			return true // Assume disabled if error
+		}
+	}
+	
+	// Function to fetch user data from Firebase
+	const getData = async () => {
+		setIsLoading(true)
+		try {
+
+			// Pull firestore `mobileUsers` list of users
+			const mobileUsersQuerySnapshot = await getDocs(
+				collection(db, 'mobileUsers'),
+			)
+
+			if (customClaims.agency) { // Agency user is viewing Users table
+				
+				const mobileUsersArr = await Promise.all(
+					mobileUsersQuerySnapshot.docs.map(async (doc) => {
+						const userData = doc.data()
+						userData.mobileUserId = doc.id
+						userData.disabled = await fetchUserDetails(doc.id)
+						return userData
+					}),
+				)
+				console.log('Mobile Users Array:', mobileUsersArr); // Debug output
+				// Here you need to await the filterUsersByAgency because it's async
+				const filteredUsers = await filterUsersByAgency(mobileUsersArr, user.email);
+				// console.log('Filtered Users:', filteredUsers); // Debug output
+
+				// Ensure filteredUsers is always an array
+				setLoadedMobileUsers(filteredUsers || []);
+			} else { // Admin only
+				const result = await authGetUserList() // Call the function from context
+				// Pull auth list of users
+				const usersFromAuth = result.data.users
+				const mobileUsersMap = new Map()
+				mobileUsersQuerySnapshot.forEach((doc) => {
+					const userData = doc.data()
+					userData.mobileUserId = doc.id
+					// Convert joiningDate to a Date object for uniform comparison
+	        userData.joined = new Date(userData.joiningDate * 1000); // Uniform date handling
+					mobileUsersMap.set(doc.id, userData)
+				})
+
+				// Combine data from Auth and Firestore
+				const combinedUsers = usersFromAuth.map((authUser) => {
+					const firestoreUser = mobileUsersMap.get(authUser.uid)
+					return {
+            ...authUser,
+            ...firestoreUser,
+            hasFirestoreDoc: !!firestoreUser,
+            joined: firestoreUser ? firestoreUser.joined : new Date(authUser.metadata.creationTime),
+					}
+				})
+				console.log(combinedUsers);
+				// Sort users by the 'joined' date
+				combinedUsers.sort((a, b) => b.joined - a.joined)
+				setLoadedMobileUsers(combinedUsers)
+			}
+		} catch (error) {
+			console.error('Failed to fetch or process user data:', error)
+		} finally {
+			setIsLoading(false)
+		}
+	}
 
 	const saveUser = () => {
 		// Save new user
@@ -133,69 +250,6 @@ const Users = () => {
 		table_main: 'min-w-full bg-white rounded-xl p-1',
 		button:
 			'flex items-center shadow ml-auto bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
-	}
-
-	const fetchUserDetails = async (userId) => {
-		try {
-			const userRecord = await fetchUserRecord(userId)
-			// console.log("User Data:", userRecord);
-			return userRecord.disabled || false // Assuming fetchUserRecord correctly returns the user data
-		} catch (error) {
-			console.error('Error fetching user data:', userId, error)
-			return true // Assume disabled if error
-		}
-	}
-
-	// fetching and setting agencies with id and name
-	const fetchAgencies = async () => {
-		const snapshot = await getDocs(collection(db, 'agency'))
-		const agencies = snapshot.docs.map((doc) => ({
-			id: doc.id,
-			name: doc.data().name,
-		}))
-		// console.log(agencies);
-		setAgenciesArray(agencies)
-	}
-
-	// Function to fetch user data from Firebase
-	const getData = async () => {
-		setIsLoading(true)
-		try {
-			const mobileUsersQuerySnapshot = await getDocs(
-				collection(db, 'mobileUsers'),
-			)
-			const mobileUsersArr = await Promise.all(
-				mobileUsersQuerySnapshot.docs.map(async (doc) => {
-					const userData = doc.data()
-					userData.mobileUserId = doc.id
-					userData.disabled = await fetchUserDetails(doc.id)
-					return userData
-				}),
-			)
-
-			if (customClaims.agency) {
-				const filteredUsers = filterUsersByAgency(mobileUsersArr, user.email)
-				setLoadedMobileUsers(filteredUsers)
-			} else {
-				mobileUsersArr.sort((a, b) => b.joiningDate - a.joiningDate)
-				setLoadedMobileUsers(mobileUsersArr)
-			}
-		} catch (error) {
-			console.error('Failed to fetch or process user data:', error)
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
-	const filterUsersByAgency = async (users, userEmail) => {
-		const q = query(
-			collection(db, 'agency'),
-			where('agencyUsers', 'array-contains', userEmail),
-		)
-		const querySnapshot = await getDocs(q)
-		const agencyNames = querySnapshot.docs.map((doc) => doc.data().name)
-
-		return users.filter((user) => agencyNames.includes(user.agencyName))
 	}
 
 	useEffect(() => {
@@ -469,6 +523,19 @@ const Users = () => {
 						</button>
 					</div>
 				</div>
+				{!customClaims.agency && (
+					<div className="flex items-center gap-2 p-2 bg-white rounded-lg text-xs mb-2">
+						<div className="font-bold">Key: </div>
+						<div className="flex gap-1 items-center">
+							<div className="bg-red-50 p-1">Red:</div>
+							<div>Firestore 'mobileUsers' doc missing</div>
+						</div>
+						<div className="flex gap-1 items-center">
+							<div className="bg-yellow-100 p-1">Yellow:</div>
+							<div>User disabled in Firebase Auth</div>
+						</div>
+					</div>
+				)}
 				<div className={style.table_main}>
 					<div className="flex flex-col h-full">
 						<InfiniteScroll
@@ -532,13 +599,18 @@ const Users = () => {
 										loadedMobileUsers.map((userObj, key) => {
 											// Directly access user details and user ID
 											let userId = userObj.mobileUserId
-											let joined = userObj.joiningDate
-											joined = joined * 1000
-											joined = new Date(joined)
-											joined = joined.toLocaleString('en-US', dateOptions)
+											console.log(userId);
+											// Use 'joined' directly since it's already a Date object
+											let joined = userObj.joined;
+
+											// Ensure 'joined' is a valid date before formatting
+											let joinedFormatted = joined instanceof Date && !isNaN(joined)
+													? joined.toLocaleString('en-US', dateOptions)
+													: 'No Date - User deleted';  // Fallback text or you could choose to handle it differently
+
 											return (
 												<tr
-													className="border-b transition duration-300 ease-in-out dark:border-indigo-100"
+													className={`border-b transition duration-300 ease-in-out dark:border-indigo-100 ${!customClaims.agency && !userObj.hasFirestoreDoc && 'bg-red-50'} ${userObj.disabled && 'bg-yellow-100'}`}
 													key={key}
 													onClick={
 														customClaims.admin
@@ -555,7 +627,7 @@ const Users = () => {
 														{userObj.email}
 													</td>
 													{/* Joined date */}
-													<td className={column.data_center}>{joined}</td>
+													<td className={column.data_center}>{joinedFormatted}</td>
 													{/* Agency */}
 													{customClaims.admin && (
 														<td className={column.data_center}>

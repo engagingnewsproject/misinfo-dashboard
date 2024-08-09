@@ -335,7 +335,7 @@ exports.authGetUserList = functions.https.onCall(async (data,context) => {
     const users = listUsersResult.users.map((userRecord) => ({
       uid: userRecord.uid,
       email: userRecord.email,
-      displayName: userRecord.displayName,
+      // displayName: userRecord.displayName,
       // phoneNumber: userRecord.phoneNumber,
       // photoURL: userRecord.photoURL,
       // emailVerified: userRecord.emailVerified,

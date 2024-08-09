@@ -93,6 +93,8 @@ export const AuthContextProvider = ({children}) => {
   
   const getUserRecord = httpsCallable(functions, 'getUserRecord');
   
+  const authGetUserList = httpsCallable(functions, 'authGetUserList')
+  
   const fetchUserRecord = async (uid) => {
     try {
       // Get user data by passing the UID
@@ -294,7 +296,7 @@ export const AuthContextProvider = ({children}) => {
 	}
  
     return (
-        <AuthContext.Provider value={{ user, customClaims, setCustomClaims, login, signup, logout, resetPassword, deleteAdminUser, updateUserPassword, updateUserEmail, setPassword, verifyEmail, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole, getUserByEmail, deleteUser, disableUser: disableUserFunction, fetchUserRecord, getUserRecord }}>
+        <AuthContext.Provider value={{ user, customClaims, setCustomClaims, login, signup, logout, resetPassword, deleteAdminUser, updateUserPassword, updateUserEmail, setPassword, verifyEmail, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole, getUserByEmail, deleteUser, disableUser: disableUserFunction, fetchUserRecord, getUserRecord, authGetUserList }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )
