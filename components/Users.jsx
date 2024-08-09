@@ -242,7 +242,7 @@ const Users = () => {
 		)
 		const querySnapshot = await getDocs(q)
 		const userAgency = querySnapshot.docs.length ? querySnapshot.docs[0].id : ''
-		console.log(userAgency)
+
 		setSelectedAgency(userAgency || '')
 		setName(userRef.data()['name'] ?? '')
 		setEmail(userRef.data()['email'])
@@ -267,7 +267,7 @@ const Users = () => {
 				const newDocSnap = await getDoc(newDocRef)
 				if (newDocSnap.exists()) {
 					const newAgencyData = newDocSnap.data()
-					console.log(newAgencyData)
+
 					// Check if the user's email is already in the agencyUsers array of the new agency
 					const newAgencyUsers = newAgencyData.agencyUsers || []
 					if (!newAgencyUsers.includes(email)) {
