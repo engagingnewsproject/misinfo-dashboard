@@ -336,12 +336,12 @@ exports.authGetUserList = functions.https.onCall(async (data,context) => {
       uid: userRecord.uid,
       email: userRecord.email,
       displayName: userRecord.displayName,
-      phoneNumber: userRecord.phoneNumber,
-      photoURL: userRecord.photoURL,
-      emailVerified: userRecord.emailVerified,
+      // phoneNumber: userRecord.phoneNumber,
+      // photoURL: userRecord.photoURL,
+      // emailVerified: userRecord.emailVerified,
       disabled: userRecord.disabled,
-      providerData: userRecord.providerData, // This includes provider-specific identifiers
-      customClaims: userRecord.customClaims,
+      // providerData: userRecord.providerData, // This includes provider-specific identifiers
+      // customClaims: userRecord.customClaims,
       metadata: {
         creationTime: userRecord.metadata.creationTime,
         lastSignInTime: userRecord.metadata.lastSignInTime
