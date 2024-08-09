@@ -168,15 +168,17 @@ const EditUserModal = ({
 											<>
 												<div className={style.modal_form_label}>Agency</div>
 												<select
-													id='agency'
-													onChange={onAgencyChange}
-													value={agencyName}
-													className={`${style.modal_form_input}`}>
-													{agenciesArray.map((agency, i) => (
-														<option value={agency} key={i}>
-															{agency}
-														</option>
-													))}
+														id='agency'
+														onChange={onAgencyChange}
+														value={selectedAgency || ''}  // Ensure this is never null
+														className={`${style.modal_form_input}`}
+												>
+														<option value="">None</option>
+														{agenciesArray.map((agency) => (
+																<option value={agency.id} key={agency.id}>
+																		{agency.name}
+																</option>
+														))}
 												</select>
 											</>
 										)}
