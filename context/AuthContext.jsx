@@ -95,12 +95,14 @@ export const AuthContextProvider = ({children}) => {
   
   const fetchUserRecord = async (uid) => {
     try {
+      // Create a reference to the callable function
+      const getUserRecord = httpsCallable(functions, 'getUserRecord');
+      // Call the function and pass the UID
       const result = await getUserRecord({ uid });
       return result.data;
     } catch (error) {
-      console.error('Error fetching user record:', error);
-      console.error('Error code--> ', error.code);
-      // Assuming error means user not found or deleted, treat as disabled
+      console.error(`Error fetching Auth user record uid: ${uid}`, error);
+      // User not found or deleted, treat as disabled
       if (error.code === 'functions/not-found') {
         return { disabled: true };
       } else {
