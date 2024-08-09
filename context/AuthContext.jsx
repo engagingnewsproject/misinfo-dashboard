@@ -76,8 +76,6 @@ export const AuthContextProvider = ({children}) => {
         return () => unsubscribe()
     }, [])
 
-  const getUserRecord = httpsCallable(functions, 'getUserRecord');
-
   // add admin cloud function
   const addAdminRole = httpsCallable(functions,'addAdminRole')
 
@@ -93,15 +91,15 @@ export const AuthContextProvider = ({children}) => {
   
   const disableUser = httpsCallable(functions,'disableUser')
   
+  const getUserRecord = httpsCallable(functions, 'getUserRecord');
+  
   const fetchUserRecord = async (uid) => {
     try {
-      // Create a reference to the callable function
-      const getUserRecord = httpsCallable(functions, 'getUserRecord');
-      // Call the function and pass the UID
+      // Get user data by passing the UID
       const result = await getUserRecord({ uid });
       return result.data;
     } catch (error) {
-      console.error(`Error fetching Auth user record uid: ${uid}`, error);
+      console.log(`Error fetching Auth user record uid: ${uid}`, error);
       // User not found or deleted, treat as disabled
       if (error.code === 'functions/not-found') {
         return { disabled: true };
@@ -296,7 +294,7 @@ export const AuthContextProvider = ({children}) => {
 	}
  
     return (
-        <AuthContext.Provider value={{ user, customClaims, setCustomClaims, login, signup, logout, resetPassword, deleteAdminUser, updateUserPassword, updateUserEmail, setPassword, verifyEmail, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole, getUserByEmail, deleteUser, disableUser: disableUserFunction, fetchUserRecord }}>
+        <AuthContext.Provider value={{ user, customClaims, setCustomClaims, login, signup, logout, resetPassword, deleteAdminUser, updateUserPassword, updateUserEmail, setPassword, verifyEmail, sendSignIn, addAdminRole, addAgencyRole, verifyRole, viewRole, addUserRole, getUserByEmail, deleteUser, disableUser: disableUserFunction, fetchUserRecord, getUserRecord }}>
             {loading ? null : children}
         </AuthContext.Provider>
     )
