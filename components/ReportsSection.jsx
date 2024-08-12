@@ -676,6 +676,7 @@ const ReportsSection = ({
 
             {reportModalShow && (
               <ReportModal
+                customClaims={customClaims}
                 reportModalShow={reportModalShow}
                 report={report}
                 reportTitle={reportTitle}

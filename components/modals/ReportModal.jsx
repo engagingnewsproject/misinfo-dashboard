@@ -17,6 +17,7 @@ import { MdOutlineLocalPhone } from "react-icons/md";
 import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
 import { useTranslation } from 'next-i18next';
 const ReportModal = ({
+	customClaims,
 	setReportModalShow,
 	report, // should hold all report fields
 	activeLabels,
@@ -78,6 +79,10 @@ const ReportModal = ({
     const uri = `mailto:${email}`;
     window.open(uri);
 	}
+	useEffect(() => {
+		console.log(customClaims);
+	}, [reportModalId])
+	
 	
 	return (
 		<div
@@ -278,7 +283,7 @@ const ReportModal = ({
 						</div>
 
 						{/* Newsroom Edits */}
-						<div className='grid grid-flow-row pt-4 mt-5 bg-slate-100 rounded-xl p-8 md:grid-cols-2 md:gap-10 lg:gap-15'>
+						<div className='grid grid-flow-row pt-4 mt-5 bg-slate-100 rounded-xl py-8 md:grid-cols-2 md:gap-10 lg:gap-15'>
 							{/* Notes */}
 							<div>
 								<div className={style.header}>Newsroom's Notes</div>
@@ -288,6 +293,7 @@ const ReportModal = ({
 									placeholder='No notes yet...'
 									className={note ? style.textarea : style.textarea + ` italic`}
 									rows='6'
+									readOnly={customClaims.admin ? true : false}
 									defaultValue={note}></textarea>
 							</div>
 							{/* label read share & save */}
