@@ -7,6 +7,9 @@ if (process.env.NODE_ENV !== 'development') {
   Sentry.init({
     dsn: "https://845c7860c580e1b6c2fa9ce325d1257c@o204741.ingest.us.sentry.io/4507670446931968",
 
+    // Dynamically set the environment based on the Netlify environment variable
+    environment: process.env.SENTRY_ENVIRONMENT || 'dev',  // Default to 'development' if not set
+    
     // Adjust this value in production, or use tracesSampler for greater control
     tracesSampleRate: 1,
 
