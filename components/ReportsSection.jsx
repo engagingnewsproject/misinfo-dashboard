@@ -637,7 +637,7 @@ const ReportsSection = ({
                 </IconButton>
               </Tooltip>
             </div>
-            <Typography className='flex-initial' variant='small'>{ loadedReports.length } Reports</Typography>
+            <Typography className='flex-initial' variant='small'>{loadedReports.length} {loadedReports.length == 1 ? 'report' : 'reports'}</Typography>
             <div className="flex-initial">
               <select
                 id="label_date"
