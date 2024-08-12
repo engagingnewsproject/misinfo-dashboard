@@ -54,7 +54,7 @@ const TableBody = ({
                   color="white"
                   className="font-normal opacity-80"
                 >
-                  {details}
+                  Description: {details}
                 </Typography>
               </div>
             }
