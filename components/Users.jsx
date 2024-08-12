@@ -72,8 +72,6 @@ const Users = () => {
 	// table agency
 	const [agenciesArray, setAgenciesArray] = useState([])
 	const [selectedAgency, setSelectedAgency] = useState('')
-	const [agencyName, setAgencyName] = useState('')
-	const [agencyNameNew, setAgencyNameNew] = useState('')
 	const [banned, setBanned] = useState(false)
 	const [userEditModal, setUserEditModal] = useState(null)
 	const [userId, setUserId] = useState(null)
@@ -119,7 +117,6 @@ const Users = () => {
 		const querySnapshot = await getDocs(q)
 		if (querySnapshot.docs.length > 0) {
 			const agencyName = querySnapshot.docs[0].data().name // Assuming the first result is the correct one
-			// console.log("Agency Name found:", agencyName); // Log the agency name for debugging
 
 			const userIds = await getAgencyUserIds(agencyName) // Retrieve user IDs for this agency
 			const filteredUsers = users.filter((user) =>
