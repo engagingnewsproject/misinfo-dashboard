@@ -4,7 +4,7 @@ import { Tooltip, Typography } from '@material-tailwind/react';
 import { Switch } from "@material-tailwind/react";
 import { IoTrash } from 'react-icons/io5';
 const TableBody = ({
-  filteredReports,
+  loadedReports,
   columns,
   endIndex,
   onReportModalShow,
@@ -27,14 +27,14 @@ const TableBody = ({
   return (
     <tbody>
       {/* Check if loadedReports is empty */}
-      {filteredReports.length === 0 ? (
+      {loadedReports.length === 0 ? (
         <tr>
           <td colSpan="7" className="text-center">
             No reports
           </td>
         </tr>
       ) : (
-        filteredReports.slice(0, endIndex).map((reportObj, i = self.crypto.randomUUID()) => {
+        loadedReports.slice(0, endIndex).map((reportObj, i = self.crypto.randomUUID()) => {
           const report = reportObj;
           let details = report.detail
           details = trimToWordCount(details, 25);

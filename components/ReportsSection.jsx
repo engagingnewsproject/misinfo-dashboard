@@ -105,7 +105,6 @@ const ReportsSection = ({
 
   // Fetch data when new report is submitted or isAgency is set
   useEffect(() => {
-    // console.log('initial getData (from "isAgency" state change)')
     // Ensure isAgency is set before fetching data:
     if (isAgency !== null) {
       getData();
@@ -197,24 +196,32 @@ const ReportsSection = ({
   // Filter
   const handleDateChanged = (e) => {
     e.preventDefault();
-    setReportWeek(e.target.value);
+    const selectedWeek = e.target.value;
+    setReportWeek(selectedWeek);
     setEndIndex(0);
 
+    let arr
     // Updates loaded reports so that they only feature reports within the selected date range
-    let arr = filteredReports.filter((reportObj) => {
-      const report = reportObj;
-      return (
-        report['createdDate'].toDate() >=
-        new Date(new Date().setDate(new Date().getDate() - e.target.value * 7))
-      );
-    });
+    if (selectedWeek == '100') {
+      // If "All reports" is selected, return all reports without filtering
+      arr = [...filteredReports]; 
+    } else {
+      arr = filteredReports.filter((reportObj) => {
+        const report = reportObj;
+        return (
+          report['createdDate'].toDate() >=
+          new Date(new Date().setDate(new Date().getDate() - e.target.value * 7))
+        );
+      });
 
-    arr = arr.sort((objA, objB) =>
-      Object.values(objA)[0]['createdDate'] >
-      Object.values(objB)[0]['createdDate']
-        ? -1
-        : 1
-    );
+      arr = arr.sort((objA, objB) =>
+        Object.values(objA)[0]['createdDate'] >
+        Object.values(objB)[0]['createdDate']
+          ? -1
+          : 1
+      );
+    }
+    
     setLoadedReports(arr);
   };
 
@@ -262,7 +269,7 @@ const ReportsSection = ({
         })
       );
     }
-  }, [search]);
+  }, [search, filteredReports]);
 
   // Updates the loaded reports whenever a user filters reports based on search.
   useEffect(() => {
@@ -574,20 +581,22 @@ const ReportsSection = ({
   ];
 
   const handleSorting = (sortField, sortOrder) => {
-    if (sortField) {
-      const sorted = [...loadedReports].sort((a, b) => {
-        // column that includes null values
-        if (a[sortField] === null) return 1;
-        if (b[sortField] === null) return -1;
-        if (a[sortField] === null && b[sortField] === null) return 0;
-        return (
-          a[sortField].toString().localeCompare(b[sortField].toString(), 'en', {
-            numeric: true,
-          }) * (sortOrder === 'asc' ? 1 : -1)
-        );
+      const sortedReports = [...filteredReports].sort((a, b) => {
+          const aValue = a[sortField];
+          const bValue = b[sortField];
+
+          if (aValue === null || aValue === undefined) return 1;
+          if (bValue === null || bValue === undefined) return -1;
+          if (aValue === null && bValue === null) return 0;
+
+          return (
+              aValue.toString().localeCompare(bValue.toString(), 'en', {
+                  numeric: true,
+              }) * (sortOrder === 'asc' ? 1 : -1)
+          );
       });
-      setLoadedReports(sorted);
-    }
+
+      setLoadedReports(sortedReports);
   };
 
   return (
@@ -637,7 +646,8 @@ const ReportsSection = ({
               <select
                 id="label_date"
                 onChange={(e) => handleDateChanged(e)}
-                defaultValue="4"
+                // defaultValue="4"
+                value={reportWeek}  // Bind the state value directly
                 data-tip="Select timeframe"
                 data-for="timeframeTooltip"
                 className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none">
@@ -664,7 +674,7 @@ const ReportsSection = ({
               <TableHead columns={columns} handleSorting={handleSorting} />
 
               <TableBody
-                filteredReports={filteredReports} // Table data
+                loadedReports={loadedReports} // Table data
                 columns={columns}
                 endIndex={endIndex}
                 onReportModalShow={handleReportModalShow}
