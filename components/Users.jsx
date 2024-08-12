@@ -137,6 +137,7 @@ const Users = () => {
 						const userData = doc.data()
 						userData.mobileUserId = doc.id
 						userData.disabled = await fetchUserDetails(doc.id)
+						
 						// Only set 'joined' if 'joiningDate' exists
 						userData.joined = userData.joiningDate
 							? new Date(userData.joiningDate * 1000).toLocaleString(
@@ -147,18 +148,19 @@ const Users = () => {
 						return userData
 					}),
 				)
-				// console.log('Mobile Users Array:', mobileUsersArr); // Debug output
+
 				// Here you need to await the filterUsersByAgency because it's async
 				const filteredUsers = await filterUsersByAgency(
 					mobileUsersArr,
 					user.email,
 				)
-				// console.log('Filtered Users:', filteredUsers); // Debug output
 
 				// Ensure filteredUsers is always an array
+				filteredUsers.sort((a, b) => new Date(b.joined) - new Date(a.joined));
 				setLoadedMobileUsers(filteredUsers || [])
+				// Admin only	
 			} else {
-				// Admin only
+				
 				const result = await authGetUserList() // Call the function from context
 				// Pull auth list of users
 				const usersFromAuth = result.data.users
@@ -184,7 +186,7 @@ const Users = () => {
 					}
 				})
 				// Sort users by the 'joined' date
-				combinedUsers.sort((a, b) => b.joined - a.joined)
+				combinedUsers.sort((a, b) => new Date(b.joined) - new Date(a.joined));
 				setLoadedMobileUsers(combinedUsers)
 			}
 		} catch (error) {
