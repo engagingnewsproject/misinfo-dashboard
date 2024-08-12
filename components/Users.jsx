@@ -22,6 +22,30 @@ import NewUserModal from './modals/NewUserModal'
 import { FaPlus } from 'react-icons/fa'
 import globalStyles from '../styles/globalStyles'
 
+const dateOptions = {
+	day: '2-digit',
+	year: 'numeric',
+	month: 'short',
+}
+
+// Utility function to get the joined date for users
+const getJoinedDate = (firestoreUser, authUser) => {
+    if (firestoreUser && firestoreUser.joiningDate) {
+        // If Firestore user data exists and has a 'joiningDate', use it
+        return new Date(firestoreUser.joiningDate * 1000).toLocaleString('en-US', dateOptions);
+    } else if (authUser) {
+        // Otherwise, use 'metadata.creationTime' from the Auth user
+        return new Date(authUser.metadata.creationTime).toLocaleString('en-US', dateOptions);
+    } else {
+        // Fallback if neither is available
+        return 'No Date';
+    }
+};
+
+const sortByJoinedDate = (users) => {
+    return users.sort((a, b) => new Date(b.joined) - new Date(a.joined));
+};
+
 const Users = () => {
 	// Initialize authentication context
 	const {
@@ -139,12 +163,7 @@ const Users = () => {
 						userData.disabled = await fetchUserDetails(doc.id)
 						
 						// Only set 'joined' if 'joiningDate' exists
-						userData.joined = userData.joiningDate
-							? new Date(userData.joiningDate * 1000).toLocaleString(
-									'en-US',
-									dateOptions,
-								)
-							: 'null' // Or leave undefined
+						userData.joined = getJoinedDate(userData, null)
 						return userData
 					}),
 				)
@@ -156,8 +175,7 @@ const Users = () => {
 				)
 
 				// Ensure filteredUsers is always an array
-				filteredUsers.sort((a, b) => new Date(b.joined) - new Date(a.joined));
-				setLoadedMobileUsers(filteredUsers || [])
+				setLoadedMobileUsers(sortByJoinedDate(filteredUsers) || [])
 				// Admin only	
 			} else {
 				
@@ -179,15 +197,11 @@ const Users = () => {
 						...firestoreUser,
 						hasFirestoreDoc: !!firestoreUser,
 						// Use metadata.creationTime for the joined date
-						joined: new Date(authUser.metadata.creationTime).toLocaleString(
-							'en-US',
-							dateOptions,
-						),
+						joined: getJoinedDate(firestoreUser, authUser),
 					}
 				})
 				// Sort users by the 'joined' date
-				combinedUsers.sort((a, b) => new Date(b.joined) - new Date(a.joined));
-				setLoadedMobileUsers(combinedUsers)
+				setLoadedMobileUsers(sortByJoinedDate(combinedUsers))
 			}
 		} catch (error) {
 			console.error('Failed to fetch or process user data:', error)
@@ -239,11 +253,6 @@ const Users = () => {
 	// END Add new user
 	// END Add new user
 	// END Add new user
-	const dateOptions = {
-		day: '2-digit',
-		year: 'numeric',
-		month: 'short',
-	}
 	const tableHeading = {
 		default: 'px-3 py-1 text-sm font-semibold text-left tracking-wide',
 		default_center: 'text-center p-2 text-sm font-semibold tracking-wide',
