@@ -91,25 +91,6 @@ const ReportsSection = ({
   const [refresh, setRefresh] = useState(false);
   const [showCheckmark, setShowCheckmark] = useState(false);
   const [open,setOpen] = useState(true);
-  
-  useEffect(() => {
-    if (customClaims.admin) {
-      setIsAgency(false);
-    } else if (customClaims.agency) {
-      setIsAgency(true);
-    }
-    return () => {
-      isAgency
-    }
-  });
-
-  // Fetch data when new report is submitted or isAgency is set
-  useEffect(() => {
-    // Ensure isAgency is set before fetching data:
-    if (isAgency !== null) {
-      getData();
-    }
-  }, [newReportSubmitted, isAgency]);
 
   const getData = async () => {
     let reportArr = [];
@@ -150,24 +131,6 @@ const ReportsSection = ({
     );
   };
 
-  useEffect(() => {    
-    setLoadedReports(reports)
-    setFilteredReports(reports) // Initialize filteredReports with reports when component mounts
-  }, [reports])
-
-  useEffect(() => {
-    const filteredReports = loadedReports.filter((report) => {
-      if (readFilter === 'all') {
-        return true; // Show all reports
-      } else if (readFilter === 'true') {
-        return report.read === true; // Show only read reports
-      } else if (readFilter === 'false') {
-        return report.read === false; // Show only unread reports
-      }
-    });
-    setFilteredReports(filteredReports);
-  }, [readFilter, loadedReports]);
-  
   // Handler that is run once user wants to refresh the reports section
   const handleRefresh = async () => {
     setRefresh(true);
@@ -182,16 +145,6 @@ const ReportsSection = ({
       setReportsUpdated(false);
     }, 2000);
   };
-
-  useEffect(() => {
-    if (readFilter !== 'all') {
-      setReadFilter('all')
-    }
-    return () => {
-      readFilter
-    }
-  }, [refresh])
-  
   
   // Filter
   const handleDateChanged = (e) => {
@@ -225,100 +178,6 @@ const ReportsSection = ({
     setLoadedReports(arr);
   };
 
-  // Filter the reports based on the search text
-  useEffect(() => {
-    if (search == '') {
-      if (readFilter != 'all') {
-        setFilteredReports(
-          reports.filter((reportObj) => {
-            return reportObj.read.toString() === readFilter;
-          })
-        );
-      } else {
-        setFilteredReports(reports);
-      }
-    } else {
-      setFilteredReports(
-        reports.filter((reportObj) => {
-          const report = Object.values(reportObj);
-          var arr = [];
-          // Collect the searchable fields of the reports data
-          for (const key in report) {
-            if (report[key]) {
-              if (key != 'images' && key != 'userID') {
-                if (key == 'createdDate') {
-                  const posted = report[key]
-                    .toDate()
-                    .toLocaleString('en-US', dateOptions)
-                    .replace(/,/g, '')
-                    .replace('at', '');
-                  arr.push(posted.toLowerCase());
-                } else {
-                  arr.push(report[key].toString().toLowerCase());
-                }
-              }
-            }
-          }
-
-          // check if the search text is in the collected fields
-          for (const str of arr) {
-            if (str.includes(search.toLowerCase())) {
-              return true;
-            }
-          }
-        })
-      );
-    }
-  }, [search, filteredReports]);
-
-  // Updates the loaded reports whenever a user filters reports based on search.
-  useEffect(() => {
-    let arr = filteredReports.filter((report) => {
-      // Ensure that createdDate exists and has a toDate method
-      try {
-        if (
-          report.createdDate &&
-          typeof report.createdDate.toDate === 'function'
-        ) {
-          return (
-            report.createdDate.toDate() >=
-            new Date(new Date().setDate(new Date().getDate() - reportWeek * 7))
-          );
-        } else {
-          console.error(`Invalid createdDate in report.`);
-          return false;
-        }
-      } catch (error) {
-        console.error(`Error processing report: ${report}`, error);
-        return false;
-      }
-    });
-    arr = arr.sort((objA, objB) =>
-      Object.values(objA)[0]['createdDate'] >
-      Object.values(objB)[0]['createdDate']
-        ? -1
-        : 1
-    );
-
-    // Default values for infinite scrolling, will load reports as they are populated.
-    // FIXED SCROLLING BUG MAYBE???? *****
-    // setEndIndex(0)
-    // setHasMore(true)
-    if (arr.length === 0) {
-      setHasMore(false);
-    } else {
-      setHasMore(true);
-    }
-    setLoadedReports(arr);
-  }, [ reportWeek]) //filteredReports
-
-  // Populates the loaded reports as the user scrolls to bottom of page
-  useEffect(() => {
-    if (loadedReports.length != 0) {
-      handleReportScroll();
-    }
-  }, [loadedReports]);
-
   // Determines if there are more reports to be shown.
   const handleReportScroll = () => {
     // If all of the reports have been loaded
@@ -341,13 +200,13 @@ const ReportsSection = ({
     setReadFilter(value) // Update the readFilter state first
     if (value !== 'all') {
       const filterValue = value === 'true';
-      setFilteredReports(
+      setLoadedReports(
         reports.filter((report) => {
           return report.read === filterValue;
         })
       );
     } else {
-      setFilteredReports(reports);
+      setLoadedReports(reports);
     }
   };
 
@@ -449,20 +308,6 @@ const ReportsSection = ({
 		}
   };
 
-  
-  useEffect(() => {
-    if (reportModalShow && reportModalId) {
-      // When a report's modal opens set the report as read
-      // since someone clicked on it - so they read it
-      // but only if it is an agency user.
-      isAgency === true && handleRowChangeRead(reportModalId, true);
-    } else {
-      setReportModalId('');
-      setReportModalShow(false);
-    }
-  },[reportModalShow]) // this effect runs when the report modal is opened/closed
-  
-
   // modal item read change
   // function runs when report modal is displayed
   // and user clicks the read/unread toggle
@@ -515,54 +360,6 @@ const ReportsSection = ({
         console.log('The write failed' + error);
       });
   };
-  useEffect(() => {
-    // getData()
-    if (report['createdDate']) {
-      const options = {
-        day: '2-digit',
-        year: 'numeric',
-        month: 'short',
-        hour: 'numeric',
-        minute: 'numeric',
-      };
-      setPostedDate(
-        report['createdDate']
-          .toDate()
-          .toLocaleString('en-US', options)
-          .replace(/,/g, '')
-          .replace('at', '')
-      );
-    }
-    if (report['city'] || report['state']) {
-      setReportLocation(report['city'] + ', ' + report['state']);
-    }
-  }, [reportModalShow]);
-
-  useEffect(() => {
-    if (report['createdDate']) {
-      const options = {
-        day: '2-digit',
-        year: 'numeric',
-        month: 'short',
-        hour: 'numeric',
-        minute: 'numeric',
-      };
-      setPostedDate(
-        report['createdDate']
-          .toDate()
-          .toLocaleString('en-US', options)
-          .replace(/,/g, '')
-          .replace('at', '')
-      );
-    }
-    if (report['label']) {
-      setSelectedLabel(report['label']);
-    }
-  }, [reportModalShow]); // report
-
-  useEffect(() => {
-    getData();
-  }, [update]);
 
   const columns = [
     { label: 'Title', accessor: 'title', sortable: true },
@@ -599,6 +396,204 @@ const ReportsSection = ({
       setLoadedReports(sortedReports);
   };
 
+  useEffect(() => {
+    if (customClaims.admin) {
+      setIsAgency(false)
+    } else if (customClaims.agency) {
+      setIsAgency(true)
+    }
+  }, [customClaims])
+
+  // Fetch data when new report is submitted or isAgency is set
+  useEffect(() => {
+    // Ensure isAgency is set before fetching data:
+    if (isAgency !== null) {
+      getData()
+    }
+  }, [newReportSubmitted, isAgency])
+
+  useEffect(() => {
+    console.log('EFFECT--> deps: reports')
+    setLoadedReports(reports)
+    setFilteredReports(reports) // Initialize filteredReports with reports when component mounts
+  }, [reports])
+
+  useEffect(() => {
+    console.log('EFFECT - filteredReports--> deps: readFilter, loadedReports')
+    const filteredReports = loadedReports.filter((report) => {
+      if (readFilter === 'all') {
+        return true // Show all reports
+      } else if (readFilter === 'true') {
+        return report.read === true // Show only read reports
+      } else if (readFilter === 'false') {
+        return report.read === false // Show only unread reports
+      }
+    })
+    setLoadedReports(filteredReports)
+  }, [readFilter])
+
+  useEffect(() => {
+    if (readFilter !== 'all') {
+      setReadFilter('all')
+    }
+  }, [refresh])
+  // Filter the reports based on the search text
+  useEffect(() => {
+    if (search == '') {
+      if (readFilter != 'all') {
+        setFilteredReports(
+          reports.filter((reportObj) => {
+            return reportObj.read.toString() === readFilter
+          }),
+        )
+      } else {
+        setFilteredReports(reports)
+      }
+    } else {
+      setFilteredReports(
+        reports.filter((reportObj) => {
+          const report = Object.values(reportObj)
+          var arr = []
+          // Collect the searchable fields of the reports data
+          for (const key in report) {
+            if (report[key]) {
+              if (key != 'images' && key != 'userID') {
+                if (key == 'createdDate') {
+                  const posted = report[key]
+                    .toDate()
+                    .toLocaleString('en-US', dateOptions)
+                    .replace(/,/g, '')
+                    .replace('at', '')
+                  arr.push(posted.toLowerCase())
+                } else {
+                  arr.push(report[key].toString().toLowerCase())
+                }
+              }
+            }
+          }
+
+          // check if the search text is in the collected fields
+          for (const str of arr) {
+            if (str.includes(search.toLowerCase())) {
+              return true
+            }
+          }
+        }),
+      )
+    }
+  }, [search, filteredReports])
+
+  // Updates the loaded reports whenever a user filters reports based on search.
+  useEffect(() => {
+    let arr = filteredReports.filter((report) => {
+      // Ensure that createdDate exists and has a toDate method
+      try {
+        if (
+          report.createdDate &&
+          typeof report.createdDate.toDate === 'function'
+        ) {
+          return (
+            report.createdDate.toDate() >=
+            new Date(
+              new Date().setDate(new Date().getDate() - reportWeek * 7),
+            )
+          )
+        } else {
+          console.error(`Invalid createdDate in report.`)
+          return false
+        }
+      } catch (error) {
+        console.error(`Error processing report: ${report}`, error)
+        return false
+      }
+    })
+    arr = arr.sort((objA, objB) =>
+      Object.values(objA)[0]['createdDate'] >
+      Object.values(objB)[0]['createdDate']
+        ? -1
+        : 1,
+    )
+
+    // Default values for infinite scrolling, will load reports as they are populated.
+    // FIXED SCROLLING BUG MAYBE???? *****
+    // setEndIndex(0)
+    // setHasMore(true)
+    if (arr.length === 0) {
+      setHasMore(false)
+    } else {
+      setHasMore(true)
+    }
+    setLoadedReports(arr)
+  }, [reportWeek]) //filteredReports
+
+  // Populates the loaded reports as the user scrolls to bottom of page
+  useEffect(() => {
+    if (loadedReports.length != 0) {
+      handleReportScroll()
+    }
+  }, [loadedReports])
+
+  useEffect(() => {
+    if (reportModalShow && reportModalId) {
+      // When a report's modal opens set the report as read
+      // since someone clicked on it - so they read it
+      // but only if it is an agency user.
+      isAgency === true && handleRowChangeRead(reportModalId, true)
+    } else {
+      setReportModalId('')
+      setReportModalShow(false)
+    }
+  }, [reportModalShow]) // this effect runs when the report modal is opened/closed
+
+  useEffect(() => {
+    // getData()
+    if (report['createdDate']) {
+      const options = {
+        day: '2-digit',
+        year: 'numeric',
+        month: 'short',
+        hour: 'numeric',
+        minute: 'numeric',
+      }
+      setPostedDate(
+        report['createdDate']
+          .toDate()
+          .toLocaleString('en-US', options)
+          .replace(/,/g, '')
+          .replace('at', ''),
+      )
+    }
+    if (report['city'] || report['state']) {
+      setReportLocation(report['city'] + ', ' + report['state'])
+    }
+  }, [reportModalShow])
+
+  useEffect(() => {
+    if (report['createdDate']) {
+      const options = {
+        day: '2-digit',
+        year: 'numeric',
+        month: 'short',
+        hour: 'numeric',
+        minute: 'numeric',
+      }
+      setPostedDate(
+        report['createdDate']
+          .toDate()
+          .toLocaleString('en-US', options)
+          .replace(/,/g, '')
+          .replace('at', ''),
+      )
+    }
+    if (report['label']) {
+      setSelectedLabel(report['label'])
+    }
+  }, [reportModalShow]) // report
+
+  useEffect(() => {
+    getData()
+  }, [update])
+  
   return (
     <>
       <Card className="w-full mt-4">
@@ -608,16 +603,16 @@ const ReportsSection = ({
               List of Reports
             </Typography>
             <Tooltip content="New Report">
-            <Button
-              onClick={() => setNewReportModal(true)}
-              className="flex items-center gap-2">
-              <IoAdd className="mr-1" size={15} />
-              New Report
+              <Button
+                onClick={() => setNewReportModal(true)}
+                className="flex items-center gap-2">
+                <IoAdd className="mr-1" size={15} />
+                New Report
               </Button>
-              </Tooltip>
+            </Tooltip>
           </div>
           <div className="flex items-center justify-between gap-8">
-            <div className="flex">
+            <div className="flex flex-initial">
               <Tabs value={readFilter} className="w-full md:w-max">
                 <TabsHeader>
                   {readValues.map(({ label, value }) => (
@@ -642,7 +637,8 @@ const ReportsSection = ({
                 </IconButton>
               </Tooltip>
             </div>
-            <div className="LAST-X-WEEKS">
+            <Typography className='flex-initial' variant='small'>{ loadedReports.length } Reports</Typography>
+            <div className="flex-initial">
               <select
                 id="label_date"
                 onChange={(e) => handleDateChanged(e)}
