@@ -371,10 +371,13 @@ const ReportsSection = ({
     setReportTitle(docRef.data().title);
     setDetail(docRef.data().detail);
     setSelectedLabel(docRef.data().selectedLabel);
-    setReportRead(docRef.data().read);
     setInfo(docRef.data());
     setReportModalId(reportId);
-
+    // only set report as read if an agency user clicks
+    // admin users should not be changing the read status
+    if (customClaims.agency) {
+      setReportRead(docRef.data().read);
+    }
     const tagsRef = await getDoc(doc(db,'tags',userId));
     setActiveLabels(tagsRef.data()['Labels']['active']);
 
