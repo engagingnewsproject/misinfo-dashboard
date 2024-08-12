@@ -99,7 +99,7 @@ const Settings = () => {
       // TODO: FIX THIS
       getDocs(q).then((querySnapshot) => {
         querySnapshot.forEach((doc) => { // Set initial values
-          console.log(doc.id)
+          // console.log(doc.id)
           agencyId = doc.id
           setAgencyID(doc.id)
         })
