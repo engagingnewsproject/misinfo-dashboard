@@ -75,39 +75,40 @@ const Users = () => {
 		// console.log(agencies);
 		setAgenciesArray(agencies)
 	}
-	
+
 	const getAgencyUserIds = async (agencyName) => {
-			const reportQuery = query(
-					collection(db, "reports"),
-					where("agency", "==", agencyName)
-			);
-			const reportSnapshot = await getDocs(reportQuery);
-			const userIds = reportSnapshot.docs.map((doc) => doc.data().userID);
-			// console.log("User IDs from reports:", userIds); // Verify the IDs being captured
-			return userIds;
-	};
-	
+		const reportQuery = query(
+			collection(db, 'reports'),
+			where('agency', '==', agencyName),
+		)
+		const reportSnapshot = await getDocs(reportQuery)
+		const userIds = reportSnapshot.docs.map((doc) => doc.data().userID)
+		// console.log("User IDs from reports:", userIds); // Verify the IDs being captured
+		return userIds
+	}
+
 	const filterUsersByAgency = async (users, userEmail) => {
-    const q = query(
-        collection(db, 'agency'),
-        where('agencyUsers', 'array-contains', userEmail)
-    );
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.docs.length > 0) {
-        const agencyName = querySnapshot.docs[0].data().name; // Assuming the first result is the correct one
-        // console.log("Agency Name found:", agencyName); // Log the agency name for debugging
+		const q = query(
+			collection(db, 'agency'),
+			where('agencyUsers', 'array-contains', userEmail),
+		)
+		const querySnapshot = await getDocs(q)
+		if (querySnapshot.docs.length > 0) {
+			const agencyName = querySnapshot.docs[0].data().name // Assuming the first result is the correct one
+			// console.log("Agency Name found:", agencyName); // Log the agency name for debugging
 
-        const userIds = await getAgencyUserIds(agencyName); // Retrieve user IDs for this agency
-        const filteredUsers = users.filter(user => userIds.includes(user.mobileUserId));
-        // console.log("Filtered users:", filteredUsers); // Log the filtered users for debugging
-        return filteredUsers;
-    } else {
-        console.log("No agency found for this user.");
-        return []; // Return an empty array if no agency is found
-    }
-};
+			const userIds = await getAgencyUserIds(agencyName) // Retrieve user IDs for this agency
+			const filteredUsers = users.filter((user) =>
+				userIds.includes(user.mobileUserId),
+			)
+			// console.log("Filtered users:", filteredUsers); // Log the filtered users for debugging
+			return filteredUsers
+		} else {
+			console.log('No agency found for this user.')
+			return [] // Return an empty array if no agency is found
+		}
+	}
 
-	
 	const fetchUserDetails = async (userId) => {
 		try {
 			const userRecord = await fetchUserRecord(userId)
@@ -118,39 +119,46 @@ const Users = () => {
 			return true // Assume disabled if error
 		}
 	}
-	
+
 	// Function to fetch user data from Firebase
 	const getData = async () => {
 		setIsLoading(true)
 		try {
-
 			// Pull firestore `mobileUsers` list of users
 			const mobileUsersQuerySnapshot = await getDocs(
 				collection(db, 'mobileUsers'),
 			)
 
-			if (customClaims.agency) { // Agency user is viewing Users table
-				
+			if (customClaims.agency) {
+				// Agency user is viewing Users table
+
 				const mobileUsersArr = await Promise.all(
 					mobileUsersQuerySnapshot.docs.map(async (doc) => {
 						const userData = doc.data()
 						userData.mobileUserId = doc.id
 						userData.disabled = await fetchUserDetails(doc.id)
 						// Only set 'joined' if 'joiningDate' exists
-						userData.joined = userData.joiningDate 
-							? new Date(userData.joiningDate * 1000).toLocaleString('en-US', dateOptions)
+						userData.joined = userData.joiningDate
+							? new Date(userData.joiningDate * 1000).toLocaleString(
+									'en-US',
+									dateOptions,
+								)
 							: 'null' // Or leave undefined
 						return userData
 					}),
 				)
 				// console.log('Mobile Users Array:', mobileUsersArr); // Debug output
 				// Here you need to await the filterUsersByAgency because it's async
-				const filteredUsers = await filterUsersByAgency(mobileUsersArr, user.email);
+				const filteredUsers = await filterUsersByAgency(
+					mobileUsersArr,
+					user.email,
+				)
 				// console.log('Filtered Users:', filteredUsers); // Debug output
 
 				// Ensure filteredUsers is always an array
-				setLoadedMobileUsers(filteredUsers || []);
-			} else { // Admin only
+				setLoadedMobileUsers(filteredUsers || [])
+			} else {
+				// Admin only
 				const result = await authGetUserList() // Call the function from context
 				// Pull auth list of users
 				const usersFromAuth = result.data.users
@@ -158,7 +166,7 @@ const Users = () => {
 				mobileUsersQuerySnapshot.forEach((doc) => {
 					const userData = doc.data()
 					userData.mobileUserId = doc.id
-					mobileUsersMap.set(doc.id,userData)
+					mobileUsersMap.set(doc.id, userData)
 				})
 
 				// Combine data from Auth and Firestore
@@ -169,7 +177,10 @@ const Users = () => {
 						...firestoreUser,
 						hasFirestoreDoc: !!firestoreUser,
 						// Use metadata.creationTime for the joined date
-						joined: new Date(authUser.metadata.creationTime).toLocaleString('en-US', dateOptions),
+						joined: new Date(authUser.metadata.creationTime).toLocaleString(
+							'en-US',
+							dateOptions,
+						),
 					}
 				})
 				// Sort users by the 'joined' date
@@ -621,7 +632,9 @@ const Users = () => {
 														{userObj.email}
 													</td>
 													{/* Joined date */}
-													<td className={column.data_center}>{userObj.joined}</td>
+													<td className={column.data_center}>
+														{userObj.joined}
+													</td>
 													{/* Agency */}
 													{customClaims.admin && (
 														<td className={column.data_center}>
