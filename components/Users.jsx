@@ -95,7 +95,7 @@ const Users = () => {
     const querySnapshot = await getDocs(q);
     if (querySnapshot.docs.length > 0) {
         const agencyName = querySnapshot.docs[0].data().name; // Assuming the first result is the correct one
-        console.log("Agency Name found:", agencyName); // Log the agency name for debugging
+        // console.log("Agency Name found:", agencyName); // Log the agency name for debugging
 
         const userIds = await getAgencyUserIds(agencyName); // Retrieve user IDs for this agency
         const filteredUsers = users.filter(user => userIds.includes(user.mobileUserId));
@@ -136,10 +136,14 @@ const Users = () => {
 						const userData = doc.data()
 						userData.mobileUserId = doc.id
 						userData.disabled = await fetchUserDetails(doc.id)
+						// Only set 'joined' if 'joiningDate' exists
+						userData.joined = userData.joiningDate 
+							? new Date(userData.joiningDate * 1000).toLocaleString('en-US', dateOptions)
+							: 'null' // Or leave undefined
 						return userData
 					}),
 				)
-				console.log('Mobile Users Array:', mobileUsersArr); // Debug output
+				// console.log('Mobile Users Array:', mobileUsersArr); // Debug output
 				// Here you need to await the filterUsersByAgency because it's async
 				const filteredUsers = await filterUsersByAgency(mobileUsersArr, user.email);
 				// console.log('Filtered Users:', filteredUsers); // Debug output
@@ -154,22 +158,20 @@ const Users = () => {
 				mobileUsersQuerySnapshot.forEach((doc) => {
 					const userData = doc.data()
 					userData.mobileUserId = doc.id
-					// Convert joiningDate to a Date object for uniform comparison
-	        userData.joined = new Date(userData.joiningDate * 1000); // Uniform date handling
-					mobileUsersMap.set(doc.id, userData)
+					mobileUsersMap.set(doc.id,userData)
 				})
 
 				// Combine data from Auth and Firestore
 				const combinedUsers = usersFromAuth.map((authUser) => {
 					const firestoreUser = mobileUsersMap.get(authUser.uid)
 					return {
-            ...authUser,
-            ...firestoreUser,
-            hasFirestoreDoc: !!firestoreUser,
-            joined: firestoreUser ? firestoreUser.joined : new Date(authUser.metadata.creationTime),
+						...authUser,
+						...firestoreUser,
+						hasFirestoreDoc: !!firestoreUser,
+						// Use metadata.creationTime for the joined date
+						joined: new Date(authUser.metadata.creationTime).toLocaleString('en-US', dateOptions),
 					}
 				})
-				console.log(combinedUsers);
 				// Sort users by the 'joined' date
 				combinedUsers.sort((a, b) => b.joined - a.joined)
 				setLoadedMobileUsers(combinedUsers)
@@ -599,14 +601,6 @@ const Users = () => {
 										loadedMobileUsers.map((userObj, key) => {
 											// Directly access user details and user ID
 											let userId = userObj.mobileUserId
-											console.log(userId);
-											// Use 'joined' directly since it's already a Date object
-											let joined = userObj.joined;
-
-											// Ensure 'joined' is a valid date before formatting
-											let joinedFormatted = joined instanceof Date && !isNaN(joined)
-													? joined.toLocaleString('en-US', dateOptions)
-													: 'No Date - User deleted';  // Fallback text or you could choose to handle it differently
 
 											return (
 												<tr
@@ -627,7 +621,7 @@ const Users = () => {
 														{userObj.email}
 													</td>
 													{/* Joined date */}
-													<td className={column.data_center}>{joinedFormatted}</td>
+													<td className={column.data_center}>{userObj.joined}</td>
 													{/* Agency */}
 													{customClaims.admin && (
 														<td className={column.data_center}>
