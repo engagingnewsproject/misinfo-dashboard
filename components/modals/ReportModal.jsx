@@ -79,9 +79,9 @@ const ReportModal = ({
     const uri = `mailto:${email}`;
     window.open(uri);
 	}
-	useEffect(() => {
-		console.log(customClaims);
-	}, [reportModalId])
+	// useEffect(() => {
+	// 	console.log(customClaims);
+	// }, [reportModalId])
 	
 	
 	return (
