@@ -72,7 +72,7 @@ const TableBody = ({
                   // Special handling for label column
                   tData = report[accessor] ? (
                     <Typography
-                      className={globalStyles.label.special}
+                      className={`${globalStyles.label.default} ${report.label == 'Flagged' && 'bg-orange-200'} ${report.label == 'Important' && 'bg-yellow-400'}`}
                       data-tip="Change label"
                       data-for="labelTooltip">
                       {report[accessor]}
