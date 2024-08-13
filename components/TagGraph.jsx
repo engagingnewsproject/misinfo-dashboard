@@ -1,7 +1,7 @@
 /* Displays pie charts or line graph for the trending topics based on which view is selected. */
 import React, { useState, useEffect } from 'react'
 import { useAuth } from "../context/AuthContext"
-
+import FirebaseHelper from "../firebase/FirebaseHelper"
 import { collection, query, where, getDocs, Timestamp, getDoc, doc } from "firebase/firestore";
 import { db } from '../config/firebase'
 import Toggle from './Toggle'
@@ -21,6 +21,8 @@ const TagGraph = () => {
   const [agencyId, setAgencyId] = useState("")
   const [privilege, setPrivilege] = useState(null)
   const [checkRole, setCheckRole] = useState(false)
+  const [topics, setTopics] = useState([])
+  const [loading, setLoading] = useState(true);  // Loading state
 
   // Returns the Firebase timestamp for the beginning of yesterday
   const getStartOfDay = (daysAgo) => {
@@ -66,8 +68,9 @@ const TagGraph = () => {
         })
       } else if (result.admin) {
         // console.log("setting name")
-        setAgencyName("")
-        setPrivilege("Admin")
+        setAgencyName("AdminName")
+        setAgencyId('AdminId')
+        setPrivilege("AdminPrivilege")
       }
 
 
@@ -76,40 +79,66 @@ const TagGraph = () => {
   }
 
   async function getTopicReports() {
+    setLoading(true);  // Start loading
     const reportsList = collection(db, "reports");
     // console.log("in topic reports")
 
     // console.log(privilege)
-    // Retrieve array of all topics
-    const topicDoc = doc(db, "tags", agencyId)
-    const topicRef = await getDoc(topicDoc);
-    const topics = topicRef.get("Topic")['active']
+    let tempTopics = []
+    if (privilege === 'Agency') {
+			// Retrieve array of all topics
+			const topicDoc = doc(db, 'tags', agencyId)
+			const topicRef = await getDoc(topicDoc)
+      tempTopics = topicRef.get('Topic')['active']
+      console.log(tempTopics);
+			setTopics(tempTopics)
+		} else {
+      try {
+        // Retrieve all tags documents
+				const tags = await FirebaseHelper.fetchAllRecordsOfCollection('tags')
+				// Extract the active topics from each document's Topic field
+				const allActiveTopics = tags.map((tag) => tag.Topic.active)
+				// Combine all arrays into a single array
+				const combinedTopics = allActiveTopics.flat()
+				// Remove duplicates
+        tempTopics = [...new Set(combinedTopics)]
+        console.log(tempTopics);
+        setTopics(tempTopics)
+			} catch (error) {
+				console.error('Error fetching tags: ', error)
+			}
+    }
+    
+    if (tempTopics.length === 0) {
+      setLoading(false);
+      return;
+    }
     
     // Maintain count of reports for each topic in the previous day, past three days and past seven days
     const topicsYesterday = []
     const topicsThreeDays = []
     const topicsSevenDays = []
 
-    for (let index = 0; index < topics.length; index++) {
+    for (let index = 0; index < tempTopics.length; index++) {
 
       // Filters report collection so it only shows reports  for current agency, if there is one, from yesterday and for the current topic
       let queryYesterday;
       if (privilege === "Agency") {
-        queryYesterday = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(1)),
+        queryYesterday = query(reportsList, where("topic", "==", tempTopics[index]), where("createdDate", ">=", getStartOfDay(1)),
         where("createdDate", "<", getEndOfDay()), where("agency", "==", agencyName))     
       } else {
-        queryYesterday = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(1)),
+        queryYesterday = query(reportsList, where("topic", "==", tempTopics[index]), where("createdDate", ">=", getStartOfDay(1)),
         where("createdDate", "<", getEndOfDay()))     
       }
       const dataYesterday = await getDocs(queryYesterday);
       
       let queryThreeDays;    
       if (privilege === "Agency") {
-        queryThreeDays = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(3)),
+        queryThreeDays = query(reportsList, where("topic", "==", tempTopics[index]), where("createdDate", ">=", getStartOfDay(3)),
         where("createdDate", "<", getEndOfDay()), where("agency", "==", agencyName))
 
       } else {
-        queryThreeDays = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(3)),
+        queryThreeDays = query(reportsList, where("topic", "==", tempTopics[index]), where("createdDate", ">=", getStartOfDay(3)),
         where("createdDate", "<", getEndOfDay()))
       }
       const dataThreeDays = await getDocs(queryThreeDays);
@@ -117,10 +146,10 @@ const TagGraph = () => {
       // Filters report collection so it only shows reports from 7 days ago
       let querySevenDays;
       if (privilege === "Agency") {
-        querySevenDays = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(7)),
+        querySevenDays = query(reportsList, where("topic", "==", tempTopics[index]), where("createdDate", ">=", getStartOfDay(7)),
         where("createdDate", "<", getEndOfDay()), where("agency", "==", agencyName))
       } else {
-        querySevenDays = query(reportsList, where("topic", "==", topics[index]), where("createdDate", ">=", getStartOfDay(7)),
+        querySevenDays = query(reportsList, where("topic", "==", tempTopics[index]), where("createdDate", ">=", getStartOfDay(7)),
         where("createdDate", "<", getEndOfDay()))
       }
       
@@ -130,16 +159,16 @@ const TagGraph = () => {
       if (dataYesterday.size != 0)
         {
           // Maps current topic to the topic's reports and pushes to array
-          topicsYesterday.push([topics[index], dataYesterday.size])
+          topicsYesterday.push([tempTopics[index], dataYesterday.size])
         }
       if (dataThreeDays.size != 0)
         {
-          topicsThreeDays.push([topics[index], dataThreeDays.size])
+          topicsThreeDays.push([tempTopics[index], dataThreeDays.size])
         }
       if (dataSevenDays.size != 0)
         {
           // Maps current topic to the topic's reports and pushes to array
-          topicsSevenDays.push([topics[index], dataSevenDays.size])
+          topicsSevenDays.push([tempTopics[index], dataSevenDays.size])
         }
     }
     
@@ -153,8 +182,7 @@ const TagGraph = () => {
     numTopics.push(numTopicsSevenDays)
     
     
-    setNumTrendingTopics (numTopics)
-    // console.log(numTrendingTopics)
+    setNumTrendingTopics(numTopics)
     
     // Sorts trending topics for the past day, past three days, and past seven days 
     // so that array is ordered from most reported to least reported topics
@@ -177,6 +205,7 @@ const TagGraph = () => {
     setThreeDayReports(trendingTopics.concat(sortedThreeDays))
     setSevenDayReports(trendingTopics.concat(sortedSevenDays))
     setLoaded(true)
+    setLoading(false);  // Stop loading
   };
   
   // On page load (mount), verify if the current user is an agency
@@ -189,7 +218,6 @@ const TagGraph = () => {
     if (privilege) {
     setCheckRole(true)
     }
-    console.log(agencyId);
   }, [agencyName, privilege])
 
   // Gets reports collection to determine top three trending topics after we verify if the current user is an agency..
@@ -200,16 +228,34 @@ const TagGraph = () => {
   }, [checkRole])
   
   return (
-    <div className="w-full">
-    <Toggle viewVal={viewVal} setViewVal={setViewVal}/>
-    <div className={viewVal=="overview" ? "block" : "hidden"}><OverviewGraph id="overview" loaded={loaded} yesterdayReports={yesterdayReports} threeDayReports={threeDayReports} 
-       sevenDayReports={sevenDayReports}
-       numTopics={numTrendingTopics}/>
-    </div>
-       
-    <div className={viewVal=="comparison" ? "block": "hidden"}><ComparisonGraphSetup /></div>
-    </div>
-  )
+		<div className="w-full">
+      <Toggle viewVal={viewVal} setViewVal={setViewVal} />
+      {loading ? (
+        <p>Loading data...</p>
+      ) : (
+        <>
+          <div className={viewVal == 'overview' ? 'block' : 'hidden'}>
+            <OverviewGraph
+              id="overview"
+              loaded={loaded}
+              yesterdayReports={yesterdayReports}
+              threeDayReports={threeDayReports}
+              sevenDayReports={sevenDayReports}
+              numTopics={numTrendingTopics}
+            />
+          </div> 
+
+          <div className={viewVal == 'comparison' ? 'block' : 'hidden'}>
+            <ComparisonGraphSetup
+              privilege={privilege}
+              agencyId={agencyId}
+              topics={topics}
+            />
+          </div>
+        </>
+      )}
+		</div>
+	)
 }
 export default TagGraph
 

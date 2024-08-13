@@ -50,7 +50,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   // Formats and returns date range for the title of the graph.
   const formatDates = () => {
     const startRange = new Date(dates[0] * 1000)
-    console.log(new Date(dates[dates.length - 2] * 1000))
+    // console.log(new Date(dates[dates.length - 2] * 1000))
     const endRange = new Date(dates[dates.length - 2]  * 1000)
     var newDateOptions = {
       month: "2-digit",
@@ -130,7 +130,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
         try {
           numReports.push(dailyReports.size)
           // console.log(selectedTopics[topic].value)
-          console.log("day:" + array[0][index])
+          // console.log("day:" + array[0][index])
           // console.log(dailyReports.size)
         }
         catch (error) {

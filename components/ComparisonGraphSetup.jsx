@@ -21,8 +21,9 @@ import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
 import _ from "lodash";
 import globalStyles from '../styles/globalStyles';
-const ComparisonGraphSetup = () => {
-
+import firebaseHelper from '../firebase/FirebaseHelper'
+const ComparisonGraphSetup = ({privilege, agencyId}) => {
+  console.log(agencyId);
   // Indicates which topics and dates have been selected in the dropdowns. 
   const [selectedTopics, setSelectedTopics] = useState([])
   const [listTopicChoices, setTopicChoices] = useState([])
@@ -59,8 +60,12 @@ const ComparisonGraphSetup = () => {
   }
 
   // Retrieves the list of topics upon the first render.
-  useEffect (()=> {
-    getTopicChoices()
+  useEffect(() => {
+    if (agencyId) {
+      getTopicChoices()
+    } else {
+      console.log('unable to get agency id');
+    }
   }, []);
 
   // Upon the initial screen for the compraison chart, plots graph if the date range is correct.
@@ -89,11 +94,21 @@ const ComparisonGraphSetup = () => {
 
   // Retrieves list of topic choices
   async function getTopicChoices() {
-    const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
-    const topicRef = await getDoc(topicDoc);
-    const topics = topicRef.get("Topic")['active']
     const topicChoices = []
-
+    let tempTopics = []
+    let topics
+    if (privilege === 'Agency') {
+      const topicDoc = doc(db,"tags",agencyId)
+      const topicRef = await getDoc(topicDoc)
+      topics = topicRef.get("Topic")['active']
+      
+    } else {
+      const tags = await firebaseHelper.fetchAllRecordsOfCollection('tags')
+      const allActiveTopics = tags.map((tag) => tag.Topic.active)
+      const combinedTopics = allActiveTopics.flat()
+      tempTopics = [...new Set(combinedTopics)]
+      topics = tempTopics
+    }
     topics.forEach(function(element) {
       topicChoices.push({ label: element, value: element})
     });
