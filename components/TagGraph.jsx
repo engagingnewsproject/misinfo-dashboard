@@ -18,6 +18,7 @@ const TagGraph = () => {
   const [numTrendingTopics, setNumTrendingTopics] = useState([])
   const [loaded, setLoaded] = useState(false)
   const [agencyName, setAgencyName] = useState("")
+  const [agencyId, setAgencyId] = useState("")
   const [privilege, setPrivilege] = useState(null)
   const [checkRole, setCheckRole] = useState(false)
 
@@ -49,13 +50,16 @@ const TagGraph = () => {
       // console.log("Current user information " + result.admin)
       if (result.agency) {
         let agencyTempName;
+        let agencyTempId;
         const agencyCollection = collection(db,"agency")
         const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
         getDocs(q).then((querySnapshot) => {
         querySnapshot.forEach((doc) => { // Set initial values
           // console.log(doc.data())
           agencyTempName = doc.data()['name']
+          agencyTempId = doc.id
           setAgencyName(agencyTempName)
+          setAgencyId(agencyTempId)
           setPrivilege("Agency")
         
           })
@@ -77,7 +81,7 @@ const TagGraph = () => {
 
     // console.log(privilege)
     // Retrieve array of all topics
-    const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
+    const topicDoc = doc(db, "tags", agencyId)
     const topicRef = await getDoc(topicDoc);
     const topics = topicRef.get("Topic")['active']
     
@@ -185,7 +189,7 @@ const TagGraph = () => {
     if (privilege) {
     setCheckRole(true)
     }
-    
+    console.log(agencyId);
   }, [agencyName, privilege])
 
   // Gets reports collection to determine top three trending topics after we verify if the current user is an agency..
