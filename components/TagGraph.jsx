@@ -8,6 +8,7 @@ import Toggle from './Toggle'
 import OverviewGraph from './OverviewGraph'
 import ComparisonGraphSetup from './ComparisonGraphSetup'
 import { setDefaultResultOrder } from 'dns';
+import { Typography } from '@material-tailwind/react'
 
 const TagGraph = () => {
 	const { user, verifyRole } = useAuth()
@@ -23,6 +24,7 @@ const TagGraph = () => {
   const [checkRole, setCheckRole] = useState(false)
   const [topics, setTopics] = useState([])
   const [loading, setLoading] = useState(true);  // Loading state
+  const [loadingMessage, setLoadingMessage] = useState("Loading data"); // State to manage loading message
 
   // Returns the Firebase timestamp for the beginning of yesterday
   const getStartOfDay = (daysAgo) => {
@@ -90,7 +92,7 @@ const TagGraph = () => {
 			const topicDoc = doc(db, 'tags', agencyId)
 			const topicRef = await getDoc(topicDoc)
       tempTopics = topicRef.get('Topic')['active']
-      console.log(tempTopics);
+      // console.log(tempTopics);
 			setTopics(tempTopics)
 		} else {
       try {
@@ -102,13 +104,13 @@ const TagGraph = () => {
 				const combinedTopics = allActiveTopics.flat()
 				// Remove duplicates
         tempTopics = [...new Set(combinedTopics)]
-        console.log(tempTopics);
+        // console.log(tempTopics);
         setTopics(tempTopics)
 			} catch (error) {
 				console.error('Error fetching tags: ', error)
 			}
     }
-    
+    console.log(tempTopics);
     if (tempTopics.length === 0) {
       setLoading(false);
       return;
@@ -227,11 +229,26 @@ const TagGraph = () => {
     }
   }, [checkRole])
   
+    // Function to update the loading message
+  useEffect(() => {
+    if (loading) {
+      const interval = setInterval(() => {
+        setLoadingMessage(prev => prev.endsWith("...") ? "Loading data" : prev + ".");
+      }, 500); // Update every 500ms
+      
+      return () => clearInterval(interval); // Clean up on unmount or when loading stops
+    }
+  }, [loading]);
+  
   return (
 		<div className="w-full">
       <Toggle viewVal={viewVal} setViewVal={setViewVal} />
       {loading ? (
-        <p>Loading data...</p>
+        <div className='flex items-center justify-center p-5'>
+          <div className='flex justify-center'>
+            <Typography variant='h5' color='blue'>{loadingMessage}</Typography>
+          </div>
+        </div>
       ) : (
         <>
           <div className={viewVal == 'overview' ? 'block' : 'hidden'}>

@@ -23,7 +23,7 @@ import _ from "lodash";
 import globalStyles from '../styles/globalStyles';
 import firebaseHelper from '../firebase/FirebaseHelper'
 const ComparisonGraphSetup = ({privilege, agencyId}) => {
-  console.log(agencyId);
+
   // Indicates which topics and dates have been selected in the dropdowns. 
   const [selectedTopics, setSelectedTopics] = useState([])
   const [listTopicChoices, setTopicChoices] = useState([])
