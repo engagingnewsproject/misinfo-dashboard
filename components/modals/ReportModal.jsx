@@ -304,21 +304,17 @@ const ReportModal = ({
 									<select
 										id='labels'
 										onChange={onLabelChange}
-										defaultValue={selectedLabel}
+										value={selectedLabel || ''}
 										className='text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none'>
-										<option value='No label'>No label</option>
-										<option value={selectedLabel ? selectedLabel : "No label"}>
-											{selectedLabel ? selectedLabel : "Choose a label"}
-										</option>
-										{activeLabels
-											.filter((label) => label !== selectedLabel)
-											.map((label, i) => {
-												return (
-													<option value={label} key={i}>
-														{label}
-													</option>
-												)
-											})}
+										
+										{/* Default option representing no label */}
+										<option value=''>{selectedLabel === '' ? 'No Label' : 'Remove Label'}</option>
+										
+										{activeLabels.map((label, i) => (
+											<option value={label} key={i}>
+												{label}
+											</option>
+										))}
 									</select>
 									{changeStatus && (
 										<span className='ml-5 font-light text-sm italic'>

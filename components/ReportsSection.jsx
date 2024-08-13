@@ -94,26 +94,37 @@ const ReportsSection = ({
 
   const getData = async () => {
     let reportArr = [];
-    let a
+    let agencyName = ''
+    let agencyId = ''
+    let agencyTags = []
     if (isAgency) {
-      const q = query(
+      const agencyQuery = query(
         collection(db, 'agency'),
         where('agencyUsers', 'array-contains', user.email)
       );
-      const querySnapshot = await getDocs(q);
-      querySnapshot.forEach((doc) => {
-        a = doc.data().name;
+      const agencySnapshot = await getDocs(agencyQuery);
+      agencySnapshot.forEach((doc) => {
+        agencyName = doc.data().name;
+        agencyId = doc.id;
       });
-      const r = query(
+      const reportsQuery = query(
         collection(db, 'reports'),
-        where('agency', '==', a)
+        where('agency', '==', agencyName)
       );
-      const reportSnapshot = await getDocs(r);
+      const reportSnapshot = await getDocs(reportsQuery);
       reportSnapshot.forEach((doc) => {
         const data = doc.data();
         data.reportID = doc.id;
         reportArr.push(data);
       });
+      // TAGS
+      // Query to get tags related to the agency
+      const tagsDocRef = doc(db,'tags',agencyId);
+      const tagsDoc = await getDoc(tagsDocRef);
+      if (tagsDoc.exists()) {
+        agencyTags = tagsDoc.data();
+      }
+      setActiveLabels(agencyTags.Labels.active);
     } else {
       const reportSnapshot = await getDocs(collection(db, 'reports'));
       reportSnapshot.forEach((doc) => {
@@ -244,12 +255,6 @@ const ReportsSection = ({
     if (customClaims.agency) {
       setReportRead(docRef.data().read);
     }
-    const tagsRef = await getDoc(doc(db,'tags',userId));
-    setActiveLabels(tagsRef.data()['Labels']['active']);
-
-    // Get report submission user info
-    // const mobileUserRef = doc(db,"mobileUsers",docRef.data().userID);
-    // const docSnap = await getDoc(mobileUserRef);
 
     const mUserRef = doc(db, 'mobileUsers', docRef.data().userID);
     const docSnap = await getDoc(mUserRef);
@@ -334,13 +339,22 @@ const ReportsSection = ({
   };
   const handleLabelChange = async (e) => {
     e.preventDefault();
-    let reportId = reportModalId;
-    if (e.target.value !== report['label']) {
-      const docRef = doc(db, 'reports', reportId);
-      await updateDoc(docRef, { label: e.target.value });
-      setUpdate(e.target.value);
+    const newLabel = e.target.value;
+    const reportId = reportModalId;
+
+    // Check if the label has actually changed
+    if (newLabel !== report['label']) {
+      try {
+        const docRef = doc(db, 'reports', reportId);
+        // Update the label in the Firestore document
+        await updateDoc(docRef, { label: newLabel });
+        setSelectedLabel(newLabel); // Update the selectedLabel state
+        setUpdate(newLabel); // Trigger any necessary updates
+      } catch (error) {
+        console.error('Error updating label:', error);
+      }
     } else {
-      setUpdate('');
+      setUpdate(''); // Reset the update state if the label didn't change
     }
   };
   // Delete report
@@ -397,6 +411,7 @@ const ReportsSection = ({
   };
 
   useEffect(() => {
+    // console.log('EFFECT -->customClaims<--');
     if (customClaims.admin) {
       setIsAgency(false)
     } else if (customClaims.agency) {
@@ -406,6 +421,7 @@ const ReportsSection = ({
 
   // Fetch data when new report is submitted or isAgency is set
   useEffect(() => {
+    // console.log('EFFECT -->newReportSubmitted, isAgency<--');
     // Ensure isAgency is set before fetching data:
     if (isAgency !== null) {
       getData()
@@ -413,13 +429,13 @@ const ReportsSection = ({
   }, [newReportSubmitted, isAgency])
 
   useEffect(() => {
-    console.log('EFFECT--> deps: reports')
+    // console.log('EFFECT--> deps: reports')
     setLoadedReports(reports)
     setFilteredReports(reports) // Initialize filteredReports with reports when component mounts
   }, [reports])
 
   useEffect(() => {
-    console.log('EFFECT - filteredReports--> deps: readFilter, loadedReports')
+    // console.log('EFFECT - filteredReports--> deps: readFilter, loadedReports')
     const filteredReports = loadedReports.filter((report) => {
       if (readFilter === 'all') {
         return true // Show all reports
@@ -433,12 +449,15 @@ const ReportsSection = ({
   }, [readFilter])
 
   useEffect(() => {
+    // console.log('EFFECT - readFilter--> deps: refresh')
     if (readFilter !== 'all') {
       setReadFilter('all')
     }
-  }, [refresh])
+  },[refresh])
+  
   // Filter the reports based on the search text
   useEffect(() => {
+    // console.log('EFFECT - search--> deps: search, filteredReports')
     if (search == '') {
       if (readFilter != 'all') {
         setFilteredReports(
@@ -485,6 +504,7 @@ const ReportsSection = ({
 
   // Updates the loaded reports whenever a user filters reports based on search.
   useEffect(() => {
+    // console.log('EFFECT--> deps: reportWeek')
     let arr = filteredReports.filter((report) => {
       // Ensure that createdDate exists and has a toDate method
       try {
@@ -528,68 +548,44 @@ const ReportsSection = ({
 
   // Populates the loaded reports as the user scrolls to bottom of page
   useEffect(() => {
+    // console.log('EFFECT--> deps: loadedReports')
     if (loadedReports.length != 0) {
       handleReportScroll()
     }
   }, [loadedReports])
 
   useEffect(() => {
-    if (reportModalShow && reportModalId) {
+    // Only proceed if reportModalShow is true
+    if (reportModalShow && reportModalId && customClaims.agency) {
+      console.log('EFFECT--> Report modal is shown. Report ID:', reportModalId);
       // When a report's modal opens set the report as read
-      // since someone clicked on it - so they read it
-      // but only if it is an agency user.
-      isAgency === true && handleRowChangeRead(reportModalId, true)
-    } else {
-      setReportModalId('')
-      setReportModalShow(false)
+      handleRowChangeRead(reportModalId, true);
     }
-  }, [reportModalShow]) // this effect runs when the report modal is opened/closed
-
-  useEffect(() => {
-    // getData()
-    if (report['createdDate']) {
-      const options = {
-        day: '2-digit',
-        year: 'numeric',
-        month: 'short',
-        hour: 'numeric',
-        minute: 'numeric',
+    // Set the date, label, and location for the report when the modal is shown
+    if (reportModalShow && report) {
+      if (report.createdDate) {
+        const options = {
+          day: '2-digit',
+          year: 'numeric',
+          month: 'short',
+          hour: 'numeric',
+          minute: 'numeric',
+        };
+        setPostedDate(
+          report['createdDate']
+            .toDate()
+            .toLocaleString('en-US', options)
+            .replace(/,/g, '')
+            .replace('at', '')
+        );
       }
-      setPostedDate(
-        report['createdDate']
-          .toDate()
-          .toLocaleString('en-US', options)
-          .replace(/,/g, '')
-          .replace('at', ''),
-      )
-    }
-    if (report['city'] || report['state']) {
-      setReportLocation(report['city'] + ', ' + report['state'])
-    }
-  }, [reportModalShow])
+      setSelectedLabel(report['label'] || '');
 
-  useEffect(() => {
-    if (report['createdDate']) {
-      const options = {
-        day: '2-digit',
-        year: 'numeric',
-        month: 'short',
-        hour: 'numeric',
-        minute: 'numeric',
-      }
-      setPostedDate(
-        report['createdDate']
-          .toDate()
-          .toLocaleString('en-US', options)
-          .replace(/,/g, '')
-          .replace('at', ''),
-      )
+      const location = [report['city'], report['state']].filter(Boolean).join(', ');
+      setReportLocation(location);
     }
-    if (report['label']) {
-      setSelectedLabel(report['label'])
-    }
-  }, [reportModalShow]) // report
-
+  }, [reportModalShow, reportModalId, customClaims.agency,  report]) // this effect runs when the report modal is opened/closed
+  
   useEffect(() => {
     getData()
   }, [update])
