@@ -40,14 +40,14 @@ const NewUserModal = ({
 						<input // New agency emails
 							className={style.modal_form_input}
 							id="userEmail"
-							type="text"
+							type="email"
 							placeholder="Email"
 							value={newUserEmail}
 							onChange={onNewUserEmail}
 							autoComplete='email'
 							/>
 							{errors.email ? (
-								<p className="error">
+								<p className="error text-red-500 text-sm font-light">
 								Email should be at least 15 characters long
 								</p>
 								) : null}
