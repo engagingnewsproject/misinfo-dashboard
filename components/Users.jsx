@@ -92,6 +92,7 @@ const Users = () => {
 	const [email, setEmail] = useState('')
 	// agency
 	// table agency
+	const [agencyName, setAgencyName] = useState('')
 	const [agenciesArray, setAgenciesArray] = useState([])
 	const [selectedAgency, setSelectedAgency] = useState('')
 	const [banned, setBanned] = useState(false)
@@ -410,7 +411,9 @@ const Users = () => {
 	 *
 	 * This function sets the user ID, fetches the user data from Firestore, and updates the state
 	 * with the user's name, email, role, and agency information. It also determines if the user
-	 * is assigned to an agency and sets the selected agency in the modal.
+	 * is assigned to an agency by performing a case-insensitive email match against the agency's
+	 * `agencyUsers` array. The function ensures that the correct agency is selected in the modal
+	 * even if there are differences in email capitalization.
 	 *
 	 * @param {Object} userObj - The object containing user data.
 	 * @param {string} userId - The ID of the user to be edited.
@@ -421,26 +424,36 @@ const Users = () => {
 		setUserEditing(userObj)
 		setUserEditModal(true)
 
-		// Fetch all agencies to populate the dropdown list
-		// let agencyArr = []
-		// const agencySnapshot = await getDocs(collection(db, "agency"));
-		// agencySnapshot.forEach((doc) => {
-		//     agencyArr.push({
-		//         id: doc.id, // Store the agency's document ID
-		//         name: doc.data().name // Store the agency's name
-		//     });
-		// });
-		// setAgenciesArray(agencyArr)
+		// Retrieve the email from the `mobileUsers` document and convert it to lowercase
+		const email = userRef.data().email.toLowerCase()
 
-		// Determine if the user is assigned to an agency
-		const q = query(
-			collection(db, 'agency'),
-			where('agencyUsers', 'array-contains', userRef.data().email),
-		)
-		const querySnapshot = await getDocs(q)
-		const userAgency = querySnapshot.docs.length ? querySnapshot.docs[0].id : ''
+		// Query all agencies and find the one where the email matches case-insensitively
+		const agenciesSnapshot = await getDocs(collection(db, 'agency'))
+		let userAgencyDoc = null
 
-		setSelectedAgency(userAgency || '')
+		agenciesSnapshot.forEach((doc) => {
+			const agencyUsers = doc.data().agencyUsers || []
+			// Convert each email in agencyUsers to lowercase and check for a match
+			if (agencyUsers.some((userEmail) => userEmail.toLowerCase() === email)) {
+				userAgencyDoc = doc
+			}
+		})
+
+		if (userAgencyDoc) {
+			const userAgency = userAgencyDoc.id // Get the document ID
+			const agencyName = userAgencyDoc.data().name // Get the agency name from the document data
+
+			console.log('userAgency ID --> ', userAgency)
+			console.log('agencyName --> ', agencyName)
+
+			setSelectedAgency(userAgency)
+			setAgencyName(agencyName)
+		} else {
+			setSelectedAgency('')
+			setAgencyName('')
+		}
+
+		// setSelectedAgency(userAgency || '')
 		setName(userRef.data()['name'] ?? '')
 		setEmail(userRef.data()['email'])
 		setBanned(userRef.data()['isBanned'] ?? false)
