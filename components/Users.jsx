@@ -50,7 +50,19 @@ const style = {
 		'flex items-center shadow ml-auto bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
 }
 
-// Utility function to get the joined date for users
+/**
+ * Retrieves the user's join date based on available data.
+ *
+ * This function determines the user's join date by checking the `joiningDate` field in the Firestore
+ * user document (`firestoreUser`). If the `joiningDate` is present, it is converted to a human-readable
+ * format. If the `joiningDate` is not available, the function falls back to using the `creationTime`
+ * from the user's Firebase Auth metadata (`authUser`). If neither source provides a date, it returns 
+ * a default message indicating that no date is available.
+ *
+ * @param {Object} firestoreUser - The Firestore document data for the user, containing a possible `joiningDate` field.
+ * @param {Object} authUser - The Firebase Auth user object, containing metadata like `creationTime`.
+ * @returns {string} The user's join date formatted as a human-readable string, or 'No Date' if unavailable.
+ */
 const getJoinedDate = (firestoreUser, authUser) => {
     if (firestoreUser && firestoreUser.joiningDate) {
         // If Firestore user data exists and has a 'joiningDate', use it
@@ -64,6 +76,16 @@ const getJoinedDate = (firestoreUser, authUser) => {
     }
 };
 
+/**
+ * Sorts an array of users by their join date in descending order.
+ *
+ * This function takes an array of user objects and sorts them based on their `joined` date.
+ * The sorting is done in descending order, so users with the most recent join date will appear first.
+ * The `joined` date is expected to be a string that can be converted into a Date object.
+ *
+ * @param {Array<Object>} users - An array of user objects, each containing a `joined` date field.
+ * @returns {Array<Object>} The sorted array of users, with the most recently joined users first.
+ */
 const sortByJoinedDate = (users) => {
     return users.sort((a, b) => new Date(b.joined) - new Date(a.joined));
 };
