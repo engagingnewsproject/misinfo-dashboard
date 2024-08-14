@@ -343,6 +343,24 @@ const Users = () => {
 	}
 
 	/**
+	* Handles the change event for the "New User Email" input field.
+	*
+	* This function updates the `newUserEmail` state with the value entered in the input field.
+	* It also clears any existing email-related error in the `errors` state as soon as the user starts typing,
+	* ensuring that the error message is removed when the user re-enters the input field.
+	*
+	* @param {Event} e - The event object from the input field.
+	*/
+	const handleNewUserEmail = (e) => {
+		setNewUserEmail(e.target.value)
+		// Clear the email-related error when the user starts typing
+		setErrors((prevErrors) => ({
+			...prevErrors,
+			email: '', // Clear the email error
+		}))
+	}
+	
+	/**
 	 * Handles the submission of the form to add a new user.
 	 *
 	 * This function prevents the default form submission behavior and first clears any existing errors.
@@ -365,6 +383,7 @@ const Users = () => {
 			if (newUserEmail.length < 15) {
 				setErrors((prevErrors) => ({
 					...prevErrors,
+					// Error message shown to user
 					email: 'Email should be at least 15 characters long',
 				}))
 				return // Stop the form submission if there's a validation error
@@ -379,35 +398,9 @@ const Users = () => {
 			// Set the error message in the errors state
 			setErrors((prevErrors) => ({
 				...prevErrors,
-				email: error.message, // Assuming the error relates to the email
+				email: error.message,
 			}))
 		}
-	}
-
-	/**
-	 * Handles the change event for the "New User Name" input field.
-	 *
-	 * This function prevents the default form submission behavior and updates the `newUserName` state
-	 * with the value entered in the input field.
-	 *
-	 * @param {Event} e - The event object from the input field.
-	 */
-	const handleNewUserName = (e) => {
-		e.preventDefault()
-		setNewUserName(e.target.value)
-	}
-
-	/**
-	 * Handles the change event for the "New User Email" input field.
-	 *
-	 * This function prevents the default form submission behavior and updates the `newUserEmail` state
-	 * with the value entered in the input field.
-	 *
-	 * @param {Event} e - The event object from the input field.
-	 */
-	const handleNewUserEmail = (e) => {
-		e.preventDefault()
-		setNewUserEmail(e.target.value)
 	}
 
 	/**

@@ -1,3 +1,4 @@
+import { Input } from '@material-tailwind/react'
 import React from 'react'
 import { IoClose } from 'react-icons/io5'
 
@@ -26,6 +27,7 @@ const NewUserModal = ({
 		modal_form_select: 'border-none rounded-xl min-w-full col-span-2 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
 		modal_form_button: 'bg-blue-600 self-center hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
 	}
+	
 	return (
 		<div className={style.modal_background} onClick={() => setNewUserModal(false)}>
 			<div className={style.modal_container}>
@@ -37,20 +39,22 @@ const NewUserModal = ({
 						</div>
 					</div>
 					<form onSubmit={onFormSubmit} id="newUserModal" className={style.modal_form}>
-						<input // New agency emails
-							className={style.modal_form_input}
+						<Input // New agency emails
+							className="bg-white"
 							id="userEmail"
 							type="email"
+							label="Agency user email"
 							placeholder="Email"
 							value={newUserEmail}
 							onChange={onNewUserEmail}
 							autoComplete='email'
+							error={!!errors.email} 
 							/>
-							{errors.email ? (
+							{errors.email && (
 								<p className="error text-red-500 text-sm font-light">
-								Email should be at least 15 characters long
+									{errors.email}
 								</p>
-								) : null}
+								)}
 						<button className={style.modal_form_button} type="submit" id="userNew">
 							Add User
 						</button>
