@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { IoClose } from 'react-icons/io5'
 
 const NewUserModal = ({
 	setNewUserModal,
 	onFormSubmit,
-	// newUserName,
-	// onNewUserName,
 	newUserEmail,
 	onNewUserEmail,
 	errors,
@@ -39,20 +37,6 @@ const NewUserModal = ({
 						</div>
 					</div>
 					<form onSubmit={onFormSubmit} id="newUserModal" className={style.modal_form}>
-						{/* <input // Agency Name
-							className={style.modal_form_input}
-							id="userName"
-							type="text"
-							placeholder="User Name"
-							value={newUserName}
-							onChange={onNewUserName}
-							autoComplete="nope"
-							/>
-							{errors.newUserName ? (
-								<p className="error">
-								Enter an user name
-								</p>
-								) : null} */}
 						<input // New agency emails
 							className={style.modal_form_input}
 							id="userEmail"
