@@ -27,6 +27,28 @@ const dateOptions = {
 	year: 'numeric',
 	month: 'short',
 }
+const tableHeading = {
+	default: 'px-3 py-1 text-sm font-semibold text-left tracking-wide',
+	default_center: 'text-center p-2 text-sm font-semibold tracking-wide',
+	small: '',
+}
+const column = {
+	data: 'whitespace-normal text-sm px-3 py-1',
+	data_center:
+		'whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 text-center',
+}
+const style = {
+	icon: 'hover:fill-cyan-700',
+	section_container:
+		'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
+	section_wrapper: 'flex flex-col h-full',
+	section_header: 'flex justify-between ml-10 md:mx-0 py-5',
+	section_title: 'text-xl font-extrabold text-blue-600 tracking-wider',
+	section_filtersWrap: 'p-0 px-4 md:p-4 md:py-0 md:px-4 flex items-center',
+	table_main: 'min-w-full bg-white rounded-xl p-1',
+	button:
+		'flex items-center shadow ml-auto bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
+}
 
 // Utility function to get the joined date for users
 const getJoinedDate = (firestoreUser, authUser) => {
@@ -76,9 +98,6 @@ const Users = () => {
 	const [userEditModal, setUserEditModal] = useState(null)
 	const [userId, setUserId] = useState(null)
 	const [update, setUpdate] = useState('')
-
-	// Add new user
-	// Add new user
 	// Add new user
 	const [newUserModal, setNewUserModal] = useState(false)
 	const [data, setData] = useState({
@@ -87,7 +106,17 @@ const Users = () => {
 	const [newUserEmail, setNewUserEmail] = useState('')
 	const [errors, setErrors] = useState({})
 
-	// fetching and setting agencies with id and name
+	/**
+	 * Fetches all agency documents from the Firestore 'agency' collection
+	 * and stores them in an array with their ID and name.
+	 *
+	 * This function retrieves all the documents from the 'agency' collection in Firestore.
+	 * It then maps each document to an object containing its ID and name. The resulting
+	 * array of agencies is stored in the component's state using the `setAgenciesArray` function.
+	 *
+	 * @returns {Promise<void>} A promise that resolves when the agencies have been fetched
+	 * and stored in the `agenciesArray` state.
+	 */
 	const fetchAgencies = async () => {
 		const snapshot = await getDocs(collection(db, 'agency'))
 		const agencies = snapshot.docs.map((doc) => ({
@@ -98,6 +127,16 @@ const Users = () => {
 		setAgenciesArray(agencies)
 	}
 
+	/**
+	 * Fetches the user IDs associated with a specific agency from the Firestore 'reports' collection.
+	 *
+	 * This function queries the 'reports' collection in Firestore for documents where the 'agency'
+	 * field matches the provided agency name. It then maps each document to the user ID found in
+	 * the 'userID' field of the report and returns an array of these user IDs.
+	 *
+	 * @param {string} agencyName - The name of the agency for which to fetch user IDs.
+	 * @returns {Promise<string[]>} A promise that resolves to an array of user IDs associated with the specified agency.
+	 */
 	const getAgencyUserIds = async (agencyName) => {
 		const reportQuery = query(
 			collection(db, 'reports'),
@@ -109,6 +148,18 @@ const Users = () => {
 		return userIds
 	}
 
+	/**
+	 * Filters the given list of users by the agency associated with the provided user email.
+	 *
+	 * This function queries the 'agency' collection in Firestore to find an agency that
+	 * includes the provided user's email. It then retrieves the user IDs associated with
+	 * that agency and filters the input user list to include only those users whose
+	 * IDs match the retrieved agency user IDs.
+	 *
+	 * @param {Array} users - An array of user objects to be filtered. Each user object should contain a `mobileUserId` property.
+	 * @param {string} userEmail - The email of the user whose agency is being queried.
+	 * @returns {Promise<Array>} A promise that resolves to an array of filtered user objects associated with the user's agency.
+	 */
 	const filterUsersByAgency = async (users, userEmail) => {
 		const q = query(
 			collection(db, 'agency'),
@@ -130,6 +181,17 @@ const Users = () => {
 		}
 	}
 
+	/**
+	 * Fetches the details of a user by their user ID and determines if the user is disabled.
+	 *
+	 * This function attempts to fetch the user record associated with the provided user ID.
+	 * If the record is successfully retrieved, it checks if the user is disabled. If an error
+	 * occurs during the fetch, the function assumes the user is disabled and logs the error.
+	 *
+	 * @param {string} userId - The unique identifier of the user whose details are being fetched.
+	 * @returns {Promise<boolean>} A promise that resolves to `true` if the user is disabled or
+	 * if an error occurs during the fetch, and `false` if the user is not disabled.
+	 */
 	const fetchUserDetails = async (userId) => {
 		try {
 			const userRecord = await fetchUserRecord(userId)
@@ -141,7 +203,30 @@ const Users = () => {
 		}
 	}
 
-	// Function to fetch user data from Firebase
+	/**
+	 * Asynchronous function to fetch and process user data from Firestore and Firebase Auth.
+	 *
+	 * This function is responsible for retrieving a list of users, either from Firestore's `mobileUsers`
+	 * collection or from Firebase Auth, depending on the user's role (Agency or Admin). It processes
+	 * and combines the user data, including additional fields like `joined` and `disabled`, and sets
+	 * the processed data into the component's state.
+	 *
+	 * For Agency users:
+	 * - Fetches users from Firestore's `mobileUsers` collection.
+	 * - Filters users by the agency associated with the logged-in user's email.
+	 * - Sets the filtered and sorted list of users into the component's state.
+	 *
+	 * For Admin users:
+	 * - Fetches users from both Firebase Auth and Firestore's `mobileUsers` collection.
+	 * - Combines and processes data from both sources.
+	 * - Sets the combined and sorted list of users into the component's state.
+	 *
+	 * @async
+	 * @function
+	 * @returns {Promise<void>} This function does not return a value, but updates the component's state.
+	 *
+	 * @throws Will log an error to the console if the data fetching or processing fails.
+	 */
 	const getData = async () => {
 		setIsLoading(true)
 		try {
@@ -158,7 +243,7 @@ const Users = () => {
 						const userData = doc.data()
 						userData.mobileUserId = doc.id
 						userData.disabled = await fetchUserDetails(doc.id)
-						
+
 						// Only set 'joined' if 'joiningDate' exists
 						userData.joined = getJoinedDate(userData, null)
 						return userData
@@ -173,22 +258,21 @@ const Users = () => {
 
 				// Ensure filteredUsers is always an array
 				setLoadedMobileUsers(sortByJoinedDate(filteredUsers) || [])
-				// Admin only	
+				// Admin only
 			} else {
-				
 				const result = await authGetUserList() // Call the function from context
 				// Pull auth list of users
 				const usersFromAuth = result.data.users
 				const mobileUsersMap = new Map()
 				mobileUsersQuerySnapshot.forEach((doc) => {
-					const userData = doc.data()
-					userData.mobileUserId = doc.id
-					mobileUsersMap.set(doc.id, userData)
+					const userData = doc.data() // mobileUsers data
+					userData.mobileUserId = doc.id // mobileUsers doc id
+					mobileUsersMap.set(doc.id, userData) // mobileUsers map list
 				})
 
 				// Combine data from Auth and Firestore
 				const combinedUsers = usersFromAuth.map((authUser) => {
-					const firestoreUser = mobileUsersMap.get(authUser.uid)
+					const firestoreUser = mobileUsersMap.get(authUser.uid) // auth user data
 					return {
 						...authUser,
 						...firestoreUser,
@@ -197,8 +281,10 @@ const Users = () => {
 						joined: getJoinedDate(firestoreUser, authUser),
 					}
 				})
+				// TODO: get each users agency name
+				//
 				// Sort users by the 'joined' date
-				setLoadedMobileUsers(sortByJoinedDate(combinedUsers))
+				setLoadedMobileUsers(sortByJoinedDate(combinedUsers)) // array combination of mobileUsers doc and auth user info
 			}
 		} catch (error) {
 			console.error('Failed to fetch or process user data:', error)
@@ -220,11 +306,28 @@ const Users = () => {
 		})
 	}
 
+	/**
+	 * Handles the event when the "Add New User" button is clicked, opening the modal to add a new user.
+	 *
+	 * This function prevents the default form submission behavior when the "Add New User" button is clicked.
+	 * It then triggers the state change to open the modal for adding a new user by setting `setNewUserModal` to `true`.
+	 *
+	 * @param {Event} e - The event object from the form submission.
+	 */
 	const handleAddNewUserModal = (e) => {
 		e.preventDefault()
 		setNewUserModal(true)
 	}
 
+	/**
+	 * Handles the submission of the form to add a new user.
+	 *
+	 * This function prevents the default form submission behavior, sends a sign-in email to the new user's email address,
+	 * triggers an update by toggling the `update` state, and then closes the new user modal.
+	 *
+	 * @param {Event} e - The event object from the form submission.
+	 * @returns {Promise<void>} A promise that resolves after the sign-in email is sent and the modal is closed.
+	 */
 	const handleAddNewUserFormSubmit = async (e) => {
 		e.preventDefault()
 		await sendSignIn(newUserEmail)
@@ -237,54 +340,64 @@ const Users = () => {
 		// 	handleUserUpdate(e)
 		// }
 	}
-	// Handler: new user NAME
+
+	/**
+	 * Handles the change event for the "New User Name" input field.
+	 *
+	 * This function prevents the default form submission behavior and updates the `newUserName` state
+	 * with the value entered in the input field.
+	 *
+	 * @param {Event} e - The event object from the input field.
+	 */
 	const handleNewUserName = (e) => {
 		e.preventDefault()
 		setNewUserName(e.target.value)
 	}
-	// Handler: new agency EMAIL
+
+	/**
+	 * Handles the change event for the "New User Email" input field.
+	 *
+	 * This function prevents the default form submission behavior and updates the `newUserEmail` state
+	 * with the value entered in the input field.
+	 *
+	 * @param {Event} e - The event object from the input field.
+	 */
 	const handleNewUserEmail = (e) => {
 		e.preventDefault()
 		setNewUserEmail(e.target.value)
 	}
-	// END Add new user
-	// END Add new user
-	// END Add new user
-	const tableHeading = {
-		default: 'px-3 py-1 text-sm font-semibold text-left tracking-wide',
-		default_center: 'text-center p-2 text-sm font-semibold tracking-wide',
-		small: '',
-	}
-	const column = {
-		data: 'whitespace-normal text-sm px-3 py-1',
-		data_center:
-			'whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 text-center',
-	}
-	const style = {
-		icon: 'hover:fill-cyan-700',
-		section_container:
-			'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
-		section_wrapper: 'flex flex-col h-full',
-		section_header: 'flex justify-between ml-10 md:mx-0 py-5',
-		section_title: 'text-xl font-extrabold text-blue-600 tracking-wider',
-		section_filtersWrap: 'p-0 px-4 md:p-4 md:py-0 md:px-4 flex items-center',
-		table_main: 'min-w-full bg-white rounded-xl p-1',
-		button:
-			'flex items-center shadow ml-auto bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
-	}
 
+	/**
+	 * useEffect hook that runs once on component mount to fetch agencies and data.
+	 *
+	 * This hook triggers two functions, `fetchAgencies` and `getData`, when the component
+	 * first mounts. The `fetchAgencies` function retrieves the list of agencies from the database,
+	 * and the `getData` function fetches the initial set of data for the component.
+	 *
+	 * @effect This hook has no dependencies, so it only runs once on the initial render.
+	 */
 	useEffect(() => {
 		fetchAgencies()
 		getData()
 	}, [])
 
-	// Function to trigger delete user modal
+	/**
+	 * Triggers the delete user modal and sets the user ID for deletion.
+	 *
+	 * @param {string} userId - The ID of the user to be deleted.
+	 */
 	const handleMobileUserDelete = async (userId) => {
 		setDeleteModal(true)
 		setUserId(userId)
 	}
 
-	// Function to handle user deletion
+	/**
+	 * Handles the deletion of a user from the 'mobileUsers' collection in Firestore.
+	 *
+	 * This function deletes the user document with the given userId and then closes the delete modal.
+	 *
+	 * @param {Event} e - The event object from the delete action.
+	 */
 	const handleDelete = async (e) => {
 		e.preventDefault()
 		const docRef = doc(db, 'mobileUsers', userId)
@@ -292,7 +405,16 @@ const Users = () => {
 		setDeleteModal(false)
 	}
 
-	// MODAL: Function to handle opening and setting values in the EditUserModal
+	/**
+	 * Opens the EditUserModal and populates it with the user's current data.
+	 *
+	 * This function sets the user ID, fetches the user data from Firestore, and updates the state
+	 * with the user's name, email, role, and agency information. It also determines if the user
+	 * is assigned to an agency and sets the selected agency in the modal.
+	 *
+	 * @param {Object} userObj - The object containing user data.
+	 * @param {string} userId - The ID of the user to be edited.
+	 */
 	const handleEditUser = async (userObj, userId) => {
 		setUserId(userId)
 		const userRef = await getDoc(doc(db, 'mobileUsers', userId))
@@ -325,6 +447,14 @@ const Users = () => {
 		setUserRole(userRef.data()['userRole'] ?? 'User')
 	}
 
+	/**
+	 * Handles the change event for selecting a new agency in the EditUserModal.
+	 *
+	 * This function updates the selected agency in the state, removes the user's email from any other agencies,
+	 * and adds the user's email to the newly selected agency's `agencyUsers` array in Firestore.
+	 *
+	 * @param {Event} e - The event object from the agency selection dropdown.
+	 */
 	const handleAgencyChange = async (e) => {
 		e.preventDefault()
 		const selectedValue = e.target.value
@@ -378,29 +508,65 @@ const Users = () => {
 		}
 	}
 
-	// Function to handle name change
+	/**
+	 * Handles the change event for the name input field in the EditUserModal.
+	 *
+	 * This function prevents the default form submission behavior and updates the `name` state
+	 * with the value entered in the input field.
+	 *
+	 * @param {Event} e - The event object from the input field.
+	 */
 	const handleNameChange = (e) => {
 		e.preventDefault()
 		setName(e.target.value)
 	}
 
-	// Function to handle email change
+	/**
+	 * Handles the change event for the email input field in the EditUserModal.
+	 *
+	 * This function prevents the default form submission behavior and updates the `email` state
+	 * with the value entered in the input field.
+	 *
+	 * @param {Event} e - The event object from the input field.
+	 */
 	const handleEmailChange = (e) => {
 		e.preventDefault()
 		setEmail(e.target.value)
 	}
 
-	// Function to handle user role change
+	/**
+	 * Handles the change event for the user role selection in the EditUserModal.
+	 *
+	 * This function triggers the fetching of agencies and updates the `userRole` state
+	 * with the selected role.
+	 *
+	 * @param {string} role - The selected user role.
+	 */
 	const handleRoleChange = (role) => {
 		fetchAgencies()
 		setUserRole(role)
 	}
 
-	// Function to handle banned status change
+	/**
+	 * Handles the change event for the banned status toggle in the EditUserModal.
+	 *
+	 * This function toggles the `banned` state between true and false based on its previous state.
+	 *
+	 * @param {Event} e - The event object from the banned status toggle.
+	 */
 	const handleBannedChange = (e) => {
 		setBanned((prevBanned) => !prevBanned) // Use a function to toggle based on previous state
 	}
 
+	/**
+	 * Adds a user's email to the `agencyUsers` array of the specified agency in Firestore.
+	 *
+	 * This function checks if the user's email is already in the agency's `agencyUsers` array
+	 * to prevent duplicates. If not, it appends the email to the array.
+	 *
+	 * @param {string} email - The email of the user to add to the agency.
+	 * @param {string} agencyId - The ID of the agency to which the user should be added.
+	 */
 	const addUserToAgency = async (email, agencyId) => {
 		try {
 			const agencyRef = doc(db, 'agency', agencyId)
@@ -428,7 +594,14 @@ const Users = () => {
 		}
 	}
 
-	// Function to remove a user's email from all agency documents
+	/**
+	 * Removes a user's email from all agency documents in Firestore where the email is listed in the `agencyUsers` array.
+	 *
+	 * This function retrieves all agencies where the user's email is listed and removes the email
+	 * from the `agencyUsers` array in each of those agency documents.
+	 *
+	 * @param {string} email - The email of the user to remove from all agencies.
+	 */
 	const removeUserFromAgencies = async (email) => {
 		try {
 			// Retrieve all agencies where this user's email is listed in the agencyUsers array
@@ -451,7 +624,15 @@ const Users = () => {
 		}
 	}
 
-	// Function to handle form submission (updating user data)
+	/**
+	 * Handles the form submission to update user data in Firestore.
+	 *
+	 * This function updates the user's document in the `mobileUsers` collection with the new name, email,
+	 * banned status, and user role. It also handles role changes, such as adding or removing admin and agency roles,
+	 * and updates the local state to reflect the changes.
+	 *
+	 * @param {Event} e - The event object from the form submission.
+	 */
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
 		const docRef = doc(db, 'mobileUsers', userId)
@@ -518,7 +699,14 @@ const Users = () => {
 		setUpdate(!update)
 	}
 
-	// Data fetch on update
+	/**
+	 * useEffect hook that triggers the `getData` function whenever the `update` state changes.
+	 *
+	 * This hook ensures that the `getData` function is called whenever the `update` state is toggled,
+	 * allowing the component to re-fetch data and re-render with the latest information.
+	 *
+	 * @dependency {boolean} update - The state that triggers the data fetching when it changes.
+	 */
 	useEffect(() => {
 		getData()
 	}, [update])
