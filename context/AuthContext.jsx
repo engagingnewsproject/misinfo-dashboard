@@ -276,23 +276,10 @@ export const AuthContextProvider = ({children}) => {
       window.localStorage.setItem('emailForSignIn',email)
       console.log("Sign-in link sent to:", email);
     } catch (error) {
-      const errorCode = error.code
       const errorMessage = error.message
-      console.error("Error sending sign-in link:", errorMessage);
+      console.error("Error sending sign-in link:",errorMessage);
+      throw error; // Throw the error so it can be caught by the calling function
     }
-		// await sendSignInLinkToEmail(auth, email, actionCodeSettings)
-		// 	.then(() => {
-		// 		// The link was successfully sent. Inform the user.
-		// 		// Save the email locally so you don't need to ask the user for it again
-		// 		// if they open the link on the same device.
-		// 		window.localStorage.setItem('emailForSignIn', email)
-		// 		// ...
-		// 	})
-		// 	.catch((error) => {
-		// 		const errorCode = error.code
-		// 		const errorMessage = error.message
-		// 		console.log(errorMessage)
-		// 	})
 	}
  
     return (

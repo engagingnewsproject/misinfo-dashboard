@@ -345,23 +345,43 @@ const Users = () => {
 	/**
 	 * Handles the submission of the form to add a new user.
 	 *
-	 * This function prevents the default form submission behavior, sends a sign-in email to the new user's email address,
-	 * triggers an update by toggling the `update` state, and then closes the new user modal.
+	 * This function prevents the default form submission behavior and first clears any existing errors.
+	 * It validates the new user's email address to ensure it meets the minimum length requirement.
+	 * If the email is valid, the function attempts to send a sign-in link to the email address.
+	 * If the operation is successful, the function triggers a state update to refresh the user list and closes the modal.
+	 * In case of an error during the sign-in process or validation, the error is captured and displayed in the form.
 	 *
 	 * @param {Event} e - The event object from the form submission.
-	 * @returns {Promise<void>} A promise that resolves after the sign-in email is sent and the modal is closed.
+	 * @returns {Promise<void>} A promise that resolves after the sign-in email is sent and the modal is closed,
+	 * or an error is handled and displayed if encountered.
 	 */
 	const handleAddNewUserFormSubmit = async (e) => {
 		e.preventDefault()
-		await sendSignIn(newUserEmail)
-		setUpdate(!update)
-		// check form id
-		// if (e.target.id == 'newUserModal') { // NEW AGENCY
-		// 	saveUser()
-		setNewUserModal(false)
-		// } else if (e.target.id == 'userModal') { // EXISTING AGENCY
-		// 	handleUserUpdate(e)
-		// }
+		try {
+			// Clear previous errors
+			setErrors({})
+
+			// Validate the email length before sending the sign-in link
+			if (newUserEmail.length < 15) {
+				setErrors((prevErrors) => ({
+					...prevErrors,
+					email: 'Email should be at least 15 characters long',
+				}))
+				return // Stop the form submission if there's a validation error
+			}
+
+			await sendSignIn(newUserEmail)
+			setUpdate(!update)
+			setNewUserModal(false)
+		} catch (error) {
+			console.error('Error in handleAddNewUserFormSubmit:', error.message)
+
+			// Set the error message in the errors state
+			setErrors((prevErrors) => ({
+				...prevErrors,
+				email: error.message, // Assuming the error relates to the email
+			}))
+		}
 	}
 
 	/**

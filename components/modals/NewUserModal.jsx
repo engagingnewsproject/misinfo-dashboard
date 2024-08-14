@@ -10,6 +10,7 @@ const NewUserModal = ({
 	onNewUserEmail,
 	errors,
 }) => {
+	// TODO: move styles to global
 	const style = {
 		modal_background: 'fixed z-[9998] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto',
 		modal_container: 'absolute inset-0 flex justify-center items-center z-[9999] sm:overflow-y-scroll',
@@ -33,7 +34,7 @@ const NewUserModal = ({
 				<div className={style.modal_wrapper} onClick={(e) => {e.stopPropagation()}}>
 					<div className={style.modal_header_container}>
 						<div className={style.modal_header_wrapper}>
-							<div className={style.modal_header}>{'Add new Agency'}</div>
+							<div className={style.modal_header}>{'Add new agency user'}</div>
 							<button onClick={() => setNewUserModal(false)} className='text-gray-800'><IoClose size={25} /></button>
 						</div>
 					</div>
@@ -56,7 +57,7 @@ const NewUserModal = ({
 							className={style.modal_form_input}
 							id="userEmail"
 							type="text"
-							placeholder="New User Email"
+							placeholder="Email"
 							value={newUserEmail}
 							onChange={onNewUserEmail}
 							autoComplete='email'
