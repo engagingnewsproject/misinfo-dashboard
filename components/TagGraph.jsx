@@ -110,7 +110,7 @@ const TagGraph = () => {
 				console.error('Error fetching tags: ', error)
 			}
     }
-    console.log(tempTopics);
+
     if (tempTopics.length === 0) {
       setLoading(false);
       return;
