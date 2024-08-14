@@ -82,7 +82,7 @@ const EditUserModal = ({
 									id='name'
 									type='text'
 									onChange={onNameChange}
-									defaultValue={userEditing.name}
+									defaultValue={userEditing.name || 'Name not set'}
 								/>
 								<label htmlFor='name' className={style.modal_form_label}>
 									User ID
