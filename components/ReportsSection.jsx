@@ -63,7 +63,6 @@ const readValues = [
 const ReportsSection = ({
 	search,
 	newReportSubmitted,
-	// handleNewReportSubmit,
 	handleNewReportClick,
 }) => {
 	const userId = localStorage.getItem('userId')
