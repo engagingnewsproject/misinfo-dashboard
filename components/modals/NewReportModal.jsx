@@ -178,7 +178,7 @@ const NewReportModal = ({
 			uploadTask.on(
 				'state_changed',
 				(snapshot) => {
-					console.log(snapshot)
+					// console.log(snapshot)
 				},
 				(error) => {
 					console.log(error)
@@ -480,9 +480,8 @@ const NewReportModal = ({
 	 */
 	const getTopicList = async () => {
 		try {
-			console.log("Current agency's ID is " + selectedAgencyId)
+			// console.log("Current agency's ID is " + selectedAgencyId)
 			let docRef = await getDoc(doc(db, 'tags', selectedAgencyId))
-			// TODO: test to make sure not null
 
 			// create tags collection if current agency does not have one
 			if (!docRef.exists()) {
@@ -523,13 +522,13 @@ const NewReportModal = ({
 					if (b === t('Other')) return -1 // Move "Other" to the end
 					return a.localeCompare(b) // Default sorting for other elements
 				})
-				console.log(tagsData['active'])
+				// console.log(tagsData['active'])
 				setActive(tagsData['active'])
 			}
 		} catch (error) {
 			console.log(error)
 		} finally {
-			console.log('Cleanup here') // cleanup, always executed
+			// console.log('Cleanup here') // cleanup, always executed
 		}
 	}
 
@@ -549,7 +548,7 @@ const NewReportModal = ({
 		try {
 			getDoc(doc(db, 'tags', selectedAgencyId)).then((docRef) => {
 				if (docRef.exists()) {
-					console.log(docRef.data())
+					// console.log(docRef.data())
 					const tagsData = docRef.data()['Source']
 					setSources(docRef.data()['Source']['active'])
 					setSourceList(docRef.data()['Source']['list'])
@@ -734,8 +733,10 @@ const NewReportModal = ({
 	useEffect(() => {
 		if (selectedAgency) {
 			getTopicList()
-			getAllTopics()
-			getAllSources()
+			// getAllTopics()
+      // getAllSources()
+              getAllTags('topics');
+        getAllTags('sources');
 		}
 	}, [selectedAgency])
 
@@ -750,7 +751,7 @@ const NewReportModal = ({
 	useEffect(() => {
 		// waits to retrieve sources until topics are retrieved
 		if (selectedAgencyId && allTopicsArr.length > 0) {
-			console.log(active)
+			// console.log(active)
 			getSourceList()
 		}
 	}, [allTopicsArr])
@@ -790,7 +791,7 @@ const NewReportModal = ({
 			agencyRef.forEach((doc) => {
 				arr.push(doc.data()['name'])
 			})
-			console.log(arr)
+			// console.log(arr)
 			// set the agencies state with the agency names
 			setAgencies(arr)
 		} catch (error) {
@@ -844,6 +845,21 @@ const NewReportModal = ({
 		}
 	}
 
+  // combo
+  async function getAllTags(tagType) {
+    if (selectedAgency == '') {
+        tagType === 'topics' ? setTopics([]) : setSources([]);
+    } else {
+        const docRef = doc(db, 'tags', selectedAgencyId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const tagData = docSnap.get(tagType === 'topics' ? 'Topic' : 'Source')['active'];
+            tagType === 'topics' ? setTopics(tagData) : setSources(tagData);
+        }
+    }
+}
+
+  
 	/**
 	 * handleNewReportModalClose
 	 *
