@@ -316,19 +316,6 @@ const Users = () => {
 		}
 	}
 
-	const saveUser = () => {
-		// Save new user
-		const dbInstance = collection(db, 'mobileUsers')
-		addDoc(dbInstance, {
-			email: newUserEmail,
-		}).then(async () => {
-			try {
-			} catch (err) {
-			} finally {
-			}
-		})
-	}
-
 	/**
 	 * Handles the event when the "Add New User" button is clicked, opening the modal to add a new user.
 	 *
