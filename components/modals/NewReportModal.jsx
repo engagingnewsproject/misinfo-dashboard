@@ -33,8 +33,6 @@ import { Typography } from '@material-tailwind/react'
 const NewReportModal = ({
 	setNewReportModal,
 	handleNewReportSubmit,
-	agencyName,
-	customClaims,
 }) => {
 	const dbInstance = collection(db, 'reports')
 	const { user } = useAuth()
