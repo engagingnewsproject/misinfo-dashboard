@@ -51,16 +51,16 @@ const SignUp = () => {
 	const [pass, setPass] = useState('')
 	const [type, setType] = useState('password')
 	const [icon, setIcon] = useState(false)
-
+	// console.log(isAgency);
 	const addMobileUser = (privilege) => {
 		// Get user object
-		console.log('addMobileUser start', privilege)
+		// console.log('addMobileUser start', privilege)
 		const user = auth.currentUser
 		// console.log(user)
 		if (user) {
 			// Set user uid
-			console.log('adding mobile user')
-			console.log(data)
+			// console.log('adding mobile user')
+			// console.log(data)
 			const uid = user.uid
 			// create a new mobileUsers doc with signed in user's uid
 			setDoc(doc(db, 'mobileUsers', uid), {
@@ -140,6 +140,8 @@ const SignUp = () => {
                   notes: firestore `mobileUsers` db is not added the new user's doc
                 */
 								if (verifyEmail(auth.currentUser)) {
+									// console.log('verifyEmail==> ', verifyEmail(auth.currentUser));
+									// console.log('auth.currentUser==> ', auth.currentUser);
 									// Verifies the email of the logged-in user.
 									setSignUpError('') // Clears any previous sign-up errors.
 									addMobileUser('Agency') // Adds the user to the 'mobileUsers' collection with 'Agency' role.
