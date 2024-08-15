@@ -1,6 +1,3 @@
-// TODO: need to make sure the user who created the report is added to the report: userID
-// About to move this to the pages/dashboard.jsx file because the `newReportModal` state is 
-// defined in both Nav component and ReportsSection component which is an issue.
 import React,{ useState,useEffect,useRef } from 'react'
 import { useRouter } from 'next/router';
 import { IoClose } from 'react-icons/io5';
@@ -8,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import moment from 'moment';
 import Image from 'next/image';
 import { db } from '../../config/firebase';
-import { Country, State, City } from 'country-state-city';
+import { State, City } from 'country-state-city';
 import {
   getDoc,
   getDocs,
@@ -29,246 +26,260 @@ import {
   deleteObject,
   uploadBytesResumable,
 } from 'firebase/storage';
-// import csc from 'country-state-city';
 import Select from 'react-select';
 import { useTranslation } from 'next-i18next';
+import { Typography } from '@material-tailwind/react'
+
+const defaultTopics = ['Health', 'Other', 'Politics', 'Weather'] // tag system 1
+const defaultSources = [
+  'Newspaper',
+  'Other/Otro',
+  'Social',
+  'Website',
+] // tag system 2
+const defaultLabels = ['Important', 'Flagged'] // tag system 3
 
 const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, customClaims }) => {
-  // if (!open) return null
-  // Ref to firebase reports collection
-  const dbInstance = collection(db, 'reports');
-  const { user } = useAuth();
-  // useStates
-  const [data, setData] = useState({ country: 'US', state: null, city: null });
+	const dbInstance = collection(db, 'reports')
+	const { user } = useAuth()
+	// useStates
+	const [data, setData] = useState({ country: 'US', state: null, city: null })
 
-  const [title, setTitle] = useState('');
-  const [link, setLink] = useState('');
-  const [secondLink, setSecondLink] = useState('');
-  const [detail, setDetail] = useState('');
-  // Image upload
+	const [title, setTitle] = useState('')
+	const [link, setLink] = useState('')
+	const [secondLink, setSecondLink] = useState('')
+	const [detail, setDetail] = useState('')
+	// Image upload
 
-  const [imageList, setImageList] = useState([]);
-  // Get a reference to the storage service, which is used to create references in your storage bucket
-  const storage = getStorage();
-  const imgPicker = useRef(null);
-  const [images, setImages] = useState([]);
-  const [imageURLs, setImageURLs] = useState([]);
-  const [progress, setProgress] = useState(0);
-  const [update, setUpdate] = useState(false);
-  const [allTopicsArr, setTopics] = useState([]);
-  const [agencies, setAgencies] = useState([]);
-  const [selectedAgency, setSelectedAgency] = useState('');
-  const [selectedAgencyId, setSelectedAgencyId] = useState("");
-  const [selectedTopic, setSelectedTopic] = useState('');
-  const [otherTopic, setOtherTopic] = useState('');
-  const [otherSource, setOtherSource] = useState('');
-  const [showOtherTopic, setShowOtherTopic] = useState(false);
-  const [showOtherSource, setShowOtherSource] = useState(false);
-  const [list, setList] = useState([]);
-  const [sourceList, setSourceList] = useState([]);
-  const [active, setActive] = useState([]);
-  const [activeSources, setActiveSources] = useState([]);
-  const [allSourcesArr, setSources] = useState([]);
-  const [selectedSource, setSelectedSource] = useState('');
-  const [reportState, setReportState] = useState(0);
-  const [errors, setErrors] = useState({});
+	const [imageList, setImageList] = useState([])
+	// Get a reference to the storage service, which is used to create references in your storage bucket
+	const storage = getStorage()
+	const imgPicker = useRef(null)
+	const [images, setImages] = useState([])
+	const [imageURLs, setImageURLs] = useState([])
+	// const [progress, setProgress] = useState(0);
+	const [update, setUpdate] = useState(false)
+	const [allTopicsArr, setTopics] = useState([])
+	const [agencies, setAgencies] = useState([])
+	const [selectedAgency, setSelectedAgency] = useState('')
+	const [selectedAgencyId, setSelectedAgencyId] = useState('')
+	const [selectedTopic, setSelectedTopic] = useState('')
+	const [otherTopic, setOtherTopic] = useState('')
+	const [otherSource, setOtherSource] = useState('')
+	const [showOtherTopic, setShowOtherTopic] = useState(false)
+	const [showOtherSource, setShowOtherSource] = useState(false)
+	const [list, setList] = useState([])
+	const [sourceList, setSourceList] = useState([])
+	const [active, setActive] = useState([])
+	const [activeSources, setActiveSources] = useState([])
+	const [allSourcesArr, setSources] = useState([])
+	const [selectedSource, setSelectedSource] = useState('')
+	const [reportState, setReportState] = useState(0)
+	const [errors, setErrors] = useState({})
 
-  const { t } = useTranslation('NewReport');
+	const { t } = useTranslation('NewReport')
 
-  const saveReport = (imageURLs) => {
-    addDoc(dbInstance, {
-      userID: user.accountId,
-      state: data.state.name,
-      city: data.city == null ? 'N/A' : data.city.name,
-      agency: selectedAgency,
-      title: title,
-      link: link,
-      secondLink: secondLink,
-      images: imageURLs,
-      detail: detail,
-      createdDate: moment().toDate(),
-      isApproved: false,
-      label: '',
-      read: false,
-      topic: selectedTopic,
-      hearFrom: selectedSource,
-    }).then(() => {
-      handleNewReportSubmit(); // Send a signal to ReportsSection so that it updates the list
-      addNewTag(selectedTopic, selectedSource, selectedAgencyId);
-    });
-  };
+	const saveReport = (imageURLs) => {
+		addDoc(dbInstance, {
+			userID: user.accountId,
+			state: data.state.name,
+			city: data.city == null ? 'N/A' : data.city.name,
+			agency: selectedAgency,
+			title: title,
+			link: link,
+			secondLink: secondLink,
+			images: imageURLs,
+			detail: detail,
+			createdDate: moment().toDate(),
+			isApproved: false,
+			label: '',
+			read: false,
+			topic: selectedTopic,
+			hearFrom: selectedSource,
+		}).then(() => {
+			handleNewReportSubmit() // Send a signal to ReportsSection so that it updates the list
+			addNewTag(selectedTopic, selectedSource, selectedAgencyId)
+		})
+	}
 
-  const handleImageChange = (e) => { // Image upload (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js, https://www.youtube.com/watch?v=S4zaZvM8IeI)
-    console.log('handle image change run');
-    for (let i = 0; i < e.target.files.length; i++) {
-      const newImage = e.target.files[i];
-      setImages((prevState) => [...prevState, newImage]);
-      setUpdate(!update);
-    }
-  };
-
-  const handleUpload = () => { // Image upload to firebase
-    const promises = [];
-    images.map((image) => {
-      const storageRef = ref(
-        storage,
-        `report_${new Date().getTime().toString()}.png`
-      );
-      const uploadTask = uploadBytesResumable(storageRef, image);
-      promises.push(uploadTask);
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          console.log(snapshot);
-        },
-        (error) => {
-          console.log(error);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            console.log('File available at', downloadURL);
-            setImageURLs((prev) => [...prev, downloadURL]);
-          });
-        }
-      );
-    });
-
-    Promise.all(promises).catch((err) => console.log(err));
-  };
-
-  // TODO: delete file option after upload
-  // TODO: also. . . on report delete, delete the attached images as well
-  // const handleImageDelete = (image) => {
-  // console.log(image);
-  //     // Create a reference to the file to delete
-  //     const storageRef = ref(storage, `images/report_${new Date().getTime().toString()}-${image.name}`)
-
-  //     // Delete the file
-  //     deleteObject(storageRef).then(() => {
-  //     // File deleted successfully
-  //         console.log('File deleted successfully');
-  //     }).catch((error) => {
-  //     // Uh-oh, an error occurred!
-  //     });
-  // }
-
-  const handleChange = (e) => {
-    // console.log('Report value changed.');
-  };
-
-  const handleStateChange = (e) => {
-    setData((data) => ({ ...data, state: e, city: null }));
-    setReportState(1);
-  };
-
-  const handleCityChange = (e) => {
-    setData((data) => ({ ...data, city: e !== null ? e : null }));
-    setReportState(2);
-  };
-  
-  const handleAgencyChange = async (e) => {
-    setSelectedAgency(e.value)
-    try {
-			const agencyCollectionRef = collection(db, 'agency')
-			const agencyQuery = query(
-				agencyCollectionRef,
-				where('name', '==', selectedAgency),
-			)
-			const querySnapshot = await getDocs(agencyQuery)
-
-			if (!querySnapshot.empty) {
-				const agencyDoc = querySnapshot.docs[0]
-				const agencyId = agencyDoc.id
-				setSelectedAgencyId(agencyId)
-			} else {
-				console.warn('No agency found with the name:', selectedAgency)
-			}
-		} catch (error) {
-			console.error('Error fetching agency ID:', error)
+	const handleImageChange = (e) => {
+		// Image upload (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js, https://www.youtube.com/watch?v=S4zaZvM8IeI)
+		console.log('handle image change run')
+		for (let i = 0; i < e.target.files.length; i++) {
+			const newImage = e.target.files[i]
+			setImages((prevState) => [...prevState, newImage])
+			setUpdate(!update)
 		}
-     
-    //   const documentId = 'your-document-id';
-    //   const collectionName = 'your-collection-name';
-    //   const document = await firebaseHelper.fetchDocumentById(collectionName, documentId);
+	}
 
-    //   if (document) {
-    //     console.log('Document data:', document);
-    //   } else {
-    //     console.log('No document found.');
-    //   }
-    // } catch (error) {
-    //   console.error('Failed to fetch document:', error);
-    // }
-		// const agencyCollection = collection(db, 'agency')
-    // try {
-    //   const docSnapshot = await firebaseHelper.fetchARecordFromCollection('tags', agnecyId, )
-    //   console.log(docSnapshot);
-    // } catch (error) {
-    //   console.log('error fetching agencies');
-    // }
-		// If current user is an agency, determine which agency
-		// const q = query(
-		// 	agencyCollection,
-		// 	where('name', '==', e.value),
-		// 	where('state', '==', data.state.name),
-		// )
-		// let agencyId
-		// getDocs(q).then((querySnapshot) => {
-		// 	querySnapshot.forEach((docAgency) => {
-		// 		// Set initial values
-		// 		console.log('im here')
-		// 		agencyId = docAgency.id
-		// 		console.log(agencyId)
-		// 		setSelectedAgencyId(agencyId)
-		// 		console.log(agencyId)
-		// 		const docRef = doc(db, 'tags', selectedAgencyId)
-		// 		getDoc(docRef).then((docSnap) => {
-		// 			// TODO: test to make sure not null
+	const handleUpload = () => {
+		// Image upload to firebase
+		const promises = []
+		images.map((image) => {
+			const storageRef = ref(
+				storage,
+				`report_${new Date().getTime().toString()}.png`,
+			)
+			const uploadTask = uploadBytesResumable(storageRef, image)
+			promises.push(uploadTask)
+			uploadTask.on(
+				'state_changed',
+				(snapshot) => {
+					console.log(snapshot)
+				},
+				(error) => {
+					console.log(error)
+				},
+				() => {
+					getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+						console.log('File available at', downloadURL)
+						setImageURLs((prev) => [...prev, downloadURL])
+					})
+				},
+			)
+		})
 
-		// 			// create tags collection if current agency does not have one
-		// 			if (!docSnap.exists()) {
-		// 				const defaultTopics = ['Health', 'Other', 'Politics', 'Weather'] // tag system 1
-		// 				const defaultSources = [
-		// 					'Newspaper',
-		// 					'Other/Otro',
-		// 					'Social',
-		// 					'Website',
-		// 				] // tag system 2
-		// 				const defaultLabels = ['Important', 'Flagged'] // tag system 3
+		Promise.all(promises).catch((err) => console.log(err))
+	}
 
-		// 				// reference to tags collection
-		// 				const tagsCollection = collection(db, 'tags')
+	// TODO: delete file option after upload
+	// TODO: also. . . on report delete, delete the attached images as well
+	// const handleImageDelete = (image) => {
+	// console.log(image);
+	//     // Create a reference to the file to delete
+	//     const storageRef = ref(storage, `images/report_${new Date().getTime().toString()}-${image.name}`)
 
-		// 				const myDocRef = doc(tagsCollection, selectedAgencyId)
+	//     // Delete the file
+	//     deleteObject(storageRef).then(() => {
+	//     // File deleted successfully
+	//         console.log('File deleted successfully');
+	//     }).catch((error) => {
+	//     // Uh-oh, an error occurred!
+	//     });
+	// }
 
-		// 				// create topics document for the new agency
-		// 				setDoc(myDocRef, {
-		// 					Labels: {
-		// 						list: defaultLabels,
-		// 						active: defaultLabels,
-		// 					},
+	const handleChange = (e) => {
+		// console.log('Report value changed.');
+	}
 
-		// 					Source: {
-		// 						list: defaultSources,
-		// 						active: defaultSources,
-		// 					},
-		// 					Topic: {
-		// 						list: defaultTopics,
-		// 						active: defaultTopics,
-		// 					},
-		// 				})
-		// 			} else {
-		// 				console.log('Tags collection for this agency exists.')
-		// 			}
-		// 		})
-		// 	})
-		// })
-		setReportState(3)
+	/**
+	 * handleStateChange
+	 *
+	 * This function is triggered when a user selects a state from the dropdown.
+	 * It performs the following tasks:
+	 *
+	 * 1. Update State: Sets the selected state in the `data` state object and resets the city selection to `null`.
+	 *
+	 * 2. Update Report State: Sets the report's state tracking variable `reportState` to `1`, indicating that a state has been selected.
+	 *
+	 * @param {object} e - The event object containing the selected state.
+	 */
+	const handleStateChange = (e) => {
+		setData((data) => ({ ...data, state: e, city: null }))
+		setReportState(1)
+	}
+
+	/**
+	 * handleCityChange
+	 *
+	 * This function is triggered when a user selects a city from the dropdown.
+	 * It performs the following tasks:
+	 *
+	 * 1. Update City: Sets the selected city in the `data` state object or sets it to `null` if no city is selected.
+	 *
+	 * 2. Update Report State: Sets the report's state tracking variable `reportState` to `2`, indicating that a city has been selected.
+	 *
+	 * @param {object} e - The event object containing the selected city.
+	 */
+	const handleCityChange = (e) => {
+		setData((data) => ({ ...data, city: e !== null ? e : null }))
+		setReportState(2)
+	}
+
+	/**
+	 *
+	 * Two options for agency selection
+	 * 1) function: handleAgencyChange (uncomment)
+	 * - - automatically set agency from agency user's assigned agency
+	 * 2) function: getAgencyForUser
+	 * - - let user choose agency from agency selector
+	 *
+	 */
+
+	/**
+	 * handleAgencyChange
+	 *
+	 * This function is triggered when a user selects an agency from a dropdown menu.
+	 * It performs the following tasks:
+	 *
+	 * 1. **Extract Agency Name**: Retrieves the selected agency name from the event and sets it to the state `selectedAgency`.
+	 *
+	 * 2. **Query Firebase for Agency Document**: Uses Firebase Firestore to query the 'agency' collection and find the document that matches the selected agency name.
+	 *
+	 * 3. **Handle Found Agency Document**:
+	 *    - If a matching agency document is found, it retrieves the agency's ID and updates the state `selectedAgencyId`.
+	 *    - The function then checks if a corresponding document exists in the 'tags' collection (using the agency ID).
+	 *
+	 * 4. **Create Default Tags if Not Exists**:
+	 *    - If the 'tags' document for the agency does not exist, it creates one with default tags for `Topic`, `Source`, and `Labels`.
+	 *
+	 * 5. **Log and Handle Errors**:
+	 *    - Logs messages based on whether the tags document exists or was created.
+	 *    - If no matching agency is found, an error is logged.
+	 *    - Catches and logs any errors that occur during the process.
+	 *
+	 * @param {object} e - The event object from the dropdown menu selection, containing the selected agency name.
+	 */
+
+	/**
+  const handleAgencyChange = async (e) => {
+    try {
+      const selectedAgencyName = e.value
+      setSelectedAgency(selectedAgencyName) // Keep selectedAgency as a string
+
+      // Query for the agency by name
+      const agencyCollection = collection(db, 'agency')
+      const q = query(agencyCollection, where('name', '==', selectedAgencyName))
+      const querySnapshot = await getDocs(q)
+
+      if (!querySnapshot.empty) {
+        const agencyDoc = querySnapshot.docs[0]
+        const agencyId = agencyDoc.id
+
+        // Update the selected agency ID state
+        setSelectedAgencyId(agencyId)
+
+        // Check if tags exist for the selected agency
+        const docRef = doc(db, 'tags', agencyId)
+        const docSnap = await getDoc(docRef)
+
+        if (!docSnap.exists()) {
+          console.log('Creating default tags for agency')
+          // Create default tags if they don't exist
+          const defaultTopics = ['Health', 'Other', 'Politics', 'Weather']
+          const defaultSources = ['Newspaper', 'Other/Otro', 'Social', 'Website']
+          const defaultLabels = ['Important', 'Flagged']
+
+          await setDoc(docRef, {
+            Labels: { list: defaultLabels, active: defaultLabels },
+            Source: { list: defaultSources, active: defaultSources },
+            Topic: { list: defaultTopics, active: defaultTopics },
+          })
+
+          console.log('Created default tags for the agency.')
+        } else {
+          console.log('Tags collection for this agency exists.')
+        }
+      } else {
+        console.error('No matching agency found.')
+      }
+    } catch (error) {
+      console.error('Error in handleAgencyChange:', error)
+    }
   }
-  
-  
-  
-  const getAgencyForUser = async () => {
+  */
+
+	const getAgencyForUser = async () => {
 		try {
 			// Query the 'agency' collection for the document where the 'agencyUsers' array contains the user's email
 			const agencyCollectionRef = collection(db, 'agency')
@@ -298,553 +309,539 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 		}
 	}
 
-	// // Call this function when needed, e.g., inside a useEffect when the component mounts
-	// useEffect(() => {
-	// 	getAgencyForUser()
-	// }, [])
+	const handleTitleChange = (e) => {
+		e.preventDefault()
+		setTitle(e.target.value)
+		reportState < 4 && setReportState(4)
+	}
 
-  
-  
-  
-  
+	const handleTopicChange = (e) => {
+		setSelectedTopic(e.value)
+		if (e.value === t('Other')) {
+			setShowOtherTopic(true)
+		} else {
+			setShowOtherTopic(false)
+		}
+		setReportState(5)
+	}
 
-  const handleTitleChange = (e) => {
-    e.preventDefault();
-    setTitle(e.target.value);
-    reportState < 4 && setReportState(4);
-  };
+	const handleSourceChangeOther = (e) => {
+		setSelectedSource(e.value)
+		if (e.value === t('Other')) {
+			setShowOtherSource(true)
+		} else {
+			setShowOtherSource(false)
+		}
+		setReportState(6)
+	}
 
-  const handleTopicChange = (e) => {
-    setSelectedTopic(e.value);
-    if (e.value === t('Other')) {
-      setShowOtherTopic(true);
-    } else {
-      setShowOtherTopic(false);
-    }
-    setReportState(5);
-  };
+	const addNewTag = (tag, source, agencyId) => {
+		let topicArr = list
+		let sourceArr = sourceList
+		if (!topicArr.includes(tag)) {
+			topicArr.push(tag)
+		}
+		if (!sourceArr.includes(source)) {
+			sourceArr.push(source)
+		}
+		setList(topicArr)
+		setSourceList(sourceArr)
+		updateTopicTags(list, agencyId, sourceList)
+	}
 
-  const handleSourceChangeOther = (e) => {
-    setSelectedSource(e.value);
-    if (e.value === t('Other')) {
-      setShowOtherSource(true);
-    } else {
-      setShowOtherSource(false);
-    }
-    setReportState(6);
-  };
+	const getTopicList = async () => {
+		try {
+			console.log("Current agency's ID is " + selectedAgencyId)
+			let docRef = await getDoc(doc(db, 'tags', selectedAgencyId))
+			// TODO: test to make sure not null
 
-  const addNewTag = (tag, source, agencyId) => {
-    let topicArr = list;
-    let sourceArr = sourceList;
-    if (!topicArr.includes(tag)) {
-      topicArr.push(tag);
-    }
-    if (!sourceArr.includes(source)) {
-      sourceArr.push(source);
-    }
-    setList(topicArr);
-    setSourceList(sourceArr);
-    updateTopicTags(list, agencyId, sourceList);
-  };
+			// create tags collection if current agency does not have one
+			if (!docRef.exists()) {
+				console.log('Need to create tag collection for agency. ')
+				const defaultTopics = ['Health', 'Other', 'Politics', 'Weather'] // tag system 1
+				const defaultSources = ['Newspaper', 'Other/Otro', 'Social', 'Website'] // tag system 2
+				const defaultLabels = ['Important', 'Flagged'] // tag system 3
 
-  const getTopicList = async () => {
-    try {
-      console.log("Current agency's ID is " + selectedAgencyId)
-      let docRef = await getDoc(doc(db, 'tags', selectedAgencyId));
-       // TODO: test to make sure not null
+				// reference to tags collection
+				const myDocRef = doc(db, 'tags', selectedAgencyId)
+				setTopics(defaultTopics)
+				setActive(defaultTopics['active'])
 
-       // create tags collection if current agency does not have one
-       if (!docRef.exists()) {
-          console.log("Need to create tag collection for agency. ")
-          const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
-          const defaultSources = ["Newspaper", "Other/Otro","Social","Website"] // tag system 2
-          const defaultLabels = ["Important", "Flagged"] // tag system 3
+				// create topics document for the new agency
+				await setDoc(myDocRef, {
+					Labels: {
+						list: defaultLabels,
+						active: defaultLabels,
+					},
+					Source: {
+						list: defaultSources,
+						active: defaultSources,
+					},
+					Topic: {
+						list: defaultTopics,
+						active: defaultTopics,
+					},
+				})
+				// retrieve list of topics again after creating document of tags for agency
+				console.log('in if statement')
 
-          // reference to tags collection 
-          const myDocRef = doc(db, "tags", selectedAgencyId);
-          setTopics(defaultTopics)
-          setActive(defaultTopics['active'])
+				// Otherwise, tag collection already exists.
+			} else {
+				const tagsData = docRef.data()['Topic']
+				setTopics(docRef.data()['Topic']['list'])
+				tagsData['active'].sort((a, b) => {
+					if (a === t('Other')) return 1 // Move "Other" to the end
+					if (b === t('Other')) return -1 // Move "Other" to the end
+					return a.localeCompare(b) // Default sorting for other elements
+				})
+				console.log(tagsData['active'])
+				setActive(tagsData['active'])
+			}
+		} catch (error) {
+			console.log(error)
+		} finally {
+			console.log('Cleanup here') // cleanup, always executed
+		}
+	}
 
-          // create topics document for the new agency
-          await setDoc(myDocRef, {
-          Labels: {
-            list: defaultLabels,
-            active: defaultLabels
-          },
-          Source: {
-            list: defaultSources,
-            active: defaultSources
-          },
-          Topic: {
-              list: defaultTopics,
-              active: defaultTopics
-          }
-        })
-        // retrieve list of topics again after creating document of tags for agency
-        console.log("in if statement")
-       
-    
-  
+	const getSourceList = async () => {
+		try {
+			getDoc(doc(db, 'tags', selectedAgencyId)).then((docRef) => {
+				if (docRef.exists()) {
+					console.log(docRef.data())
+					const tagsData = docRef.data()['Source']
+					setSources(docRef.data()['Source']['active'])
+					setSourceList(docRef.data()['Source']['list'])
+					tagsData['active'].sort((a, b) => {
+						if (a === 'Other') return 1 // Move "Other" to the end
+						if (b === 'Other') return -1 // Move "Other" to the end
+						return a.localeCompare(b) // Default sorting for other elements
+					})
+					setActiveSources(docRef.data()['Source']['active'])
+				}
+			})
+		} catch (error) {
+			console.log(error)
+		}
+	}
 
-      // Otherwise, tag collection already exists.
-      } else {
-        const tagsData  = docRef.data()['Topic']
-        setTopics(docRef.data()['Topic']['list']);
-        tagsData['active'].sort((a, b) => {
-          if (a === t('Other')) return 1; // Move "Other" to the end
-          if (b === t('Other')) return -1; // Move "Other" to the end
-          return a.localeCompare(b); // Default sorting for other elements
-        });
-        console.log(tagsData['active'])
-        setActive(tagsData['active']);
-      }
-  
-    } catch (error) {
-      console.log(error);
-    } finally {
-      console.log('Cleanup here'); // cleanup, always executed
-  }
-  };
+	const updateTopicTags = async (topicList, agencyId, sourceList) => {
+		try {
+			const docRef = doc(db, 'tags', agencyId)
 
-  const getSourceList = async () => {
-    try {
-      getDoc(doc(db, 'tags', selectedAgencyId)).then((docRef)=> {
-        if (docRef.exists()) {
-          console.log(docRef.data())
-          const tagsData  = docRef.data()['Source']
-          setSources(docRef.data()['Source']['active'])
-          setSourceList(docRef.data()['Source']['list'])
-          tagsData['active'].sort((a, b) => {
-            if (a === 'Other') return 1; // Move "Other" to the end
-            if (b === 'Other') return -1; // Move "Other" to the end
-            return a.localeCompare(b); // Default sorting for other elements
-          });
-        setActiveSources(docRef.data()['Source']['active']);
-        }
-      })
-    } catch (error) {
-      console.log(error);
-    }
-  };
+			// Update the 'list' and 'active' arrays for both 'Topic' and 'Source' fields
+			await updateDoc(docRef, {
+				'Topic.list': arrayUnion(...topicList), // Add new topics to the 'list' array
+				'Topic.active': arrayUnion(...active), // Add new topics to the 'active' array
+				'Source.list': arrayUnion(...sourceList), // Add new sources to the 'list' array
+				'Source.active': arrayUnion(...activeSources), // Add new sources to the 'active' array
+			})
 
-  const updateTopicTags = async (topicList, agencyId, sourceList) => {
-    try {
-      const docRef = doc(db, 'tags', agencyId);
+			console.log('Tags updated successfully')
+		} catch (error) {
+			console.error('Error updating tags:', error.message)
+		}
+	}
 
-      // Update the 'list' and 'active' arrays for both 'Topic' and 'Source' fields
-      await updateDoc(docRef, {
-        'Topic.list': arrayUnion(...topicList), // Add new topics to the 'list' array
-        'Topic.active': arrayUnion(...active),  // Add new topics to the 'active' array
-        'Source.list': arrayUnion(...sourceList), // Add new sources to the 'list' array
-        'Source.active': arrayUnion(...activeSources) // Add new sources to the 'active' array
-      });
+	const handleOtherTopicChange = (e) => {
+		setOtherTopic(e.target.value)
+		setSelectedTopic(e.target.value)
+	}
 
-      console.log('Tags updated successfully');
-    } catch (error) {
-      console.error('Error updating tags:', error.message);
-    }
-  };
+	const handleOtherSourceChange = (e) => {
+		setOtherSource(e.target.value)
+		setSelectedSource(e.target.value)
+	}
 
-  const handleOtherTopicChange = (e) => {
-    setOtherTopic(e.target.value);
-    setSelectedTopic(e.target.value);
-  };
+	const handleSubmitClick = (e) => {
+		e.preventDefault()
+		if (!title) {
+			alert(t('titleRequired'))
+		} else if (images == '' && !detail && !link) {
+			alert(t('atLeast'))
+		} else {
+			if (images.length > 0) {
+				setUpdate(!update)
+			}
+			saveReport(imageURLs)
+			setNewReportModal(false)
+		}
+	}
 
-  const handleOtherSourceChange = (e) => {
-    setOtherSource(e.target.value);
-    setSelectedSource(e.target.value);
-  };
+	const handleNewReport = async (e) => {
+		e.preventDefault()
+		// TODO: Check for any errors
+		const allErrors = {}
+		if (data.state == null) {
+			console.log('state error')
+			allErrors.state = t('state')
+		}
+		if (data.city == null) {
+			// Don't display the report, show an error message
+			console.log('city error')
+			allErrors.city = t('city')
+			if (
+				data.state != null &&
+				City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
+					.length == 0
+			) {
+				console.log('No cities here')
+				delete allErrors.city
+			}
+		}
+		if (selectedSource == '') {
+			console.log('No source error')
+			allErrors.source = t('source')
+		}
+		// TODO: some topics show up in dropdown as "topics.News" or "topics.Social"
+		if (selectedTopic == '') {
+			console.log('No topic selected')
+			allErrors.topic = t('specify_topic')
+		}
+		if (images == '') {
+			console.log('no images')
+		}
+		setErrors(allErrors)
+		console.log(allErrors.length + 'Error array length')
 
-  const handleSubmitClick = (e) => {
-    e.preventDefault();
-    if (!title) {
-      alert(t('titleRequired'));
-    } else if (images == '' && !detail && !link) {
-      alert(t('atLeast'));
-    } else {
-      if (images.length > 0) {
-        setUpdate(!update);
-      }
-      saveReport(imageURLs);
-      setNewReportModal(false);
-    }
-  };
+		if (Object.keys(allErrors).length == 0) {
+			handleSubmitClick(e)
+		}
+	}
 
-  const handleNewReport = async (e) => {
-    e.preventDefault();
-    // TODO: Check for any errors
-    const allErrors = {};
-    if (data.state == null) {
-      console.log('state error');
-      allErrors.state = t('state');
-    }
-    if (data.city == null) {
-      // Don't display the report, show an error message
-      console.log('city error');
-      allErrors.city = t('city');
-      if (
-        data.state != null &&
-        City.getCitiesOfState(data.state?.countryCode, data.state?.isoCode)
-          .length == 0
-      ) {
-        console.log('No cities here');
-        delete allErrors.city;
-      }
-    }
-    if (selectedSource == '') {
-      console.log('No source error');
-      allErrors.source = t('source');
-    }
-    // TODO: some topics show up in dropdown as "topics.News" or "topics.Social"
-    if (selectedTopic == '') {
-      console.log('No topic selected');
-      allErrors.topic = t('specify_topic');
-    }
-    if (images == '') {
-      console.log('no images');
-    }
-    setErrors(allErrors);
-    console.log(allErrors.length + 'Error array length');
+	// On mount, grab all the possible topic choices
+	// to add to drop down list
+	useEffect(() => {
+		getAllAgencies()
+		getAgencyForUser()
+		// if (customClaims) {
+		//   console.log(customClaims);
+		// }
+	}, [])
 
-    if (Object.keys(allErrors).length == 0) {
-      handleSubmitClick(e);
-    }
-  };
+	useEffect(() => {
+		// console.log(selectedAgencyId)
+		if (selectedAgency) {
+			// console.log(selectedAgency);
+			getTopicList()
+			getAllTopics()
+			getAllSources()
+		}
+	}, [selectedAgency])
 
-  // On mount, grab all the possible topic choices
-  // to add to drop down list
-  useEffect(() => {
-    getAllAgencies();
-    getAgencyForUser()
-    // if (customClaims) {
-    //   console.log(customClaims);
-    // }
-  }, []);
+	useEffect(() => {
+		// waits to retrieve sources until topics are retrieved
+		if (selectedAgencyId && allTopicsArr.length > 0) {
+			console.log(active)
+			getSourceList()
+		}
+	}, [allTopicsArr])
 
-  useEffect(()=> {
-    // console.log(selectedAgencyId)
-    if (selectedAgency) {
-      // console.log(selectedAgency);
-      getTopicList();
-      getAllTopics();
-      getAllSources();
-    }
-  }, [selectedAgency])
+	useEffect(() => {
+		if (update) {
+			handleUpload()
+		}
+	}, [update])
 
-  useEffect(()=> {
-    // waits to retrieve sources until topics are retrieved
-    if (selectedAgencyId && allTopicsArr.length > 0) {
-      console.log(active)
-      getSourceList()
-    }
-  }, [allTopicsArr])
+	async function getAllAgencies() {
+		// Get agency collection docs
+		const agencyRef = await getDocs(collection(db, 'agency'))
+		try {
+			// build an array of agency names
+			var arr = []
+			agencyRef.forEach((doc) => {
+				arr.push(doc.data()['name'])
+			})
+			console.log(arr)
+			// set the agencies state with the agency names
+			setAgencies(arr)
+		} catch (error) {
+			console.log(error)
+		}
+	}
 
-  useEffect(() => {
-    if (update) {
-      handleUpload();
-    }
-  }, [update]);
+	async function getAllTopics() {
+		if (selectedAgency == '') {
+			setTopics([])
+		} else {
+			const topicDoc = doc(db, 'tags', selectedAgencyId)
+			const topicRef = await getDoc(topicDoc)
+			const topics = topicRef.get('Topic')['active']
+			setTopics(topics)
+		}
+	}
 
-  
-  async function getAllAgencies() {
-    // Get agency collection docs
-    const agencyRef = await getDocs(collection(db, 'agency'));
-    try {
-      // build an array of agency names
-      var arr = [];
-      agencyRef.forEach((doc) => {
-        arr.push(doc.data()['name']);
-      });
-      // console.log(arr);
-      // set the agencies state with the agency names
-      setAgencies(arr);
-    } catch (error) {
-      console.log(error);
-    }
-  }
+	async function getAllSources() {
+		if (selectedAgency == '') {
+			setSources([])
+		} else {
+			const sourceDoc = doc(db, 'tags', selectedAgencyId)
+			const sourceRef = await getDoc(sourceDoc)
+			const sources = sourceRef.get('Source')['active']
+			setSources(sources)
+		}
+	}
 
-  async function getAllTopics() {
-    if (selectedAgency == "") {
-      setTopics([])
-    } else {
-      const topicDoc = doc(db, 'tags', selectedAgencyId);
-      const topicRef = await getDoc(topicDoc);
-      const topics = topicRef.get('Topic')['active'];
-      setTopics(topics);
+	const handleNewReportModalClose = async (e) => {
+		e.preventDefault()
+		setNewReportModal(false)
+	}
 
-    }
- 
-  }
+	return (
+		<div className="bk-white h-full w-full">
+			<div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-[9999]">
+				<div
+					onClick={handleNewReportModalClose}
+					className={`flex overflow-y-auto justify-center items-center z-[1300] absolute top-6 left-0 w-full h-full`}>
+					{/* <div onClick={handleNewReportModalClose} className="flex overflow-y-auto justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full"> */}
+					<div
+						onClick={(e) => {
+							e.stopPropagation()
+						}}
+						className={`flex-col justify-center items-center bg-white w-full h-full py-10 px-10 z-50 md:w-8/12 md:h-auto lg:w-6/12 rounded-2xl`}>
+						<div className="flex justify-between w-full mb-5">
+							<div className="text-md font-bold text-blue-600 tracking-wide">
+								{t('add_report')}
+							</div>
+							<button
+								onClick={handleNewReportModalClose}
+								className="text-gray-800">
+								<IoClose size={25} />
+							</button>
+						</div>
+						<form onChange={handleChange} onSubmit={handleNewReport}>
+							<div className="mt-4 mb-0.5">
+								<Select
+									className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									id="state"
+									type="text"
+									required
+									placeholder={t('state_text')}
+									value={data.state}
+									options={State.getStatesOfCountry(data.country)}
+									getOptionLabel={(options) => {
+										return options['name']
+									}}
+									getOptionValue={(options) => {
+										return options['name']
+									}}
+									label="state"
+									onChange={handleStateChange}
+								/>
+								{errors.state && data.state === null && (
+									<span className="text-red-500">{errors.state}</span>
+								)}
+							</div>
 
-  async function getAllSources() {
-    if (selectedAgency == "") {
-      setSources([])
-    } else {
-      const sourceDoc = doc(db, 'tags', selectedAgencyId);
-      const sourceRef = await getDoc(sourceDoc);
-      const sources = sourceRef.get('Source')['active'];
-      setSources(sources);
-    }
-  }
+							<div className="mt-4 mb-0.5">
+								<Select
+									className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									id="city"
+									type="text"
+									placeholder={t('city_text')}
+									value={data.city}
+									options={City.getCitiesOfState(
+										data.state?.countryCode,
+										data.state?.isoCode,
+									)}
+									getOptionLabel={(options) => {
+										return options['name']
+									}}
+									getOptionValue={(options) => {
+										return options['name']
+									}}
+									onChange={handleCityChange}
+								/>
+								{errors.city && data.city === null && (
+									<span className="text-red-500">{errors.city}</span>
+								)}
+							</div>
 
-  const handleNewReportModalClose = async (e) => {
-    e.preventDefault();
-    setNewReportModal(false);
-  };
-
-  return (
-    <div className="bk-white h-full w-full">
-      <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-[9999]">
-        <div
-          onClick={handleNewReportModalClose}
-          className={`flex overflow-y-auto justify-center items-center z-[1300] absolute top-6 left-0 w-full h-full`}>
-          {/* <div onClick={handleNewReportModalClose} className="flex overflow-y-auto justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full"> */}
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-            className={`flex-col justify-center items-center bg-white w-full h-full py-10 px-10 z-50 md:w-8/12 md:h-auto lg:w-6/12 rounded-2xl`}>
-            <div className="flex justify-between w-full mb-5">
-              <div className="text-md font-bold text-blue-600 tracking-wide">
-                {t('add_report')}
-              </div>
-              <button
-                onClick={handleNewReportModalClose}
-                className="text-gray-800">
-                <IoClose size={25} />
-              </button>
-            </div>
-            <form onChange={handleChange} onSubmit={handleNewReport}>
-              <div className="mt-4 mb-0.5">
-                <Select
-                  className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  id="state"
-                  type="text"
-                  required
-                  placeholder={t('state_text')}
-                  value={data.state}
-                  options={State.getStatesOfCountry(data.country)}
-                  getOptionLabel={(options) => {
-                    return options['name'];
-                  }}
-                  getOptionValue={(options) => {
-                    return options['name'];
-                  }}
-                  label="state"
-                  onChange={handleStateChange}
-                />
-                {errors.state && data.state === null && (
-                  <span className="text-red-500">{errors.state}</span>
-                )}
-              </div>
-
-              <div className="mt-4 mb-0.5">
-                <Select
-                  className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  id="city"
-                  type="text"
-                  placeholder={t('city_text')}
-                  value={data.city}
-                  options={City.getCitiesOfState(
-                    data.state?.countryCode,
-                    data.state?.isoCode
-                  )}
-                  getOptionLabel={(options) => {
-                    return options['name'];
-                  }}
-                  getOptionValue={(options) => {
-                    return options['name'];
-                  }}
-                  onChange={handleCityChange}
-                />
-                {errors.city && data.city === null && (
-                  <span className="text-red-500">{errors.city}</span>
-                )}
-              </div>
-
-              <div className="mt-4 mb-0.5">
-                {selectedAgency}
-                {/* <Select
-                  className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  id="agency-selection"
-                  type="text"
-                  placeholder={t('agency')}
-                  options={agencies.map((agency) => ({
-                    label: agency,
-                    value: agency,
-                  }))}
-                  onChange={handleAgencyChange}
-                  value={selectedAgency}
-                />
-                {errors.topic && selectedAgency === '' && (
-                  <span className="text-red-500">{errors.agency}</span>
-                )} */}
-              </div>
-
-              <div className="mt-4 mb-0.5">
-                <input
-                  className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  id="title"
-                  type="text"
-                  placeholder={t('add_title')}
-                  required
-                  onChange={handleTitleChange}
-                  value={title}
-                />
-              </div>
-
-              <div className="mt-4 mb-0.5">
-                <Select
-                  className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  id="topic-selection"
-                  type="text"
-                  placeholder={t('topic')}
-                  // TODO: fix label & values
-                  options={allTopicsArr.map((topic) => ({
-                    label: t("topics."+topic),
-                    value: t("topics."+topic),
-                  }))}
-                  onChange={handleTopicChange}
-                  value={selectedTopic.topic}
-                />
-                {errors.topic && selectedTopic === '' && (
-                  <span className="text-red-500">{errors.topic}</span>
-                )}
-                <div className="mt-4 mb-0.5">
-                  {showOtherTopic && (
-                    <div className="flex">
-                      <div className="mt-4 mb-0.5 text-zinc-500 pr-3">
-                        {t('custom_topic')}
-                      </div>
-                      <input
-                        id="topic-other"
-                        className="rounded shadow-md border-zinc-400 w-60"
-                        type="text"
-                        placeholder={t('specify_topic')}
-                        onChange={handleOtherTopicChange}
-                        value={otherTopic}
-                        style={{ fontSize: '14px' }}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="mt-4 mb-0.5">
-                <Select
-                  className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  id="source-selection"
-                  type="text"
-                  placeholder="Source"
-                  options={allSourcesArr.map((source) => ({
-                    label: t("sources."+source),
-                    value: t("sources."+source),
-                  }))}
-                  onChange={handleSourceChangeOther}
-                  value={selectedSource.hearFrom}
-                />
-
-                {errors.source && selectedSource === '' && (
-                  <span className="text-red-500">{errors.source}</span>
-                )}
-                <div className="mt-4 mb-0.5">
-                  {showOtherSource && (
-                    <div className="flex">
-                      <div className="mt-4 mb-0.5 text-zinc-500 pr-3">
-                        {t('custom_source')}
-                      </div>
-                      <input
-                        id="source-other"
-                        className="rounded shadow-md border-zinc-400 w-60"
-                        type="text"
-                        placeholder={t('source')}
-                        onChange={handleOtherSourceChange}
-                        value={otherSource}
-                        style={{ fontSize: '14px' }}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-              <>
-                <div className="mt-4 mb-0.5">{t('detailed')}</div>
-                <div className="mt-4 mb-0.5">
-                  <input
-                    className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    id="link"
+							<div className="mt-4 mb-0.5">
+								{/* 1) function: handleAgencyChange
+                  <Select
+                    className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="agency-selection"
                     type="text"
-                    placeholder={t('link')}
-                    onChange={(e) => setLink(e.target.value)}
-                    value={link}
+                    placeholder={t('agency')}
+                    options={agencies.map((agency) => ({
+                      label: agency, // The agency name displayed
+                      value: agency, // The agency name used as the value
+                    }))}
+                    onChange={handleAgencyChange}
+                    value={selectedAgency} // Ensure this is a string
                   />
-                </div>
-                <div className="mt-4 mb-0.5">
-                  <input
-                    className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    id="secondLink"
-                    type="text"
-                    placeholder={t('second_link')}
-                    onChange={(e) => setSecondLink(e.target.value)}
-                    value={secondLink}
-                  />
-                </div>
-                <div className="mt-4 mb-0.5">
-                  <textarea
-                    className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    id="detail"
-                    type="text"
-                    placeholder={t('detailed')}
-                    onChange={(e) => setDetail(e.target.value)}
-                    value={detail}
-                    rows="5"></textarea>
-                </div>
-                <div className="mt-4 mb-0.5">
-                  <label className="block">
-                    <span className="sr-only">{t('choose_files')}</span>
-                    <input
-                      className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer"
-                      id="multiple_files"
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      // onChange={(e) => {onImageChange(e) }}
-                      onChange={(e) => {
-                        handleImageChange(e);
-                      }}
-                      ref={imgPicker}
-                    />
-                  </label>
-                  <div className="flex shrink-0 mt-2 space-x-2">
-                    {imageURLs.map((url, i) => (
-                      <div className="relative">
-                        <Image
-                          src={url}
-                          key={url}
-                          width={100}
-                          height={100}
-                          alt={`image-upload-${i}`}
-                        />
-                        {/* TODO: delete file after upload */}
-                        {/* <IoClose size={15} color='white' className='absolute top-0 right-0' onClick={handleImageDelete}/> */}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-              <div className="mt-3 sm:mt-6">
-                <button
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
-                  onClick={handleSubmitClick}
-                  type="submit">
-                  {t('createReport')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+                  {errors.agency && !selectedAgency && (
+                    <span className="text-red-500">{errors.agency}</span>
+                  )}
+                */}
+								{/* 2) function: getAgencyForUser */}
+								<Typography>Agency: {selectedAgency}</Typography>
+							</div>
+
+							<div className="mt-4 mb-0.5">
+								<input
+									className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									id="title"
+									type="text"
+									placeholder={t('add_title')}
+									required
+									onChange={handleTitleChange}
+									value={title}
+								/>
+							</div>
+
+							<div className="mt-4 mb-0.5">
+								<Select
+									className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									id="topic-selection"
+									type="text"
+									placeholder={t('topic')}
+									// TODO: fix label & values
+									options={allTopicsArr.map((topic) => ({
+										label: t('topics.' + topic),
+										value: t('topics.' + topic),
+									}))}
+									onChange={handleTopicChange}
+									value={selectedTopic.topic}
+								/>
+								{errors.topic && selectedTopic === '' && (
+									<span className="text-red-500">{errors.topic}</span>
+								)}
+								<div className="mt-4 mb-0.5">
+									{showOtherTopic && (
+										<div className="flex">
+											<div className="mt-4 mb-0.5 text-zinc-500 pr-3">
+												{t('custom_topic')}
+											</div>
+											<input
+												id="topic-other"
+												className="rounded shadow-md border-zinc-400 w-60"
+												type="text"
+												placeholder={t('specify_topic')}
+												onChange={handleOtherTopicChange}
+												value={otherTopic}
+												style={{ fontSize: '14px' }}
+											/>
+										</div>
+									)}
+								</div>
+							</div>
+							<div className="mt-4 mb-0.5">
+								<Select
+									className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									id="source-selection"
+									type="text"
+									placeholder="Source"
+									options={allSourcesArr.map((source) => ({
+										label: t('sources.' + source),
+										value: t('sources.' + source),
+									}))}
+									onChange={handleSourceChangeOther}
+									value={selectedSource.hearFrom}
+								/>
+
+								{errors.source && selectedSource === '' && (
+									<span className="text-red-500">{errors.source}</span>
+								)}
+								<div className="mt-4 mb-0.5">
+									{showOtherSource && (
+										<div className="flex">
+											<div className="mt-4 mb-0.5 text-zinc-500 pr-3">
+												{t('custom_source')}
+											</div>
+											<input
+												id="source-other"
+												className="rounded shadow-md border-zinc-400 w-60"
+												type="text"
+												placeholder={t('source')}
+												onChange={handleOtherSourceChange}
+												value={otherSource}
+												style={{ fontSize: '14px' }}
+											/>
+										</div>
+									)}
+								</div>
+							</div>
+							<>
+								<div className="mt-4 mb-0.5">{t('detailed')}</div>
+								<div className="mt-4 mb-0.5">
+									<input
+										className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+										id="link"
+										type="text"
+										placeholder={t('link')}
+										onChange={(e) => setLink(e.target.value)}
+										value={link}
+									/>
+								</div>
+								<div className="mt-4 mb-0.5">
+									<input
+										className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+										id="secondLink"
+										type="text"
+										placeholder={t('second_link')}
+										onChange={(e) => setSecondLink(e.target.value)}
+										value={secondLink}
+									/>
+								</div>
+								<div className="mt-4 mb-0.5">
+									<textarea
+										className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+										id="detail"
+										type="text"
+										placeholder={t('detailed')}
+										onChange={(e) => setDetail(e.target.value)}
+										value={detail}
+										rows="5"></textarea>
+								</div>
+								<div className="mt-4 mb-0.5">
+									<label className="block">
+										<span className="sr-only">{t('choose_files')}</span>
+										<input
+											className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer"
+											id="multiple_files"
+											type="file"
+											multiple
+											accept="image/*"
+											// onChange={(e) => {onImageChange(e) }}
+											onChange={(e) => {
+												handleImageChange(e)
+											}}
+											ref={imgPicker}
+										/>
+									</label>
+									<div className="flex shrink-0 mt-2 space-x-2">
+										{imageURLs.map((url, i) => (
+											<div className="relative">
+												<Image
+													src={url}
+													key={url}
+													width={100}
+													height={100}
+													alt={`image-upload-${i}`}
+												/>
+												{/* TODO: delete file after upload */}
+												{/* <IoClose size={15} color='white' className='absolute top-0 right-0' onClick={handleImageDelete}/> */}
+											</div>
+										))}
+									</div>
+								</div>
+							</>
+							<div className="mt-3 sm:mt-6">
+								<button
+									className="w-full bg-blue-600 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
+									onClick={handleSubmitClick}
+									type="submit">
+									{t('createReport')}
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	)
 };
 
 export default NewReportModal;
