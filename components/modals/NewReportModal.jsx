@@ -18,7 +18,8 @@ import {
   updateDoc,
   addDoc,
   query,
-  where
+  where,
+  arrayUnion
 } from 'firebase/firestore';
 import {
   getStorage,
@@ -28,7 +29,7 @@ import {
   deleteObject,
   uploadBytesResumable,
 } from 'firebase/storage';
-import csc from 'country-state-city';
+// import csc from 'country-state-city';
 import Select from 'react-select';
 import { useTranslation } from 'next-i18next';
 
@@ -57,7 +58,7 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
   const [allTopicsArr, setTopics] = useState([]);
   const [agencies, setAgencies] = useState([]);
   const [selectedAgency, setSelectedAgency] = useState('');
-  const [agencyId, setAgencyId] = useState("");
+  const [selectedAgencyId, setSelectedAgencyId] = useState("");
   const [selectedTopic, setSelectedTopic] = useState('');
   const [otherTopic, setOtherTopic] = useState('');
   const [otherSource, setOtherSource] = useState('');
@@ -86,14 +87,14 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
       images: imageURLs,
       detail: detail,
       createdDate: moment().toDate(),
-      isApproved: true,
+      isApproved: false,
       label: '',
       read: false,
       topic: selectedTopic,
       hearFrom: selectedSource,
     }).then(() => {
       handleNewReportSubmit(); // Send a signal to ReportsSection so that it updates the list
-      addNewTag(selectedTopic, selectedSource, agencyiD);
+      addNewTag(selectedTopic, selectedSource, selectedAgencyId);
     });
   };
 
@@ -164,73 +165,148 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
     setData((data) => ({ ...data, city: e !== null ? e : null }));
     setReportState(2);
   };
+  
+  const handleAgencyChange = async (e) => {
+    setSelectedAgency(e.value)
+    try {
+			const agencyCollectionRef = collection(db, 'agency')
+			const agencyQuery = query(
+				agencyCollectionRef,
+				where('name', '==', selectedAgency),
+			)
+			const querySnapshot = await getDocs(agencyQuery)
 
-  const handleAgencyChange = (e) => {
-		setSelectedAgency(e.value)
+			if (!querySnapshot.empty) {
+				const agencyDoc = querySnapshot.docs[0]
+				const agencyId = agencyDoc.id
+				setSelectedAgencyId(agencyId)
+			} else {
+				console.warn('No agency found with the name:', selectedAgency)
+			}
+		} catch (error) {
+			console.error('Error fetching agency ID:', error)
+		}
+     
+    //   const documentId = 'your-document-id';
+    //   const collectionName = 'your-collection-name';
+    //   const document = await firebaseHelper.fetchDocumentById(collectionName, documentId);
 
-		const agencyCollection = collection(db, 'agency')
-		console.log(user)
-
+    //   if (document) {
+    //     console.log('Document data:', document);
+    //   } else {
+    //     console.log('No document found.');
+    //   }
+    // } catch (error) {
+    //   console.error('Failed to fetch document:', error);
+    // }
+		// const agencyCollection = collection(db, 'agency')
+    // try {
+    //   const docSnapshot = await firebaseHelper.fetchARecordFromCollection('tags', agnecyId, )
+    //   console.log(docSnapshot);
+    // } catch (error) {
+    //   console.log('error fetching agencies');
+    // }
 		// If current user is an agency, determine which agency
-		console.log(data.state.name)
-		const q = query(
-			agencyCollection,
-			where('name', '==', e.value),
-			where('state', '==', data.state.name),
-		)
-		let agencyId
-		getDocs(q).then((querySnapshot) => {
-			querySnapshot.forEach((docAgency) => {
-				// Set initial values
-				console.log('im here')
-				agencyId = docAgency.id
-				console.log(agencyId)
-				setAgencyId(agencyId)
-				console.log(agencyId)
-				const docRef = doc(db, 'tags', agencyId)
-				getDoc(docRef).then((docSnap) => {
-					// TODO: test to make sure not null
+		// const q = query(
+		// 	agencyCollection,
+		// 	where('name', '==', e.value),
+		// 	where('state', '==', data.state.name),
+		// )
+		// let agencyId
+		// getDocs(q).then((querySnapshot) => {
+		// 	querySnapshot.forEach((docAgency) => {
+		// 		// Set initial values
+		// 		console.log('im here')
+		// 		agencyId = docAgency.id
+		// 		console.log(agencyId)
+		// 		setSelectedAgencyId(agencyId)
+		// 		console.log(agencyId)
+		// 		const docRef = doc(db, 'tags', selectedAgencyId)
+		// 		getDoc(docRef).then((docSnap) => {
+		// 			// TODO: test to make sure not null
 
-					// create tags collection if current agency does not have one
-					if (!docSnap.exists()) {
-						const defaultTopics = ['Health', 'Other', 'Politics', 'Weather'] // tag system 1
-						const defaultSources = [
-							'Newspaper',
-							'Other/Otro',
-							'Social',
-							'Website',
-						] // tag system 2
-						const defaultLabels = ['Important', 'Flagged'] // tag system 3
+		// 			// create tags collection if current agency does not have one
+		// 			if (!docSnap.exists()) {
+		// 				const defaultTopics = ['Health', 'Other', 'Politics', 'Weather'] // tag system 1
+		// 				const defaultSources = [
+		// 					'Newspaper',
+		// 					'Other/Otro',
+		// 					'Social',
+		// 					'Website',
+		// 				] // tag system 2
+		// 				const defaultLabels = ['Important', 'Flagged'] // tag system 3
 
-						// reference to tags collection
-						const tagsCollection = collection(db, 'tags')
+		// 				// reference to tags collection
+		// 				const tagsCollection = collection(db, 'tags')
 
-						const myDocRef = doc(tagsCollection, agencyId)
+		// 				const myDocRef = doc(tagsCollection, selectedAgencyId)
 
-						// create topics document for the new agency
-						setDoc(myDocRef, {
-							Labels: {
-								list: defaultLabels,
-								active: defaultLabels,
-							},
+		// 				// create topics document for the new agency
+		// 				setDoc(myDocRef, {
+		// 					Labels: {
+		// 						list: defaultLabels,
+		// 						active: defaultLabels,
+		// 					},
 
-							Source: {
-								list: defaultSources,
-								active: defaultSources,
-							},
-							Topic: {
-								list: defaultTopics,
-								active: defaultTopics,
-							},
-						})
-					} else {
-						console.log('Tags collection for this agency exists.')
-					}
-				})
-			})
-		})
+		// 					Source: {
+		// 						list: defaultSources,
+		// 						active: defaultSources,
+		// 					},
+		// 					Topic: {
+		// 						list: defaultTopics,
+		// 						active: defaultTopics,
+		// 					},
+		// 				})
+		// 			} else {
+		// 				console.log('Tags collection for this agency exists.')
+		// 			}
+		// 		})
+		// 	})
+		// })
 		setReportState(3)
+  }
+  
+  
+  
+  const getAgencyForUser = async () => {
+		try {
+			// Query the 'agency' collection for the document where the 'agencyUsers' array contains the user's email
+			const agencyCollectionRef = collection(db, 'agency')
+			const agencyQuery = query(
+				agencyCollectionRef,
+				where('agencyUsers', 'array-contains', user.email),
+			)
+			const querySnapshot = await getDocs(agencyQuery)
+
+			if (!querySnapshot.empty) {
+				// Assuming there is only one agency that contains the user's email, you can get the first document
+				const agencyDoc = querySnapshot.docs[0]
+				const agencyId = agencyDoc.id
+				const agencyName = agencyDoc.data().name
+
+				// console.log('Agency ID:', agencyId);
+				// console.log('Agency Name:', agencyName);
+
+				// You can now use this agency name and ID as needed, e.g., setting them in state
+				setSelectedAgency(agencyName)
+				setSelectedAgencyId(agencyId)
+			} else {
+				console.warn('No agency found for the current user.')
+			}
+		} catch (error) {
+			console.error('Error fetching agency for user:', error)
+		}
 	}
+
+	// // Call this function when needed, e.g., inside a useEffect when the component mounts
+	// useEffect(() => {
+	// 	getAgencyForUser()
+	// }, [])
+
+  
+  
+  
+  
 
   const handleTitleChange = (e) => {
     e.preventDefault();
@@ -274,8 +350,8 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 
   const getTopicList = async () => {
     try {
-      console.log("Current agency's ID is " + agencyId)
-      let docRef = await getDoc(doc(db, 'tags', agencyId));
+      console.log("Current agency's ID is " + selectedAgencyId)
+      let docRef = await getDoc(doc(db, 'tags', selectedAgencyId));
        // TODO: test to make sure not null
 
        // create tags collection if current agency does not have one
@@ -286,7 +362,7 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
           const defaultLabels = ["Important", "Flagged"] // tag system 3
 
           // reference to tags collection 
-          const myDocRef = doc(db, "tags", agencyId);
+          const myDocRef = doc(db, "tags", selectedAgencyId);
           setTopics(defaultTopics)
           setActive(defaultTopics['active'])
 
@@ -333,7 +409,7 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 
   const getSourceList = async () => {
     try {
-      getDoc(doc(db, 'tags', agencyId)).then((docRef)=> {
+      getDoc(doc(db, 'tags', selectedAgencyId)).then((docRef)=> {
         if (docRef.exists()) {
           console.log(docRef.data())
           const tagsData  = docRef.data()['Source']
@@ -353,19 +429,21 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
   };
 
   const updateTopicTags = async (topicList, agencyId, sourceList) => {
-    const docRef = await getDoc(doc(db, 'tags',agencyId));
-    const updatedDocRef = await addDoc(collection(db, 'tags', agencyId), {
-      ...docRef.data(),
-      ['Topic']: {
-        list: topicList,
-        active: active,
-      },
-      ['Source']: {
-        list: sourceList,
-        active: activeSources,
-      },
-    });
-    return updatedDocRef;
+    try {
+      const docRef = doc(db, 'tags', agencyId);
+
+      // Update the 'list' and 'active' arrays for both 'Topic' and 'Source' fields
+      await updateDoc(docRef, {
+        'Topic.list': arrayUnion(...topicList), // Add new topics to the 'list' array
+        'Topic.active': arrayUnion(...active),  // Add new topics to the 'active' array
+        'Source.list': arrayUnion(...sourceList), // Add new sources to the 'list' array
+        'Source.active': arrayUnion(...activeSources) // Add new sources to the 'active' array
+      });
+
+      console.log('Tags updated successfully');
+    } catch (error) {
+      console.error('Error updating tags:', error.message);
+    }
   };
 
   const handleOtherTopicChange = (e) => {
@@ -438,23 +516,25 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
   // to add to drop down list
   useEffect(() => {
     getAllAgencies();
-    if (customClaims) {
-      console.log(customClaims);
-    }
+    getAgencyForUser()
+    // if (customClaims) {
+    //   console.log(customClaims);
+    // }
   }, []);
 
   useEffect(()=> {
-    console.log(agencyId)
-    if (agencyId) {
+    // console.log(selectedAgencyId)
+    if (selectedAgency) {
+      // console.log(selectedAgency);
       getTopicList();
-      // getAllTopics();
-      // getAllSources();
+      getAllTopics();
+      getAllSources();
     }
-  }, [agencyId])
+  }, [selectedAgency])
 
   useEffect(()=> {
     // waits to retrieve sources until topics are retrieved
-    if (agencyId && allTopicsArr.length > 0) {
+    if (selectedAgencyId && allTopicsArr.length > 0) {
       console.log(active)
       getSourceList()
     }
@@ -476,6 +556,7 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
       agencyRef.forEach((doc) => {
         arr.push(doc.data()['name']);
       });
+      // console.log(arr);
       // set the agencies state with the agency names
       setAgencies(arr);
     } catch (error) {
@@ -487,7 +568,7 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
     if (selectedAgency == "") {
       setTopics([])
     } else {
-      const topicDoc = doc(db, 'tags', agencyId);
+      const topicDoc = doc(db, 'tags', selectedAgencyId);
       const topicRef = await getDoc(topicDoc);
       const topics = topicRef.get('Topic')['active'];
       setTopics(topics);
@@ -500,7 +581,7 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
     if (selectedAgency == "") {
       setSources([])
     } else {
-      const sourceDoc = doc(db, 'tags', agencyId);
+      const sourceDoc = doc(db, 'tags', selectedAgencyId);
       const sourceRef = await getDoc(sourceDoc);
       const sources = sourceRef.get('Source')['active'];
       setSources(sources);
@@ -583,7 +664,8 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
               </div>
 
               <div className="mt-4 mb-0.5">
-                <Select
+                {selectedAgency}
+                {/* <Select
                   className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                   id="agency-selection"
                   type="text"
@@ -597,7 +679,7 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
                 />
                 {errors.topic && selectedAgency === '' && (
                   <span className="text-red-500">{errors.agency}</span>
-                )}
+                )} */}
               </div>
 
               <div className="mt-4 mb-0.5">
