@@ -1,5 +1,5 @@
 import React from 'react'
-import { collection, getDocs, where } from 'firebase/firestore'
+import { collection, getDoc, getDocs, query, where } from 'firebase/firestore'
 import { db } from '../config/firebase'
 
 class FirebaseServices {
@@ -19,7 +19,82 @@ class FirebaseServices {
 		}
 	}
 
-  // Add more Firestore functions here...
+		/**
+	 * Fetch a single document from a specified collection in Firestore.
+	 *
+	 * This function fetches a document from the specified collection based on the provided document ID.
+	 * Once fetched, it calls the provided callback function with an object containing the success status,
+	 * the document snapshot, and a message.
+	 *
+	 * @param {string} collectionName - The name of the collection to query.
+	 * @param {string} documentId - The ID of the document to fetch.
+	 * @param {function} callback - A callback function to handle the result.
+	 */
+	fetchARecordFromCollection = async (collectionName, documentId, callback) => {
+		try {
+			const docRef = doc(db, collectionName, documentId);
+			const docSnapshot = await getDoc(docRef);
+
+			if (docSnapshot.exists()) {
+				callback({
+					isSuccess: true,
+					response: docSnapshot,
+					message: "Document fetched successfully",
+				});
+			} else {
+				callback({
+					isSuccess: false,
+					response: null,
+					message: "Document not found",
+				});
+			}
+		} catch (error) {
+			callback({
+				isSuccess: false,
+				response: null,
+				message: error.message,
+			});
+		}
+	}
+
+	/**
+   * Fetch the agency where the user's email is in the `agencyUsers` array.
+   *
+   * @param {string} email - The email of the user to search for.
+   * @param {function} callback - A callback function to handle the result.
+   */
+  fetchAgencyByUserEmail = async (email, callback) => {
+    try {
+      const agencyQuery = query(
+        collection(db, 'agency'),
+        where('agencyUsers', 'array-contains', email)
+      );
+
+      const querySnapshot = await getDocs(agencyQuery);
+      if (!querySnapshot.empty) {
+        const agencyDoc = querySnapshot.docs[0]; // Assuming the first result is the correct one
+        callback({
+          isSuccess: true,
+          response: agencyDoc,
+          message: 'Agency found successfully',
+        });
+      } else {
+        callback({
+          isSuccess: false,
+          response: null,
+          message: 'No agency found for this user',
+        });
+      }
+    } catch (error) {
+      callback({
+        isSuccess: false,
+        response: null,
+        message: error.message,
+      });
+    }
+  }
+	
+	// Add more Firestore functions here...
 }
 
 const firebaseHelper = new FirebaseServices()

@@ -30,7 +30,7 @@ import csc from 'country-state-city';
 import Select from 'react-select';
 import { useTranslation } from 'next-i18next';
 
-const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
+const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, isAgency }) => {
   // if (!open) return null
   // Ref to firebase reports collection
   const dbInstance = collection(db, 'reports');
@@ -415,6 +415,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
       console.log('No source error');
       allErrors.source = t('source');
     }
+    // TODO: some topics show up in dropdown as "topics.News" or "topics.Social"
     if (selectedTopic == '') {
       console.log('No topic selected');
       allErrors.topic = t('specify_topic');
@@ -605,6 +606,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                   id="topic-selection"
                   type="text"
                   placeholder={t('topic')}
+                  // TODO: fix label & values
                   options={allTopicsArr.map((topic) => ({
                     label: t("topics."+topic),
                     value: t("topics."+topic),
@@ -671,7 +673,7 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                 </div>
               </div>
               <>
-                <div className="mt-4 mb-0.5">{t('detail')}</div>
+                <div className="mt-4 mb-0.5">{t('detailed')}</div>
                 <div className="mt-4 mb-0.5">
                   <input
                     className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -719,11 +721,11 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
                     />
                   </label>
                   <div className="flex shrink-0 mt-2 space-x-2">
-                    {imageURLs.map((url, i = self.crypto.randomUUID()) => (
+                    {imageURLs.map((url, i) => (
                       <div className="relative">
                         <Image
                           src={url}
-                          key={i}
+                          key={url}
                           width={100}
                           height={100}
                           alt={`image-upload-${i}`}
@@ -751,4 +753,4 @@ const NewReport = ({ setNewReportModal, handleNewReportSubmit }) => {
   );
 };
 
-export default NewReport;
+export default NewReportModal;

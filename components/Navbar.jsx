@@ -21,7 +21,7 @@ import {
 } from 'react-icons/io5';
 import { HiOutlineDocumentPlus } from 'react-icons/hi2';
 import { Tooltip } from 'react-tooltip';
-import NewReport from './modals/NewReportModal';
+import NewReportModal from './modals/NewReportModal';
 import HelpModal from './modals/HelpModal';
 import ContactHelpModal from './modals/ContactHelpModal';
 import { useAuth } from '../context/AuthContext';
@@ -278,7 +278,7 @@ const Navbar = ({
       )}
 
       {newReportModal && (
-        <NewReport
+        <NewReportModal
           setNewReportModal={setNewReportModal}
           handleNewReportSubmit={handleNewReportSubmit}
         />

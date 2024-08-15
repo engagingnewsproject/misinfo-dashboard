@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
+import firebaseHelper from '../firebase/FirebaseHelper';
 import {
   collection,
   getDoc,
@@ -23,7 +24,7 @@ import { IoAdd, IoTrash } from 'react-icons/io5';
 // Icons END
 // import ReactTooltip from "react-tooltip"
 import InfiniteScroll from 'react-infinite-scroll-component';
-import NewReport from './modals/NewReportModal';
+import NewReportModal from './modals/NewReportModal';
 import ReportModal from './modals/ReportModal';
 import ConfirmModal from './modals/ConfirmModal';
 import globalStyles from '../styles/globalStyles';
@@ -412,6 +413,21 @@ const ReportsSection = ({
 
       setLoadedReports(sortedReports);
   };
+  
+  useEffect(() => {
+    console.log(isAgency, user.email);
+    if (isAgency && user.email) {
+      firebaseHelper.fetchAgencyByUserEmail(user.email, (response) => {
+        if (response.isSuccess) {
+          const agencyData = response.response.data()
+          console.log(agencyData);
+          setAgencyName(agencyData.name)
+        } else {
+          console.error(response.message) // Handle the error or no agency found
+        }
+      })
+    }
+  }, [isAgency, user.email])
 
   useEffect(() => {
     // console.log('EFFECT -->customClaims<--');
@@ -424,7 +440,6 @@ const ReportsSection = ({
 
   // Fetch data when new report is submitted or isAgency is set
   useEffect(() => {
-    // console.log('EFFECT -->newReportSubmitted, isAgency<--');
     // Ensure isAgency is set before fetching data:
     if (isAgency !== null) {
       getData()
@@ -708,9 +723,11 @@ const ReportsSection = ({
           </InfiniteScroll>
         </CardBody>
         {newReportModal && (
-          <NewReport
+          <NewReportModal
             setNewReportModal={setNewReportModal}
             onNewReportSubmit={handleNewReportSubmit}
+            agencyName={agencyName}
+            isAgency={isAgency}
           />
         )}
       </Card>
