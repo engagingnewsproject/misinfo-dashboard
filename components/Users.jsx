@@ -11,6 +11,7 @@ import {
 	query,
 	where,
 	addDoc,
+	arrayUnion,
 } from 'firebase/firestore'
 import { db, auth } from '../config/firebase'
 import { Tooltip } from 'react-tooltip'
@@ -115,6 +116,7 @@ const Users = () => {
 	// agency
 	// table agency
 	const [agencyName, setAgencyName] = useState('')
+	const [agencyId, setAgencyId] = useState('')
 	const [agenciesArray, setAgenciesArray] = useState([])
 	const [selectedAgency, setSelectedAgency] = useState('')
 	const [banned, setBanned] = useState(false)
@@ -205,7 +207,7 @@ const Users = () => {
 	}
 
 	/**
-	 * Fetches the details of a user by their user ID and determines if the user is disabled.
+	 * Fetches the Firestore Auth details of a user by their user ID and determines if the user is disabled.
 	 *
 	 * This function attempts to fetch the user record associated with the provided user ID.
 	 * If the record is successfully retrieved, it checks if the user is disabled. If an error
@@ -217,6 +219,7 @@ const Users = () => {
 	 */
 	const fetchUserDetails = async (userId) => {
 		try {
+			// Get Firestore Auth user details
 			const userRecord = await fetchUserRecord(userId)
 			// console.log("User Data:", userRecord);
 			return userRecord.disabled || false // Assuming fetchUserRecord correctly returns the user data
@@ -330,14 +333,14 @@ const Users = () => {
 	}
 
 	/**
-	* Handles the change event for the "New User Email" input field.
-	*
-	* This function updates the `newUserEmail` state with the value entered in the input field.
-	* It also clears any existing email-related error in the `errors` state as soon as the user starts typing,
-	* ensuring that the error message is removed when the user re-enters the input field.
-	*
-	* @param {Event} e - The event object from the input field.
-	*/
+	 * Handles the change event for the "New User Email" input field.
+	 *
+	 * This function updates the `newUserEmail` state with the value entered in the input field.
+	 * It also clears any existing email-related error in the `errors` state as soon as the user starts typing,
+	 * ensuring that the error message is removed when the user re-enters the input field.
+	 *
+	 * @param {Event} e - The event object from the input field.
+	 */
 	const handleNewUserEmail = (e) => {
 		setNewUserEmail(e.target.value)
 		// Clear the email-related error when the user starts typing
@@ -346,19 +349,28 @@ const Users = () => {
 			email: '', // Clear the email error
 		}))
 	}
-	
+
 	/**
 	 * Handles the submission of the form to add a new user.
 	 *
-	 * This function prevents the default form submission behavior and first clears any existing errors.
-	 * It validates the new user's email address to ensure it meets the minimum length requirement.
-	 * If the email is valid, the function attempts to send a sign-in link to the email address.
-	 * If the operation is successful, the function triggers a state update to refresh the user list and closes the modal.
-	 * In case of an error during the sign-in process or validation, the error is captured and displayed in the form.
+	 * This function is responsible for managing the entire process of adding a new user.
+	 * It first prevents the default form submission behavior and clears any existing errors.
+	 * The function then validates the new user's email address to ensure it meets the minimum
+	 * length requirement (at least 15 characters). If the email is valid, the function attempts
+	 * to send a sign-in link to the provided email address.
+	 *
+	 * After successfully sending the sign-in link, the function adds the new user's email to the
+	 * `agencyUsers` array in the corresponding Firestore agency document, provided that the
+	 * `agencyId` is valid. If any part of this process fails, the error is caught and handled by
+	 * updating the `errors` state with the appropriate message.
+	 *
+	 * Finally, if all operations succeed, the function triggers a state update to refresh the user list
+	 * and closes the modal.
 	 *
 	 * @param {Event} e - The event object from the form submission.
-	 * @returns {Promise<void>} A promise that resolves after the sign-in email is sent and the modal is closed,
-	 * or an error is handled and displayed if encountered.
+	 * @returns {Promise<void>} A promise that resolves after the sign-in email is sent, the user's email
+	 * is added to the Firestore agency document, and the modal is closed. If an error is encountered,
+	 * it is handled and displayed in the form.
 	 */
 	const handleAddNewUserFormSubmit = async (e) => {
 		e.preventDefault()
@@ -377,6 +389,18 @@ const Users = () => {
 			}
 
 			await sendSignIn(newUserEmail)
+
+			// Add the new user's email to the agency's `agencyUsers` array in Firestore
+			// Validate agencyId before proceeding
+			if (!agencyId || agencyId.trim() === '') {
+				throw new Error('Invalid or missing agency ID')
+			}
+			const agencyRef = doc(db, 'agency', agencyId)
+			console.log(agencyRef)
+			await updateDoc(agencyRef, {
+				agencyUsers: arrayUnion(newUserEmail),
+			})
+
 			setUpdate(!update)
 			setNewUserModal(false)
 		} catch (error) {
@@ -391,17 +415,55 @@ const Users = () => {
 	}
 
 	/**
-	 * useEffect hook that runs once on component mount to fetch agencies and data.
+	 * useEffect hook that runs once on component mount to fetch relevant data based on the user's role.
 	 *
-	 * This hook triggers two functions, `fetchAgencies` and `getData`, when the component
-	 * first mounts. The `fetchAgencies` function retrieves the list of agencies from the database,
-	 * and the `getData` function fetches the initial set of data for the component.
+	 * This hook triggers different functions depending on whether the logged-in user is an admin or an agency user.
 	 *
-	 * @effect This hook has no dependencies, so it only runs once on the initial render.
+	 * - Admin Users: Fetches all agencies and user data.
+	 * - Agency Users: Fetches the details of the logged-in user's agency and then retrieves the associated user data.
+	 *
+	 * The hook runs once on the initial render and checks the user's role (admin or agency) to determine which data to fetch.
+	 *
+	 * @effect This hook runs once on the initial render and performs the following:
+	 * - If the user is an admin, it fetches all agencies and user data.
+	 * - If the user is an agency user, it fetches the specific agency details associated with the user's email, stores the agency ID and name, and then fetches the user data related to that agency.
 	 */
 	useEffect(() => {
-		fetchAgencies()
-		getData()
+		const fetchInitialData = async () => {
+			if (customClaims.admin) {
+				// Admin: Fetch all agencies and user data
+				await fetchAgencies()
+				await getData()
+			} else if (customClaims.agency) {
+				// Agency user: Fetch only the agency details and user data
+				const agencySnapshot = await getDocs(
+					query(
+						collection(db, 'agency'),
+						where('agencyUsers', 'array-contains', user.email.toLowerCase()),
+					),
+				)
+
+				if (!agencySnapshot.empty) {
+					const agencyDoc = agencySnapshot.docs[0]
+					const agencyId = agencyDoc.id
+					const agencyName = agencyDoc.data().name
+					console.log(agencyDoc)
+					console.log(agencyId)
+					console.log(agencyName)
+					// Store the agency ID and name in state or context
+					setAgencyId(agencyId)
+					setAgencyName(agencyName)
+
+					await getData()
+					// Fetch data relevant to this agency
+					// await getData(agencyId) // Pass the agencyId to fetch data for this agency
+				} else {
+					console.error('No agency found for the current user.')
+				}
+			}
+		}
+
+		fetchInitialData()
 	}, [])
 
 	/**
