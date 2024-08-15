@@ -733,10 +733,7 @@ const NewReportModal = ({
 	useEffect(() => {
 		if (selectedAgency) {
 			getTopicList()
-			// getAllTopics()
-      // getAllSources()
-              getAllTags('topics');
-        getAllTags('sources');
+			getAllTags()
 		}
 	}, [selectedAgency])
 
@@ -845,21 +842,23 @@ const NewReportModal = ({
 		}
 	}
 
-  // combo
-  async function getAllTags(tagType) {
-    if (selectedAgency == '') {
-        tagType === 'topics' ? setTopics([]) : setSources([]);
-    } else {
-        const docRef = doc(db, 'tags', selectedAgencyId);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            const tagData = docSnap.get(tagType === 'topics' ? 'Topic' : 'Source')['active'];
-            tagType === 'topics' ? setTopics(tagData) : setSources(tagData);
-        }
-    }
-}
+	// combo and run them in parallel instead of sequentially
+	async function getAllTags() {
+		if (selectedAgency === '') {
+			setTopics([])
+			setSources([])
+		} else {
+			const docRef = doc(db, 'tags', selectedAgencyId)
+			const docSnap = await getDoc(docRef)
+			if (docSnap.exists()) {
+				const topicData = docSnap.get('Topic')['active']
+				const sourceData = docSnap.get('Source')['active']
+				setTopics(topicData)
+				setSources(sourceData)
+			}
+		}
+	}
 
-  
 	/**
 	 * handleNewReportModalClose
 	 *
