@@ -52,7 +52,7 @@
   "source": "Por favor ingrese una fuente.",
   "select_city": "Seleccione la ciudad.",
   "select_state" : "Seleccione el estado.",
-  "add_report" : "Agregue un nuevo informe.",
+  "add_report" : "Agregue un nuevo informe",
   "add_title" : "Agregar un título de informe",
   "custom_source": "Fuente personalizada",
   "custom_topic": "Tema personalizado",

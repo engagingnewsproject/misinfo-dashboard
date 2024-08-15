@@ -42,7 +42,7 @@
   "source": "Please enter a source.",
   "select_city": "Select the city.",
   "select_state" : "Select the state.",
-  "add_report" : "Add new report.",
+  "add_report" : "Add new report",
   "add_title" : "Add a report title",
   "custom_source": "Custom source",
   "custom_topic": "Custom topic",
