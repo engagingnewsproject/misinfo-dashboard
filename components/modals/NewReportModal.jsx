@@ -1,5 +1,7 @@
 // TODO: need to make sure the user who created the report is added to the report: userID
-import React, { useState, useEffect, useRef } from 'react';
+// About to move this to the pages/dashboard.jsx file because the `newReportModal` state is 
+// defined in both Nav component and ReportsSection component which is an issue.
+import React,{ useState,useEffect,useRef } from 'react'
 import { useRouter } from 'next/router';
 import { IoClose } from 'react-icons/io5';
 import { useAuth } from '../../context/AuthContext';
