@@ -45,6 +45,7 @@ import {
   CardBody,
 } from '@material-tailwind/react';
 
+  // Table columns
   const columns = [
 		{ label: 'Title', accessor: 'title', sortable: true },
 		{ label: 'Date/Time', accessor: 'createdDate', sortable: true },
@@ -55,6 +56,7 @@ import {
 		{ label: 'Read/Unread', accessor: 'read', sortable: true },
 	]
 
+  // Report read values
 	const readValues = [
 		{ label: 'All', value: 'all' },
 		{ label: 'Read', value: 'true' },
