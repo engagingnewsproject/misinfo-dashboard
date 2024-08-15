@@ -67,12 +67,12 @@ import {
 const ReportsSection = ({
   search,
   newReportSubmitted,
-  handleNewReportSubmit
+  // handleNewReportSubmit,
+  handleNewReportClick
 }) => {
   const userId = localStorage.getItem('userId');
   const [reports, setReports] = useState([]);
   // const [reporterInfo, setReporterInfo] = useState({})
-  const [newReportModal, setNewReportModal] = useState(false);
   const [filteredReports, setFilteredReports] = useState([]);
   const [loadedReports, setLoadedReports] = useState([]);
   const [endIndex, setEndIndex] = useState(0);
@@ -250,11 +250,6 @@ const ReportsSection = ({
     window.open(uri);
   };
 
-  const handleNewReportModal = (e) => {
-    e.preventDefault();
-    setNewReportModal(true);
-  };
-
   const handleReportModalShow = async (reportId) => {
     // get doc
     const docRef = await getDoc(doc(db, 'reports', reportId));
@@ -415,12 +410,10 @@ const ReportsSection = ({
   };
   
   useEffect(() => {
-    console.log(isAgency, user.email);
     if (isAgency && user.email) {
       firebaseHelper.fetchAgencyByUserEmail(user.email, (response) => {
         if (response.isSuccess) {
           const agencyData = response.response.data()
-          console.log(agencyData);
           setAgencyName(agencyData.name)
         } else {
           console.error(response.message) // Handle the error or no agency found
@@ -618,7 +611,7 @@ const ReportsSection = ({
             </Typography>
             <Tooltip content="New Report">
               <Button
-                onClick={() => setNewReportModal(true)}
+                onClick={(e) => handleNewReportClick(e)}
                 className="flex items-center gap-2">
                 <IoAdd className="mr-1" size={15} />
                 New Report
@@ -722,14 +715,6 @@ const ReportsSection = ({
             )}
           </InfiniteScroll>
         </CardBody>
-        {newReportModal && (
-          <NewReportModal
-            setNewReportModal={setNewReportModal}
-            onNewReportSubmit={handleNewReportSubmit}
-            agencyName={agencyName}
-            isAgency={isAgency}
-          />
-        )}
       </Card>
       {deleteModal && (
         <ConfirmModal

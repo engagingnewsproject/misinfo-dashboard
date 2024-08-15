@@ -27,7 +27,8 @@ const Navbar = ({
 	tab,
 	setTab,
 	handleNewReportSubmit,
-	handleContactHelpSubmit,
+  handleContactHelpSubmit,
+  handleNewReportClick,
 	onReportTabClick,
 	isOpen,
 }) => {
@@ -39,7 +40,6 @@ const Navbar = ({
 	const [disableOverlay, setDisableOverlay] = useState(true)
 	// Determines when to open the help modal popup
 	const [helpModal, setHelpModal] = useState(false)
-	const [newReportModal, setNewReportModal] = useState(false)
 	//for determining when to open ContactHelpModal
 	const [contactHelpModal, setContactHelpModal] = useState(false)
 	const { customClaims, setCustomClaims } = useAuth()
@@ -69,11 +69,6 @@ const Navbar = ({
 			setDisableOverlay(false)
 		}
 	}, [windowSize])
-
-	const handleNewReportModal = (e) => {
-		e.preventDefault()
-		setNewReportModal(true)
-	}
 
 	const basicStyle =
 		'flex p-2 my-6 mx-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg'
@@ -162,7 +157,7 @@ const Navbar = ({
 								{customClaims.agency && ( // if admin user or agency user show the add report & users icons
 									<button //  Agency user create report
 										onClick={(e) => {
-											handleNewReportModal(e)
+											handleNewReportClick(e)
 											closeDrawer()
 										}}
 										className={`${basicStyle} tooltip-new-report`}>
@@ -267,13 +262,6 @@ const Navbar = ({
 				<ContactHelpModal
 					setContactHelpModal={setContactHelpModal}
 					handleContactHelpSubmit={handleContactHelpSubmit}
-				/>
-			)}
-
-			{newReportModal && (
-				<NewReportModal
-					setNewReportModal={setNewReportModal}
-					handleNewReportSubmit={handleNewReportSubmit}
 				/>
 			)}
 		</>

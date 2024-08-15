@@ -8,6 +8,7 @@ import Users from '../components/Users'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
 import Agencies from '../components/Agencies'
+import NewReportModal from '../components/modals/NewReportModal'
 import { db, auth } from '../config/firebase'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
@@ -35,21 +36,21 @@ const Dashboard = () => {
 	const [tab, setTab] = useState(0)
 	const router = useRouter()
 
-	// const admin = require('firebase-admin');
-	// admin.initializeApp();
-
-	// stores the admin/agency privilege of current user
-	// const [customClaims, setCustomClaims] = useState({admin: false, agency: false})
-
-	// JUST ADDED
-	const [newReportSubmitted, setNewReportSubmitted] = useState(0)
 	const [agencyUpdateSubmitted, setAgencyUpdateSubmitted] = useState(0)
+  
+  const [newReportModal,setNewReportModal] = useState(false)
+  const [newReportSubmitted,setNewReportSubmitted] = useState(0)
 
 	const handleNewReportSubmit = () => {
 		// increment the newReportSubmitted
-		setNewReportSubmitted((prevState) => prevState + 1)
+    setNewReportSubmitted((prevState) => prevState + 1)
+    setNewReportModal(false)
 	}
 
+  const handleNewReportClick = () => {
+    setNewReportModal(true) // Open the modal when the button is clicked
+  }
+  
 	const handleAgencyUpdateSubmit = () => {
 		// increment the agencyUpdateSubmitted
 		setAgencyUpdateSubmitted((prevState) => prevState + 1)
@@ -79,15 +80,17 @@ const Dashboard = () => {
 			<Navbar
 				tab={tab}
 				setTab={setTab}
-				handleNewReportSubmit={handleNewReportSubmit}
+        handleNewReportSubmit={handleNewReportSubmit}
+        handleNewReportClick={handleNewReportClick}
 				customClaims={customClaims}
-				setCustomClaims={setCustomClaims}
 			/>
 			<div className="sm:pl-16">
 				{tab == 0 && (customClaims.admin || customClaims.agency) && (
 					<Home
 						newReportSubmitted={newReportSubmitted}
-						handleNewReportSubmit={handleNewReportSubmit}
+            handleNewReportSubmit={handleNewReportSubmit}
+            handleNewReportClick={handleNewReportClick}
+            customClaims={customClaims}
 					/>
 				)}
 				{tab == 1 && <Profile customClaims={customClaims} />}
@@ -100,7 +103,15 @@ const Dashboard = () => {
 				{tab == 4 && customClaims.admin && (
 					<Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />
 				)}
-			</div>
+      </div>
+      {/* Render the NewReportModal */}
+      {newReportModal && (
+        <NewReportModal
+          setNewReportModal={setNewReportModal}
+          handleNewReportSubmit={handleNewReportSubmit}
+          customClaims={customClaims}
+        />
+      )}
 		</div>
 	)
 }

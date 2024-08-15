@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { auth } from '../config/firebase'
 import globalStyles from '../styles/globalStyles'
 
-const Home = ({ newReportSubmitted, handleNewReportSubmit }) => {
+const Home = ({ newReportSubmitted, handleNewReportSubmit, handleNewReportClick }) => {
 	const [search, setSearch] = useState('')
 	const {
 		user,
@@ -38,7 +38,8 @@ const Home = ({ newReportSubmitted, handleNewReportSubmit }) => {
 				<ReportsSection
 					search={memoizedSearch}
 					newReportSubmitted={newReportSubmitted}
-					handleNewReportSubmit={handleNewReportSubmit}
+          handleNewReportSubmit={handleNewReportSubmit}
+          handleNewReportClick={handleNewReportClick}
 					customClaims={customClaims}
 				/>
 			</div>
