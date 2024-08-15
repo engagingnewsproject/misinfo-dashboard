@@ -1,36 +1,41 @@
-import React,{ useState,useEffect,useRef } from 'react'
-import { useRouter } from 'next/router';
-import { IoClose } from 'react-icons/io5';
-import { useAuth } from '../../context/AuthContext';
-import moment from 'moment';
-import Image from 'next/image';
-import { db } from '../../config/firebase';
-import { State, City } from 'country-state-city';
+import React, { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/router'
+import { IoClose } from 'react-icons/io5'
+import { useAuth } from '../../context/AuthContext'
+import moment from 'moment'
+import Image from 'next/image'
+import { db } from '../../config/firebase'
+import { State, City } from 'country-state-city'
 import {
-  getDoc,
-  getDocs,
-  doc,
-  setDoc,
-  collection,
-  updateDoc,
-  addDoc,
-  query,
-  where,
-  arrayUnion
-} from 'firebase/firestore';
+	getDoc,
+	getDocs,
+	doc,
+	setDoc,
+	collection,
+	updateDoc,
+	addDoc,
+	query,
+	where,
+	arrayUnion,
+} from 'firebase/firestore'
 import {
-  getStorage,
-  ref,
-  getDownloadURL,
-  uploadBytes,
-  deleteObject,
-  uploadBytesResumable,
-} from 'firebase/storage';
-import Select from 'react-select';
-import { useTranslation } from 'next-i18next';
+	getStorage,
+	ref,
+	getDownloadURL,
+	uploadBytes,
+	deleteObject,
+	uploadBytesResumable,
+} from 'firebase/storage'
+import Select from 'react-select'
+import { useTranslation } from 'next-i18next'
 import { Typography } from '@material-tailwind/react'
 
-const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, customClaims }) => {
+const NewReportModal = ({
+	setNewReportModal,
+	handleNewReportSubmit,
+	agencyName,
+	customClaims,
+}) => {
 	const dbInstance = collection(db, 'reports')
 	const { user } = useAuth()
 	// useStates
@@ -329,18 +334,18 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
   }
   */
 
-  /**
- * getAgencyForUser
- * 
- * This asynchronous function fetches the agency associated with the currently logged-in user.
- * It performs the following tasks:
- * 
- * 1. Queries the 'agency' collection to find a document where the 'agencyUsers' array contains the user's email.
- * 2. If a matching agency is found, it extracts the agency's ID and name.
- * 3. Updates the state with the agency name and ID.
- * 
- * @returns {void}
- */
+	/**
+	 * getAgencyForUser
+	 *
+	 * This asynchronous function fetches the agency associated with the currently logged-in user.
+	 * It performs the following tasks:
+	 *
+	 * 1. Queries the 'agency' collection to find a document where the 'agencyUsers' array contains the user's email.
+	 * 2. If a matching agency is found, it extracts the agency's ID and name.
+	 * 3. Updates the state with the agency name and ID.
+	 *
+	 * @returns {void}
+	 */
 	const getAgencyForUser = async () => {
 		try {
 			// Query the 'agency' collection for the document where the 'agencyUsers' array contains the user's email
@@ -371,36 +376,36 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 		}
 	}
 
-  /**
- * handleTitleChange
- * 
- * This function handles the change event for the report title input.
- * It performs the following tasks:
- * 
- * 1. Prevents the default form submission behavior.
- * 2. Updates the `title` state with the value entered by the user.
- * 3. If the report state is less than 4, it sets the report state to 4.
- * 
- * @param {Event} e - The change event triggered when the user modifies the title input.
- */
+	/**
+	 * handleTitleChange
+	 *
+	 * This function handles the change event for the report title input.
+	 * It performs the following tasks:
+	 *
+	 * 1. Prevents the default form submission behavior.
+	 * 2. Updates the `title` state with the value entered by the user.
+	 * 3. If the report state is less than 4, it sets the report state to 4.
+	 *
+	 * @param {Event} e - The change event triggered when the user modifies the title input.
+	 */
 	const handleTitleChange = (e) => {
 		e.preventDefault()
 		setTitle(e.target.value)
 		reportState < 4 && setReportState(4)
 	}
 
-  /**
- * handleTopicChange
- * 
- * This function handles the change event for the topic selection.
- * It performs the following tasks:
- * 
- * 1. Updates the `selectedTopic` state with the value selected by the user.
- * 2. If the selected topic is 'Other', it sets `showOtherTopic` to true, otherwise, it hides it.
- * 3. Sets the report state to 5.
- * 
- * @param {Event} e - The change event triggered when the user selects a topic.
- */
+	/**
+	 * handleTopicChange
+	 *
+	 * This function handles the change event for the topic selection.
+	 * It performs the following tasks:
+	 *
+	 * 1. Updates the `selectedTopic` state with the value selected by the user.
+	 * 2. If the selected topic is 'Other', it sets `showOtherTopic` to true, otherwise, it hides it.
+	 * 3. Sets the report state to 5.
+	 *
+	 * @param {Event} e - The change event triggered when the user selects a topic.
+	 */
 	const handleTopicChange = (e) => {
 		setSelectedTopic(e.value)
 		if (e.value === t('Other')) {
@@ -411,18 +416,18 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 		setReportState(5)
 	}
 
-  /**
- * handleSourceChangeOther
- * 
- * This function handles the change event for the source selection.
- * It performs the following tasks:
- * 
- * 1. Updates the `selectedSource` state with the value selected by the user.
- * 2. If the selected source is 'Other', it sets `showOtherSource` to true, otherwise, it hides it.
- * 3. Sets the report state to 6.
- * 
- * @param {Event} e - The change event triggered when the user selects a source.
- */
+	/**
+	 * handleSourceChangeOther
+	 *
+	 * This function handles the change event for the source selection.
+	 * It performs the following tasks:
+	 *
+	 * 1. Updates the `selectedSource` state with the value selected by the user.
+	 * 2. If the selected source is 'Other', it sets `showOtherSource` to true, otherwise, it hides it.
+	 * 3. Sets the report state to 6.
+	 *
+	 * @param {Event} e - The change event triggered when the user selects a source.
+	 */
 	const handleSourceChangeOther = (e) => {
 		setSelectedSource(e.value)
 		if (e.value === t('Other')) {
@@ -433,21 +438,21 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 		setReportState(6)
 	}
 
-  /**
- * addNewTag
- * 
- * This function adds a new tag and source to the existing lists.
- * It performs the following tasks:
- * 
- * 1. Checks if the tag and source already exist in their respective arrays.
- * 2. If the tag or source is new, it adds them to the corresponding array.
- * 3. Updates the `list` and `sourceList` states with the updated arrays.
- * 4. Calls `updateTopicTags` to save the updated tag and source lists.
- * 
- * @param {string} tag - The new tag to add.
- * @param {string} source - The new source to add.
- * @param {string} agencyId - The ID of the agency for which to update the tags.
- */
+	/**
+	 * addNewTag
+	 *
+	 * This function adds a new tag and source to the existing lists.
+	 * It performs the following tasks:
+	 *
+	 * 1. Checks if the tag and source already exist in their respective arrays.
+	 * 2. If the tag or source is new, it adds them to the corresponding array.
+	 * 3. Updates the `list` and `sourceList` states with the updated arrays.
+	 * 4. Calls `updateTopicTags` to save the updated tag and source lists.
+	 *
+	 * @param {string} tag - The new tag to add.
+	 * @param {string} source - The new source to add.
+	 * @param {string} agencyId - The ID of the agency for which to update the tags.
+	 */
 	const addNewTag = (tag, source, agencyId) => {
 		let topicArr = list
 		let sourceArr = sourceList
@@ -462,19 +467,19 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 		updateTopicTags(list, agencyId, sourceList)
 	}
 
-  /**
- * getTopicList
- * 
- * This asynchronous function retrieves the list of topics for the selected agency.
- * It performs the following tasks:
- * 
- * 1. Checks if a 'tags' document exists for the selected agency.
- * 2. If not, it creates a default set of tags (topics, sources, labels) for the agency.
- * 3. If the document exists, it retrieves the list of topics and sorts them.
- * 4. Updates the `allTopicsArr` and `active` states with the retrieved data.
- * 
- * @returns {void}
- */
+	/**
+	 * getTopicList
+	 *
+	 * This asynchronous function retrieves the list of topics for the selected agency.
+	 * It performs the following tasks:
+	 *
+	 * 1. Checks if a 'tags' document exists for the selected agency.
+	 * 2. If not, it creates a default set of tags (topics, sources, labels) for the agency.
+	 * 3. If the document exists, it retrieves the list of topics and sorts them.
+	 * 4. Updates the `allTopicsArr` and `active` states with the retrieved data.
+	 *
+	 * @returns {void}
+	 */
 	const getTopicList = async () => {
 		try {
 			console.log("Current agency's ID is " + selectedAgencyId)
@@ -530,18 +535,18 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 		}
 	}
 
-  /**
- * getSourceList
- * 
- * This asynchronous function retrieves the list of sources for the selected agency.
- * It performs the following tasks:
- * 
- * 1. Retrieves the 'tags' document for the selected agency.
- * 2. Extracts and sorts the list of sources from the document.
- * 3. Updates the `allSourcesArr` and `activeSources` states with the retrieved data.
- * 
- * @returns {void}
- */
+	/**
+	 * getSourceList
+	 *
+	 * This asynchronous function retrieves the list of sources for the selected agency.
+	 * It performs the following tasks:
+	 *
+	 * 1. Retrieves the 'tags' document for the selected agency.
+	 * 2. Extracts and sorts the list of sources from the document.
+	 * 3. Updates the `allSourcesArr` and `activeSources` states with the retrieved data.
+	 *
+	 * @returns {void}
+	 */
 	const getSourceList = async () => {
 		try {
 			getDoc(doc(db, 'tags', selectedAgencyId)).then((docRef) => {
@@ -563,20 +568,20 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 		}
 	}
 
-  /**
- * updateTopicTags
- * 
- * This asynchronous function updates the topic and source tags for the selected agency.
- * It performs the following tasks:
- * 
- * 1. Retrieves the 'tags' document for the specified agency.
- * 2. Updates the 'list' and 'active' arrays for both 'Topic' and 'Source' fields.
- * 3. Logs success or any errors that occur during the update process.
- * 
- * @param {Array} topicList - The list of topics to update.
- * @param {string} agencyId - The ID of the agency whose tags are being updated.
- * @param {Array} sourceList - The list of sources to update.
- */
+	/**
+	 * updateTopicTags
+	 *
+	 * This asynchronous function updates the topic and source tags for the selected agency.
+	 * It performs the following tasks:
+	 *
+	 * 1. Retrieves the 'tags' document for the specified agency.
+	 * 2. Updates the 'list' and 'active' arrays for both 'Topic' and 'Source' fields.
+	 * 3. Logs success or any errors that occur during the update process.
+	 *
+	 * @param {Array} topicList - The list of topics to update.
+	 * @param {string} agencyId - The ID of the agency whose tags are being updated.
+	 * @param {Array} sourceList - The list of sources to update.
+	 */
 	const updateTopicTags = async (topicList, agencyId, sourceList) => {
 		try {
 			const docRef = doc(db, 'tags', agencyId)
@@ -595,49 +600,49 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 		}
 	}
 
-  /**
- * handleOtherTopicChange
- * 
- * This function handles the change event for the custom topic input.
- * It performs the following tasks:
- * 
- * 1. Updates the `otherTopic` and `selectedTopic` states with the value entered by the user.
- * 
- * @param {Event} e - The change event triggered when the user enters a custom topic.
- */
+	/**
+	 * handleOtherTopicChange
+	 *
+	 * This function handles the change event for the custom topic input.
+	 * It performs the following tasks:
+	 *
+	 * 1. Updates the `otherTopic` and `selectedTopic` states with the value entered by the user.
+	 *
+	 * @param {Event} e - The change event triggered when the user enters a custom topic.
+	 */
 	const handleOtherTopicChange = (e) => {
 		setOtherTopic(e.target.value)
 		setSelectedTopic(e.target.value)
 	}
 
-  /**
- * handleOtherSourceChange
- * 
- * This function handles the change event for the custom source input.
- * It performs the following tasks:
- * 
- * 1. Updates the `otherSource` and `selectedSource` states with the value entered by the user.
- * 
- * @param {Event} e - The change event triggered when the user enters a custom source.
- */
+	/**
+	 * handleOtherSourceChange
+	 *
+	 * This function handles the change event for the custom source input.
+	 * It performs the following tasks:
+	 *
+	 * 1. Updates the `otherSource` and `selectedSource` states with the value entered by the user.
+	 *
+	 * @param {Event} e - The change event triggered when the user enters a custom source.
+	 */
 	const handleOtherSourceChange = (e) => {
 		setOtherSource(e.target.value)
 		setSelectedSource(e.target.value)
 	}
 
-  /**
- * handleSubmitClick
- * 
- * This function handles the form submission when the user creates a new report.
- * It performs the following tasks:
- * 
- * 1. Prevents the default form submission behavior.
- * 2. Validates the form fields and displays an alert if any required fields are missing.
- * 3. If the form is valid, triggers the image upload process and saves the report.
- * 4. Closes the new report modal after the report is saved.
- * 
- * @param {Event} e - The submit event triggered when the user submits the form.
- */
+	/**
+	 * handleSubmitClick
+	 *
+	 * This function handles the form submission when the user creates a new report.
+	 * It performs the following tasks:
+	 *
+	 * 1. Prevents the default form submission behavior.
+	 * 2. Validates the form fields and displays an alert if any required fields are missing.
+	 * 3. If the form is valid, triggers the image upload process and saves the report.
+	 * 4. Closes the new report modal after the report is saved.
+	 *
+	 * @param {Event} e - The submit event triggered when the user submits the form.
+	 */
 	const handleSubmitClick = (e) => {
 		e.preventDefault()
 		if (!title) {
@@ -653,18 +658,18 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 		}
 	}
 
-  /**
- * handleNewReport
- * 
- * This asynchronous function handles the form submission for creating a new report.
- * It performs the following tasks:
- * 
- * 1. Prevents the default form submission behavior.
- * 2. Validates the form fields and collects any errors.
- * 3. If there are no errors, it proceeds to call `handleSubmitClick` to save the report.
- * 
- * @param {Event} e - The submit event triggered when the user submits the form.
- */
+	/**
+	 * handleNewReport
+	 *
+	 * This asynchronous function handles the form submission for creating a new report.
+	 * It performs the following tasks:
+	 *
+	 * 1. Prevents the default form submission behavior.
+	 * 2. Validates the form fields and collects any errors.
+	 * 3. If there are no errors, it proceeds to call `handleSubmitClick` to save the report.
+	 *
+	 * @param {Event} e - The submit event triggered when the user submits the form.
+	 */
 	const handleNewReport = async (e) => {
 		e.preventDefault()
 		// TODO: Check for any errors
@@ -706,28 +711,28 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 		}
 	}
 
-/**
- * useEffect hook - Fetch all agencies and the agency associated with the current user when the component mounts.
- * 
- * This hook runs only once, when the component first mounts. It performs the following tasks:
- * 
- * 1. Calls `getAllAgencies` to retrieve and set the list of all available agencies.
- * 2. Calls `getAgencyForUser` to find and set the agency that the current user is associated with, based on their email.
- */
+	/**
+	 * useEffect hook - Fetch all agencies and the agency associated with the current user when the component mounts.
+	 *
+	 * This hook runs only once, when the component first mounts. It performs the following tasks:
+	 *
+	 * 1. Calls `getAllAgencies` to retrieve and set the list of all available agencies.
+	 * 2. Calls `getAgencyForUser` to find and set the agency that the current user is associated with, based on their email.
+	 */
 	useEffect(() => {
 		getAllAgencies()
 		getAgencyForUser()
 	}, [])
 
-  /**
- * useEffect hook - Fetch topics and sources when the selected agency changes.
- * 
- * This hook runs whenever the `selectedAgency` state changes.
- * It performs the following tasks:
- * 
- * 1. If `selectedAgency` is set, it calls functions to fetch topics and sources associated with that agency.
- * 2. Specifically, it triggers `getTopicList`, `getAllTopics`, and `getAllSources` to fetch and update the respective states.
- */
+	/**
+	 * useEffect hook - Fetch topics and sources when the selected agency changes.
+	 *
+	 * This hook runs whenever the `selectedAgency` state changes.
+	 * It performs the following tasks:
+	 *
+	 * 1. If `selectedAgency` is set, it calls functions to fetch topics and sources associated with that agency.
+	 * 2. Specifically, it triggers `getTopicList`, `getAllTopics`, and `getAllSources` to fetch and update the respective states.
+	 */
 	useEffect(() => {
 		if (selectedAgency) {
 			getTopicList()
@@ -736,14 +741,14 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 		}
 	}, [selectedAgency])
 
-  /**
- * useEffect hook - Fetch sources after topics are retrieved.
- * 
- * This hook runs whenever the `allTopicsArr` state changes.
- * It performs the following tasks:
- * 
- * 1. If `selectedAgencyId` is set and topics have been retrieved, it calls `getSourceList` to fetch the sources associated with the agency.
- */
+	/**
+	 * useEffect hook - Fetch sources after topics are retrieved.
+	 *
+	 * This hook runs whenever the `allTopicsArr` state changes.
+	 * It performs the following tasks:
+	 *
+	 * 1. If `selectedAgencyId` is set and topics have been retrieved, it calls `getSourceList` to fetch the sources associated with the agency.
+	 */
 	useEffect(() => {
 		// waits to retrieve sources until topics are retrieved
 		if (selectedAgencyId && allTopicsArr.length > 0) {
@@ -752,32 +757,32 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 		}
 	}, [allTopicsArr])
 
-  /**
- * useEffect hook - Handle image upload when the `update` state changes.
- * 
- * This hook runs whenever the `update` state changes.
- * It performs the following tasks:
- * 
- * 1. If `update` is set to true, it triggers the image upload process by calling `handleUpload`.
- */
+	/**
+	 * useEffect hook - Handle image upload when the `update` state changes.
+	 *
+	 * This hook runs whenever the `update` state changes.
+	 * It performs the following tasks:
+	 *
+	 * 1. If `update` is set to true, it triggers the image upload process by calling `handleUpload`.
+	 */
 	useEffect(() => {
 		if (update) {
 			handleUpload()
 		}
 	}, [update])
 
-  /**
- * getAllAgencies
- * 
- * This asynchronous function fetches the list of all agencies from the database.
- * It performs the following tasks:
- * 
- * 1. Retrieves all documents from the 'agency' collection.
- * 2. Builds an array of agency names from the documents.
- * 3. Updates the `agencies` state with the array of agency names.
- * 
- * @returns {void}
- */
+	/**
+	 * getAllAgencies
+	 *
+	 * This asynchronous function fetches the list of all agencies from the database.
+	 * It performs the following tasks:
+	 *
+	 * 1. Retrieves all documents from the 'agency' collection.
+	 * 2. Builds an array of agency names from the documents.
+	 * 3. Updates the `agencies` state with the array of agency names.
+	 *
+	 * @returns {void}
+	 */
 	async function getAllAgencies() {
 		// Get agency collection docs
 		const agencyRef = await getDocs(collection(db, 'agency'))
@@ -795,18 +800,18 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 		}
 	}
 
-  /**
- * getAllTopics
- * 
- * This asynchronous function fetches the list of active topics for the selected agency.
- * It performs the following tasks:
- * 
- * 1. Checks if a `selectedAgency` is set.
- * 2. If so, it retrieves the 'tags' document for the selected agency.
- * 3. Extracts the list of active topics from the document and updates the `allTopicsArr` state.
- * 
- * @returns {void}
- */
+	/**
+	 * getAllTopics
+	 *
+	 * This asynchronous function fetches the list of active topics for the selected agency.
+	 * It performs the following tasks:
+	 *
+	 * 1. Checks if a `selectedAgency` is set.
+	 * 2. If so, it retrieves the 'tags' document for the selected agency.
+	 * 3. Extracts the list of active topics from the document and updates the `allTopicsArr` state.
+	 *
+	 * @returns {void}
+	 */
 	async function getAllTopics() {
 		if (selectedAgency == '') {
 			setTopics([])
@@ -818,18 +823,18 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 		}
 	}
 
-  /**
- * getAllSources
- * 
- * This asynchronous function fetches the list of active sources for the selected agency.
- * It performs the following tasks:
- * 
- * 1. Checks if a `selectedAgency` is set.
- * 2. If so, it retrieves the 'tags' document for the selected agency.
- * 3. Extracts the list of active sources from the document and updates the `allSourcesArr` state.
- * 
- * @returns {void}
- */
+	/**
+	 * getAllSources
+	 *
+	 * This asynchronous function fetches the list of active sources for the selected agency.
+	 * It performs the following tasks:
+	 *
+	 * 1. Checks if a `selectedAgency` is set.
+	 * 2. If so, it retrieves the 'tags' document for the selected agency.
+	 * 3. Extracts the list of active sources from the document and updates the `allSourcesArr` state.
+	 *
+	 * @returns {void}
+	 */
 	async function getAllSources() {
 		if (selectedAgency == '') {
 			setSources([])
@@ -841,17 +846,17 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 		}
 	}
 
-  /**
- * handleNewReportModalClose
- * 
- * This asynchronous function handles the closing of the new report modal.
- * It performs the following tasks:
- * 
- * 1. Prevents the default form submission behavior.
- * 2. Updates the `setNewReportModal` state to false, closing the modal.
- * 
- * @param {Event} e - The event triggered when the user closes the modal.
- */
+	/**
+	 * handleNewReportModalClose
+	 *
+	 * This asynchronous function handles the closing of the new report modal.
+	 * It performs the following tasks:
+	 *
+	 * 1. Prevents the default form submission behavior.
+	 * 2. Updates the `setNewReportModal` state to false, closing the modal.
+	 *
+	 * @param {Event} e - The event triggered when the user closes the modal.
+	 */
 	const handleNewReportModalClose = async (e) => {
 		e.preventDefault()
 		setNewReportModal(false)
@@ -1112,6 +1117,6 @@ const NewReportModal = ({ setNewReportModal, handleNewReportSubmit, agencyName, 
 			</div>
 		</div>
 	)
-};
+}
 
-export default NewReportModal;
+export default NewReportModal
