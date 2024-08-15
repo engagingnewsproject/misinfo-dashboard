@@ -44,6 +44,23 @@ import {
   Tab,
   CardBody,
 } from '@material-tailwind/react';
+
+  const columns = [
+		{ label: 'Title', accessor: 'title', sortable: true },
+		{ label: 'Date/Time', accessor: 'createdDate', sortable: true },
+		{ label: 'Candidates', accessor: 'candidates', sortable: false },
+		{ label: 'Topic Tags', accessor: 'topic', sortable: true },
+		{ label: 'Sources', accessor: 'hearFrom', sortable: false },
+		{ label: 'Labels', accessor: 'label', sortable: false },
+		{ label: 'Read/Unread', accessor: 'read', sortable: true },
+	]
+
+	const readValues = [
+		{ label: 'All', value: 'all' },
+		{ label: 'Read', value: 'true' },
+		{ label: 'Unread', value: 'false' },
+	]
+
 const ReportsSection = ({
   search,
   newReportSubmitted,
@@ -375,22 +392,6 @@ const ReportsSection = ({
       });
   };
 
-  const columns = [
-    { label: 'Title', accessor: 'title', sortable: true },
-    { label: 'Date/Time', accessor: 'createdDate', sortable: true },
-    { label: 'Candidates', accessor: 'candidates', sortable: false },
-    { label: 'Topic Tags', accessor: 'topic', sortable: true },
-    { label: 'Sources', accessor: 'hearFrom', sortable: false },
-    { label: 'Labels', accessor: 'label', sortable: false },
-    { label: 'Read/Unread', accessor: 'read', sortable: true },
-  ];
-
-  const readValues = [
-    { label: 'All', value: 'all' },
-    { label: 'Read', value: 'true' },
-    { label: 'Unread', value: 'false' },
-  ];
-
   const handleSorting = (sortField, sortOrder) => {
       const sortedReports = [...filteredReports].sort((a, b) => {
           const aValue = a[sortField];
@@ -557,7 +558,7 @@ const ReportsSection = ({
   useEffect(() => {
     // Only proceed if reportModalShow is true
     if (reportModalShow && reportModalId && customClaims.agency) {
-      console.log('EFFECT--> Report modal is shown. Report ID:', reportModalId);
+      // console.log('EFFECT--> Report modal is shown. Report ID:', reportModalId);
       // When a report's modal opens set the report as read
       handleRowChangeRead(reportModalId, true);
     }
