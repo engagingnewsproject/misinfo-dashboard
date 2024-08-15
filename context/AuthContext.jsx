@@ -242,9 +242,9 @@ export const AuthContextProvider = ({children}) => {
   }
 
     const setPassword = async (newPassword) => {
-      console.log(newPassword)
-      console.log(user?.email)
-      console.log("in set password " + auth.currentUser.email)
+      // console.log(newPassword)
+      // console.log(user?.email)
+      // console.log("in set password " + auth.currentUser.email)
       try {
         await updatePassword(auth.currentUser, newPassword);
         auth.currentUser.getIdToken(true)
