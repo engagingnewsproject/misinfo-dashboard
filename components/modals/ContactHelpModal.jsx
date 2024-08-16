@@ -68,7 +68,7 @@ const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
 	}
 
 	const handleImageChange = (e) => {
-		console.log("handle image change run")
+		// console.log("handle image change run")
 		for (let i = 0; i < e.target.files.length; i++) {
 			const newImage = e.target.files[i]
 			setImages((prevState) => [...prevState, newImage])
@@ -89,7 +89,7 @@ const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
 			uploadTask.on(
 				"state_changed",
 				(snapshot) => {
-					console.log(snapshot)
+					// console.log(snapshot)
 				},
 				(error) => {
 					console.log(error)
