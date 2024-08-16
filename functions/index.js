@@ -54,13 +54,16 @@ const postToSlack = async (
 						},
 					],
         },
-        // {
-        //   type: 'section',
-        //   text: {
-        //     type: 'mrkdwn',
-        //     text: `:file_folder: *Attached File*: <${fileUrl}|Download here>`,
-        //   },
-        // },
+        {
+          type: 'image',
+          title: {
+            type: 'plain_text',
+            text: 'User uploaded image'
+          },
+          block_id: 'image4',
+          image_url: imageUrl,
+          alt_text: 'File uploaded by user.'
+        }
 			],
 		}
 		await axios.post(SLACK_WEBHOOK_URL, payload)
