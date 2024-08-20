@@ -53,6 +53,8 @@ import {
 	ListItemSuffix,
 	Chip,
 } from "@material-tailwind/react"
+import { logEvent } from "firebase/analytics"
+import { analytics } from "../config/firebase"
 
 const ReportSystem = ({
 	tab,
@@ -67,7 +69,7 @@ const ReportSystem = ({
 }) => {
 	// used for Spanish translations
 	const { t, i18n } = useTranslation("NewReport")
-	const { user } = useAuth()
+	const { user, customClaims } = useAuth()
 	const [key, setKey] = useState(self.crypto.randomUUID())
 	const [data, setData] = useState({ country: "US", state: null, city: null })
 	const [isSearchable, setIsSearchable] = useState(true)
@@ -132,6 +134,8 @@ const ReportSystem = ({
 		}
 		const newReportRef = doc(collection(db, "reports"))
 		setReportId(newReportRef.id) // set report id
+		console.log(newReportRef.id);
+		
 		setDoc(newReportRef, {
 			userID: user.accountId,
 			state: userData.state.name,
@@ -148,10 +152,20 @@ const ReportSystem = ({
 			topic: selectedTopic,
 			hearFrom: selectedSource,
 		}).then(() => {
-			console.log("Success: report saved: " + reportId)
-			// console.log('SAVE Report: ',selectedTopic,selectedSource);
+			console.log('Success: report saved: ' + reportId)
+
+			// Track the event with Google Analytics if the user is not an admin
+			if (!customClaims.admin) {
+				console.log('Logging event to Google Analytics')
+				logEvent(analytics, 'report_submitted', {
+					userID: user.accountId,
+					agencyID: selectedAgency?.id || selectedAgency,
+					reportID: newReportRef.id,
+				})
+			}
+
 			if (showOtherSource || showOtherTopic) {
-				addNewTag(selectedTopic,selectedSource,agencyID)
+				addNewTag(selectedTopic, selectedSource, agencyID)
 			}
 			handleRefresh()
 		}).catch((error) => {
