@@ -12,7 +12,7 @@ import { BiEditAlt } from "react-icons/bi"
 // import { BsShareFill } from "react-icons/bs"
 import { BiLinkExternal } from "react-icons/bi";
 import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
-import { MdOutlineLocalPhone } from "react-icons/md";
+// import { MdOutlineLocalPhone } from "react-icons/md";
 
 import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
 import { useTranslation } from 'next-i18next';
@@ -236,7 +236,7 @@ const ReportModal = ({
 											</div>
 										</div>
 									)}
-                  {reportSubmitBy.contact && reportSubmitBy.phone && 
+                  {/* {reportSubmitBy.contact && reportSubmitBy.phone && 
 										<div className="flex flex-row mb-3 items-center">
 										<MdOutlineLocalPhone size={20} />
 											<div className="text-md font-light">
@@ -244,7 +244,7 @@ const ReportModal = ({
 												<a href={`tel:${reportSubmitBy.phone}`}>{reportSubmitBy.phone}</a>
 											</div>
 										</div>
-									}
+									} */}
 									</div>
 
 									{/* Images */}

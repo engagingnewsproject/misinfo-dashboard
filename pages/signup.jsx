@@ -19,11 +19,11 @@ import {
 } from 'firebase/firestore'
 import { db, auth } from '../config/firebase'
 import Select from 'react-select'
-import PhoneInput from 'react-phone-input-2'
+// import PhoneInput from 'react-phone-input-2'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import { useTranslation } from 'next-i18next'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
-import 'react-phone-input-2/lib/style.css'
+// import 'react-phone-input-2/lib/style.css'
 import { MdOutlineRemoveRedEye } from 'react-icons/md'
 import { Country, State, City } from 'country-state-city'
 import moment from 'moment'
@@ -40,7 +40,7 @@ const SignUp = () => {
 	const [data, setData] = useState({
 		name: '',
 		email: '',
-		phone: '',
+		// phone: '',
 		password: '',
 		confirmPW: '',
 		city: '',
@@ -66,7 +66,7 @@ const SignUp = () => {
 			setDoc(doc(db, 'mobileUsers', uid), {
 				name: data.name,
 				email: data.email,
-				phone: data.phone ? data.phone : '',
+				// phone: data.phone ? data.phone : '',
 				joiningDate: moment().utc().unix(),
 				state: data.state,
 				city: data.city,
@@ -240,10 +240,10 @@ const SignUp = () => {
 		setData({ ...data, contact: e.target.checked })
 	}
 
-	const handlePhoneNumber = (number) => {
-		// console.log(number)
-		setData({ ...data, phone: number })
-	}
+	// const handlePhoneNumber = (number) => {
+	// 	// console.log(number)
+	// 	setData({ ...data, phone: number })
+	// }
 	// handle the toggle between the hide password (eyeOff icon) and the show password (eye icon)
 	const handleTogglePass = (e) => {
 		if (type === 'password') {
@@ -278,7 +278,7 @@ const SignUp = () => {
 							/>
 						)}
 					</div>
-					<div className="mb-4">
+					{/* <div className="mb-4">
 						<PhoneInput
 							placeholder={t('phone')}
 							value={data.phone}
@@ -286,7 +286,7 @@ const SignUp = () => {
 							inputStyle={{ width: '100%' }}
 							onChange={handlePhoneNumber}
 						/>
-					</div>
+					</div> */}
 					<div className="mb-4">
 						<Select
 							className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
