@@ -4,6 +4,12 @@ const admin = require('firebase-admin')
 
 admin.initializeApp()
 
+/*
+ START removePhoneFieldFromAllDocs
+ This function should be removed from firebase so it is not somehow run.
+ To run removePhoneFieldFromAllDocs from terminal: 
+ curl - X POST https://us-central1-misinfo-5d004.cloudfunctions.net/removePhoneFieldFromAllDocs
+ */
 const db = admin.firestore();
 const FieldValue = admin.firestore.FieldValue;
 
@@ -48,11 +54,9 @@ exports.removePhoneFieldFromAllDocs = functions.https.onRequest(async (req, res)
         res.status(500).send('Error removing phone fields.');
     }
 });
-
-
-
-
-
+/*
+ END removePhoneFieldFromAllDocs
+ */
 
 const axios = require('axios'); // used for sending slack messages from help requests form
 
