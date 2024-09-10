@@ -30,6 +30,8 @@
           "origin": [
             "https://misinfo-dashboard.netlify.app",
             "https://dev-misinfo-dashboard.netlify.app",
+            "https://truthsleuthlocal.netlify.app",
+            "https://dev-truthsleuthlocal.netlify.app",
             "http://localhost:3000"
           ],
           "method": [
