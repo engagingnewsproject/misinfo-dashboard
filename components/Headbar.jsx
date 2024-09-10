@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { AiOutlineSearch } from 'react-icons/ai'
+import { GiMagnifyingGlass } from "react-icons/gi";
 import { collection, getDocs, query, where } from 'firebase/firestore'
 import { useAuth } from '../context/AuthContext'
 import { db } from "../config/firebase"
@@ -45,8 +46,10 @@ const Headbar = ({ search, setSearch}) => {
                     <div className="flex justify-center">
                         {customClaims.agency && agencyLogo ? (
                             <Image src={agencyLogo} width={55} height={55} alt="agency logo" className='w-auto'/>
-                         ) : (
-                            <Image src="/img/misinformation-app-logo.png" width={55} height={55} alt="agency logo" className='w-auto'/>
+                        ) : (
+                            <div className='bg-blue-600 p-3 rounded-full'>
+                                <GiMagnifyingGlass className='fill-white' />
+                            </div>
                         )}
                     </div>
                     <div className="text-md font-semibold px-4 tracking-wide">
