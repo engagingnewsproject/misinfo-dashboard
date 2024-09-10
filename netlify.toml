@@ -14,6 +14,13 @@
   status = 200
   force = true
 
+# redirect for dev site
+[[redirects]]
+  from = "https://dev-misinfo-dashboard.netlify.app/*"
+  to = "https://dev-truthsleuthlocal.netlify.app/:splat"
+  status = 301
+  force = true
+
 [build.environment]
   NETLIFY_BUILD_DEBUG = "true"
 
