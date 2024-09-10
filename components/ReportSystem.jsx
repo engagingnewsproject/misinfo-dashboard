@@ -79,6 +79,7 @@ const ReportSystem = ({
 	const imgPicker = useRef(null)
 	const [images, setImages] = useState([])
 	const [imageURLs, setImageURLs] = useState([])
+	const [fileNames, setFileNames] = useState([]) // State to store original file names
 	const [update, setUpdate] = useState(false)
 	const [title,setTitle] = useState("")
 	const [titleError, setTitleError] = useState(false)
@@ -418,21 +419,23 @@ const ReportSystem = ({
 			handleSubmitClick(e)
 		}
 	}
-	const handleImageChange = (e) => {
-		// Image upload:
-		// (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js,
-		// https://www.youtube.com/watch?v=S4zaZvM8IeI)
-		// console.log('handle image change run');
-		for (let i = 0; i < e.target.files.length; i++) {
-			const newImage = e.target.files[i]
-			setImages((prevState) => [...prevState, newImage])
-			setUpdate(!update)
-		}
-	}
+  const handleImageChange = (e) => {
+    const newFiles = Array.from(e.target.files) // Convert FileList to an array
+    const newFileNames = newFiles.map(file => file.name) // Get the file names
+
+    // Filter out any images or file names that are already in the state
+    const filteredFiles = newFiles.filter(file => !fileNames.includes(file.name))
+    const filteredFileNames = newFileNames.filter(name => !fileNames.includes(name))
+
+    if (filteredFiles.length > 0) {
+      setImages(prevImages => [...prevImages, ...filteredFiles]) // Add all new images at once
+      setFileNames(prevNames => [...prevNames, ...filteredFileNames]) // Add all new file names at once
+    }
+  }
 	const handleUpload = () => {
 		// Image upload to firebase
 		const promises = []
-		images.map((image) => {
+		images.forEach((image) => {
 			const storageRef = ref(
 				storage,
 				`report_${new Date().getTime().toString()}.png`
@@ -442,15 +445,14 @@ const ReportSystem = ({
 			uploadTask.on(
 				"state_changed",
 				(snapshot) => {
-					// console.log(snapshot);
+					// You can track the upload progress here if needed
 				},
 				(error) => {
 					console.log(error)
 				},
 				() => {
 					getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-						// console.log('File available at', downloadURL);
-						setImageURLs((prev) => [...prev, downloadURL])
+						setImageURLs((prev) => [...prev, downloadURL]) // Save the download URL
 					})
 				}
 			)
@@ -836,16 +838,19 @@ const ReportSystem = ({
 						{/* Details */}
 						{reportSystem == 5 && (
 							<div className='flex flex-col gap-6 mb-1'>
-								<Typography variant='h5'>{t("share")}</Typography>
-								{/* DESCRIPTION - details */}
 								<div className='block'>
-									<Typography variant='h6' color='blue'>
-										{t("detail")}
+									<Typography variant='h5'>{t("share")}</Typography>
+									<Typography
+										variant='small'
+										color='gray'
+										className='mt-2 flex items-start gap-1 italic'>
+										<IoIosInformationCircle size="12" className='mt-1' />
+										{t("personalInfo")}
 									</Typography>
-									<Typography>{t("detailDescription")}</Typography>
 								</div>
 								{/* TITLE */}
 								<div className='block'>
+									<Typography>{t("detailDescription")}</Typography>
 									<Input
 										variant='outlined'
 										color='gray'
@@ -860,7 +865,7 @@ const ReportSystem = ({
 										variant='small'
 										color={titleError ? 'red' : 'gray'}
 										className='mt-2 flex items-start gap-1 font-normal'>
-										<IoIosInformationCircle size="15" className='mt-1' />
+										<IoIosInformationCircle size="12" className='mt-1' />
 										{t("provide_title")} {t("max")}
 									</Typography>
 									{detailError && (
@@ -883,7 +888,7 @@ const ReportSystem = ({
 											variant='small'
 											color='gray'
 											className='mt-2 flex items-start gap-1 font-normal'>
-											<IoIosInformationCircle size="15" className='mt-1' />
+											<IoIosInformationCircle size="12" className='mt-1' />
 											{t("example")} https://
 										</Typography>
 									)}
@@ -905,7 +910,7 @@ const ReportSystem = ({
 												variant='small'
 												color='gray'
 												className='mt-2 flex items-start gap-1 font-normal'>
-												<IoIosInformationCircle size="15" className='mt-1' />
+												<IoIosInformationCircle size="12" className='mt-1' />
 												{t("example")} https://
 											</Typography>
 										</>
@@ -924,11 +929,33 @@ const ReportSystem = ({
 										type='file'
 										label={t("image")}
 									/>
+									{/* Styled Button */}
+									<Button
+										color="blue"
+										size="lg"
+										ripple={true}
+										onClick={() => document.getElementById('multiple_files').click()}
+									>
+										{t("imageBtn")}
+									</Button>
+									{/* Display Original File Names */}
+									{fileNames.length > 0 && (
+										<div className="mt-2 space-y-2 text-sm text-gray-500">
+											<p>Selected files:</p>
+											<ul>
+												{fileNames.map((name, index) => (
+													<li key={index} className="truncate">
+														{name} {/* Display original file name */}
+													</li>
+												))}
+											</ul>
+										</div>
+									)}
 									<Typography
 										variant='small'
 										color='gray'
 										className='mt-2 flex items-start gap-1'>
-										<IoIosInformationCircle size="15" className='mt-1' />
+										<IoIosInformationCircle size="12" className='mt-1' />
 										{t("imageDescription")}
 									</Typography>
 								</div>
