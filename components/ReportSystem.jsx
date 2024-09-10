@@ -79,7 +79,6 @@ const ReportSystem = ({
 	const imgPicker = useRef(null)
 	const [images, setImages] = useState([])
 	const [imageURLs, setImageURLs] = useState([])
-	const [fileNames, setFileNames] = useState([]) // State to store original file names
 	const [update, setUpdate] = useState(false)
 	const [title,setTitle] = useState("")
 	const [titleError, setTitleError] = useState(false)
@@ -420,22 +419,20 @@ const ReportSystem = ({
 		}
 	}
   const handleImageChange = (e) => {
-    const newFiles = Array.from(e.target.files) // Convert FileList to an array
-    const newFileNames = newFiles.map(file => file.name) // Get the file names
-
-    // Filter out any images or file names that are already in the state
-    const filteredFiles = newFiles.filter(file => !fileNames.includes(file.name))
-    const filteredFileNames = newFileNames.filter(name => !fileNames.includes(name))
-
-    if (filteredFiles.length > 0) {
-      setImages(prevImages => [...prevImages, ...filteredFiles]) // Add all new images at once
-      setFileNames(prevNames => [...prevNames, ...filteredFileNames]) // Add all new file names at once
-    }
-  }
+		// Image upload:
+		// (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js,
+		// https://www.youtube.com/watch?v=S4zaZvM8IeI)
+		// console.log('handle image change run');
+		for (let i = 0; i < e.target.files.length; i++) {
+			const newImage = e.target.files[i]
+			setImages((prevState) => [...prevState, newImage])
+			setUpdate(!update)
+		}
+	}
 	const handleUpload = () => {
 		// Image upload to firebase
 		const promises = []
-		images.forEach((image) => {
+		images.map((image) => {
 			const storageRef = ref(
 				storage,
 				`report_${new Date().getTime().toString()}.png`
@@ -452,8 +449,8 @@ const ReportSystem = ({
 				},
 				() => {
 					getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-						setImageURLs((prev) => [...prev, downloadURL]) // Save the download URL
-					})
+						// console.log('File available at', downloadURL);
+						setImageURLs((prev) => [...prev, downloadURL])					})
 				}
 			)
 		})
@@ -929,28 +926,6 @@ const ReportSystem = ({
 										type='file'
 										label={t("image")}
 									/>
-									{/* Styled Button */}
-									<Button
-										color="blue"
-										size="lg"
-										ripple={true}
-										onClick={() => document.getElementById('multiple_files').click()}
-									>
-										{t("imageBtn")}
-									</Button>
-									{/* Display Original File Names */}
-									{fileNames.length > 0 && (
-										<div className="mt-2 space-y-2 text-sm text-gray-500">
-											<p>Selected files:</p>
-											<ul>
-												{fileNames.map((name, index) => (
-													<li key={index} className="truncate">
-														{name} {/* Display original file name */}
-													</li>
-												))}
-											</ul>
-										</div>
-									)}
 									<Typography
 										variant='small'
 										color='gray'
