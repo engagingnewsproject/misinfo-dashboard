@@ -46,7 +46,7 @@ import {
 const columns = [
 	{ label: 'Title', accessor: 'title', sortable: true },
 	{ label: 'Date/Time', accessor: 'createdDate', sortable: true },
-	{ label: 'Candidates', accessor: 'candidates', sortable: false },
+	// { label: 'Candidates', accessor: 'candidates', sortable: false },
 	{ label: 'Topic Tags', accessor: 'topic', sortable: true },
 	{ label: 'Sources', accessor: 'hearFrom', sortable: false },
 	{ label: 'Labels', accessor: 'label', sortable: false },
