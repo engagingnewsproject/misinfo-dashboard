@@ -17,6 +17,8 @@ import {
 	updateDoc,
 	doc,
 } from "firebase/firestore"
+import { GiMagnifyingGlass } from "react-icons/gi";
+
 const Login = () => {
   const router = useRouter()
 
@@ -122,8 +124,10 @@ const Login = () => {
   return (
     <div className="w-screen h-screen flex justify-center items-center">
       <div className="w-full max-w-sm font-light">
-        <div className="flex justify-center mb-4">
-            <div className="w-24 h-24 font-extralight rounded-full tracking-widest flex justify-center items-center text-white bg-blue-500">MOODY</div>
+        <div className="flex justify-center h-auto mb-4">
+            <div className='bg-blue-600 p-7 rounded-full'>
+              <GiMagnifyingGlass size={ 30 } className='fill-white' />
+            </div>
         </div>
         <form className="px-8 pt-6 pb-4 mb-4" onSubmit={handleLogin}>
             <div className="mb-4">
