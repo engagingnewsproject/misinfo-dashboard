@@ -66,7 +66,7 @@ const Headbar = ({ search, setSearch}) => {
                             </>
                         )}
                         {!customClaims.agency && !customClaims.admin && (
-                            <>Misinformation</>
+                            <>Truth Sleuth Local</>
                         )}
                     </div>
                 </div>
