@@ -170,7 +170,7 @@ const Navbar = ({
 										</Tooltip>
 									</button>
 								)}
-								{(customClaims.admin || customClaims.agency) && (
+								{(customClaims.admin) && (
 									<button // Users
 										onClick={() => {
 											setTab(3)
