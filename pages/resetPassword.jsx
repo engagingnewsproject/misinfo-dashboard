@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from "next/image"
 import { useAuth } from '../context/AuthContext'
-
+import Head from 'next/head'
 const ResetPassword = () => {
     const router = useRouter()
     const { resetPassword } = useAuth()
@@ -44,11 +44,21 @@ const ResetPassword = () => {
     }
 
 
-    return (
+	return (
+		<>
+			<Head>
+				<title>Reset Password | Truth Sleuth Local</title>
+			</Head>
+
 			<div className="w-screen h-screen flex justify-center items-center">
 				<div className="w-full max-w-sm font-light">
 					<div className="grid justify-items-center mb-4">
-						<Image src={template.icon} width="100" height="100" alt="template-icon" />
+						<Image
+							src={template.icon}
+							width="100"
+							height="100"
+							alt="template-icon"
+						/>
 						<div className="flex-col mt-2 text-center tracking-wide">
 							<div className="text-lg font-bold my-2">{template.heading}</div>
 							<div className="text-sm font-light">{template.subtitle}</div>
@@ -87,13 +97,16 @@ const ResetPassword = () => {
 					)}
 					<p className="text-center text-gray-500 text-sm mt-2">
 						Already have an account?
-						<Link href="/login" className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+						<Link
+							href="/login"
+							className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
 							Log In
 						</Link>
 					</p>
 				</div>
 			</div>
-		)
+		</>
+	)
 }
 
 export default ResetPassword

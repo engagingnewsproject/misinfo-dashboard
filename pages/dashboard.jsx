@@ -12,6 +12,7 @@ import NewReportModal from '../components/modals/NewReportModal'
 import { db, auth } from '../config/firebase'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import Head from 'next/head'
 const tabList = [
 	'Home',
 	'Profile',
@@ -76,43 +77,48 @@ const Dashboard = () => {
 	}, [])
 
 	return (
-		<div className="w-full">
-			<Navbar
-				tab={tab}
-				setTab={setTab}
-        handleNewReportSubmit={handleNewReportSubmit}
-        handleNewReportClick={handleNewReportClick}
-				customClaims={customClaims}
-			/>
-			<div className="sm:pl-16">
-				{tab == 0 && (customClaims.admin || customClaims.agency) && (
-					<Home
-						newReportSubmitted={newReportSubmitted}
-            handleNewReportSubmit={handleNewReportSubmit}
-            handleNewReportClick={handleNewReportClick}
-            customClaims={customClaims}
+		<>
+			<Head>
+				<title>Dashboard | Truth Sleuth Local</title>
+			</Head>
+			<div className="w-full">
+				<Navbar
+					tab={tab}
+					setTab={setTab}
+					handleNewReportSubmit={handleNewReportSubmit}
+					handleNewReportClick={handleNewReportClick}
+					customClaims={customClaims}
+				/>
+				<div className="sm:pl-16">
+					{tab == 0 && (customClaims.admin || customClaims.agency) && (
+						<Home
+							newReportSubmitted={newReportSubmitted}
+							handleNewReportSubmit={handleNewReportSubmit}
+							handleNewReportClick={handleNewReportClick}
+							customClaims={customClaims}
+						/>
+					)}
+					{tab == 1 && <Profile customClaims={customClaims} />}
+					{tab == 2 && (customClaims.admin || customClaims.agency) && (
+						<Settings customClaims={customClaims} />
+					)}
+					{tab == 3 && (customClaims.admin || customClaims.agency) && (
+						<Users customClaims={customClaims} />
+					)}
+					{tab == 4 && customClaims.admin && (
+						<Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />
+					)}
+				</div>
+				{/* Render the NewReportModal */}
+				{newReportModal && (
+					<NewReportModal
+						setNewReportModal={setNewReportModal}
+						handleNewReportSubmit={handleNewReportSubmit}
+						customClaims={customClaims}
 					/>
 				)}
-				{tab == 1 && <Profile customClaims={customClaims} />}
-				{tab == 2 && (customClaims.admin || customClaims.agency) && (
-					<Settings customClaims={customClaims} />
-				)}
-				{tab == 3 && (customClaims.admin || customClaims.agency) && (
-					<Users customClaims={customClaims} />
-				)}
-				{tab == 4 && customClaims.admin && (
-					<Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />
-				)}
-      </div>
-      {/* Render the NewReportModal */}
-      {newReportModal && (
-        <NewReportModal
-          setNewReportModal={setNewReportModal}
-          handleNewReportSubmit={handleNewReportSubmit}
-          customClaims={customClaims}
-        />
-      )}
-		</div>
+			</div>
+		</>
 	)
 }
 

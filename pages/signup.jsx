@@ -29,6 +29,7 @@ import { Country, State, City } from 'country-state-city'
 import moment from 'moment'
 import { RiContactsBookLine } from 'react-icons/ri'
 import { Button } from '@material-tailwind/react'
+import Head from 'next/head'
 const SignUp = () => {
 	const router = useRouter()
 	const { t } = useTranslation(['Welcome', 'NewReport'])
@@ -256,29 +257,33 @@ const SignUp = () => {
 	}
 
 	return (
-		<div className="w-screen h-screen flex justify-center items-center">
-			<div className="w-full max-w-sm font-light">
-				<div className="flex justify-center mb-4">
-					<div className="w-24 h-24 font-extralight rounded-full tracking-widest flex justify-center items-center text-white bg-blue-500">
-						MOODY
+		<>
+			<Head>
+				<title>Signup | Truth Sleuth Local</title>
+			</Head>
+			<div className="w-screen h-screen flex justify-center items-center">
+				<div className="w-full max-w-sm font-light">
+					<div className="flex justify-center mb-4">
+						<div className="w-24 h-24 font-extralight rounded-full tracking-widest flex justify-center items-center text-white bg-blue-500">
+							MOODY
+						</div>
 					</div>
-				</div>
-				<form className="px-8 pt-6 pb-4 mb-4" onSubmit={handleSignUp}>
-					<div className="mb-4">
-						{!isAgency && (
-							<input
-								className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-								id="name"
-								type="text"
-								placeholder={t('name')}
-								required
-								value={data.name}
-								onChange={handleChange}
-								autoComplete=""
-							/>
-						)}
-					</div>
-					{/* <div className="mb-4">
+					<form className="px-8 pt-6 pb-4 mb-4" onSubmit={handleSignUp}>
+						<div className="mb-4">
+							{!isAgency && (
+								<input
+									className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									id="name"
+									type="text"
+									placeholder={t('name')}
+									required
+									value={data.name}
+									onChange={handleChange}
+									autoComplete=""
+								/>
+							)}
+						</div>
+						{/* <div className="mb-4">
 						<PhoneInput
 							placeholder={t('phone')}
 							value={data.phone}
@@ -287,154 +292,155 @@ const SignUp = () => {
 							onChange={handlePhoneNumber}
 						/>
 					</div> */}
-					<div className="mb-4">
-						<Select
-							className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-							id="state"
-							type="text"
-							required
-							placeholder={t('NewReport:state_text')}
-							value={data.state}
-							options={State.getStatesOfCountry('US')}
-							getOptionLabel={(options) => {
-								return options['name']
-							}}
-							getOptionValue={(options) => {
-								return options['name']
-							}}
-							label="state"
-							onChange={handleStateChange}
-						/>
-						{errors.state && data.state === null && (
-							<span className="text-red-500">{errors.state}</span>
-						)}
-					</div>
-
-					<div className="mb-4">
-						<Select
-							className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-							id="city"
-							type="text"
-							placeholder={t('NewReport:city_text')}
-							value={data.city}
-							options={City.getCitiesOfState(
-								data.state?.countryCode,
-								data.state?.isoCode,
+						<div className="mb-4">
+							<Select
+								className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								id="state"
+								type="text"
+								required
+								placeholder={t('NewReport:state_text')}
+								value={data.state}
+								options={State.getStatesOfCountry('US')}
+								getOptionLabel={(options) => {
+									return options['name']
+								}}
+								getOptionValue={(options) => {
+									return options['name']
+								}}
+								label="state"
+								onChange={handleStateChange}
+							/>
+							{errors.state && data.state === null && (
+								<span className="text-red-500">{errors.state}</span>
 							)}
-							getOptionLabel={(options) => {
-								return options['name']
-							}}
-							getOptionValue={(options) => {
-								return options['name']
-							}}
-							onChange={handleCityChange}
-						/>
-					</div>
-					<div className="mb-4">
-						<input
-							className={`${isAgency && 'mb-1 '}shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
-							id="email"
-							type="text"
-							placeholder={t('email')}
-							required
-							value={data.email}
-							onChange={handleChange}
-							autoComplete="email"
-						/>
-						{isAgency && (
-							<div className="mb-1 text-sm italic">
-								** Must be the email you were sent the invite.
-							</div>
-						)}
-					</div>
-					<>
-						{isAgency && (
-							<div className="mb-1 text-sm italic">
-								Create a secure password for your account.
-							</div>
-						)}
-						<div className="mb-1 flex">
+						</div>
+
+						<div className="mb-4">
+							<Select
+								className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								id="city"
+								type="text"
+								placeholder={t('NewReport:city_text')}
+								value={data.city}
+								options={City.getCitiesOfState(
+									data.state?.countryCode,
+									data.state?.isoCode,
+								)}
+								getOptionLabel={(options) => {
+									return options['name']
+								}}
+								getOptionValue={(options) => {
+									return options['name']
+								}}
+								onChange={handleCityChange}
+							/>
+						</div>
+						<div className="mb-4">
 							<input
 								className={`${isAgency && 'mb-1 '}shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
-								id="password"
-								type={type}
-								placeholder={t('password')}
+								id="email"
+								type="text"
+								placeholder={t('email')}
 								required
-								value={data.password}
+								value={data.email}
+								onChange={handleChange}
+								autoComplete="email"
+							/>
+							{isAgency && (
+								<div className="mb-1 text-sm italic">
+									** Must be the email you were sent the invite.
+								</div>
+							)}
+						</div>
+						<>
+							{isAgency && (
+								<div className="mb-1 text-sm italic">
+									Create a secure password for your account.
+								</div>
+							)}
+							<div className="mb-1 flex">
+								<input
+									className={`${isAgency && 'mb-1 '}shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
+									id="password"
+									type={type}
+									placeholder={t('password')}
+									required
+									value={data.password}
+									onChange={handleChange}
+									autoComplete="new-password"
+								/>
+								<span
+									className="flex justify-around items-center"
+									onClick={handleTogglePass}>
+									<MdOutlineRemoveRedEye className="absolute mr-10" />
+								</span>
+							</div>
+						</>
+						{data.password.length > 0 && data.password.length < 8 && (
+							<span className="text-red-500 text-sm font-light">
+								Password must be atleast 8 characters
+							</span>
+						)}
+						<div className="mt-4 mb-1">
+							<input
+								className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								id="confirmPW"
+								type={type}
+								placeholder={t('confirmPassword')}
+								required
+								value={data.confirmPW}
 								onChange={handleChange}
 								autoComplete="new-password"
 							/>
-							<span
-								className="flex justify-around items-center"
-								onClick={handleTogglePass}>
-								<MdOutlineRemoveRedEye className="absolute mr-10" />
+						</div>
+
+						<div className="mb-1">
+							<input
+								className="shadow border-white rounded-md mx-1"
+								id="contact"
+								type="checkbox"
+								value={data.contact}
+								checked={data.contact}
+								onChange={handleChecked}
+								autoComplete="contact"
+							/>
+							<label htmlFor="contact">{t('contact')}</label>
+						</div>
+						{data.password !== data.confirmPW && (
+							<span className="text-red-500 text-sm font-light">
+								{t('password_error')}
 							</span>
-						</div>
-					</>
-					{data.password.length > 0 && data.password.length < 8 && (
-						<span className="text-red-500 text-sm font-light">
-							Password must be atleast 8 characters
-						</span>
-					)}
-					<div className="mt-4 mb-1">
-						<input
-							className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-							id="confirmPW"
-							type={type}
-							placeholder={t('confirmPassword')}
-							required
-							value={data.confirmPW}
-							onChange={handleChange}
-							autoComplete="new-password"
-						/>
-					</div>
+						)}
+						{signUpError && (
+							<div className="text-red-500 text-sm font-normal pt-3">
+								{signUpError}
+							</div>
+						)}
 
-					<div className="mb-1">
-						<input
-							className="shadow border-white rounded-md mx-1"
-							id="contact"
-							type="checkbox"
-							value={data.contact}
-							checked={data.contact}
-							onChange={handleChecked}
-							autoComplete="contact"
-						/>
-						<label htmlFor="contact">{t('contact')}</label>
-					</div>
-					{data.password !== data.confirmPW && (
-						<span className="text-red-500 text-sm font-light">
-							{t('password_error')}
-						</span>
-					)}
-					{signUpError && (
-						<div className="text-red-500 text-sm font-normal pt-3">
-							{signUpError}
+						<div className="flex-col items-center content-center mt-7">
+							<Button
+								loading={data.password !== data.confirmPW}
+								fullWidth
+								type="submit">
+								{t('signup')}
+							</Button>
 						</div>
-					)}
-
-					<div className="flex-col items-center content-center mt-7">
-						<Button
-							loading={data.password !== data.confirmPW}
-							fullWidth
-							type="submit">
-							{t('signup')}
-						</Button>
+					</form>
+					<p className="text-center text-gray-500 text-sm">
+						{t('haveAccount')}
+						<Link
+							href="/login"
+							className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+							{t('login_action')}
+						</Link>
+					</p>
+					<div className="flex justify-center items-center p-6 gap-1">
+						{/* <span className="text-blue-500 text-md uppercase font-bold py-2 px-2">{t("select")}</span> */}
+						<LanguageSwitcher />
 					</div>
-				</form>
-				<p className="text-center text-gray-500 text-sm">
-					{t('haveAccount')}
-					<Link
-						href="/login"
-						className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
-						{t('login_action')}
-					</Link>
-				</p>
-				<div className="flex justify-center items-center p-6 gap-1">
-					{/* <span className="text-blue-500 text-md uppercase font-bold py-2 px-2">{t("select")}</span> */}
-					<LanguageSwitcher />
 				</div>
 			</div>
-		</div>
+		</>
 	)
 }
 export default SignUp
