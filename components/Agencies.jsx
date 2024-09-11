@@ -167,50 +167,50 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		setAgencyId(agencyId)
 	}
 	// Handler: delete agency from database and remove related user's agency field
-const handleDelete = async (e) => {
-  e.preventDefault();
+	const handleDelete = async (e) => {
+		e.preventDefault();
 
-  try {
-    // Get agency data
-    const agencyRef = doc(db, 'agency', agencyId);
-    const agencySnapshot = await getDoc(agencyRef);
-    const agencyData = agencySnapshot.data();
+		try {
+			// Get agency data
+			const agencyRef = doc(db, 'agency', agencyId);
+			const agencySnapshot = await getDoc(agencyRef);
+			const agencyData = agencySnapshot.data();
 
-    // Get agency users
-    const agencyUsers = agencyData['agencyUsers'];
+			// Get agency users
+			const agencyUsers = agencyData['agencyUsers'];
 
-    // Update agency field for each user
-    const updatePromises = [];
+			// Update agency field for each user
+			const updatePromises = [];
 
-    for (const userEmail of agencyUsers) {
-      const userRef = query(collection(db, 'mobileUsers'), where('email', '==', userEmail));
-      const querySnapshot = await getDocs(userRef);
+			for (const userEmail of agencyUsers) {
+				const userRef = query(collection(db, 'mobileUsers'), where('email', '==', userEmail));
+				const querySnapshot = await getDocs(userRef);
 
-      querySnapshot.forEach((doc) => {
-        const userData = doc.data();
-        console.log(userData);
+				querySnapshot.forEach((doc) => {
+					const userData = doc.data();
+					console.log(userData);
 
 
-        // TODO: Change privilege for user since we're deleting agency
-        // TODO: Check if user account exists - if it does, get rid of agency privilege.
-        // Update the agency field for the user
-        const userUpdatePromise = updateDoc(doc.ref, { agency: '' });
-        updatePromises.push(userUpdatePromise);
-      });
-    }
+					// TODO: Change privilege for user since we're deleting agency
+					// TODO: Check if user account exists - if it does, get rid of agency privilege.
+					// Update the agency field for the user
+					const userUpdatePromise = updateDoc(doc.ref, { agency: '' });
+					updatePromises.push(userUpdatePromise);
+				});
+			}
 
-    // Wait for all user updates to complete
-    await Promise.all(updatePromises);
+			// Wait for all user updates to complete
+			await Promise.all(updatePromises);
 
-    // Delete the agency document
-    await deleteDoc(agencyRef);
+			// Delete the agency document
+			await deleteDoc(agencyRef);
 
-    console.log('Agency and user updates completed successfully.');
-    setDeleteModal(false);
-  } catch (error) {
-    console.error('Error deleting agency:', error);
-  }
-};
+			console.log('Agency and user updates completed successfully.');
+			setDeleteModal(false);
+		} catch (error) {
+			console.error('Error deleting agency:', error);
+		}
+	};
 
 
 	// Handler: Agency modal
@@ -269,7 +269,7 @@ const handleDelete = async (e) => {
 		table_main: 'min-w-full bg-white rounded-xl p-1',
 		table_thead: 'border-b dark:border-indigo-100 bg-slate-100',
 		table_th: 'px-3 p-3 text-sm font-semibold text-left tracking-wide',
-		table_tr: 'border-b transition duration-300 ease-in-out hover:bg-indigo-100 dark:border-indigo-100 dark:hover:bg-indigo-100',
+		table_tr: 'border-b transition duration-300 ease-in-out hover:bg-indigo-50 dark:border-indigo-100 dark:hover:bg-indigo-100',
 		table_td: 'whitespace-normal text-sm px-3 p-2 cursor-pointer',
 		table_button: 'hover:fill-cyan-700',
 		table_icon: 'ml-4 fill-gray-400 hover:fill-red-600',
@@ -316,28 +316,21 @@ const handleDelete = async (e) => {
 								key={i}>
 									<td className={style.table_td}>
 										{agency['logo'] && agency['logo'][0] ?
-											<div className="flex w-full overflow-y-auto">
-												{agency['logo'].map((image, i) => {
+												agency['logo'].map((image, i) => {
 													return (
-														<div className="flex mr-2" key={i}>
-															<Image src={`${image}`} width={70} height={100} className='w-auto' alt="image"/>
-														</div>
+														<Image src={`${image}`} width={50} height={50} className='w-auto' alt="image" key={i}/>
 													)
-												})}
-											</div> :
-											<div className="italic font-light">No logo for this agency</div>
+												})
+											 :
+											<>No logo for this agency</>
 										}
 									</td>
 									<td className={style.table_td}>{agency.name}</td>
 									<td className={style.table_td}>
 										{agency.city}, {agency.state}
 									</td>
-									<td className={style.table_td}>
-									{agency['agencyUsers'].map((user, i = self.crypto.randomUUID()) => {
-										return(
-											<div key={i}>{user}</div>
-										)
-									})}
+									<td className={`${ style.table_td } max-w-56 overflow-y-hidden`}>
+										<p className='max-h-20 overflow-auto'>{agency['agencyUsers'].join(', ')}</p>
 									</td>
 									<td className={style.table_td} onClick={(e) => e.stopPropagation()}>
 										<button
