@@ -55,7 +55,7 @@ const Headbar = ({ search, setSearch}) => {
                     <div className="text-md font-semibold px-4 tracking-wide">
                         {customClaims.admin && (
                             <>
-                                Misinformation
+                                Truth Sleuth Local
                                 <div className='text-sm font-normal'>ADMIN DASHBOARD</div>
                             </>
                         )}
