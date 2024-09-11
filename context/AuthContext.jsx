@@ -114,7 +114,7 @@ export const AuthContextProvider = ({children}) => {
   const verifyEmail = (user) => {
     return new Promise((resolve, reject) => {
       var actionCodeSettings = {
-        'url': 'https://misinfo-dashboard.netlify.app/login',
+        'url': 'https://truthsleuthlocal.netlify.app/login',
         'handleCodeInApp': true,
       };
 
@@ -261,7 +261,7 @@ export const AuthContextProvider = ({children}) => {
 		const isLocalhost = window.location.hostname === 'localhost'
 		const baseUrl = isLocalhost
 			? 'http://localhost:3000/signup'
-			: 'https://misinfo-dashboard.netlify.app/signup'
+			: 'https://truthsleuthlocal.netlify.app/signup'
 
 		var actionCodeSettings = {
 			// URL you want to redirect back to. The domain for this URL must be whitelisted in the Firebase Console.
