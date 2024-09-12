@@ -19,6 +19,7 @@ import {
 } from "firebase/firestore"
 import { GiMagnifyingGlass } from "react-icons/gi";
 import Head from 'next/head';
+import { Typography } from '@material-tailwind/react'
 
 const Login = () => {
   const router = useRouter()
@@ -127,12 +128,14 @@ const Login = () => {
 			<Head>
 				<title>Login | Truth Sleuth Local</title>
 			</Head>
-			<div className="w-screen h-screen flex justify-center items-center">
+			<div className="w-screen h-screen overflow-auto flex justify-center items-start py-12 pb-8">
 				<div className="w-full max-w-sm font-light">
-					<div className="flex justify-center h-auto mb-4">
-						<div className="bg-blue-600 p-7 rounded-full">
+					<div className="flex flex-col items-center justify-center h-auto mb-2">
+						<div className="bg-blue-600 p-7 rounded-full mb-2">
 							<GiMagnifyingGlass size={30} className="fill-white" />
 						</div>
+						<Typography variant="small" className='text-xs font-semibold text-blue-600'>Truth Sleuth Local</Typography>
+						<Typography variant='h5'>Login</Typography>
 					</div>
 					<form className="px-8 pt-6 pb-4 mb-4" onSubmit={handleLogin}>
 						<div className="mb-4">
