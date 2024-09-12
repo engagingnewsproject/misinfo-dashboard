@@ -269,7 +269,7 @@ const SignUp = () => {
 							<GiMagnifyingGlass size={30} className="fill-white" />
 						</div>
 						<Typography variant="small" className='text-xs font-semibold text-blue-600'>Truth Sleuth Local</Typography>
-						<Typography variant='h5'>Sign Up</Typography>
+						<Typography variant='h5'>{ t('signupTitle')}</Typography>
 					</div>
 					<form className="px-8 pt-6 pb-4 mb-4" onSubmit={handleSignUp}>
 						<div className="mb-4">
@@ -425,7 +425,7 @@ const SignUp = () => {
 								loading={data.password !== data.confirmPW}
 								fullWidth
 								type="submit">
-								{t('signup')}
+								{t('signupButton')}
 							</Button>
 						</div>
 					</form>
