@@ -1,6 +1,7 @@
 {
     "welcome": "Bienvenido!",
-    "login": "El login",
+    "loginTitle": "Inicio de sesión",
+    "loginButton": "Iniciar sesión",
     "forgot": "¿Olvidó su contraseña?",
     "orloginwith": "- O inicie sesión con -",
     "create":"Crea tu cuenta",
@@ -9,7 +10,8 @@
     "email":"Correo electrónico",
     "password":"Contraseña",
     "confirmPassword":"Confirmar Contraseña",
-    "signup":"Inscribirse",
+    "signupTitle":"Inscripción",
+    "signupButton":"Inscribirse",
     "haveAccount":"¿Tener una cuenta?    ",
     "noAccount": "¿No tener una cuenta?    ",
     "login_action":"Acceso",

@@ -1,6 +1,7 @@
 {
     "welcome": "Welcome!",
-    "login": "Log In",
+    "loginTitle": "Login",
+    "loginButton": "Log In",
     "forgot": "Forgot Password?",
     "orloginwith":"- Or log in with -",
     "create":"Create your account",
@@ -9,7 +10,8 @@
     "username":"User name",
     "password":"Password",
     "confirmPassword":"Confirm password",
-    "signup":"Sign Up",
+    "signupTitle":"Signup",
+    "signupButton":"Sign Up",
     "noAccount": "Don't have an account?  ",
     "login_action":"Login",
     "haveAccount":"Have an account?    ",
