@@ -28,7 +28,8 @@ import { MdOutlineRemoveRedEye } from 'react-icons/md'
 import { Country, State, City } from 'country-state-city'
 import moment from 'moment'
 import { RiContactsBookLine } from 'react-icons/ri'
-import { Button } from '@material-tailwind/react'
+import { Button, Typography } from '@material-tailwind/react'
+import { GiMagnifyingGlass } from "react-icons/gi";
 import Head from 'next/head'
 const SignUp = () => {
 	const router = useRouter()
@@ -261,12 +262,14 @@ const SignUp = () => {
 			<Head>
 				<title>Signup | Truth Sleuth Local</title>
 			</Head>
-			<div className="w-screen h-screen flex justify-center items-center">
+			<div className="w-screen h-screen overflow-auto flex justify-center items-start pt-12 pb-8">
 				<div className="w-full max-w-sm font-light">
-					<div className="flex justify-center mb-4">
-						<div className="w-24 h-24 font-extralight rounded-full tracking-widest flex justify-center items-center text-white bg-blue-500">
-							MOODY
+					<div className="flex flex-col items-center justify-center mb-2">
+						<div className="bg-blue-600 p-7 rounded-full mb-2">
+							<GiMagnifyingGlass size={30} className="fill-white" />
 						</div>
+						<Typography variant="small" className='text-xs font-semibold text-blue-600'>Truth Sleuth Local</Typography>
+						<Typography variant='h5'>Sign Up</Typography>
 					</div>
 					<form className="px-8 pt-6 pb-4 mb-4" onSubmit={handleSignUp}>
 						<div className="mb-4">
