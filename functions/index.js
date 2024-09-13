@@ -1,12 +1,19 @@
 require("dotenv").config();
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const {Storage} = require("@google-cloud/storage");
+// Path to the service account key file
+const serviceAccount = require(
+    "../misinfo-5d004-firebase-adminsdk-2ubvq-135d27238a.json",
+);
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  storageBucket: "misinfo-5d004.appspot.com",
+});
 const storage = admin.storage().bucket();
 const axios = require("axios");
 const {Timestamp} = require("firebase-admin/firestore");
 
-admin.initializeApp();
 // used for sending slack messages from help requests form
 // Slack <-> Firebase connection URL
 // To reset the Slack webhook url run:
@@ -380,6 +387,7 @@ exports.authGetUserList = functions.https.onCall(async (data, context) => {
 
 const BATCH_SIZE_LIMIT = 500;
 
+
 exports.importReports = functions.https.onCall(async (data, context) => {
   try {
     const {reports} = data;
@@ -409,6 +417,65 @@ exports.importReports = functions.https.onCall(async (data, context) => {
         }
       }
 
+      // Process and upload images if any exist
+      if (reports[i].images && reports[i].images.length > 0) {
+        const imageUploadPromises = reports[i]
+            .images
+            .split(", ")
+            .map(async (
+                imageUrl,
+                imgIndex,
+            ) => {
+              try {
+                // Fetch the image from the external URL
+                const response = await axios({
+                  url: imageUrl,
+                  method: "GET",
+                  responseType: "arraybuffer", // Get the image as binary data
+                });
+
+                const imageBuffer = response.data;
+
+                // Create a unique file path in Firebase Storage
+                const imagePath = `
+                reports/${i}/image_${imgIndex}.jpg
+                `; // Adjust the file extension if needed
+                const file = storage.file(imagePath);
+
+                // Upload the image to Firebase Storage
+                await file.save(imageBuffer, {
+                  metadata: {
+                    contentType: response.headers["content-type"],
+                  },
+                });
+
+                console.log(`Uploaded image ${imgIndex} for report ${i}`);
+
+                // Get the Firebase Storage public URL
+                const [firebaseUrl] = await file.getSignedUrl({
+                  action: "read",
+                  expires: "03-01-2500", // Adjust the expiration date if needed
+                });
+
+                return firebaseUrl; // Return the Firebase Storage URL
+              } catch (error) {
+                console.error(
+                    `Error uploading image ${imgIndex} for report ${i}: `,
+                    error,
+                );
+                throw new functions.https.HttpsError(
+                    "internal",
+                    "Image upload failed",
+                );
+              }
+            });
+
+        // Wait for all image uploads to finish
+        const uploadedImages = await Promise.all(imageUploadPromises);
+        reports[i].images = uploadedImages;
+      }
+
+      // Add the report to the batch
       const newDocRef = admin.firestore().collection("reports").doc();
       batch.set(newDocRef, reports[i]);
       batchCounter++;
@@ -428,71 +495,16 @@ exports.importReports = functions.https.onCall(async (data, context) => {
 
     // Wait for all batch commits to complete
     await Promise.all(batchPromises);
-    console.log("All batch commits successful");
+    console.log("All batch commits and image uploads successful");
     return {
       success: true,
-      message: "Reports imported successfully",
+      message: "Reports and images imported successfully",
     };
   } catch (error) {
     console.error("Error importing reports: ", error);
     throw new functions.https.HttpsError(
         "internal",
-        "Failed to import reports",
+        "Failed to import reports and images",
     );
   }
 });
-
-
-/*
- START removePhoneFieldFromAllDocs
- This function should be removed from firebase so it is not somehow run.
- To run removePhoneFieldFromAllDocs from terminal:
- curl - X POST https://us-central1-misinfo-5d004.cloudfunctions.net/removePhoneFieldFromAllDocs
-const db = admin.firestore();
-const FieldValue = admin.firestore.FieldValue;
-
-exports.removePhoneFieldFromAllDocs = functions.https
-    .onRequest(async (req, res) => {
-      try {
-        console.log("Started removing phone fields...");
-        const snapshot = await db.collection("mobileUsers").get();
-
-        let batch = db.batch();
-        let count = 0;
-
-        snapshot.docs.forEach((doc) => {
-          const docRef = db.collection("mobileUsers").doc(doc.id);
-          const data = doc.data();
-
-          if (data.phone !== undefined) {
-            batch.update(docRef, {phone: FieldValue.delete()});
-            console.log(`Preparing document for update: ${doc.id}`);
-            count++;
-          } else {
-            console.log(`Skipped document (no phone field): ${doc.id}`);
-          }
-
-          // Commit every 100 operations
-          if (count % 100 === 0) {
-            batch.commit().catch((error) => {
-              console.error("Batch commit failed:", error);
-            });
-            batch = db.batch();
-          }
-        });
-
-        // Commit any remaining operations
-        if (count % 100 !== 0) {
-          await batch.commit();
-        }
-
-        console.log("Phone fields removed successfully.");
-        res.status(200).send("Phone fields removed successfully.");
-      } catch (error) {
-        console.error("Error removing phone fields:", error);
-        res.status(500).send("Error removing phone fields.");
-      }
-    });
- END removePhoneFieldFromAllDocs
- */
-

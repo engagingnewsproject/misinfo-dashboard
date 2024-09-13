@@ -76,7 +76,12 @@ const Headbar = ({ search, setSearch}) => {
 	// //
 	useEffect(() => {
         getData()
-	}, [])
+    },[])
+    
+    useEffect(() => {
+      console.log('Parsed Data==> ', parsedData);
+    }, [parsedData])
+    
     return (
 
             <div className="w-full grid grid-cols-12 pb-5 md:flex md:flex-row md:px-12 md:justify-between md:items-center">
