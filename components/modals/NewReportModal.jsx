@@ -487,7 +487,7 @@ const NewReportModal = ({
 			if (!docRef.exists()) {
 				console.log('Need to create tag collection for agency. ')
 				const defaultTopics = ['Health', 'Other', 'Politics', 'Weather'] // tag system 1
-				const defaultSources = ['Newspaper', 'Other/Otro', 'Social', 'Website'] // tag system 2
+				const defaultSources = ['Newspaper', 'Other', 'Social', 'Website'] // tag system 2
 				const defaultLabels = ['Important', 'Flagged'] // tag system 3
 
 				// reference to tags collection
@@ -1016,6 +1016,7 @@ const NewReportModal = ({
 								</div>
 							</div>
 							<div className="mt-4 mb-0.5">
+								{console.log(allSourcesArr)}
 								<Select
 									className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 									id="source-selection"
