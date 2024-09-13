@@ -1,16 +1,56 @@
 import React, { useState, useEffect } from 'react'
 import { AiOutlineSearch } from 'react-icons/ai'
 import { GiMagnifyingGlass } from "react-icons/gi";
-import { collection, getDocs, query, where } from 'firebase/firestore'
+import { collection,getDocs,query,where } from 'firebase/firestore'
 import { useAuth } from '../context/AuthContext'
-import { db } from "../config/firebase"
+import { db,functions } from "../config/firebase"
+import { httpsCallable } from 'firebase/functions';
 import Image from 'next/image'
+import { Button, Input } from '@material-tailwind/react';
+import Papa from 'papaparse'
 
 const Headbar = ({ search, setSearch}) => {
     const { user, customClaims } = useAuth()
     const [agencyLogo, setAgencyLogo] = useState('')
     const [title,setTitle] = useState('')
+    // import reports
+    const [csvFile,setCsvFile] = useState(null)
+    const [parsedData, setParsedData] = useState(null)
 
+    const handleFileChange = (event) => {
+        setCsvFile(event.target.files[0])
+    }
+    
+    const handleParse = () => {
+        if (csvFile) {
+            Papa.parse(csvFile,{
+                header: true,
+                skipEmptyLines: true,
+                complete: (result) => {
+                    setParsedData(result.data)
+                }
+            })
+        }
+    }
+    
+    const handleUpload = async () => {
+        if (!parsedData) return
+        // Send parsed data to Firebase or Firestore here
+        try {
+            const importReports = httpsCallable(functions, 'importReports')
+            const response = await importReports({ reports: parsedData })
+            
+            if (response.data.message === 'Reports imported successfully') {
+                alert('Reports imported successfully!')
+            } else {
+                console.error('Error importing reports:', response.data)
+            }
+        } catch (error) {
+            console.error('Upload failed:', error)
+        }
+    }
+    
+    // END import reports
     const getData = async () => {
         const agencyCollection = collection(db, 'agency')
 		const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
@@ -69,7 +109,25 @@ const Headbar = ({ search, setSearch}) => {
                             <>Truth Sleuth Local</>
                         )}
                     </div>
-                </div>
+            </div>
+            {(customClaims.admin) &&
+                <div className="flex">
+                    <Input
+                        type="file"
+                        accept=".csv"
+                        onChange={handleFileChange}
+                        className="mb-2"
+                    />
+                    <Button onClick={handleParse} color="blue">
+                        Parse CSV
+                    </Button>
+                    {parsedData && (
+                        <Button onClick={handleUpload} color="green" className="mt-2">
+                        Upload to Firestore
+                        </Button>
+                    )}
+                    </div>
+            }
                 {(customClaims.admin || customClaims.agency) &&
                 <form className="col-start-3 col-span-8 mt-5 flex relative md:w-2/4 lg:w-1/4 lg:max-w-xs" onChange={handleChange} onSubmit={handleSearch}>
                    

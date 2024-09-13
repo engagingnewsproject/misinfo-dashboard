@@ -1,10 +1,13 @@
 require('dotenv').config()
 const functions = require('firebase-functions')
 const admin = require('firebase-admin')
-
+const csv = require('csv-parser')
+const Busboy = require('busboy')
+const { Readable } = require('stream')
 admin.initializeApp()
 
 const axios = require('axios'); // used for sending slack messages from help requests form
+const { report } = require('process')
 
 // Slack <-> Firebase connection URL
 // To reset the Slack webhook url run:
@@ -362,6 +365,61 @@ exports.authGetUserList = functions.https.onCall(async (data,context) => {
     console.error('Failed to fetch user list: ',error)
     throw new functions.https.HttpsError('unknown', 'Failed to fetch user list.', error)
   }
+})
+
+const db = admin.firestore()
+
+exports.importReports = functions.https.onRequest((req,res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).send('Method not allowed')
+  }
+  
+  const busboy = new Busboy({ headers: req.headers })
+  const reports = []
+  
+  busboy.on('file',(fieldname,file) => {
+    file.pipe(csv())
+      .on('data',(data) => {
+        reports.push(data)
+      })
+      .on('end',async () => {
+        try {
+          // Process and import each report
+          const batch = db.batch()
+          reports.forEach((report) => {
+            const newDocRef = db.collection('reports').doc()
+            batch.set(newDocRef,{
+              userID: report.userID,
+              state: report.state,
+              city: report.city,
+              agency: report.agency,
+              title: report.title,
+              link: report.link,
+              secondLink: report.secondLink,
+              images: report.images.split(',').map(img => img.trim()), // Convert comma-separated images to array
+              detail: report.detail,
+              createdDate: report.createdDate,
+              isApproved: report.isApproved,
+              read: report.read === 'TRUE',
+              topic: report.topic,
+              hearFrom: report.hearFrom
+            })
+          })
+          
+          await batch.commit()
+          res.status(200).send('Reports imported successfully')
+        } catch (error) {
+          console.error('Error importing reports:',error)
+          res.status(500).send('Failed to import reports')
+        }
+      })
+  })
+  
+  busboy.on('finish',() => {
+    console.log('Finished processing CSV file.');
+  })
+  
+  req.pipe(busboy)
 })
 
 /*
