@@ -198,14 +198,14 @@ const Settings = () => {
                 Edit Sources
             </button>
         </div>
-        <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
+        {/* <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">Customized Labels</div>
             <button
                 onClick={() => setTagSystem(3)}
                 className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
                 Edit Labels
             </button>
-        </div>
+        </div> */}
       </div> 
       }
       </div>
