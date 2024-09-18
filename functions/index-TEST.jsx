@@ -1,78 +1,81 @@
+const admin = require("firebase-admin");
+const functions = require("firebase-functions");
 const axios = require("axios");
-const {Storage} = require("@google-cloud/storage");
-const storage = admin.storage().bucket(); // Ensure you've set up your Firebase Storage bucket
+const storage = admin.storage().bucket();
+const {Timestamp} = require("firebase-admin/firestore");
+const BATCH_SIZE_LIMIT = 100; // Reduce batch size to 100 for testing
 
 exports.importReports = functions.https.onCall(async (data, context) => {
   try {
     const {reports} = data;
     console.log("Received reports: ", reports);
 
+    let batch = admin.firestore().batch();
+    let batchCounter = 0;
     const batchPromises = [];
 
-    for (const [index, report] of reports.entries()) {
-      console.log(`Processing report ${index}: `, report);
+    for (let i = 0; i < reports.length; i++) {
+      console.log(`Processing report ${i}: `, reports[i]);
 
-      const newDocRef = admin.firestore().collection("reports").doc();
-
-      // Check if there are images to upload
-      if (report.images && report.images.length > 0) {
-        const imageUploadPromises = report.images.map(async (imageUrl, imgIndex) => {
-          try {
-            // Download the image from the URL
-            const response = await axios({
-              url: imageUrl,
-              method: "GET",
-              responseType: "arraybuffer", // Get binary data
-            });
-
-            const imageBuffer = response.data;
-
-            // Create a reference in Firebase Storage for this image
-            const imagePath = `reports/${newDocRef.id}/image_${imgIndex}.jpg`; // or use appropriate extension
-            const file = storage.file(imagePath);
-
-            // Upload the image to Firebase Storage
-            await file.save(imageBuffer, {
-              metadata: {
-                contentType: response.headers["content-type"],
-              },
-            });
-
-            console.log(`Uploaded image ${imgIndex} for report ${index}`);
-
-            // Get the Firebase Storage URL
-            const [firebaseUrl] = await file.getSignedUrl({
-              action: "read",
-              expires: "03-01-2500", // Adjust the expiration date accordingly
-            });
-
-            return firebaseUrl; // Return the uploaded image's URL
-          } catch (error) {
-            console.error(`Error uploading image ${imgIndex} for report ${index}: `, error);
-            throw new functions.https.HttpsError("internal", "Image upload failed");
-          }
-        });
-
-        // Wait for all image uploads to finish and store their Firebase URLs
-        const uploadedImages = await Promise.all(imageUploadPromises);
-        report.images = uploadedImages; // Replace original URLs with Firebase URLs
+      // Parse the createdDate from the report
+      if (reports[i].createdDate) {
+        const date = new Date(reports[i].createdDate);
+        if (!isNaN(date.getTime())) {
+          reports[i].createdDate = Timestamp.fromDate(date);
+        } else {
+          console.error(
+              `Invalid date format for report ${i}: `,
+              reports[i].createdDate,
+          );
+          throw new functions.https.HttpsError(
+              "invalid-argument",
+              "Invalid date format.",
+          );
+        }
       }
 
-      // Add report to batch for Firestore
-      const batch = admin.firestore().batch();
-      batch.set(newDocRef, report);
+      const newDocRef = admin.firestore().collection("reports").doc();
+      batch.set(newDocRef, reports[i]);
+      batchCounter++;
 
-      // Add batch commit to promises
-      batchPromises.push(batch.commit().catch((error) => {
-        console.error("Batch commit error: ", error);
-        throw new functions.https.HttpsError("internal", "Batch commit failed");
-      }));
+      // Commit the batch after every BATCH_SIZE_LIMIT writes
+      if (batchCounter === BATCH_SIZE_LIMIT) {
+        console.log(`Committing batch of ${batchCounter} reports`);
+        batchPromises.push(
+            batch.commit().catch((error) => {
+              console.error("Batch commit error: ", error);
+              throw new functions.https.HttpsError(
+                  "internal",
+                  "Batch commit failed.",
+              );
+            }),
+        );
+        batch = admin.firestore().batch(); // Start a new batch
+        batchCounter = 0;
+      }
     }
 
-    // Wait for all batch commits
+    // Commit the last batch if there are remaining writes
+    if (batchCounter > 0) {
+      console.log(`Committing final batch of ${batchCounter} reports`);
+      batchPromises.push(
+          batch.commit().catch((error) => {
+            console.error("Final batch commit error: ", error);
+            throw new functions.https.HttpsError(
+                "internal",
+                "Final batch commit failed.",
+            );
+          }),
+      );
+    }
+
+    // Wait for all batch commits to complete
     await Promise.all(batchPromises);
-    console.log("All reports and images uploaded successfully");
-    return {success: true, message: "Reports imported successfully"};
+    console.log("All batch commits successful");
+    return {
+      success: true,
+      message: "Reports imported successfully",
+    };
   } catch (error) {
     console.error("Error importing reports: ", error);
     throw new functions.https.HttpsError("internal", "Failed to import reports");

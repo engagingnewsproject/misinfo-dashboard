@@ -35,18 +35,25 @@ const Headbar = ({ search, setSearch}) => {
     
     const handleUpload = async () => {
         if (!parsedData) return
+        console.log('Parsed Data:',parsedData) // Log the data before sending
+
         // Send parsed data to Firebase or Firestore here
         try {
             const importReports = httpsCallable(functions, 'importReports')
             const response = await importReports({ reports: parsedData })
             
+            console.log('Function response:', response); // Log the function's response
+
             if (response.data.message === 'Reports imported successfully') {
                 alert('Reports imported successfully!')
             } else {
                 console.error('Error importing reports:', response.data)
             }
         } catch (error) {
-            console.error('Upload failed:', error)
+            console.error('Upload failed:',error)
+            if (error.response) {
+                console.error('Error details:', error.response.data)
+            }
         }
     }
     

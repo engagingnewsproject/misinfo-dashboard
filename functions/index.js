@@ -1,15 +1,17 @@
 require("dotenv").config();
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-// Path to the service account key file
-const serviceAccount = require(
-    "../misinfo-5d004-firebase-adminsdk-2ubvq-135d27238a.json",
-);
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  storageBucket: "misinfo-5d004.appspot.com",
-});
+// Initialize Firebase Admin SDK with the service account
+// if credentials are provided
+// if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+// const serviceAccount = require(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+// admin.initializeApp({
+// credential: admin.credential.cert(serviceAccount),
+// storageBucket: "misinfo-5d004.appspot.com",
+// });
+// } else {
+admin.initializeApp();
+// }
 const storage = admin.storage().bucket();
 const axios = require("axios");
 const {Timestamp} = require("firebase-admin/firestore");
@@ -250,7 +252,6 @@ exports.getUser = functions.https.onCall(async (data, context) => {
   }
 });
 
-
 exports.getUserByEmail = functions.https.onCall(async (data, context) => {
   try {
     // Check if the request is authorized (if needed)
@@ -385,10 +386,43 @@ exports.authGetUserList = functions.https.onCall(async (data, context) => {
   }
 });
 
-const BATCH_SIZE_LIMIT = 500;
+const BATCH_SIZE_LIMIT = 100;
 
+/**
+ * Attempts to commit a batch operation with retries in case of failure.
+ * @param {Object} batch The batch object with a commit method.
+ * @param {number} [maxRetries=3] The maximum number of retries.
+ * @return {Promise<void>} Resolves if the batch commit succeeds.
+ */
+async function commitBatchWithRetry(batch, maxRetries = 3) {
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      return await batch.commit();
+    } catch (error) {
+      attempt++;
+      console.error(`Batch commit failed (attempt ${attempt}): `, error);
+      if (attempt >= maxRetries) {
+        throw error; // Give up after maxRetries
+      }
+      // Wait before retrying
+      await new Promise(
+          (resolve) => setTimeout(resolve, 1000),
+      );
+    }
+  }
+}
 
 exports.importReports = functions.https.onCall(async (data, context) => {
+  console.log("Function triggered with data:", data);
+
+  // Check if 'reports' is provided
+  if (!data.reports || !Array.isArray(data.reports)) {
+    throw new functions.https.HttpsError(
+        "invalid-argument",
+        "The function must be called with an array of reports.",
+    );
+  }
   try {
     const {reports} = data;
     console.log("Received reports: ", reports);
@@ -403,6 +437,7 @@ exports.importReports = functions.https.onCall(async (data, context) => {
       // Parse the createdDate from the report
       if (reports[i].createdDate) {
         const date = new Date(reports[i].createdDate);
+        console.log(`Parsed date: ${date}`); // Log the parsed date
         if (!isNaN(date.getTime())) {
           reports[i].createdDate = Timestamp.fromDate(date);
         } else {
@@ -419,6 +454,7 @@ exports.importReports = functions.https.onCall(async (data, context) => {
 
       // Process and upload images if any exist
       if (reports[i].images && reports[i].images.length > 0) {
+        console.log(`Processing images for report ${i}: `, reports[i].images);
         const imageUploadPromises = reports[i]
             .images
             .split(", ")
@@ -433,13 +469,11 @@ exports.importReports = functions.https.onCall(async (data, context) => {
                   method: "GET",
                   responseType: "arraybuffer", // Get the image as binary data
                 });
-
+                console.log("axios RESPONSE--> ", response);
                 const imageBuffer = response.data;
 
                 // Create a unique file path in Firebase Storage
-                const imagePath = `
-                reports/${i}/image_${imgIndex}.jpg
-                `; // Adjust the file extension if needed
+                const imagePath = `report_${Date.now()}.png`;
                 const file = storage.file(imagePath);
 
                 // Upload the image to Firebase Storage
@@ -475,6 +509,19 @@ exports.importReports = functions.https.onCall(async (data, context) => {
         reports[i].images = uploadedImages;
       }
 
+      // Convert `isApproved` and `read` fields to booleans
+      console.log("REPORT IS APPROVED===> ", reports[i].isApproved);
+      console.log("REPORT IS READ===> ", reports[i].read);
+      reports[i].isApproved = reports[i].isApproved === "TRUE";
+      reports[i].read = reports[i].read === "TRUE";
+
+      for (const key in reports[i]) {
+        if (reports[i][key] === undefined) {
+          console.log("UNDEFINED===> ", reports[i][key]);
+          delete reports[i][key];
+        }
+      }
+
       // Add the report to the batch
       const newDocRef = admin.firestore().collection("reports").doc();
       batch.set(newDocRef, reports[i]);
@@ -482,15 +529,39 @@ exports.importReports = functions.https.onCall(async (data, context) => {
 
       // Commit the batch after every BATCH_SIZE_LIMIT writes
       if (batchCounter === BATCH_SIZE_LIMIT) {
-        batchPromises.push(batch.commit());
-        batch = admin.firestore().batch();
-        batchCounter = 0;
+        console.log(`Committing batch of ${batchCounter} reports`);
+        try {
+          batchPromises.push(
+              batch.commit().catch((error) => {
+                console.error("Batch commit error: ", error);
+                throw new functions.https.HttpsError(
+                    "internal",
+                    "Batch commit failed",
+                );
+              }),
+          );
+          console.log(
+              `Batch of ${batchCounter} committed successfully`,
+          );
+          // Reset batch
+          batch = admin.firestore().batch();
+          batchCounter = 0;
+        } catch (error) {
+          console.error(
+              "Error committing batch: ",
+              error,
+          );
+          throw new functions.https.HttpsError(
+              "internal",
+              "Batch commit failed",
+          );
+        }
       }
     }
 
     // Commit the last batch if there are remaining writes
     if (batchCounter > 0) {
-      batchPromises.push(batch.commit());
+      batchPromises.push(commitBatchWithRetry(batch));
     }
 
     // Wait for all batch commits to complete
@@ -504,7 +575,27 @@ exports.importReports = functions.https.onCall(async (data, context) => {
     console.error("Error importing reports: ", error);
     throw new functions.https.HttpsError(
         "internal",
-        "Failed to import reports and images",
+        "Failed to import reports.",
     );
   }
 });
+
+// Test firebase admin function
+/*
+exports.testFirestoreAccess = functions.https.onRequest(async (req, res) => {
+  try {
+    const docRef = admin.firestore().collection("test").doc("testDoc");
+    await docRef.set({message: "Firestore access successful"});
+
+    const docSnapshot = await docRef.get();
+    if (docSnapshot.exists) {
+      res.status(200).send({success: true, data: docSnapshot.data()});
+    } else {
+      res.status(404).send({success: false, message: "Document not found"});
+    }
+  } catch (error) {
+    console.error("Error accessing Firestore: ", error);
+    res.status(500).send({error: "Firestore access failed"});
+  }
+});
+*/
