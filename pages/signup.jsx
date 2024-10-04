@@ -31,6 +31,7 @@ import { RiContactsBookLine } from 'react-icons/ri'
 import { Button, Typography } from '@material-tailwind/react'
 import { GiMagnifyingGlass } from "react-icons/gi";
 import Head from 'next/head'
+import PrivacyPolicyModal from "../components/modals/PrivacyPolicyModal"
 const SignUp = () => {
 	const router = useRouter()
 	const { t } = useTranslation(['Welcome', 'NewReport'])
@@ -53,6 +54,9 @@ const SignUp = () => {
 	const [pass, setPass] = useState('')
 	const [type, setType] = useState('password')
 	const [icon, setIcon] = useState(false)
+	const [showModal, setShowModal] = useState(false)
+	const openModal = () => setShowModal(true)
+	const closeModal = () => setShowModal(false)
 	// console.log(isAgency);
 	const addMobileUser = (privilege) => {
 		// Get user object
@@ -440,7 +444,11 @@ const SignUp = () => {
 						{/* <span className="text-blue-500 text-md uppercase font-bold py-2 px-2">{t("select")}</span> */}
 						<LanguageSwitcher />
 					</div>
+					<div className="privacy_policy flex justify-center items-center">
+						<a className='cursor-pointer text-blue-600' onClick={openModal}>Privacy Policy</a>
+					</div>
 				</div>
+				<PrivacyPolicyModal showModal={showModal} closeModal={closeModal} />
 			</div>
 		</>
 	)

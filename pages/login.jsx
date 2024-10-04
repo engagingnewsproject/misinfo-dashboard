@@ -20,6 +20,7 @@ import {
 import { GiMagnifyingGlass } from "react-icons/gi";
 import Head from 'next/head';
 import { Typography } from '@material-tailwind/react'
+import PrivacyPolicyModal from '../components/modals/PrivacyPolicyModal'
 
 const Login = () => {
   const router = useRouter()
@@ -34,8 +35,10 @@ const Login = () => {
   const [error, setError] = useState(null)
   const [errorMessage, setErrorMessage] = useState()
   const [loading, setLoading] = useState(false)
-
-  // password show/hide
+	const [showModal, setShowModal] = useState(false)
+	const openModal = () => setShowModal(true)
+	const closeModal = () => setShowModal(false)
+	// password show/hide
   const [password, setPassword] = useState("")
   const [type, setType] = useState('password')
   const [icon, setIcon] = useState(false)
@@ -227,7 +230,13 @@ const Login = () => {
 						</span>
 						<LanguageSwitcher />
 					</div>
+					<div className="privacy_policy flex justify-center items-center">
+						<a className="cursor-pointer text-blue-600" onClick={openModal}>
+							Privacy Policy
+						</a>
+					</div>
 				</div>
+				<PrivacyPolicyModal showModal={showModal} closeModal={closeModal} />
 			</div>
 		</>
 	)
