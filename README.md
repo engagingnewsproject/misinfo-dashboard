@@ -40,7 +40,7 @@ First step! Clone this repo into a local directory (ex. `~/username/sites/`) on 
     ```
     git clone https://github.com/engagingnewsproject/misinfo-dashboard.git
     ```
- 
+
 ### 2. Install Packages
 
 #### Node Version
@@ -49,7 +49,7 @@ At this time of writing (April 26, 2024) the latest working update is at Node v2
 
 #### Yarn
 Install/update [`yarn`](https://yarnpkg.com/) package manager on your machine ([installation docs](https://yarnpkg.com/getting-started/install))
-  
+
 - Enable [Corepack](https://yarnpkg.com/corepack), if it isn't already; this will add the `yarn` binary to your PATH:
 
     ```
@@ -63,64 +63,60 @@ yarn set version 1.22.1
 ```
 
 - From the root of the project install dependencies by running:
-        
+
     ```
     yarn install
     ```
-  
+
     > _**Why not `npm install`?** Glad you asked! [Netlify](https://www.netlify.com/), the service that hosts the dashboard, will not allow us to upload updates because `npm install` creates a `package-lock.json` file. Netlify doesn't like `package-lock.json` files._
 
 ### 3. Add Firebase configuration
 
 In order to be authenticated with the Firebase Project you must have the `.env` file (which contains the Firebase credentials) at the root of your project. To get the contents of the `.env` file reach out to the project lead (currently [Luke](https://github.com/luukee)).
 
-### 4. Install and run Firebase Emulator
+### 4. Install Firebase Emulator
 
-Firebase Emulator is included in the [Firebase Tools](https://www.npmjs.com/package/firebase-tools) package. You can install Firebase Tools by running:
+Install Firebase Tools by running:
 
 ```
 curl -sL firebase.tools | bash
 ```
 
-Next, to run the app on the emulator and import the testing db data, in a _new_ terminal tab run: 
-
-```
-firebase emulators:start --import=./emulator-data
-``` 
-
-See [Emulator Tips](https://github.com/engagingnewsproject/misinfo-dashboard?tab=readme-ov-file#emulator-tips) for more info.
+- [Install, configure and integrate Local Emulator Suite](https://firebase.google.com/docs/emulator-suite/install_and_configure)
 
 ### 5. Start dev server
 
-To boot up the development server run:
+To boot up the development server and Firebase Emulator run:
 
 ```
 yarn dev
-# or
-npm run dev
 ```
 
-> _If you open `http://localhost:3000` and you see the "unhandled error" `FirebaseError: Failed to get document because the client is offline.` this means you have not started the Firebase Emulator. Return to step #4 to Install and run the Firebase Emulator._
+This command will boot up the [Firebase Emulator UI](https://firebase.google.com/docs/emulator-suite) and the NextJS server. Look over your terminal output and click the Emulator links (Emulator UI) and localhost link.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. If you have the emulator running you will see a banner `Running in emulator mode. Do not use with production credentials.` at the bottom of your screen as well as Console log messages letting you know that the emulator is running:
+#### Emulator Users
 
-![emulator-running](https://media.github.austin.utexas.edu/user/3619/files/fa9f1c63-1f3a-4dd2-b0d3-2ca3ab6b86f0)
+The emulator has 3 user accounts already set up. You can log in with any of them. Each login has different permissions so the layout will change based on who you are logged in with.
 
-> NOTE: You will have 2 terminal tabs running while developing:
-- > 1 terminal tab for `yarn dev` (or `npm run dev`), 
-- > 1 terminal tab for `firebase emulators:start --import=./emulator-data`. 
+**User:**
+- email: user@user.com
+- pass: devPassword
 
-> NOTE: You will also have 2 browser tabs open while developing:
-- > 1 browser tab for `localhost:3000` (actual misinfo dashboard), 
-- > 1 browser tab for "Firebase Emulator Suite" 
+**Agency user:**
+- email: agency@user.com
+- pass: devPassword
 
-Develop away! And good luck :)
+**Admin user:**
+- email: admin@user.com
+- pass: devPassword
+
+You can also sign up with totally different info (email, name, city, state ect.). When you sign up a authorization link will print out in your terminal. You will need to click that link to verify. After you click the link you can close the window that open's (its only for verification) and return to your localhost window to log in.
 
 ## Emulator Tips:
 
 > _If you get `command not found` you might have to be added as a user for the Firebase project. Contact the lead developer to do this for you. Or contact mediaengagement@austin.utexas.edu_
 
-The Firebase Emulator should boot up and provide you an emulator link (look for `View Emulator UI at` in your command line output). 
+The Firebase Emulator should boot up and provide you an emulator link (look for `View Emulator UI at` in your command line output).
 
 Open that link to view the Emulator UI:
 
@@ -128,7 +124,7 @@ Open that link to view the Emulator UI:
 
 **See Emulator Tips** for more info.
 
-### Add yourself as a user via the "Emulator Authentication" tab. 
+### Add yourself as a user via the "Emulator Authentication" tab.
 
 #### Two options:
 
@@ -140,16 +136,16 @@ Open that link to view the Emulator UI:
 
    You can also signup like a normal user at the Login/Signup page. Once you have signed up:
 
-    - Open the link printed out in your Emulator terminal window. 
+    - Open the link printed out in your Emulator terminal window.
       - **_all you need to do is open the link._ Once you've opened the link close the tab and...
     - Return to your initial Signup tab and login with the credentials you signed up with. Change your role? see _Available user roles_ below.
 
 #### Available user roles:
 
 - *General User:*
-    
+
     No additional configuration required.
-    
+
 - *Agency User:*
 
     In the "Custom Claims" input enter `{"agency":true}` & save.
@@ -157,7 +153,7 @@ Open that link to view the Emulator UI:
 - *Admin User:*
 
     In the "Custom Claims" input enter `{"admin":true}` & save.
-    
+
 
 #### Emulator UI
 - Database: find the imported database under the Emulator UI / Firestore tab.
@@ -170,7 +166,7 @@ Your user UID that you created will not be associated with any reports or agenci
 
 #### Emulator log files
 
-Emulator creates log files (`firebase-debug.log` & `ui-debug.log`) when you boot up the emulator. No need to push those with git. 
+Emulator creates log files (`firebase-debug.log` & `ui-debug.log`) when you boot up the emulator. No need to push those with git.
 
 #### Export your local emulator data
 
@@ -214,17 +210,17 @@ _The `dev` branch is the branch that contains the dev live site code._
 1.  Checkout the `dev` branch
 
     `git checkout dev`
-    
+
 2.  Merge changes from `main` to `dev`
 
     `git marge main`
-    
+
 3. Push the merge into `dev`
 
     `git push origin dev`
-    
+
 4.  Open the [Netlify UI for the dev site](https://app.netlify.com/sites/dev-misinfo-dashboard/deploys) and monitor the progress. Make sure the top bar has `dev-misinfo-dashboard` active. On the left sidebar navigate to the "Deploys" link. Your latest push will be listed at the top.
-    
+
 #### Deploy to prod
 Link: https://misinfo-dashboard.netlify.app/
 
@@ -235,15 +231,15 @@ _The `prod` branch is the branch that contains the live site code._
 1.  Checkout the `main` branch
 
     `git checkout main`
-    
+
 2.  Merge changes from `dev` into `main`
 
     `git marge dev`
-    
+
 3. Push the merge into `main`
 
     `git push origin main`
-    
+
 4.  Checkout the `prod` branch
 
     `git checkout prod`
@@ -251,20 +247,20 @@ _The `prod` branch is the branch that contains the live site code._
 5. Merge `main` into `prod`
 
     `git merge main`
-    
+
 6. Push the merge into `prod`
 
     `git push origin prod`
-    
+
 7.  Open the [Netlify UI for the prod site](https://app.netlify.com/sites/misinfo-dashboard/deploys) and monitor the progress. Make sure the top bar has `misinfo-dashboard` active. On the left sidebar navigate to the "Deploys" link. Your latest push will be listed at the top.
-    
+
 #### Deploy issues
 
 If you get the below error you will need to install [Git Large File Storage](https://git-lfs.com/).
 
 ```
 remote: error: File firestore-debug.log is 102.65 MB; this exceeds GitHub's file size limit of 100.00 MB
-``` 
+```
 
 To install:
 
@@ -290,7 +286,7 @@ Project Lead Links: [Firebase CLI Tools](https://firebase.google.com/docs/firest
 
 #### [Material Tailwind](https://www.material-tailwind.com/docs/react/accordion)
   - (all components in the left sidebar)
-  
+
 #### [TailwindCSS Docs](https://tailwindcss.com/docs/installation)
 
 #### [Deprecated: Misinfo Dashboard Documentation GitBook](https://app.gitbook.com/o/tmOnCbkSzYuWj7EVbFqg/s/h5B8zKreIfyiUKOT1awO/)
