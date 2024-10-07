@@ -12,23 +12,6 @@ This project project bootstrapped with [`create-next-app`](https://github.com/ve
 
 **See [Technical Documentation](https://github.com/engagingnewsproject/misinfo-dashboard/blob/main/technicalDocumentation.md)** for Project Structure, Firebase, Components and Git Usage docs.
 
-
-## Already set up?
-
-Simple. Run two commands in separate terminal tabs:
-
-```
-firebase emulators:start --import=./emulator-data
-```
-
-and...
-
-```
-yarn dev
-```
-
-Not set up? Keep reading...
-
 ## Getting Started
 
 ### 1. Clone repo
