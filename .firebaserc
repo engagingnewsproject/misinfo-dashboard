@@ -4,11 +4,5 @@
     "dev": "misinfo-dashboard-dev"
   },
   "targets": {},
-  "etags": {
-    "misinfo-5d004": {
-      "extensionInstances": {
-        "firestore-send-email": "7fd55e2974502afa976240b20ebb6a0f2427948309607b920dd2aba36fbdbe9f"
-      }
-    }
-  }
+  "etags": {}
 }

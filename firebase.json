@@ -58,10 +58,6 @@
   "storage": {
     "rules": "storage.rules"
   },
-  "extensions": {
-    "firestore-send-email-6bt9": "firebase/firestore-send-email@0.1.33",
-    "firestore-send-email": "firebase/firestore-send-email@0.1.34"
-  },
   "scripts": {
     "prestart": "node initializeFirestore.js"
   }

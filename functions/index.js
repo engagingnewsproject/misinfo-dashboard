@@ -1,15 +1,24 @@
 require('dotenv').config()
 const functions = require('firebase-functions')
 const admin = require('firebase-admin')
+// All available logging functions
+const {
+  log,
+  info,
+  debug,
+  warn,
+  error,
+  write,
+} = require("firebase-functions/logger");
+// The Firebase Admin SDK to access Firestore.
+const {initializeApp} = require("firebase-admin/app");
 
-admin.initializeApp()
+initializeApp();
 
 const axios = require('axios'); // used for sending slack messages from help requests form
 
-// Slack <-> Firebase connection URL
-// To reset the Slack webhook url run:
-// `firebase functions:config:set slack.webhook_url="https://hooks.slack.com/services/SLACK_WEBHOOK_URL"`
-const SLACK_WEBHOOK_URL = functions.config().slack.webhook_url;
+// Slack Webhook URL from environment variable
+const SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/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"
 
 // Function to post a message to Slack
 const postToSlack = async (
@@ -21,22 +30,22 @@ const postToSlack = async (
 	messageText,
 	imageUrl,
 ) => {
-	try {
+  try {
 		const payload = {
 			blocks: [
 				{
 					type: 'section',
 					text: {
 						type: 'mrkdwn',
-						text: `*${userName}* - ${subject}`,
+						text: `*UserName*: ${userName}, *UserRole*: ${userRole}, *Email*: ${userEmail} - *Subject*: ${subject}`,
 					},
 				},
 				{
 					type: 'section',
-					block_id: 'section567',
+					block_id: 'section_message',
 					text: {
 						type: 'mrkdwn',
-						text: messageText,
+						text: `Message: ${messageText}`,
 					},
 					accessory: {
 						type: 'image',
@@ -44,31 +53,22 @@ const postToSlack = async (
 						alt_text: 'User uploaded image',
 					},
 				},
+        {
+          type: "divider"
+        },
 				{
 					type: 'section',
-					block_id: 'section789',
-					fields: [
-						{
-							type: 'mrkdwn',
-							text: `*User ID*\n${userID}\n*User Email*\n${userEmail}\n*User Role*\n${userRole}`,
-						},
-					],
-        },
-        {
-          type: 'image',
-          title: {
-            type: 'plain_text',
-            text: 'User uploaded image'
-          },
-          block_id: 'image4',
-          image_url: imageUrl,
-          alt_text: 'File uploaded by user.'
-        }
+					block_id: 'section_userID',
+					text: {
+						type: 'mrkdwn',
+						text: `UserID: ${userID}`,
+					}
+				},
 			],
 		}
 		await axios.post(SLACK_WEBHOOK_URL, payload)
 	} catch (error) {
-		console.error('Error posting message to Slack:', error.message)
+		console.error('Error posting message to Slack:', error.response?.data || error.message)
 	}
 }
 
@@ -79,29 +79,30 @@ exports.notifySlackOnNewHelpRequest = functions.firestore
 		const userID = newRequest.userID || 'unknown user'
 		let userName = 'Unknown'
 		let userEmail = 'No email provided'
-		let userRole = 'No role specified'
+    let userRole = 'No role specified'
+    
+  if (userID !== 'unknown user') {
+    const userRef = admin.firestore().collection('mobileUsers').doc(userID)
+    const doc = await userRef.get()
+    if (doc.exists) {
+      const userData = doc.data()
+      userName = userData.name || userName
+      userEmail = userData.email || userEmail
+      userRole = userData.userRole || userRole
+    } else {
+      console.log('User not found')
+      return // Optionally exit if no user info is available
+    }
+  }
 
-		if (userID !== 'unknown user') {
-			const userRef = admin.firestore().collection('mobileUsers').doc(userID)
-			const doc = await userRef.get()
-			if (doc.exists) {
-				const userData = doc.data()
-				userName = userData.name || userName
-				userEmail = userData.email || userEmail
-				userRole = userData.userRole || userRole
-			} else {
-				console.log('User not found')
-				return // Optionally exit if no user info is available
-			}
-		}
+  const subject = newRequest.subject || 'No Subject'
+  const messageText = newRequest.message || 'No message provided'
+  const imageUrl =
+    newRequest.images && newRequest.images.length > 0
+      ? newRequest.images[0]
+      : 'https://placehold.co/600x400'
 
-		const subject = newRequest.subject || 'No Subject'
-		const messageText = newRequest.message || 'No message provided'
-		const imageUrl =
-			newRequest.images && newRequest.images.length > 0
-				? newRequest.images[0]
-				: 'https://example.com/default-image.jpg'
-
+		// Post to Slack
 		return postToSlack(
 			userID,
 			userName,
@@ -111,7 +112,8 @@ exports.notifySlackOnNewHelpRequest = functions.firestore
 			messageText,
 			imageUrl,
 		)
-	})
+	}
+)
 
 
 exports.addUserRole = functions.https.onCall((data,context) => {
@@ -182,8 +184,6 @@ exports.addAgencyRole = functions.https.onCall(
 
 exports.viewRole = functions.https.onCall((data,context) => {
   // get user and add custom claim to user
-
-
   return admin
     .auth()
     .verifyIdToken(data.id)
@@ -363,58 +363,3 @@ exports.authGetUserList = functions.https.onCall(async (data,context) => {
     throw new functions.https.HttpsError('unknown', 'Failed to fetch user list.', error)
   }
 })
-
-/*
- START removePhoneFieldFromAllDocs
- This function should be removed from firebase so it is not somehow run.
- To run removePhoneFieldFromAllDocs from terminal: 
- curl - X POST https://us-central1-misinfo-5d004.cloudfunctions.net/removePhoneFieldFromAllDocs
- 
-const db = admin.firestore();
-const FieldValue = admin.firestore.FieldValue;
-
-exports.removePhoneFieldFromAllDocs = functions.https.onRequest(async (req, res) => {
-    try {
-        console.log("Started removing phone fields...");
-        const snapshot = await db.collection('mobileUsers').get();
-
-        let batch = db.batch();
-        let count = 0;
-
-        snapshot.docs.forEach((doc) => {
-            const docRef = db.collection('mobileUsers').doc(doc.id);
-            const data = doc.data();
-
-            if (data.phone !== undefined) {
-                batch.update(docRef, { phone: FieldValue.delete() });
-                console.log(`Preparing document for update: ${doc.id}`);
-                count++;
-            } else {
-                console.log(`Skipped document (no phone field): ${doc.id}`);
-            }
-
-            // Commit every 100 operations
-            if (count % 100 === 0) {
-                batch.commit().catch(error => {
-                    console.error('Batch commit failed:', error);
-                });
-                batch = db.batch();
-            }
-        });
-
-        // Commit any remaining operations
-        if (count % 100 !== 0) {
-            await batch.commit();
-        }
-
-        console.log("Phone fields removed successfully.");
-        res.status(200).send('Phone fields removed successfully.');
-    } catch (error) {
-        console.error('Error removing phone fields:', error);
-        res.status(500).send('Error removing phone fields.');
-    }
-});
-
- END removePhoneFieldFromAllDocs
- */
-
