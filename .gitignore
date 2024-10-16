@@ -67,3 +67,6 @@ functions/sendgrid.env
 .env.sentry-build-plugin
 misinfo-dashboard.code-workspace
 .runtimeconfig.json
+functions/.env.default
+functions/.eslintrc.js
+misinfo-5d004-firebase-adminsdk-*.json
