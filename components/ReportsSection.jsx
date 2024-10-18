@@ -406,6 +406,75 @@ const ReportsSection = ({
 		setLoadedReports(sortedReports)
 	}
 
+	// Dynamically extract all unique keys from the JSON objects
+	const extractHeaders = (jsonArray) => {
+		const headersSet = new Set()
+
+		jsonArray.forEach((report) => {
+			Object.keys(report).forEach((key) => {
+				// Handles nested objects like 'createdDate'
+				if (typeof report[key] === 'object' && !Array.isArray(report[key])) {
+					Object.keys(report[key]).forEach((nestedKey) => {
+						headersSet.add(`${key}.${nestedKey}`)
+					})
+				} else {
+					headersSet.add(key)
+				}
+			})
+		})
+
+		return Array.from(headersSet)
+	}
+
+	// Convert JSON array to CSV
+	const convertToCSV = (jsonArray) => {
+		const headers = extractHeaders(jsonArray)
+
+		const csvRows = []
+
+		// Add headers row
+		csvRows.push(headers.join(','))
+
+		// Loop through each report and convert to CSV row
+		jsonArray.forEach((report) => {
+			const row = headers.map((header) => {
+				const keys = header.split('.')
+				let value = report
+				keys.forEach((key) => {
+					value = value[key] !== undefined ? value[key] : ''
+				})
+
+				// Handle commas and newlines in CSV fields
+				if (typeof value === 'string') {
+					value = value.replace(/"/g, '""')
+					if (value.includes(',') || value.includes('\n')) {
+						value = `"${value}"`
+					}
+				}
+
+				return value
+			})
+			csvRows.push(row.join(','))
+		})
+
+		return csvRows.join('\n')
+	}
+
+	// Trigger download of CSV file
+	const downloadCSV = () => {
+		const csvData = convertToCSV(reports)
+		const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
+		const url = URL.createObjectURL(blob)
+
+		// Create a link and trigger the download
+		const link = document.createElement('a')
+		link.href = url
+		link.setAttribute('download', 'reports.csv')
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
+	}
+
 	useEffect(() => {
 		if (isAgency && user.email) {
 			firebaseHelper.fetchAgencyByUserEmail(user.email, (response) => {
@@ -606,6 +675,17 @@ const ReportsSection = ({
 						<Typography variant="h5" color="blue">
 							List of Reports
 						</Typography>
+						{!isAgency && (
+							<Tooltip content="Export Reports">
+								<Button
+									onClick={downloadCSV}
+									className="flex items-center gap-2">
+									<IoAdd className="mr-1" size={15} />
+									Export Reports
+								</Button>
+							</Tooltip>
+						)}
+
 						<Tooltip content="New Report">
 							<Button
 								onClick={(e) => handleNewReportClick(e)}
