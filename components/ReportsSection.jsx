@@ -412,18 +412,25 @@ const ReportsSection = ({
 
 		jsonArray.forEach((report) => {
 			Object.keys(report).forEach((key) => {
-				// Handles nested objects like 'createdDate'
+				// Handle nested objects like 'createdDate'
 				if (typeof report[key] === 'object' && !Array.isArray(report[key])) {
-					Object.keys(report[key]).forEach((nestedKey) => {
-						headersSet.add(`${key}.${nestedKey}`)
-					})
+					if (key !== 'createdDate') {
+						Object.keys(report[key]).forEach((nestedKey) => {
+							headersSet.add(`${key}.${nestedKey}`)
+						})
+					}
 				} else {
 					headersSet.add(key)
 				}
 			})
 		})
 
-		return Array.from(headersSet)
+		// Replace createdDate.seconds with a combined createdDate field
+		headersSet.add('createdDate')
+		headersSet.delete('createdDate.seconds')
+		headersSet.delete('createdDate.nanoseconds')
+
+		return Array.from(headersSet) // Convert Set to Array
 	}
 
 	// Convert JSON array to CSV
@@ -435,20 +442,39 @@ const ReportsSection = ({
 		// Add headers row
 		csvRows.push(headers.join(','))
 
+		// Function to convert `createdDate` to ISO 8601 format
+		const formatDateToISO = (createdDate) => {
+			if (createdDate && createdDate.seconds) {
+				const date = new Date(
+					createdDate.seconds * 1000 +
+						Math.floor(createdDate.nanoseconds / 1e6),
+				)
+				return date.toISOString()
+			}
+			return ''
+		}
+
 		// Loop through each report and convert to CSV row
 		jsonArray.forEach((report) => {
 			const row = headers.map((header) => {
-				const keys = header.split('.')
-				let value = report
-				keys.forEach((key) => {
-					value = value[key] !== undefined ? value[key] : ''
-				})
+				let value
 
-				// Handle commas and newlines in CSV fields
-				if (typeof value === 'string') {
-					value = value.replace(/"/g, '""')
-					if (value.includes(',') || value.includes('\n')) {
-						value = `"${value}"`
+				// Special case for the `createdDate`
+				if (header === 'createdDate') {
+					value = formatDateToISO(report.createdDate)
+				} else {
+					const keys = header.split('.')
+					value = report
+					keys.forEach((key) => {
+						value = value[key] !== undefined ? value[key] : '' // Safely access nested values
+					})
+
+					// Handle commas and newlines in CSV fields
+					if (typeof value === 'string') {
+						value = value.replace(/"/g, '""') // Escape double quotes
+						if (value.includes(',') || value.includes('\n')) {
+							value = `"${value}"` // Wrap in double quotes if necessary
+						}
 					}
 				}
 
