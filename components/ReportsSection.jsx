@@ -406,6 +406,101 @@ const ReportsSection = ({
 		setLoadedReports(sortedReports)
 	}
 
+	// Dynamically extract all unique keys from the JSON objects
+	const extractHeaders = (jsonArray) => {
+		const headersSet = new Set()
+
+		jsonArray.forEach((report) => {
+			Object.keys(report).forEach((key) => {
+				// Handle nested objects like 'createdDate'
+				if (typeof report[key] === 'object' && !Array.isArray(report[key])) {
+					if (key !== 'createdDate') {
+						Object.keys(report[key]).forEach((nestedKey) => {
+							headersSet.add(`${key}.${nestedKey}`)
+						})
+					}
+				} else {
+					headersSet.add(key)
+				}
+			})
+		})
+
+		// Replace createdDate.seconds with a combined createdDate field
+		headersSet.add('createdDate')
+		headersSet.delete('createdDate.seconds')
+		headersSet.delete('createdDate.nanoseconds')
+
+		return Array.from(headersSet) // Convert Set to Array
+	}
+
+	// Convert JSON array to CSV
+	const convertToCSV = (jsonArray) => {
+		const headers = extractHeaders(jsonArray)
+
+		const csvRows = []
+
+		// Add headers row
+		csvRows.push(headers.join(','))
+
+		// Function to convert `createdDate` to ISO 8601 format
+		const formatDateToISO = (createdDate) => {
+			if (createdDate && createdDate.seconds) {
+				const date = new Date(
+					createdDate.seconds * 1000 +
+						Math.floor(createdDate.nanoseconds / 1e6),
+				)
+				return date.toISOString()
+			}
+			return ''
+		}
+
+		// Loop through each report and convert to CSV row
+		jsonArray.forEach((report) => {
+			const row = headers.map((header) => {
+				let value
+
+				// Special case for the `createdDate`
+				if (header === 'createdDate') {
+					value = formatDateToISO(report.createdDate)
+				} else {
+					const keys = header.split('.')
+					value = report
+					keys.forEach((key) => {
+						value = value[key] !== undefined ? value[key] : '' // Safely access nested values
+					})
+
+					// Handle commas and newlines in CSV fields
+					if (typeof value === 'string') {
+						value = value.replace(/"/g, '""') // Escape double quotes
+						if (value.includes(',') || value.includes('\n')) {
+							value = `"${value}"` // Wrap in double quotes if necessary
+						}
+					}
+				}
+
+				return value
+			})
+			csvRows.push(row.join(','))
+		})
+
+		return csvRows.join('\n')
+	}
+
+	// Trigger download of CSV file
+	const downloadCSV = () => {
+		const csvData = convertToCSV(reports)
+		const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
+		const url = URL.createObjectURL(blob)
+
+		// Create a link and trigger the download
+		const link = document.createElement('a')
+		link.href = url
+		link.setAttribute('download', 'reports.csv')
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
+	}
+
 	useEffect(() => {
 		if (isAgency && user.email) {
 			firebaseHelper.fetchAgencyByUserEmail(user.email, (response) => {
@@ -606,6 +701,17 @@ const ReportsSection = ({
 						<Typography variant="h5" color="blue">
 							List of Reports
 						</Typography>
+						{!isAgency && (
+							<Tooltip content="Export Reports">
+								<Button
+									onClick={downloadCSV}
+									className="flex items-center gap-2">
+									<IoAdd className="mr-1" size={15} />
+									Export Reports
+								</Button>
+							</Tooltip>
+						)}
+
 						<Tooltip content="New Report">
 							<Button
 								onClick={(e) => handleNewReportClick(e)}
