@@ -149,11 +149,16 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
 
     const replaceTag = (tag) => {
         list[list.indexOf(selected)] = tag
-        if (active.includes(selected)) {
-            active[active.indexOf(selected)] = tag
+        try {
+            if (active.includes(selected)) {
+                active[active.indexOf(selected)] = tag
+            }
+            setData(tagSystem,list,active,agencyID)
+            setSelected("")
+        } catch (error) {
+            Sentry.captureException(error)
+            console.error("Error in replaceTag:", error)
         }
-        setData(tagSystem, list, active, agencyID)
-        setSelected("")
     }
 
     const addNewTag = (tag) => {
