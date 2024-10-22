@@ -32,7 +32,7 @@ const RenameTagModal = ({ replaceTag, selected, list, setRenameTagModal, addNewT
     const handleReplaceTag = (e) => {
         e.preventDefault()
         try {
-            if (!lower.includes(tag.toLowerCase()) && tag.length != 0 && tag.length <= 20) {
+            if (!lower.includes(tag.toLowerCase()) && tag.length != 0 && tag.length <= 25) {
                 replaceTag(tag)
                 setRenameTagModal(false)
             }
