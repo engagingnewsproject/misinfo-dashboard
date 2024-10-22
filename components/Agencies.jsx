@@ -256,22 +256,30 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	// Handler: Form Submit
 	const handleSubmitClick = async (e) => {
 		e.preventDefault()
+		// Check if an image is uploaded or not
+  	const finalLogoURLs = uploadedImageURLs.length > 0 ? uploadedImageURLs : agencyInfo.logo
+
 		if (images.length > 0) {
-        // Use 'update' to trigger the upload
         setUpdate((prev) => !prev)
-		} else {
-			// Proceed to save if no images are selected
-			saveAgency(uploadedImageURLs)
-			setAgencyModal(false)
+		} else if (agencyInfo.name && agencyInfo.name.trim() !== '') { // Check if agencyInfo.name is provided
+    // Call a function to update agency information if name exists
+    saveAgency(finalLogoURLs)
+    setAgencyModal(false)
+  } else {
+    console.error('Please provide agency information before submitting')
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      name: 'Agency name is required.'
+    }))
 		}
 	}
 
 	// Handler: Save Agency
 	const saveAgency = (uploadedImageURLs) => {
-		console.log(uploadedImageURLs)
 		const agencyRef = doc(db, 'agency', agencyId)
 		updateDoc(agencyRef, {
 			logo: uploadedImageURLs,
+			name: agencyInfo.name
 		}).then(() => {
 			handleAgencyUpdateSubmit()
 		})
@@ -366,7 +374,15 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			console.log(Object.keys(allErrors).length + ' Error array length')
 		}
 	}
-
+  // Handle form input changes in the parent component
+  const handleInputChange = (e) => {
+		const { name,value } = e.target
+    setAgencyInfo((prevFormData) => ({
+      ...prevFormData,
+      [name]: value,
+    }))
+	}
+	
 	// Effects
 	// The useEffect hook is used to trigger the getData function when the component mounts,
 	// ensuring that agency data is fetched from Firestore.
@@ -380,7 +396,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	},[update])
 	
 	useEffect(() => {
-		console.log(agencyInfo)
+		// console.log(agencyInfo)
 	}, [agencyModal])
 
 	// Styles
@@ -497,6 +513,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			</div>
 			{agencyModal && (
 				<AgencyModal
+					onInputChange={handleInputChange}
 					handleImageChange={handleImageChange}
 					handleUpload={handleUpload}
 					handleAddAgencyUsers={handleAddAgencyUsers}
@@ -504,7 +521,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 					setAddAgencyUsers={setAddAgencyUsers}
 					sendAgencyLinks={sendAgencyLinks}
 					deleteAdmin={deleteAdmin}
-					handleSubmitClick={handleSubmitClick}
+					onSubmitClick={handleSubmitClick}
 					saveAgency={saveAgency}
 					setAgencyModal={setAgencyModal}
 					agencyInfo={agencyInfo}

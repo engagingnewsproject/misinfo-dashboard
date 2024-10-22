@@ -17,15 +17,16 @@ import { useAuth } from '../../context/AuthContext'
 import { getStorage, ref, uploadBytesResumable, getDownloadURL, getMetadata, updateMetadata } from 'firebase/storage';
 
 const AgencyModal = ({
+	onInputChange,
   setAgencyModal,
   handleImageChange,
   handleUpload,
   handleAddAgencyUsers,
   sendAgencyLinks,
   deleteAdmin, // deleteAdmin handler passed from the parent
-  handleSubmitClick,
+  onSubmitClick,
   saveAgency,
-  agencyInfo,
+	agencyInfo,
   agencyUsersArr,
   images,
   resendEmail,
@@ -93,10 +94,21 @@ const AgencyModal = ({
 							</button>
 						</div>
 					</div>
-					<form onSubmit={handleSubmitClick} id='agencyModal'>
+					<form onSubmit={onSubmitClick} id='agencyModal'>
 						<div className={style.modal_form_container}>
 							<div className={style.modal_form_label}>Agency name</div>
-							<div className={style.modal_form_data}>{agencyInfo.name}</div>
+								<div className={style.modal_form_add_agency}>
+									<input // New agency emails
+										className="rounded-xl w-full"
+										id="agencyName"
+										type="text"
+										name="name"
+										value={agencyInfo.name}
+										onChange={onInputChange}
+										autoComplete='off'
+										/>
+									{errors.name && <p className="error">Please enter an agency name.</p>}
+              </div>
 							<div className={style.modal_form_label}>Agency location</div>
 							<div className={style.modal_form_data}>{`${agencyInfo.city}, ${agencyInfo.state}`}</div>
 							<div className={style.modal_form_label}>Agency admin users</div>
