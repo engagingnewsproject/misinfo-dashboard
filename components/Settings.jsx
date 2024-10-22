@@ -29,7 +29,7 @@ const Settings = () => {
   const setData = async(agencyID) => {
     const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
     const defaultSources = ["Newspaper", "Other/Otro","Social","Website"] // tag system 2
-    const defaultLabels = ["Important", "Flagged"] // tag system 3
+    const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"] // tag system 3
 
     // create topics collection for the new agency
     setDoc(doc(db, "tags", agencyID), {
@@ -181,7 +181,7 @@ const Settings = () => {
         </div>
         }
         {agencyID && 
-        <div>
+      <div>
         <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">Topic Tags</div>
             <button
@@ -198,6 +198,16 @@ const Settings = () => {
                 Edit Sources
             </button>
         </div>
+        {customClaims.admin &&
+          <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
+            <div className="font-light">Labels</div>
+            <button
+                onClick={() => setTagSystem(3)}
+                className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                Edit Labels
+            </button>
+          </div>
+        }
         {/* <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">Customized Labels</div>
             <button
