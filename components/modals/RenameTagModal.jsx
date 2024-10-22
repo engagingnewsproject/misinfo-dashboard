@@ -53,7 +53,7 @@ const RenameTagModal = ({ replaceTag, selected, list, setRenameTagModal, addNewT
                                 />
                         </div>
                         {lower.includes(tag.toLowerCase()) && <p className="text-red-500 text-sm font-light">This tag already exists, do you want to replace?</p>}
-                        {tag.length > 20 && <p className="text-red-500 text-sm font-light">You cannot type a tag more than 18 characters long. Please try another name</p>}
+                        {tag.length > 25 && <p className="text-red-500 text-sm font-light">You cannot type a tag more than 18 characters long. Please try another name</p>}
                         <div className="mt-6 flex justify-between">
                             <button
                                 onClick={handleReplaceTag}
