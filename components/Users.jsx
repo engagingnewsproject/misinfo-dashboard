@@ -93,6 +93,45 @@ const sortByJoinedDate = (users) => {
 
 const Users = () => {
 	// Initialize authentication context
+	const [hasMore, setHasMore] = useState(true);
+	const [page, setPage] = useState(0);
+	const pageSize = 10;
+
+	const fetchMoreData = async () => {
+		if (isLoading) return;
+
+		setIsLoading(true);
+		try {
+			const mobileUsersQuerySnapshot = await getDocs(
+				query(
+					collection(db, 'mobileUsers'),
+					limit(pageSize),
+					startAfter(page * pageSize)
+				)
+			);
+
+			const newUsers = await Promise.all(
+				mobileUsersQuerySnapshot.docs.map(async (doc) => {
+					const userData = doc.data();
+					userData.mobileUserId = doc.id;
+					userData.disabled = await fetchUserDetails(doc.id);
+					userData.joined = getJoinedDate(userData, null);
+					return userData;
+				})
+			);
+
+			if (newUsers.length < pageSize) {
+				setHasMore(false);
+			}
+
+			setLoadedMobileUsers((prevUsers) => [...prevUsers, ...newUsers]);
+			setPage((prevPage) => prevPage + 1);
+		} catch (error) {
+			console.error('Failed to fetch more user data:', error);
+		} finally {
+			setIsLoading(false);
+		}
+	};
 	const {
 		user,
 		addAdminRole,
@@ -848,7 +887,9 @@ const Users = () => {
 							className="overflow-x-auto"
 							dataLength={endIndex}
 							inverse={false}
-							scrollableTarget="scrollableDiv">
+							scrollableTarget="scrollableDiv"
+							next={fetchMoreData}
+							hasMore={hasMore}>
 							<table className="min-w-full bg-white rounded-xl p-1">
 								<thead className="border-b dark:border-indigo-100 bg-slate-100">
 									<tr>
