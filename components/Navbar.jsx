@@ -14,6 +14,7 @@ import {
 	IoClose,
 	IoMenu,
 	IoChatboxEllipsesOutline,
+	IoDocumentTextOutline,
 } from 'react-icons/io5'
 import { HiOutlineDocumentPlus } from 'react-icons/hi2'
 import { Tooltip } from 'react-tooltip'
@@ -200,6 +201,24 @@ const Navbar = ({
 										place="bottom"
 										delayShow={500}>
 										Create Report
+									</Tooltip>
+								</button>
+							)}
+							{customClaims.admin && (
+								<button // Help Requests
+									onClick={() => {
+										setTab(5)
+										closeDrawer()
+									}}
+									className={`${basicStyle} ${
+										tab === 5 ? ' text-indigo-500 bg-indigo-100' : ''
+									} tooltip-help-requests`}>
+									<IoDocumentTextOutline size={30} />
+									<Tooltip
+										anchorSelect=".tooltip-help-requests"
+										place="bottom"
+										delayShow={500}>
+										Help Requests
 									</Tooltip>
 								</button>
 							)}
