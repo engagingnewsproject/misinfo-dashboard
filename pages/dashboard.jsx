@@ -13,6 +13,7 @@ import { db, auth } from '../config/firebase'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import Head from 'next/head'
+import HelpRequests from '../components/HelpRequests'
 const tabList = [
 	'Home',
 	'Profile',
@@ -38,20 +39,20 @@ const Dashboard = () => {
 	const router = useRouter()
 
 	const [agencyUpdateSubmitted, setAgencyUpdateSubmitted] = useState(0)
-  
-  const [newReportModal,setNewReportModal] = useState(false)
-  const [newReportSubmitted,setNewReportSubmitted] = useState(0)
+
+	const [newReportModal,setNewReportModal] = useState(false)
+	const [newReportSubmitted,setNewReportSubmitted] = useState(0)
 
 	const handleNewReportSubmit = () => {
 		// increment the newReportSubmitted
-    setNewReportSubmitted((prevState) => prevState + 1)
-    setNewReportModal(false)
+		setNewReportSubmitted((prevState) => prevState + 1)
+		setNewReportModal(false)
 	}
 
-  const handleNewReportClick = () => {
-    setNewReportModal(true) // Open the modal when the button is clicked
-  }
-  
+	const handleNewReportClick = () => {
+		setNewReportModal(true) // Open the modal when the button is clicked
+	}
+
 	const handleAgencyUpdateSubmit = () => {
 		// increment the agencyUpdateSubmitted
 		setAgencyUpdateSubmitted((prevState) => prevState + 1)
@@ -108,6 +109,7 @@ const Dashboard = () => {
 					{tab == 4 && customClaims.admin && (
 						<Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />
 					)}
+					{tab == 5 && customClaims.admin && <HelpRequests />}
 				</div>
 				{/* Render the NewReportModal */}
 				{newReportModal && (

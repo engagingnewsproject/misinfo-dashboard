@@ -311,7 +311,7 @@ const NewReportModal = ({
           // Create default tags if they don't exist
           const defaultTopics = ['Health', 'Other', 'Politics', 'Weather']
           const defaultSources = ['Newspaper', 'Other/Otro', 'Social', 'Website']
-          const defaultLabels = ['Important', 'Flagged']
+          const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"]
 
           await setDoc(docRef, {
             Labels: { list: defaultLabels, active: defaultLabels },
@@ -488,7 +488,7 @@ const NewReportModal = ({
 				console.log('Need to create tag collection for agency. ')
 				const defaultTopics = ['Health', 'Other', 'Politics', 'Weather'] // tag system 1
 				const defaultSources = ['Newspaper', 'Other/Otro', 'Social', 'Website'] // tag system 2
-				const defaultLabels = ['Important', 'Flagged'] // tag system 3
+				const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"] // tag system 3
 
 				// reference to tags collection
 				const myDocRef = doc(db, 'tags', selectedAgencyId)

@@ -53,7 +53,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
 
     const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
     const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
-    const defaultLabels = ["Important", "Flagged"] // tag system 3
+    const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"] // tag system 3
 
     const tags = ["Topic", "Source", "Labels"]
     //const docRef = getDoc(db, "tags", tagSystem)
@@ -149,11 +149,16 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
 
     const replaceTag = (tag) => {
         list[list.indexOf(selected)] = tag
-        if (active.includes(selected)) {
-            active[active.indexOf(selected)] = tag
+        try {
+            if (active.includes(selected)) {
+                active[active.indexOf(selected)] = tag
+            }
+            setData(tagSystem,list,active,agencyID)
+            setSelected("")
+        } catch (error) {
+            Sentry.captureException(error)
+            console.error("Error in replaceTag:", error)
         }
-        setData(tagSystem, list, active, agencyID)
-        setSelected("")
     }
 
     const addNewTag = (tag) => {

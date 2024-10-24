@@ -109,7 +109,7 @@ const ReportSystem = ({
 
   const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
   const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
-  const defaultLabels = ["Important", "Flagged"] // tag system 3
+  const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"] // tag system 3
 
 	// useEffect(() => {
 	// 	console.log('Authenticated user:', user);
