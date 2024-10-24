@@ -433,14 +433,33 @@ const ReportsSection = ({
 		return Array.from(headersSet) // Convert Set to Array
 	}
 
+	const userIDToEmail = async (userID) => {
+		const docRef = doc(db, 'mobileUsers', userID)
+		const docSnap = await getDoc(docRef)
+		if (docSnap.exists()) {
+			return docSnap.data().email
+		} else {
+			console.log('No such document!')
+			return ''
+		}
+	}
+
 	// Convert JSON array to CSV
-	const convertToCSV = (jsonArray) => {
+	const convertToCSV = async (jsonArray) => {
 		const headers = extractHeaders(jsonArray)
+
+		// Ensure 'images' is the last header. Multiple images mess up the CSV format
+		const filteredHeaders = headers.filter((header) => header !== 'images')
+		// Add 'userEmail' column after 'userID'
+		const extendedHeaders = filteredHeaders.flatMap((header) =>
+			header === 'userID' ? ['userID', 'userEmail'] : [header],
+		)
+		const finalHeaders = [...extendedHeaders, 'images']
 
 		const csvRows = []
 
 		// Add headers row
-		csvRows.push(headers.join(','))
+		csvRows.push(finalHeaders.join(','))
 
 		// Function to convert `createdDate` to ISO 8601 format
 		const formatDateToISO = (createdDate) => {
@@ -455,40 +474,45 @@ const ReportsSection = ({
 		}
 
 		// Loop through each report and convert to CSV row
-		jsonArray.forEach((report) => {
-			const row = headers.map((header) => {
-				let value
+		for (const report of jsonArray) {
+			const row = await Promise.all(
+				finalHeaders.map(async (header) => {
+					let value
 
-				// Special case for the `createdDate`
-				if (header === 'createdDate') {
-					value = formatDateToISO(report.createdDate)
-				} else {
-					const keys = header.split('.')
-					value = report
-					keys.forEach((key) => {
-						value = value[key] !== undefined ? value[key] : '' // Safely access nested values
-					})
+					// Special case for the `createdDate`
+					if (header === 'createdDate') {
+						value = formatDateToISO(report.createdDate)
+					} else if (header === 'userEmail' && report.userID) {
+						// Fetch the email for the corresponding userID
+						value = await userIDToEmail(report.userID)
+					} else {
+						const keys = header.split('.')
+						value = report
+						keys.forEach((key) => {
+							value = value[key] !== undefined ? value[key] : '' // Safely access nested values
+						})
 
-					// Handle commas and newlines in CSV fields
-					if (typeof value === 'string') {
-						value = value.replace(/"/g, '""') // Escape double quotes
-						if (value.includes(',') || value.includes('\n')) {
-							value = `"${value}"` // Wrap in double quotes if necessary
+						// Handle commas and newlines in CSV fields
+						if (typeof value === 'string') {
+							value = value.replace(/"/g, '""') // Escape double quotes
+							if (value.includes(',') || value.includes('\n')) {
+								value = `"${value}"` // Wrap in double quotes if necessary
+							}
 						}
 					}
-				}
 
-				return value
-			})
+					return value
+				}),
+			)
 			csvRows.push(row.join(','))
-		})
+		}
 
 		return csvRows.join('\n')
 	}
 
 	// Trigger download of CSV file
-	const downloadCSV = () => {
-		const csvData = convertToCSV(reports)
+	const downloadCSV = async () => {
+		const csvData = await convertToCSV(reports)
 		const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
 		const url = URL.createObjectURL(blob)
 
