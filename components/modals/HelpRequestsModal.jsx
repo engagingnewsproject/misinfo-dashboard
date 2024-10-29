@@ -1,3 +1,4 @@
+import { Button } from '@material-tailwind/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import React, { Fragment } from 'react'
@@ -34,7 +35,7 @@ const formatLabel = (label) => {
 	return label.replace(/([a-z])([A-Z])/g, '$1 $2')
 }
 
-const HelpRequestsModal = ({ helpRequestInfo, handleClose }) => {
+const HelpRequestsModal = ({ helpRequestInfo, handleClose, mailtoLink }) => {
 	return (
 		<div className={style.modal_background} onClick={handleClose}>
 			<div className={style.modal_container}>
@@ -50,7 +51,7 @@ const HelpRequestsModal = ({ helpRequestInfo, handleClose }) => {
 						</div>
 					</div>
 
-					<div>
+					<div className="mb-8">
 						<form>
 							<div className={style.modal_form_container}>
 								{Object.entries(helpRequestInfo).map(([key, value], index) => (
@@ -81,7 +82,7 @@ const HelpRequestsModal = ({ helpRequestInfo, handleClose }) => {
 												</div>
 											) : key === 'email' ? (
 												<Link
-													href={`mailto:${value}`}
+													href={mailtoLink}
 													target="_blank"
 													className="underline">
 													{value}
@@ -95,6 +96,20 @@ const HelpRequestsModal = ({ helpRequestInfo, handleClose }) => {
 							</div>
 						</form>
 					</div>
+
+					<Link href={mailtoLink} target="_blank">
+						<Button
+							color="blue"
+							buttonType="filled"
+							size="regular"
+							rounded={false}
+							block={false}
+							iconOnly={false}
+							ripple="light"
+							className={style.modal_form_button}>
+							Reply
+						</Button>
+					</Link>
 				</div>
 			</div>
 		</div>
