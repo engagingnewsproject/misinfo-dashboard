@@ -93,6 +93,24 @@ const HelpRequests = () => {
 		getData()
 	}, [])
 
+	const getMailtoLink = (helpRequestInfo) => {
+		const formattedBody =
+			`Hi [NAME],%0A%0A%0A%0A%0A%0A` +
+			`Best Regards,%0A` +
+			`[YOUR NAME]%0A` +
+			`Truth Sleuth Support Team%0A%0A` +
+			`---%0A%0AForwarded Help Request:%0A%0A` +
+			`User ID: ${helpRequestInfo.userID}%0A` +
+			`Email: ${helpRequestInfo.email}%0A` +
+			`Subject: ${helpRequestInfo.subject}%0A` +
+			`Message: ${helpRequestInfo.message}%0A` +
+			`Created Date: ${helpRequestInfo.createdDate}%0A` +
+			`Images: ${helpRequestInfo.images.join(', ')}%0A`
+
+		const mailtoLink = `mailto:${helpRequestInfo.email}?subject=${encodeURIComponent(helpRequestInfo.subject)}%20-%20Truth%20Sleuth%20Help%20Request&body=${formattedBody}`
+		return mailtoLink
+	}
+
 	return (
 		<>
 			<div className={style.section_container}>
@@ -130,50 +148,54 @@ const HelpRequests = () => {
 							)}
 
 							{helpRequests.length > 0 &&
-								helpRequests.map((request) => (
-									<tr
-										onClick={() => {
-											const { id, ...data } = request
-											handleRequestModalShow(data)
-										}}
-										key={request.id}
-										className={style.table_tr}>
-										<td className={style.table_td}>{request.subject}</td>
-										<td className={style.table_td}>{request.message}</td>
-										<td className={style.table_td}>
-											<Link
-												onClick={(e) => {
-													e.stopPropagation()
-												}}
-												className="underline"
-												href={`mailto:${request.email}`}
-												target="_blank">
-												{request.email}
-											</Link>
-										</td>
-										<td className={style.table_td}>{request.createdDate}</td>
-										<td
-											className={`${style.table_td} text-center`}
-											onClick={(e) => e.stopPropagation()}>
-											<button
-												onClick={async () => {
-													await handleDeleteRequest(request.id)
-												}}
-												className={`${style.icon} tooltip-delete-user`}>
-												<IoTrash
-													size={20}
-													className="fill-gray-400 hover:fill-red-600"
-												/>
-												<Tooltip
-													anchorSelect=".tooltip-delete-user"
-													place="top"
-													delayShow={500}>
-													Delete Request
-												</Tooltip>
-											</button>
-										</td>
-									</tr>
-								))}
+								helpRequests
+									.sort(
+										(a, b) => new Date(b.createdDate) - new Date(a.createdDate),
+									)
+									.map((request) => (
+										<tr
+											onClick={() => {
+												const { id, ...data } = request
+												handleRequestModalShow(data)
+											}}
+											key={request.id}
+											className={style.table_tr}>
+											<td className={style.table_td}>{request.subject}</td>
+											<td className={style.table_td}>{request.message}</td>
+											<td className={style.table_td}>
+												<Link
+													onClick={(e) => {
+														e.stopPropagation()
+													}}
+													className="underline"
+													href={getMailtoLink(request)}
+													target="_blank">
+													{request.email}
+												</Link>
+											</td>
+											<td className={style.table_td}>{request.createdDate}</td>
+											<td
+												className={`${style.table_td} text-center`}
+												onClick={(e) => e.stopPropagation()}>
+												<button
+													onClick={async () => {
+														await handleDeleteRequest(request.id)
+													}}
+													className={`${style.icon} tooltip-delete-user`}>
+													<IoTrash
+														size={20}
+														className="fill-gray-400 hover:fill-red-600"
+													/>
+													<Tooltip
+														anchorSelect=".tooltip-delete-user"
+														place="top"
+														delayShow={500}>
+														Delete Request
+													</Tooltip>
+												</button>
+											</td>
+										</tr>
+									))}
 						</tbody>
 					</table>
 				</div>
@@ -183,6 +205,7 @@ const HelpRequests = () => {
 				<HelpRequestsModal
 					helpRequestInfo={selectedHelpRequest}
 					handleClose={handleRequestModalClose}
+					mailtoLink={getMailtoLink(selectedHelpRequest)}
 				/>
 			)}
 		</>
