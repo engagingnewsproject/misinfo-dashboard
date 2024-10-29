@@ -12,7 +12,10 @@ import {
 	where,
 	addDoc,
 	arrayUnion,
-} from 'firebase/firestore'
+	startAfter,
+	limit,
+} 
+from 'firebase/firestore'
 import { db, auth } from '../config/firebase'
 import { Tooltip } from 'react-tooltip'
 import { IoTrash } from 'react-icons/io5'
@@ -102,11 +105,15 @@ const Users = () => {
 
 		setIsLoading(true);
 		try {
+			const lastDoc = loadedMobileUsers[loadedMobileUsers.length - 1];
+			const lastDocRef = doc(db, 'mobileUsers', lastDoc.mobileUserId);
+			const lastDocSnap = await getDoc(lastDocRef);
+
 			const mobileUsersQuerySnapshot = await getDocs(
 				query(
 					collection(db, 'mobileUsers'),
-					limit(pageSize),
-					startAfter(page * pageSize)
+					startAfter(lastDocSnap),
+					limit(pageSize)
 				)
 			);
 
@@ -125,7 +132,7 @@ const Users = () => {
 			}
 
 			setLoadedMobileUsers((prevUsers) => [...prevUsers, ...newUsers]);
-			setPage((prevPage) => prevPage + 1);
+			setEndIndex((prevEndIndex) => prevEndIndex + newUsers.length);
 		} catch (error) {
 			console.error('Failed to fetch more user data:', error);
 		} finally {
@@ -169,6 +176,9 @@ const Users = () => {
 	})
 	const [newUserEmail, setNewUserEmail] = useState('')
 	const [errors, setErrors] = useState({})
+
+
+
 
 	/**
 	 * Fetches all agency documents from the Firestore 'agency' collection
@@ -885,7 +895,7 @@ const Users = () => {
 					<div className="flex flex-col h-full">
 						<InfiniteScroll
 							className="overflow-x-auto"
-							dataLength={endIndex}
+							dataLength={loadedMobileUsers.length}
 							inverse={false}
 							scrollableTarget="scrollableDiv"
 							next={fetchMoreData}
