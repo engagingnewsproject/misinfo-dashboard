@@ -147,7 +147,7 @@ const ReportModal = ({
 													className={style.link}
 													target='_blank'
 													rel='noreferrer'
-													href={"//" + report.link}>
+													href={report.link}>
 													{report.link}
 												</a>
 											)) || (
