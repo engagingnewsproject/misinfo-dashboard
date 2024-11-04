@@ -529,73 +529,82 @@ const ReportsSection = ({
 
 	// Function to handle CSV import
 	const handleCSVImport = (file) => {
-    if (!user) {
-      alert("User not logged in")
-      return
-    }
+		if (!user) {
+			alert('User not logged in')
+			return
+		}
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: async (results) => {
-        const data = results.data
+		Papa.parse(file, {
+			header: true,
+			skipEmptyLines: true,
+			complete: async (results) => {
+				const data = results.data
 
-        for (const row of data) {
-          // Step 1: Find agency document based on 'state' field
-          let agencyName = ""
-          if (row.state) {
-            const agencyQuery = query(collection(db, 'agency'), where('state', '==', row.state))
-            const agencySnapshot = await getDocs(agencyQuery)
+				for (const row of data) {
+					let agencyName = ''
+					if (row.state && row.agency) {
+						const agencyQuery = query(
+							collection(db, 'agency'),
+							where('state', '==', row.state),
+						)
+						const agencySnapshot = await getDocs(agencyQuery)
 
-          // Find agency with a name containing the CSV agency name (case-insensitive)
-          agencySnapshot.forEach((doc) => {
-						const fullAgencyName = doc.data().name.toLowerCase()
-						console.log('fullAgencyName--> ', fullAgencyName);
-            const csvAgencyName = row.agency.toLowerCase()
-            console.log('csvAgencyName-->', csvAgencyName);
-            if (fullAgencyName.includes(csvAgencyName)) {
+						// Find agency with a name containing the CSV agency name (case-insensitive)
+						agencySnapshot.forEach((doc) => {
+							const fullAgencyName = doc.data().name.toLowerCase()
+							console.log('fullAgencyName--> ', fullAgencyName);
+							const csvAgencyName = row.agency.toLowerCase()
+
+							if (fullAgencyName.includes(csvAgencyName)) {
 								agencyName = doc.data().name // Use the full agency name from Firestore
 							}
 						})
-						console.log('agencyName--> ', agencyName);
+
 						if (!agencyName) {
-							console.warn(`No matching agency found for state: ${row.state} and partial name: ${row.agency}`)
+							console.warn(
+								`No matching agency found for state: ${row.state} and partial name: ${row.agency}`,
+							)
 						}
-          }
+					}
 
-          // Step 2: Format row with correct types, and assign agencyID
-          const formattedRow = {
-            agency: agencyName || "", // Set to agencyID if found, otherwise empty string
-            city: String(row.city || ""),
-            createdDate: row.createdDate
-              ? Timestamp.fromDate(new Date(row.createdDate))
-              : Timestamp.now(),
-            detail: String(row.detail || ""),
-            hearFrom: String(row.hearFrom || ""),
-            images: Array.isArray(row.images) ? row.images : (row.images ? row.images.split(',') : []),
-            isApproved: row.isApproved === "true" || row.isApproved === true,
-            label: String(row.label || ""),
-            link: String(row.link || ""),
-            read: row.read === "true" || row.read === true,
-            secondLink: String(row.secondLink || ""),
-            state: String(row.state || ""),
-            title: String(row.title || ""),
-            topic: String(row.topic || ""),
-            userID: user.uid, // Set userID to current user’s UID
-          }
+					// Format row with correct types, and assign matched agency name
+					const formattedRow = {
+						agency: agencyName, // Full agency name if found, otherwise empty string
+						city: String(row.city || ''),
+						createdDate: row.createdDate
+							? Timestamp.fromDate(new Date(row.createdDate))
+							: Timestamp.now(),
+						detail: String(row.detail || ''),
+						hearFrom: String(row.hearFrom || ''),
+						images: Array.isArray(row.images)
+							? row.images
+							: row.images
+								? row.images.split(',')
+								: [],
+						isApproved: row.isApproved === 'true' || row.isApproved === true,
+						label: String(row.label || ''),
+						link: String(row.link || ''),
+						read: row.read === 'true' || row.read === true,
+						secondLink: String(row.secondLink || ''),
+						state: String(row.state || ''),
+						title: String(row.title || ''),
+						topic: String(row.topic || ''),
+						userID: user.uid, // Set userID to current user’s UID
+					}
 
-          try {
-            await addDoc(collection(db, 'reports'), formattedRow)
-            console.log(`Report added: ${formattedRow.title}`)
-          } catch (error) {
-            console.error('Error adding report:', error)
-          }
-        }
-        alert('CSV file successfully imported into Firestore')
-      },
-      error: (error) => console.error('Error parsing CSV:', error),
-    })
-  }
+					try {
+						await addDoc(collection(db, 'reports'), formattedRow)
+						console.log(`Report added: ${formattedRow.title}`)
+					} catch (error) {
+						console.error('Error adding report:', error)
+					}
+				}
+				alert('CSV file successfully imported into Firestore')
+			},
+			error: (error) => console.error('Error parsing CSV:', error),
+		})
+	}
+
 
 
 	
