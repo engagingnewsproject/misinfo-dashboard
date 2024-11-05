@@ -1,3 +1,4 @@
+// MemoizedTooltipContent.jsx
 import React from 'react'
 import { Tooltip, Typography } from '@material-tailwind/react'
 
