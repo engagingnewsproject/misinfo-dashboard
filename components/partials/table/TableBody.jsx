@@ -7,7 +7,6 @@ import MemoizedTooltipContent from './MemoizedTooltipContent'
 const TableBody = ({
   loadedReports,
   columns,
-  endIndex,
   onReportModalShow,
   onRowChangeRead,
   onReportDelete,
@@ -27,7 +26,7 @@ const TableBody = ({
           </td>
         </tr>
       ) : (
-        loadedReports.slice(0, endIndex).map((report) => {
+        loadedReports.map((report) => {
           const details = trimToWordCount(report.detail || '',25)
           const title = report.title
           const formattedDate = new Date(report['createdDate'].seconds * 1000).toLocaleString(

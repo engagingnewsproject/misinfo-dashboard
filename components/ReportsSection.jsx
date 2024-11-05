@@ -12,7 +12,7 @@ import {
 	updateDoc,
 	deleteDoc,
 	addDoc,
-	Timestamp
+	Timestamp,
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 // Icons
@@ -22,25 +22,26 @@ import {
 	IoMdCheckmark,
 } from 'react-icons/io'
 import { IoAdd, IoTrash } from 'react-icons/io5'
-import InfiniteScroll from 'react-infinite-scroll-component'
+import { HiMagnifyingGlass } from 'react-icons/hi2'
+import { HiDocumentAdd } from 'react-icons/hi'
+import { FaFileExport } from 'react-icons/fa'
+import { FaFileImport } from 'react-icons/fa'
 import ReportModal from './modals/ReportModal'
 import ConfirmModal from './modals/ConfirmModal'
 import globalStyles from '../styles/globalStyles'
 import TableHead from './partials/table/TableHead'
 import TableBody from './partials/table/TableBody'
+import { TableDropdownMenu } from './partials/table/TableDropdownMenu'
+import TableFilterControls from './partials/table/TableFilterControls'
 import {
 	Button,
 	Card,
 	CardHeader,
+	CardFooter,
 	IconButton,
 	Tooltip,
-	Alert,
 	Typography,
-	Badge,
-	Spinner,
-	Tabs,
-	TabsHeader,
-	Tab,
+	Input,
 	CardBody,
 } from '@material-tailwind/react'
 
@@ -63,23 +64,31 @@ const readValues = [
 ]
 
 const ReportsSection = ({
-	search,
+	// search,
 	newReportSubmitted,
 	handleNewReportClick,
 }) => {
 	const userId = localStorage.getItem('userId')
 	const [reports, setReports] = useState([])
-	// const [reporterInfo, setReporterInfo] = useState({})
-	const [filteredReports, setFilteredReports] = useState([])
-	const [loadedReports, setLoadedReports] = useState([])
-	const [endIndex, setEndIndex] = useState(0)
-	const [hasMore, setHasMore] = useState(true)
+	// const [loadedReports, setLoadedReports] = useState([])
+	const ITEMS_PER_PAGE = 10 // Set how many items per page
+	const [endIndex, setEndIndex] = useState(10)
+	const [isDataFetched, setIsDataFetched] = useState(false)
 	const [reportWeek, setReportWeek] = useState('4')
 	const [readFilter, setReadFilter] = useState('all')
 	const [reportTitle, setReportTitle] = useState('')
 	const [agencyName, setAgencyName] = useState('')
 	const [isAgency, setIsAgency] = useState(null)
 	const { user, customClaims } = useAuth()
+	const [search, setSearch] = useState('')
+	const [rowsPerPage, setRowsPerPage] = useState(10) // Initialize rows per page
+	const [currentPage, setCurrentPage] = useState(1)
+	const [filteredReports, setFilteredReports] = useState([])
+	const [loadedReports, setLoadedReports] = useState([])
+
+	// Calculate total pages based on current filteredReports and rowsPerPage
+	const totalPages = Math.ceil(filteredReports.length / rowsPerPage)
+	const VISIBLE_PAGES = 5 // Number of page buttons to display
 
 	// Report modal states
 	const [report, setReport] = useState('')
@@ -151,6 +160,9 @@ const ReportsSection = ({
 			})
 		}
 		setReports(reportArr)
+		setIsDataFetched(true) // Set flag to true after fetching
+		setLoadedReports(reportArr.slice(0, endIndex))
+		setEndIndex(endIndex)
 		setReportsReadState(
 			reportArr.reduce((acc, report) => {
 				acc[report.reportID] = report.read
@@ -174,56 +186,24 @@ const ReportsSection = ({
 		}, 2000)
 	}
 
-	// Filter
-	const handleDateChanged = (e) => {
-		e.preventDefault()
-		const selectedWeek = e.target.value
+	const handleDateChanged = (selectedWeek) => {
 		setReportWeek(selectedWeek)
-		setEndIndex(0)
+		let filteredArr
 
-		let arr
-		// Updates loaded reports so that they only feature reports within the selected date range
-		if (selectedWeek == '100') {
-			// If "All reports" is selected, return all reports without filtering
-			arr = [...filteredReports]
+		if (selectedWeek === '100') {
+			filteredArr = [...reports] // No filter, show all
 		} else {
-			arr = filteredReports.filter((reportObj) => {
-				const report = reportObj
-				return (
-					report['createdDate'].toDate() >=
-					new Date(
-						new Date().setDate(new Date().getDate() - e.target.value * 7),
-					)
-				)
+			const filterDate = new Date()
+			filterDate.setDate(filterDate.getDate() - selectedWeek * 7)
+
+			filteredArr = reports.filter((report) => {
+				const reportDate = report.createdDate.toDate()
+				return reportDate >= filterDate
 			})
-
-			arr = arr.sort((objA, objB) =>
-				Object.values(objA)[0]['createdDate'] >
-				Object.values(objB)[0]['createdDate']
-					? -1
-					: 1,
-			)
 		}
 
-		setLoadedReports(arr)
-	}
-
-	// Determines if there are more reports to be shown.
-	const handleReportScroll = () => {
-		// If all of the reports have been loaded
-		if (endIndex >= loadedReports.length) {
-			setHasMore(false)
-
-			// If there is less than 14 reports to load, load remaining reports
-		} else if (endIndex + 14 >= loadedReports.length) {
-			setEndIndex(loadedReports.length)
-			setHasMore(true)
-
-			// Load only 14 additional reports
-		} else {
-			setEndIndex(endIndex + 14)
-			setHasMore(true)
-		}
+		setFilteredReports(filteredArr)
+		setCurrentPage(1) // Reset to the first page after filtering
 	}
 
 	const handleReadFilterChanged = (value) => {
@@ -254,10 +234,6 @@ const ReportsSection = ({
 		const docRef = await getDoc(doc(db, 'reports', reportId))
 		const reportData = docRef.data()
 		setReport({ id: reportId, ...reportData })
-
-		// setReport(docRef.data())
-		// get note
-		// console.log(docRef.data().note)
 		setNote(docRef.data().note)
 		setReportTitle(docRef.data().title)
 		setDetail(docRef.data().detail)
@@ -275,8 +251,6 @@ const ReportsSection = ({
 
 		if (docSnap.exists()) {
 			setReportSubmitBy(docSnap.data())
-		} else {
-			console.log('No such document!')
 		}
 		setReportModalShow(true)
 	} // end handleReportModalShow
@@ -552,7 +526,6 @@ const ReportsSection = ({
 						// Find agency with a name containing the CSV agency name (case-insensitive)
 						agencySnapshot.forEach((doc) => {
 							const fullAgencyName = doc.data().name.toLowerCase()
-							console.log('fullAgencyName--> ', fullAgencyName);
 							const csvAgencyName = row.agency.toLowerCase()
 
 							if (fullAgencyName.includes(csvAgencyName)) {
@@ -594,7 +567,7 @@ const ReportsSection = ({
 
 					try {
 						await addDoc(collection(db, 'reports'), formattedRow)
-						console.log(`Report added: ${formattedRow.title}`)
+						// console.log(`Report added: ${formattedRow.title}`)
 					} catch (error) {
 						console.error('Error adding report:', error)
 					}
@@ -605,9 +578,11 @@ const ReportsSection = ({
 		})
 	}
 
+	// Non filtering hooks
+	useEffect(() => {
+		getData()
+	}, [update])
 
-
-	
 	useEffect(() => {
 		if (isAgency && user.email) {
 			firebaseHelper.fetchAgencyByUserEmail(user.email, (response) => {
@@ -622,7 +597,6 @@ const ReportsSection = ({
 	}, [isAgency, user.email])
 
 	useEffect(() => {
-		// console.log('EFFECT -->customClaims<--');
 		if (customClaims.admin) {
 			setIsAgency(false)
 		} else if (customClaims.agency) {
@@ -630,142 +604,9 @@ const ReportsSection = ({
 		}
 	}, [customClaims])
 
-	// Fetch data when new report is submitted or isAgency is set
-	useEffect(() => {
-		// Ensure isAgency is set before fetching data:
-		if (isAgency !== null) {
-			getData()
-		}
-	}, [newReportSubmitted, isAgency])
-
-	useEffect(() => {
-		// console.log('EFFECT--> deps: reports')
-		setLoadedReports(reports)
-		setFilteredReports(reports) // Initialize filteredReports with reports when component mounts
-	}, [reports])
-
-	useEffect(() => {
-		// console.log('EFFECT - filteredReports--> deps: readFilter, loadedReports')
-		const filteredReports = loadedReports.filter((report) => {
-			if (readFilter === 'all') {
-				return true // Show all reports
-			} else if (readFilter === 'true') {
-				return report.read === true // Show only read reports
-			} else if (readFilter === 'false') {
-				return report.read === false // Show only unread reports
-			}
-		})
-		setLoadedReports(filteredReports)
-	}, [readFilter])
-
-	useEffect(() => {
-		// console.log('EFFECT - readFilter--> deps: refresh')
-		if (readFilter !== 'all') {
-			setReadFilter('all')
-		}
-	}, [refresh])
-
-	// Filter the reports based on the search text
-	useEffect(() => {
-		// console.log('EFFECT - search--> deps: search, filteredReports')
-		if (search == '') {
-			if (readFilter != 'all') {
-				setFilteredReports(
-					reports.filter((reportObj) => {
-						return reportObj.read.toString() === readFilter
-					}),
-				)
-			} else {
-				setFilteredReports(reports)
-			}
-		} else {
-			setFilteredReports(
-				reports.filter((reportObj) => {
-					const report = Object.values(reportObj)
-					var arr = []
-					// Collect the searchable fields of the reports data
-					for (const key in report) {
-						if (report[key]) {
-							if (key != 'images' && key != 'userID') {
-								if (key == 'createdDate') {
-									const posted = report[key]
-										.toDate()
-										.toLocaleString('en-US', dateOptions)
-										.replace(/,/g, '')
-										.replace('at', '')
-									arr.push(posted.toLowerCase())
-								} else {
-									arr.push(report[key].toString().toLowerCase())
-								}
-							}
-						}
-					}
-
-					// check if the search text is in the collected fields
-					for (const str of arr) {
-						if (str.includes(search.toLowerCase())) {
-							return true
-						}
-					}
-				}),
-			)
-		}
-	}, [search, filteredReports])
-
-	// Updates the loaded reports whenever a user filters reports based on search.
-	useEffect(() => {
-		// console.log('EFFECT--> deps: reportWeek')
-		let arr = filteredReports.filter((report) => {
-			// Ensure that createdDate exists and has a toDate method
-			try {
-				if (
-					report.createdDate &&
-					typeof report.createdDate.toDate === 'function'
-				) {
-					return (
-						report.createdDate.toDate() >=
-						new Date(new Date().setDate(new Date().getDate() - reportWeek * 7))
-					)
-				} else {
-					console.error(`Invalid createdDate in report.`)
-					return false
-				}
-			} catch (error) {
-				console.error(`Error processing report: ${report}`, error)
-				return false
-			}
-		})
-		arr = arr.sort((objA, objB) =>
-			Object.values(objA)[0]['createdDate'] >
-			Object.values(objB)[0]['createdDate']
-				? -1
-				: 1,
-		)
-
-		// Default values for infinite scrolling, will load reports as they are populated.
-		// FIXED SCROLLING BUG MAYBE???? *****
-		// setEndIndex(0)
-		// setHasMore(true)
-		if (arr.length === 0) {
-			setHasMore(false)
-		} else {
-			setHasMore(true)
-		}
-		setLoadedReports(arr)
-	}, [reportWeek]) //filteredReports
-
-	// Populates the loaded reports as the user scrolls to bottom of page
-	useEffect(() => {
-		// console.log('EFFECT--> deps: loadedReports')
-		if (loadedReports.length != 0) {
-			handleReportScroll()
-		}
-	}, [loadedReports])
-
 	useEffect(() => {
 		// Only proceed if reportModalShow is true
 		if (reportModalShow && reportModalId && customClaims.agency) {
-			// console.log('EFFECT--> Report modal is shown. Report ID:', reportModalId);
 			// When a report's modal opens set the report as read
 			handleRowChangeRead(reportModalId, true)
 		}
@@ -796,164 +637,354 @@ const ReportsSection = ({
 		}
 	}, [reportModalShow, reportModalId, customClaims.agency, report]) // this effect runs when the report modal is opened/closed
 
+	// Fetch data when new report is submitted or isAgency is set
 	useEffect(() => {
-		getData()
-	}, [update])
+		// Ensure isAgency is set before fetching data:
+		if (isAgency !== null) {
+			getData()
+		}
+	}, [newReportSubmitted, isAgency])
+
+	// New Filtering Hooks
+	// Search
+	useEffect(() => {
+		if (search === '') {
+			setLoadedReports(filteredReports.slice(0, ITEMS_PER_PAGE)) // No search term, use filteredReports
+		} else {
+			const searchFilteredReports = filteredReports.filter((report) => {
+				// Define searchable fields within each report
+				const searchableText = [
+					report.title,
+					report.detail,
+					report.city,
+					report.state,
+					report.label,
+					report.topic,
+				]
+					.filter(Boolean) // Remove undefined or null values
+					.join(' ') // Concatenate to create one searchable string
+					.toLowerCase()
+				return searchableText.includes(search.toLowerCase())
+			})
+
+			setLoadedReports(searchFilteredReports.slice(0, ITEMS_PER_PAGE))
+		}
+		setCurrentPage(1) // Reset pagination on new search
+	}, [search, filteredReports])
+
+	// Date Filtering
+	useEffect(() => {
+		if (isDataFetched && reportWeek) {
+			let filteredArr
+
+			if (reportWeek === '100') {
+				filteredArr = [...reports] // Show all
+			} else {
+				const filterDate = new Date()
+				filterDate.setDate(filterDate.getDate() - reportWeek * 7)
+
+				filteredArr = reports.filter((report) => {
+					const reportDate = report.createdDate.toDate()
+					return reportDate >= filterDate
+				})
+			}
+
+			setFilteredReports(filteredArr) // Only update `filteredReports`
+			// setLoadedReports(filteredArr.slice(0, ITEMS_PER_PAGE)) // Paginate based on filtered reports
+			setCurrentPage(1) // Reset to first page on filter change
+		}
+	}, [reportWeek, reports, isDataFetched])
+
+	// Read Filter - applies to already date-filtered reports
+	useEffect(() => {
+		const readFiltered = filteredReports.filter((report) => {
+			if (readFilter === 'all') return true // Show all if no read filter
+			return report.read === (readFilter === 'true') // Filter by read status
+		})
+
+		setLoadedReports(readFiltered.slice(0, ITEMS_PER_PAGE)) // Paginate the filtered data
+		setCurrentPage(1) // Reset to the first page
+	}, [readFilter, filteredReports])
+
+	// Pagination on filteredReports
+	useEffect(() => {
+		const paginated = filteredReports.slice(
+			(currentPage - 1) * ITEMS_PER_PAGE,
+			currentPage * ITEMS_PER_PAGE,
+		)
+		setLoadedReports(paginated)
+	}, [filteredReports, currentPage])
+
+	// Search Filter - applies on top of both date and read filters
+	useEffect(() => {
+		if (search === '') {
+			setLoadedReports(filteredReports.slice(0, ITEMS_PER_PAGE)) // Reset to paginated filtered reports
+		} else {
+			const searchFiltered = filteredReports.filter((report) => {
+				// Implement your existing search logic here
+				// Example for filtering based on a search term
+				return report.title.toLowerCase().includes(search.toLowerCase())
+			})
+
+			setLoadedReports(searchFiltered.slice(0, ITEMS_PER_PAGE)) // Paginate the search results
+		}
+		setCurrentPage(1) // Reset to the first page on new search
+	}, [search, filteredReports])
+
+	// Read Filter
+	useEffect(() => {
+		if (readFilter === 'all') {
+			setFilteredReports(reports)
+		} else {
+			const readFiltered = reports.filter(
+				(report) => report.read === (readFilter === 'true'),
+			)
+			setFilteredReports(readFiltered)
+		}
+		setCurrentPage(1) // Reset to first page on filter change
+	}, [readFilter, reports])
+
+	// Reset loadedReports on refresh
+	useEffect(() => {
+		if (refresh) {
+			setFilteredReports(reports)
+			setSearch('')
+			setCurrentPage(1) // Reset pagination on refresh
+		}
+	}, [refresh, reports])
+
+	// Pagination logic, triggered only when currentPage, rowsPerPage, or filteredReports change
+	useEffect(() => {
+		const paginatedReports = filteredReports.slice(
+			(currentPage - 1) * rowsPerPage,
+			currentPage * rowsPerPage,
+		)
+		setLoadedReports(paginatedReports)
+	}, [filteredReports, currentPage, rowsPerPage])
+
+	// Pagination functions to change pages
+	const goToPreviousPage = () => {
+		setCurrentPage((prevPage) => Math.max(prevPage - 1, 1))
+	}
+
+	const goToNextPage = () => {
+		setCurrentPage((prevPage) => Math.min(prevPage + 1, totalPages))
+	}
+
+	const goToPage = (pageNumber) => {
+		setCurrentPage(pageNumber)
+	}
+
+	// Helper function to calculate visible page numbers
+	const getVisiblePageNumbers = () => {
+		const pages = []
+		const startPage = Math.max(1, currentPage - Math.floor(VISIBLE_PAGES / 2))
+		const endPage = Math.min(totalPages, startPage + VISIBLE_PAGES - 1)
+
+		for (let i = startPage; i <= endPage; i++) {
+			pages.push(i)
+		}
+
+		return pages
+	}
 
 	return (
 		<>
 			<Card className="w-full mt-4">
 				<CardHeader floated={false} shadow={false} className="rounded-none">
 					<div className="mb-8 flex items-center justify-between gap-8">
-						<Typography variant="h5" color="blue">
+						<Typography variant="h5" color="blue" className="basis-1/3">
 							List of Reports
 						</Typography>
-						{!isAgency && (
-							<>
-								{/* Export Button */}
-								<Tooltip content="Export Reports">
-									<Button
-										onClick={downloadCSV}
-										className="flex items-center gap-2"
-									>
-										<IoAdd className="mr-1" size={15} />
-										Export Reports
-									</Button>
-								</Tooltip>
-
-								{/* Import Button */}
-								<Tooltip content="Import Reports">
-									<Button
-										onClick={() => document.getElementById('csvImportInput').click()}
-										className="flex items-center gap-2"
-									>
-										<IoAdd className="mr-1" size={15} />
-										Import CSV
-									</Button>
-								</Tooltip>
-								
-								{/* Hidden file input for CSV upload */}
-								<input
-									id="csvImportInput"
-									type="file"
-									accept=".csv"
-									style={{ display: 'none' }}
-									onChange={(e) => {
-										const file = e.target.files[0]
-										if (file) handleCSVImport(file)
-									}}
-								/>
-							</>
-						)}
-						<Tooltip content="New Report">
-							<Button
-								onClick={(e) => handleNewReportClick(e)}
-								className="flex items-center gap-2">
-								<IoAdd className="mr-1" size={15} />
-								New Report
-							</Button>
-						</Tooltip>
-					</div>
-					<div className="flex items-center justify-between gap-8">
-						<div className="flex flex-initial">
-							<Tabs value={readFilter} className="w-full md:w-max">
-								<TabsHeader>
-									{readValues.map(({ label, value }) => (
-										<Tab
-											key={value}
-											value={value}
-											onClick={() => handleReadFilterChanged(value)}>
-											{label}
-										</Tab>
-									))}
-								</TabsHeader>
-							</Tabs>
-							<Tooltip content="Refresh Reports" placement="right-end">
-								<IconButton variant="text" onClick={handleRefresh}>
-									{!refresh && !reportsUpdated && <IoMdRefresh size={20} />}
-									{/* Displays loading icon when reports are being updated*/}
-									{refresh && <Spinner color="blue" />}
-									{/* Displays notification once reports have been refreshed. */}
-									{!refresh && showCheckmark && (
-										<IoMdCheckmark size={20} color="green" />
-									)}
-								</IconButton>
-							</Tooltip>
-						</div>
-						<Typography className="flex-initial" variant="small">
+						<Typography
+							className="flex-initial basis-1/3 text-center"
+							variant="small">
 							{loadedReports.length}{' '}
 							{loadedReports.length == 1 ? 'report' : 'reports'}
 						</Typography>
-						<div className="flex-initial">
-							<select
-								id="label_date"
-								onChange={(e) => handleDateChanged(e)}
-								// defaultValue="4"
-								value={reportWeek} // Bind the state value directly
-								data-tip="Select timeframe"
-								data-for="timeframeTooltip"
-								className="text-sm font-semibold shadow bg-white inline-block px-8 border-none text-black py-1 rounded-md hover:shadow-none">
-								<option value="4">Last four weeks</option>
-								<option value="3">Last three weeks</option>
-								<option value="2">Last two weeks</option>
-								<option value="1">Last week</option>
-								<option value="100">All reports</option>
-							</select>
+						<div className="flex flex-row gap-1 justify-end basis-1/3">
+							{!isAgency && (
+								<>
+									{/* Export Button */}
+									<Tooltip content="Export Reports" placement="bottom-start">
+										<Button
+											size="sm"
+											variant="outlined"
+											onClick={downloadCSV}
+											className="flex items-center gap-2"
+											ripple={true}>
+											<FaFileExport />
+											Export
+										</Button>
+									</Tooltip>
+
+									{/* Import Button */}
+									<Tooltip
+										content="Import Reports CSV"
+										placement="bottom-start">
+										<Button
+											size="sm"
+											variant="outlined"
+											ripple={true}
+											onClick={() =>
+												document.getElementById('csvImportInput').click()
+											}
+											className="flex items-center gap-2">
+											<FaFileImport />
+											Import
+										</Button>
+									</Tooltip>
+
+									{/* Hidden file input for CSV upload */}
+									<input
+										id="csvImportInput"
+										type="file"
+										accept=".csv"
+										style={{ display: 'none' }}
+										onChange={(e) => {
+											const file = e.target.files[0]
+											if (file) handleCSVImport(file)
+										}}
+									/>
+								</>
+							)}
+							<Tooltip content="New Report" placement="bottom-start">
+								<Button
+									ripple={true}
+									size="sm"
+									onClick={(e) => handleNewReportClick(e)}
+									className="flex items-center gap-2">
+									<IoAdd />
+									New Report
+								</Button>
+							</Tooltip>
 						</div>
+					</div>
+					<div className="flex items-center justify-between gap-8">
+						<TableFilterControls
+							readFilter={readFilter}
+							onReadFilterChange={setReadFilter}
+							onRefresh={handleRefresh}
+							refresh={refresh}
+							showCheckmark={showCheckmark}
+						/>
+						<div className="w-full md:w-72 basis-1/3">
+							<Input
+								label="Search"
+								icon={<HiMagnifyingGlass className="h-5 w-5" />}
+								value={search}
+								onChange={(e) => setSearch(e.target.value)}
+							/>
+						</div>
+						<TableDropdownMenu
+							reportWeek={reportWeek}
+							onChange={(value) => setReportWeek(value)} // Update `reportWeek` based on selection
+							rowsPerPage={rowsPerPage}
+							setRowsPerPage={(value) => setRowsPerPage(value)} // Update rows per page
+							setCurrentPage={(page) => setCurrentPage(page)} // Reset page to 1 when rows per page changes
+						/>
 					</div>
 				</CardHeader>
 				<CardBody className="overflow-scroll px-0 pt-0">
-					<InfiniteScroll
-						className="overflow-x-auto"
-						dataLength={endIndex}
-						next={handleReportScroll}
-						inverse={false} //
-						hasMore={hasMore}
-						loader={<h4>Loading...</h4>}
-						scrollableTarget="scrollableDiv"
-						reportTitle={reportTitle}>
-						<table className="mt-4 w-full min-w-full table-fixed text-left">
-							<TableHead columns={columns} handleSorting={handleSorting} />
+					<table className="mt-4 w-full min-w-full table-fixed text-left">
+						<TableHead columns={columns} handleSorting={handleSorting} />
 
-							<TableBody
-								loadedReports={loadedReports} // Table data
-								columns={columns}
-								endIndex={endIndex}
-								onReportModalShow={handleReportModalShow}
-								onRowChangeRead={handleRowChangeRead}
-								onReportDelete={handleReportDelete}
-								reportsReadState={reportsReadState}
-							/>
-						</table>
+						<TableBody
+							loadedReports={loadedReports}
+							columns={columns}
+							onReportModalShow={handleReportModalShow}
+							onRowChangeRead={handleRowChangeRead}
+							onReportDelete={handleReportDelete}
+							reportsReadState={reportsReadState}
+						/>
+					</table>
 
-						{reportModalShow && (
-							<ReportModal
-								customClaims={customClaims}
-								reportModalShow={reportModalShow}
-								report={report}
-								reportTitle={reportTitle}
-								key={reportModalId}
-								note={note}
-								detail={detail}
-								checked={reportsReadState[reportModalId]} // Pass the checked state for the clicked report
-								onReadChange={handleChangeReadModal}
-								reportSubmitBy={reportSubmitBy}
-								setReportModalShow={setReportModalShow}
-								reportModalId={reportModalId}
-								onNoteChange={handleNoteChange}
-								onLabelChange={handleLabelChange}
-								selectedLabel={selectedLabel}
-								activeLabels={activeLabels}
-								changeStatus={changeStatus}
-								onFormSubmit={handleFormSubmit}
-								onReportDelete={handleReportDelete}
-								postedDate={postedDate}
-								onUserSendEmail={handleUserSendEmail}
-								reportLocation={reportLocation}
-							/>
-						)}
-					</InfiniteScroll>
+					{reportModalShow && (
+						<ReportModal
+							customClaims={customClaims}
+							reportModalShow={reportModalShow}
+							report={report}
+							reportTitle={reportTitle}
+							key={reportModalId}
+							note={note}
+							detail={detail}
+							checked={reportsReadState[reportModalId]} // Pass the checked state for the clicked report
+							onReadChange={handleChangeReadModal}
+							reportSubmitBy={reportSubmitBy}
+							setReportModalShow={setReportModalShow}
+							reportModalId={reportModalId}
+							onNoteChange={handleNoteChange}
+							onLabelChange={handleLabelChange}
+							selectedLabel={selectedLabel}
+							activeLabels={activeLabels}
+							changeStatus={changeStatus}
+							onFormSubmit={handleFormSubmit}
+							onReportDelete={handleReportDelete}
+							postedDate={postedDate}
+							onUserSendEmail={handleUserSendEmail}
+							reportLocation={reportLocation}
+						/>
+					)}
 				</CardBody>
+				{/* Pagination Footer */}
+				<CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4">
+					<Button
+						variant="outlined"
+						size="sm"
+						onClick={goToPreviousPage}
+						disabled={currentPage === 1}>
+						Previous
+					</Button>
+					<div className="flex items-center gap-2">
+						{currentPage > VISIBLE_PAGES / 2 + 1 && (
+							<>
+								<IconButton
+									variant="text"
+									size="sm"
+									onClick={() => goToPage(1)}>
+									1
+								</IconButton>
+								{currentPage > VISIBLE_PAGES / 2 + 2 && (
+									<IconButton variant="text" size="sm" disabled>
+										...
+									</IconButton>
+								)}
+							</>
+						)}
+						{getVisiblePageNumbers().map((page) => (
+							<IconButton
+								key={page}
+								variant={currentPage === page ? 'outlined' : 'text'}
+								size="sm"
+								onClick={() => goToPage(page)}>
+								{page}
+							</IconButton>
+						))}
+						{currentPage < totalPages - VISIBLE_PAGES / 2 && (
+							<>
+								{currentPage < totalPages - VISIBLE_PAGES / 2 - 1 && (
+									<IconButton variant="text" size="sm" disabled>
+										...
+									</IconButton>
+								)}
+								<IconButton
+									variant="text"
+									size="sm"
+									onClick={() => goToPage(totalPages)}>
+									{totalPages}
+								</IconButton>
+							</>
+						)}
+					</div>
+					<Button
+						variant="outlined"
+						size="sm"
+						color='blue'
+						onClick={goToNextPage}
+						disabled={currentPage === totalPages}>
+						Next
+					</Button>
+				</CardFooter>
 			</Card>
 			{deleteModal && (
 				<ConfirmModal

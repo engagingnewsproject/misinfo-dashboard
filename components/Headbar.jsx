@@ -70,7 +70,7 @@ const Headbar = ({ search, setSearch}) => {
                         )}
                     </div>
                 </div>
-                {(customClaims.admin || customClaims.agency) &&
+                {/* {(customClaims.admin || customClaims.agency) &&
                 <form className="col-start-3 col-span-8 mt-5 flex relative md:w-2/4 lg:w-1/4 lg:max-w-xs" onChange={handleChange} onSubmit={handleSearch}>
                    
                     <input
@@ -86,7 +86,7 @@ const Headbar = ({ search, setSearch}) => {
                         <AiOutlineSearch size={25}/>
                     </button>
                 </form>
-                } 
+                }  */}
             </div>
 
     )
