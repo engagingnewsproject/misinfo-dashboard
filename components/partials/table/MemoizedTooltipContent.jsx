@@ -1,6 +1,6 @@
 // MemoizedTooltipContent.jsx
 import React from 'react'
-import { Tooltip, Typography } from '@material-tailwind/react'
+import { Typography } from '@material-tailwind/react'
 
 // Memoized Tooltip Component
 const MemoizedTooltipContent = React.memo(({ details }) => (
@@ -10,5 +10,8 @@ const MemoizedTooltipContent = React.memo(({ details }) => (
     </Typography>
   </div>
 ))
+
+// Add the display name for the memoized component
+MemoizedTooltipContent.displayName = 'MemoizedTooltipContent'
 
 export default MemoizedTooltipContent
