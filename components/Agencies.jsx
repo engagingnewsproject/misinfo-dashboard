@@ -280,6 +280,14 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	// Handler: Form submit NEW & EXISTING AGENCY
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
+
+		// make sure an email is entered (last email in arr)
+		if (newAgencyEmails.length < 1) {
+			console.log('Please enter an email')
+			return
+		}
+		
+
 		setUpdate(!update)
 		// check form id
 		if (e.target.id == 'newAgencyModal') {
