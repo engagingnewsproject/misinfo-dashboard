@@ -47,6 +47,7 @@ import {
 
 // Table columns
 const columns = [
+	{ label: '', accessor: 'checkbox', sortable: false },
 	{ label: 'Title', accessor: 'title', sortable: true },
 	{ label: 'Date/Time', accessor: 'createdDate', sortable: true },
 	// { label: 'Candidates', accessor: 'candidates', sortable: false },
@@ -102,6 +103,7 @@ const ReportsSection = ({
 	const [reportRead, setReportRead] = useState(false)
 	const [reportsRead, setReportsRead] = useState({}) // Store checked state for each report
 	const [reportsReadState, setReportsReadState] = useState({})
+	const [reportsSelectedState, setReportsSelectedState] = useState({}) // Store selected state for each report
 	const [info, setInfo] = useState({})
 	const [selectedLabel, setSelectedLabel] = useState('')
 	const [activeLabels, setActiveLabels] = useState([])
@@ -788,6 +790,19 @@ const ReportsSection = ({
 		return pages
 	}
 
+	const handleReportSelectedChange = (reportID, state) => {
+		// If state is true, add the reportID to the selected state, else remove it.
+		if (state) {
+			setReportsSelectedState((prevState) => ({
+				...prevState,
+				[reportID]: true,
+			}))
+		} else {
+			const { [reportID]: _, ...rest } = reportsSelectedState
+			setReportsSelectedState(rest)
+		}
+	}
+
 	return (
 		<>
 			<Card className="w-full mt-4">
@@ -896,6 +911,8 @@ const ReportsSection = ({
 							onRowChangeRead={handleRowChangeRead}
 							onReportDelete={handleReportDelete}
 							reportsReadState={reportsReadState}
+							reportsSelectedState={reportsSelectedState}
+							onReportSelectedChange={handleReportSelectedChange}
 						/>
 					</table>
 
