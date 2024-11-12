@@ -12,10 +12,9 @@ import {
 	where,
 	addDoc,
 	arrayUnion,
+	limit, 
 	startAfter,
-	limit,
-} 
-from 'firebase/firestore'
+} from 'firebase/firestore'
 import { db, auth } from '../config/firebase'
 import { Tooltip } from 'react-tooltip'
 import { IoTrash } from 'react-icons/io5'
@@ -96,49 +95,6 @@ const sortByJoinedDate = (users) => {
 
 const Users = () => {
 	// Initialize authentication context
-	const [hasMore, setHasMore] = useState(true);
-	const [page, setPage] = useState(0);
-	const pageSize = 10;
-
-	const fetchMoreData = async () => {
-		if (isLoading) return;
-
-		setIsLoading(true);
-		try {
-			const lastDoc = loadedMobileUsers[loadedMobileUsers.length - 1];
-			const lastDocRef = doc(db, 'mobileUsers', lastDoc.mobileUserId);
-			const lastDocSnap = await getDoc(lastDocRef);
-
-			const mobileUsersQuerySnapshot = await getDocs(
-				query(
-					collection(db, 'mobileUsers'),
-					startAfter(lastDocSnap),
-					limit(pageSize)
-				)
-			);
-
-			const newUsers = await Promise.all(
-				mobileUsersQuerySnapshot.docs.map(async (doc) => {
-					const userData = doc.data();
-					userData.mobileUserId = doc.id;
-					userData.disabled = await fetchUserDetails(doc.id);
-					userData.joined = getJoinedDate(userData, null);
-					return userData;
-				})
-			);
-
-			if (newUsers.length < pageSize) {
-				setHasMore(false);
-			}
-
-			setLoadedMobileUsers((prevUsers) => [...prevUsers, ...newUsers]);
-			setEndIndex((prevEndIndex) => prevEndIndex + newUsers.length);
-		} catch (error) {
-			console.error('Failed to fetch more user data:', error);
-		} finally {
-			setIsLoading(false);
-		}
-	};
 	const {
 		user,
 		addAdminRole,
@@ -176,9 +132,8 @@ const Users = () => {
 	})
 	const [newUserEmail, setNewUserEmail] = useState('')
 	const [errors, setErrors] = useState({})
-
-
-
+	const [lastVisible, setLastVisible] = useState(null); // the last document fetched
+	const [hasMore, setHasMore] = useState(true); // to track if more users are available to load
 
 	/**
 	 * Fetches all agency documents from the Firestore 'agency' collection
@@ -367,6 +322,81 @@ const Users = () => {
 			setIsLoading(false)
 		}
 	}
+
+	const USERS_PER_PAGE = 10; // Number of users to fetch per page
+
+const getInitialUsers = async () => {
+	setIsLoading(true);
+	const userQuery = query(
+		collection(db, 'mobileUsers'),
+		limit(USERS_PER_PAGE)
+	);
+
+	try {
+		const querySnapshot = await getDocs(userQuery);
+		const users = querySnapshot.docs.map(doc => ({
+			mobileUserId: doc.id,
+			...doc.data(),
+		}));
+
+		setLoadedMobileUsers(users);
+
+		// Set the last visible document for pagination
+		const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+		setLastVisible(lastVisibleDoc);
+
+		// If less than USERS_PER_PAGE were fetched, no more users are available
+		if (querySnapshot.docs.length < USERS_PER_PAGE) {
+			setHasMore(false);
+		}
+
+		setIsLoading(false);
+	} catch (error) {
+		console.error("Error fetching users:", error);
+		setIsLoading(false);
+	}
+};
+
+useEffect(() => {
+	getInitialUsers(); // Fetch users when the component mounts
+}, []);
+
+const fetchMoreUsers = async () => {
+	if (!lastVisible || !hasMore || isLoading) return; // Prevent fetching if already loading or no more users
+
+	setIsLoading(true);
+
+	const nextUserQuery = query(
+		collection(db, 'mobileUsers'),
+		startAfter(lastVisible), // Start after the last loaded document
+		limit(USERS_PER_PAGE)
+	);
+
+	try {
+		const querySnapshot = await getDocs(nextUserQuery);
+		const users = querySnapshot.docs.map(doc => ({
+			mobileUserId: doc.id,
+			...doc.data(),
+		}));
+
+		// Append newly loaded users to the existing list
+		setLoadedMobileUsers((prevUsers) => [...prevUsers, ...users]);
+
+		// Update the last visible document for the next batch
+		const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+		setLastVisible(lastVisibleDoc);
+
+		// If less than USERS_PER_PAGE were fetched, no more users are available
+		if (querySnapshot.docs.length < USERS_PER_PAGE) {
+			setHasMore(false);
+		}
+
+		setIsLoading(false);
+	} catch (error) {
+		console.error("Error fetching more users:", error);
+		setIsLoading(false);
+	}
+};
 
 	/**
 	 * Handles the event when the "Add New User" button is clicked, opening the modal to add a new user.
@@ -893,16 +923,16 @@ const Users = () => {
 				)}
 				<div className={style.table_main}>
 					<div className="flex flex-col h-full">
-						<InfiniteScroll
-							className="overflow-x-auto"
-							dataLength={loadedMobileUsers.length}
-							inverse={false}
-							scrollableTarget="scrollableDiv"
-							next={fetchMoreData}
-							hasMore={hasMore}>
+<InfiniteScroll
+	dataLength={loadedMobileUsers.length} // The length of currently loaded users
+	next={fetchMoreUsers} // Function to load more users when the user scrolls to the bottom
+	hasMore={hasMore} // Boolean to indicate if more users are available to fetch
+	loader={<h4>Loading more users...</h4>} // Loader for when more users are being fetched
+	scrollableTarget="scrollableDiv" // The target div that is scrollable
+>
 							<table className="min-w-full bg-white rounded-xl p-1">
 								<thead className="border-b dark:border-indigo-100 bg-slate-100">
-									<tr>
+									<tr className="border-b transition duration-300 ease-in-out dark:border-indigo-100">
 										<th scope="col" className={tableHeading.default}>
 											Name
 										</th>
