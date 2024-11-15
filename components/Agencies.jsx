@@ -84,6 +84,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	// Modal for new agencies. Modal is displayed when users click the button to add a new agency.
 	const handleAddNewAgencyModal = (e) => {
 		e.preventDefault()
+		setData({ country: 'US', state: null, city: null })
 		setNewAgencyModal(true)
 	}
 	// Handler: new agency NAME
