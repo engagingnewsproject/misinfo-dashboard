@@ -242,8 +242,8 @@ const ReportsSection = ({
 		setReportModalId(reportId)
 		// only set report as read if an agency user clicks
 		// admin users should not be changing the read status
-		if (customClaims.agency) {
-			setReportRead(docRef.data().read)
+		if (customClaims.agency || customClaims.admin) {
+			await handleChangeReadModal(reportId, true)
 		}
 
 		const mUserRef = doc(db, 'mobileUsers', docRef.data().userID)
@@ -979,7 +979,7 @@ const ReportsSection = ({
 					<Button
 						variant="outlined"
 						size="sm"
-						color='blue'
+						color="blue"
 						onClick={goToNextPage}
 						disabled={currentPage === totalPages}>
 						Next
