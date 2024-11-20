@@ -83,7 +83,6 @@ const ReportModal = ({
 	// 	console.log(customClaims);
 	// }, [reportModalId])
 	
-	
 	return (
 		<div
 			className='fixed z-[9998] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto' // {style.overlay}
@@ -125,17 +124,16 @@ const ReportModal = ({
 									<div className='mb-5'>
 										<div className={style.header}>Description</div>
 										<textarea
-											placeholder='No detail provided'
 											id='detail'
+											onChange={onDetailChange}
+											placeholder='No detail provided'
 											className={
 												report.detail
 													? style.textarea
 													: style.textarea + ` italic`
 											}
-											disabled
-											value={report.detail}
-											rows='6'
-										/>
+											readOnly={customClaims.admin ? false : true}
+											defaultValue={detail}></textarea>
 									</div>
 
 									{/* Links */}
