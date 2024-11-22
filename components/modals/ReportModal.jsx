@@ -1,21 +1,21 @@
-import React, { useEffect, useState } from "react"
 import { Switch } from "@material-tailwind/react";
-import ButtonEmailSend from "../partials/ButtonEmailSend"
-import ShareReportModal from "../partials/modals/ShareReportModal"
-import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"
-import Link from "next/link"
-import Image from "next/image"
-import {Tooltip} from "react-tooltip";
+import Image from "next/image";
+import Link from "next/link";
+import React, { useEffect, useState } from "react";
+import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md";
+import { Tooltip } from "react-tooltip";
+import ButtonEmailSend from "../partials/ButtonEmailSend";
+import ShareReportModal from "../partials/modals/ShareReportModal";
 // icons
-import { RiMessage2Fill } from "react-icons/ri"
-import { BiEditAlt } from "react-icons/bi"
+import { BiEditAlt } from "react-icons/bi";
+import { RiMessage2Fill } from "react-icons/ri";
 // import { BsShareFill } from "react-icons/bs"
+import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai";
 import { BiLinkExternal } from "react-icons/bi";
-import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
 // import { MdOutlineLocalPhone } from "react-icons/md";
 
-import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
 import { useTranslation } from 'next-i18next';
+import { IoBusinessOutline, IoClose, IoLocation, IoTrash } from "react-icons/io5";
 const ReportModal = ({
 	customClaims,
 	setReportModalShow,
@@ -90,13 +90,13 @@ const ReportModal = ({
 			onClick={() => setReportModalShow(false)}>
 			<div className='absolute flex justify-center items-center z-[9999] top-4 left-0 right-0 sm:overflow-y-scroll'>
 				<div
-					className='flex-col justify-center items-center rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible md:w-10/12 lg:w-10/12' // {style.wrap}
+					className='flex-col items-center justify-center px-10 py-10 rounded-2xl bg-sky-100 sm:overflow-visible md:w-10/12 lg:w-10/12' // {style.wrap}
 					onClick={(e) => {
 						e.stopPropagation()
 					}}>
 					<div className='flex justify-between w-full mb-6'>
-						<div className='flex w-full items-baseline'>
-							<div className='text-2xl font-bold text-blue-600 tracking-wider'>
+						<div className='flex items-baseline w-full'>
+							<div className='text-2xl font-bold tracking-wider text-blue-600'>
 								Report Information
 							</div>
 							<Link href={`dashboard${reportURI}`} target='_blank'>
@@ -115,7 +115,7 @@ const ReportModal = ({
 								<>
 									{/* Title */}
 									<div className={style.header}>Title</div>
-									<div className='text-sm bg-white rounded-xl p-4 mb-5'>
+									<div className='p-4 mb-5 text-sm bg-white rounded-xl'>
 										{report.title || (
 											<span className='italic text-gray-400'>No Title</span>
 										)}
@@ -133,7 +133,7 @@ const ReportModal = ({
 													? style.textarea
 													: style.textarea + ` italic`
 											}
-											readOnly={customClaims.admin ? true : false}
+											readOnly={customClaims.admin ? false : true}
 											defaultValue={detail}></textarea>
 									</div>
 
@@ -168,61 +168,61 @@ const ReportModal = ({
 								</>
 							</div>{" "}
 							{/* END left side */}
-							<div className='right-side flex flex-col justify-between'>
+							<div className='flex flex-col justify-between right-side'>
 								<div>
 									<div className='flex flex-col mb-5'>
 										{/* Sources & tags */}
-										<div className='flex flex-row mb-3 items-center'>
+										<div className='flex flex-row items-center mb-3'>
 											<RiMessage2Fill size={20} />
-											<div className='font-semibold px-2 self-center pr-4'>
+											<div className='self-center px-2 pr-4 font-semibold'>
 												Tag
 											</div>
-											<div className='text-md font-light'>{report.topic}</div>
+											<div className='font-light text-md'>{report.topic}</div>
 										</div>
-										<div className='flex flex-row mb-3 items-center'>
+										<div className='flex flex-row items-center mb-3'>
 											<BiEditAlt size={20} />
-											<div className='font-semibold px-2 self-center pr-4'>
+											<div className='self-center px-2 pr-4 font-semibold'>
 												Sources / Media
 											</div>
-											<div className='text-md font-light'>
+											<div className='font-light text-md'>
 												{report.hearFrom}
 											</div>
 										</div>
 										{/* Date */}
-										<div className='flex flex-row mb-3 items-center'>
+										<div className='flex flex-row items-center mb-3'>
 											<AiOutlineFieldTime size={20} />
-											<div className='font-semibold px-2 self-center pr-4'>
+											<div className='self-center px-2 pr-4 font-semibold'>
 												Date / Time
 											</div>
-											<div className='text-md font-light'>{postedDate}</div>
+											<div className='font-light text-md'>{postedDate}</div>
 										</div>
 										{/* City state */}
-										<div className='flex flex-row mb-3 items-center'>
+										<div className='flex flex-row items-center mb-3'>
 											<IoLocation size={20} />
-											<div className='font-semibold px-2 self-center pr-4'>
+											<div className='self-center px-2 pr-4 font-semibold'>
 												City, State
 											</div>
-											<div className='text-md font-light'>{reportLocation}</div>
+											<div className='font-light text-md'>{reportLocation}</div>
 										</div>
 										{/* Agency */}
 										{report.agency && (
 											<>
-												<div className='flex flex-row mb-3 items-center'>
+												<div className='flex flex-row items-center mb-3'>
 													<IoBusinessOutline size={20} />
-													<div className='font-semibold px-2 self-center pr-4'>
+													<div className='self-center px-2 pr-4 font-semibold'>
 														Agency
 													</div>
-													<div className='text-md font-light'>
+													<div className='font-light text-md'>
 														{report.agency}
 													</div>
 												</div>
 											</>
 										)}
 										{reportSubmitBy.contact && (
-										<div className="flex flex-row mb-3 items-center">
+										<div className="flex flex-row items-center mb-3">
 										<AiOutlineUser size={20} />
-											<div className="text-md font-light">
-												<span className="font-semibold px-2 self-center pr-4">Reported by</span>{" "}
+											<div className="font-light text-md">
+												<span className="self-center px-2 pr-4 font-semibold">Reported by</span>{" "}
 												{reportSubmitBy.name} (
 												<a
 													target="_blank"
@@ -236,10 +236,10 @@ const ReportModal = ({
 										</div>
 									)}
                   {/* {reportSubmitBy.contact && reportSubmitBy.phone && 
-										<div className="flex flex-row mb-3 items-center">
+										<div className="flex flex-row items-center mb-3">
 										<MdOutlineLocalPhone size={20} />
-											<div className="text-md font-light">
-												<span className="font-semibold px-2 self-center pr-4">Phone number</span>{" "}
+											<div className="font-light text-md">
+												<span className="self-center px-2 pr-4 font-semibold">Phone number</span>{" "}
 												<a href={`tel:${reportSubmitBy.phone}`}>{reportSubmitBy.phone}</a>
 											</div>
 										</div>
@@ -247,9 +247,9 @@ const ReportModal = ({
 									</div>
 
 									{/* Images */}
-									<div className='images mb-12'>
+									<div className='mb-12 images'>
 										<div className={style.header}>Images</div>
-										<div className='grid grid-cols-4 gap-4 w-full overflow-y-auto'>
+										<div className='grid w-full grid-cols-4 gap-4 overflow-y-auto'>
 											{report.images ?
 												report.images.map((image, i) => {
 													return (
@@ -282,7 +282,7 @@ const ReportModal = ({
 						</div>
 
 						{/* Newsroom Edits */}
-						<div className='grid grid-flow-row pt-4 mt-5 bg-slate-100 rounded-xl py-8 md:grid-cols-2 md:gap-10 lg:gap-15'>
+						<div className='grid grid-flow-row py-8 pt-4 mt-5 bg-slate-100 rounded-xl md:grid-cols-2 md:gap-10 lg:gap-15'>
 							{/* Notes */}
 							<div>
 								<div className={style.header}>Newsroom's Notes</div>
@@ -304,7 +304,7 @@ const ReportModal = ({
 										id='labels'
 										onChange={onLabelChange}
 										value={selectedLabel || ''}
-										className='text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none'>
+										className='inline-block px-8 py-1 text-sm bg-yellow-400 border-none shadow rounded-2xl hover:shadow-none'>
 										
 										{/* Default option representing no label */}
 										<option value=''>{selectedLabel === '' ? 'No Label' : 'Remove Label'}</option>
@@ -316,13 +316,13 @@ const ReportModal = ({
 										))}
 									</select>
 									{changeStatus && (
-										<span className='ml-5 font-light text-sm italic'>
+										<span className='ml-5 text-sm italic font-light'>
 											{changeStatus}
 										</span>
 									)}
 								</div>
 								{/* Read/Unread */}
-								<div className='flex flex-row mb-4 items-center'>
+								<div className='flex flex-row items-center mb-4'>
 									<div className='self-center pr-2'>
 										{checked ? (
 											<MdMarkEmailRead size={20} />
@@ -346,15 +346,15 @@ const ReportModal = ({
 								<ButtonEmailSend onButtonEmailSendClick={() => setShareReportModal(true)} />
 								
 								<div className='flex items-center justify-between justify-items-stretch'>
-									<div className='save-button w-full'>
+									<div className='w-full save-button'>
 										<button
-											className='w-full bg-blue-600 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
+											className='w-full px-6 py-2 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:shadow-outline'
 											type='submit'>
 											Save
 										</button>
 									</div>
 									{/* Delete button */}
-									<div className='delete-button self-end'>
+									<div className='self-end delete-button'>
 										<button
 											onClick={onReportDelete}
 											className={`${style.icon} tooltip-delete-report`}
