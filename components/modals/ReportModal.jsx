@@ -38,6 +38,7 @@ const ReportModal = ({
 	// read status END
 	postedDate,
 	reportLocation,
+	onDetailChange,
 	onNoteChange,
 	onReportDelete,
 	changeStatus,
@@ -82,7 +83,7 @@ const ReportModal = ({
 	// useEffect(() => {
 	// 	console.log(customClaims);
 	// }, [reportModalId])
-	
+
 	return (
 		<div
 			className='fixed z-[9998] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto' // {style.overlay}
@@ -132,7 +133,7 @@ const ReportModal = ({
 													? style.textarea
 													: style.textarea + ` italic`
 											}
-											readOnly={customClaims.admin ? false : true}
+											readOnly={customClaims.admin ? true : false}
 											defaultValue={detail}></textarea>
 									</div>
 
@@ -291,7 +292,7 @@ const ReportModal = ({
 									placeholder='No notes yet...'
 									className={note ? style.textarea : style.textarea + ` italic`}
 									rows='6'
-									readOnly={customClaims.admin ? true : false}
+									readOnly={customClaims.admin ? false : true}
 									defaultValue={note}></textarea>
 							</div>
 							{/* label read share & save */}
