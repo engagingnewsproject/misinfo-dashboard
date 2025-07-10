@@ -1,3 +1,17 @@
+/**
+ * @fileoverview ReportView - Individual report detail view component.
+ * 
+ * This component handles displaying detailed information about a specific report,
+ * including title, links, images, details, and location. It fetches data from
+ * Firestore using real-time listeners and supports internationalization.
+ * 
+ * @module components/ReportView
+ * @requires react
+ * @requires firebase/firestore
+ * @requires next/image
+ * @requires next-i18next
+ */
+
 import React,{ useState,useEffect,useRef } from 'react'
 import { IoMdArrowRoundBack } from 'react-icons/io'
 import { doc, onSnapshot } from "firebase/firestore"
@@ -5,14 +19,67 @@ import { db } from '../config/firebase'
 import Image from 'next/image'
 import {  useTranslation } from 'next-i18next'
 
+/**
+ * ReportView Component
+ * 
+ * A React component that displays detailed information about a specific report.
+ * This component fetches report data from Firestore and renders it in a formatted view
+ * with support for images, links, location details, and internationalization.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {number} props.reportView - Current view state for the report system
+ * @param {Function} props.setReportView - Function to update the report view state
+ * @param {Object} props.reportSystem - Report system configuration object
+ * @param {Function} props.setReportSystem - Function to update the report system state
+ * @param {string} props.reportId - Unique identifier for the report to display
+ * @param {Function} props.setReportId - Function to update the report ID
+ * 
+ * @example
+ * ```jsx
+ * <ReportView
+ *   reportView={0}
+ *   setReportView={setReportView}
+ *   reportSystem={reportSystem}
+ *   setReportSystem={setReportSystem}
+ *   reportId="report123"
+ *   setReportId={setReportId}
+ * />
+ * ```
+ */
 const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,reportId,setReportId }) => {
+	/**
+	 * @type {Array} data - Report data fetched from Firestore
+	 */
 	const [data,setData] = useState([])
+	
+	/**
+	 * @type {Object} imageErrors - Object tracking image loading errors by index
+	 */
 	const [imageErrors, setImageErrors] = useState({});
+	
+	/**
+	 * Translation hook for internationalization
+	 * @type {Object} t - Translation function
+	 */
   const {t} = useTranslation("NewReport")
 
 	// //
 	// Data
 	// //
+	
+	/**
+	 * Fetches report data from Firestore using the provided reportId
+	 * Sets up a real-time listener to automatically update when the document changes
+	 * 
+	 * @async
+	 * @function getData
+	 * @returns {Promise<void>}
+	 * 
+	 * @example
+	 * // Called automatically on component mount
+	 * getData()
+	 */
 	const getData = async () => {
   if (!reportId) {
     console.log("Report ID is undefined.");
@@ -28,11 +95,25 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
     }
   });
 };
-	// On page load (mount), update the tags from firebase
+	
+	/**
+	 * Effect hook that runs on component mount to fetch initial report data
+	 * Dependencies: [] (runs only once on mount)
+	 */
 	useEffect(() => {
 		getData()
 	},[])
-  // Handle image loading errors
+  
+  /**
+   * Handles image loading errors by updating the imageErrors state
+   * 
+   * @function handleImageError
+   * @param {number} index - Index of the image that failed to load
+   * 
+   * @example
+   * // Called when an image fails to load
+   * handleImageError(0)
+   */
   const handleImageError = (index) => {
     setImageErrors((prevErrors) => ({ ...prevErrors, [index]: true }));
   };
@@ -40,6 +121,11 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 	// //
 	// Styles
 	// //
+	
+	/**
+	 * CSS classes and styling configuration for the component
+	 * @type {Object}
+	 */
 	const style = {
 		sectionWrapper: 'flex items-center',
 		sectionH2: 'text-blue-600 mb-2',
@@ -58,12 +144,14 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 	return (
 		<>
 			<div className={style.viewWrapper}>
+				{/* Back Button Section */}
 				<div className={style.sectionWrapper}>
 					<button onClick={() => setReportView(0)} className={style.buttonBack}>
 						<IoMdArrowRoundBack size={25} />
 					</button>
 				</div>
-				{/* Title */}
+				
+				{/* Report Title Section */}
 				<div className={style.inputSingle}>
 					<div className={style.sectionH2}>
 						{t('title_text')}
@@ -71,7 +159,8 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 					{/* TODO finish adding all data + a back to reports list button */}
 					{data['title']}
 				</div>
-				{/* Links */}
+				
+				{/* Report Links Section */}
 				<div className={style.inputSingle}>
 					<div className={style.sectionH2}>
 						{t('links')}
@@ -79,6 +168,8 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 					{ data['link'] !== '' && <div>{data['link']}</div> }
 					{ data['secondLink'] !== '' && <div>{data['secondLink']}</div> }
 				</div>
+				
+				{/* Report Images Section */}
 				{data['images'] && data['images'][0] ?
 					<div className={style.inputSingle}>
 						<div className='grid grid-cols-4 gap-4'>
@@ -109,13 +200,16 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 					</div> :
 					<div className={style.inputSingle}>{t('noImages')}</div>
 				}
-				{/* Details */}
+				
+				{/* Report Details Section */}
 				<div className={style.inputSingle}>
 					<div className={style.sectionH2}>
 						{t('details')}
 					</div>
 					{data['detail'] ? data['detail'] : t('noDescription')}
 				</div>
+				
+				{/* Report Location Section */}
 				<div className={style.inputSingle}>
 					<div className={style.sectionH2}>
 						{t('location_text')}
