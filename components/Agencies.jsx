@@ -1,3 +1,28 @@
+/**
+ * @fileoverview Agencies Management Component - Comprehensive agency CRUD operations
+ * 
+ * This component provides a complete agency management interface for administrators
+ * to create, read, update, and delete agencies. Key features include:
+ * - Agency listing with logo display and location information
+ * - Agency creation with user invitation system
+ * - Agency editing with image upload capabilities
+ * - User management within agencies (add/remove admin users)
+ * - Email invitation system for new agency users
+ * - Agency deletion with confirmation
+ * - Real-time data fetching from Firestore
+ * - Image upload to Firebase Storage
+ * - Location-based agency filtering
+ * 
+ * The component integrates with multiple modals for different operations:
+ * - AgencyModal: Edit existing agencies
+ * - NewAgencyModal: Create new agencies
+ * - ConfirmModal: Delete confirmation
+ * 
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
+
 import React, { useState, useEffect, useRef } from 'react'
 import { 
 	doc, 
@@ -24,45 +49,76 @@ import { IoTrash } from "react-icons/io5"
 import { FaPlus } from 'react-icons/fa'
 import { Button, Typography } from '@material-tailwind/react'
 
+/**
+ * Agencies Component - Comprehensive agency management interface
+ * 
+ * This component provides a complete CRUD interface for managing agencies in the
+ * misinformation dashboard. It handles agency listing, creation, editing, and deletion
+ * with integrated user management and image upload capabilities.
+ * 
+ * Key functionality:
+ * - Display agencies in a table format with logos, names, locations, and admin users
+ * - Create new agencies with location and user invitation system
+ * - Edit existing agencies with image upload and user management
+ * - Delete agencies with confirmation
+ * - Manage agency admin users with email invitation system
+ * - Handle image uploads for agency logos
+ * 
+ * @param {Object} props - Component props
+ * @param {Function} props.handleAgencyUpdateSubmit - Callback function for agency updates
+ * @returns {JSX.Element} The Agencies management component
+ */
 const Agencies = ({handleAgencyUpdateSubmit}) => {
-	// //
-	// States
-	// //
-	const [agencies, setAgencies] = useState([])
-	const [agencyInfo, setAgencyInfo] = useState('')
-	const [agencyId, setAgencyId] = useState('')
-	const [agencyUsersArr, setAgencyUsersArr] = useState([])
-	const [agencyAdminUsers, setAgencyAdminUsers] = useState('')
-	// EXISTING Agency Modal
-	const [agencyModal, setAgencyModal] = useState(false)
-	const [update, setUpdate] = useState('')
-	const [logo, setLogo] = useState('')
-	const [search, setSearch] = useState('')
-	const [endIndex, setEndIndex] = useState(10)
-	const [deleteModal, setDeleteModal] = useState(false)
-	// NEW Agency Modal
-	const { user, sendSignIn } = useAuth()
-	const [newAgencyModal, setNewAgencyModal] = useState(false)
-	const [newAgencySubmitted, setNewAgencySubmitted] = useState(0)
-	const [newAgencyName, setNewAgencyName] = useState('')
-	const [newAgencyEmails, setNewAgencyEmails] = useState([])
-	const [data, setData] = useState({ country: 'US', state: null, city: null })
-	const [emailSent, setEmailSent] = useState(false) // check if email was sent
-	// validation states
-	const [errors, setErrors] = useState({})
-	// States related to AgencyModal
-	const [addAgencyUsers, setAddAgencyUsers] = useState([])
-	const [images, setImages] = useState([])
-	const [uploadedImageURLs, setUploadedImageURLs] = useState([])
-	const [resendEmail, setResendEmail] = useState('')
-	const [sendEmail, setSendEmail] = useState('')
-	const [adminDelete, setAdminDelete] = useState('')
-	// Add this state to keep track of image preview URLs
-	const imgPicker = useRef(null)
-	const storage = getStorage()
+	// Authentication and Firebase
+	const { user, sendSignIn } = useAuth() // User authentication and email sending
+	const storage = getStorage() // Firebase Storage instance
+	const imgPicker = useRef(null) // File input reference for image upload
+	
+	// Agency data management
+	const [agencies, setAgencies] = useState([]) // List of all agencies
+	const [agencyInfo, setAgencyInfo] = useState('') // Current agency data for editing
+	const [agencyId, setAgencyId] = useState('') // Current agency ID being edited
+	const [agencyUsersArr, setAgencyUsersArr] = useState([]) // Agency admin users array
+	const [agencyAdminUsers, setAgencyAdminUsers] = useState('') // Agency admin users string
+	
+	// Modal and UI state management
+	const [agencyModal, setAgencyModal] = useState(false) // Existing agency edit modal
+	const [newAgencyModal, setNewAgencyModal] = useState(false) // New agency creation modal
+	const [deleteModal, setDeleteModal] = useState(false) // Delete confirmation modal
+	
+	// Image upload and management
+	const [update, setUpdate] = useState('') // Trigger for image upload
+	const [logo, setLogo] = useState('') // Agency logo URL
+	const [images, setImages] = useState([]) // Selected image files
+	const [uploadedImageURLs, setUploadedImageURLs] = useState([]) // Uploaded image URLs
+	
+	// New agency creation state
+	const [newAgencySubmitted, setNewAgencySubmitted] = useState(0) // Submission counter
+	const [newAgencyName, setNewAgencyName] = useState('') // New agency name
+	const [newAgencyEmails, setNewAgencyEmails] = useState([]) // New agency admin emails
+	const [data, setData] = useState({ country: 'US', state: null, city: null }) // Location data
+	const [emailSent, setEmailSent] = useState(false) // Email invitation status
+	
+	// User management state
+	const [addAgencyUsers, setAddAgencyUsers] = useState([]) // Users to add to agency
+	const [resendEmail, setResendEmail] = useState('') // Resend email status
+	const [sendEmail, setSendEmail] = useState('') // Send email status
+	const [adminDelete, setAdminDelete] = useState('') // Admin deletion status
+	
+	// UI and validation state
+	const [search, setSearch] = useState('') // Search functionality (unused)
+	const [endIndex, setEndIndex] = useState(10) // Pagination limit
+	const [errors, setErrors] = useState({}) // Form validation errors
 
-	// Data
-	// The getData function retrieves agency data from a Firebase Firestore collection and populates the agencies state variable.
+	/**
+	 * Fetches all agencies from Firestore and populates the agencies state
+	 * 
+	 * Retrieves agency documents from the 'agency' collection and formats them
+	 * into an array of objects with document IDs as keys and data as values.
+	 * This data is used to populate the agencies table.
+	 * 
+	 * @returns {Promise<void>} Promise that resolves when agencies are fetched
+	 */
 	const getData = async () => {
 		const agencyCollection = collection(db, 'agency')
 		const reportsCollection = collection(db, 'reports')
@@ -71,7 +127,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			var arr = []
 			snapshot.forEach((doc) => {
 				arr.push({
-					[doc.id]: doc.data(),
+					[doc.id]: doc.data(), // Format: { docId: docData }
 				})
 			})
 			setAgencies(arr)
@@ -80,50 +136,100 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		}
 	}
 
-	// Handler: new agency MODAL
-	// Modal for new agencies. Modal is displayed when users click the button to add a new agency.
+	/**
+	 * Opens the new agency creation modal
+	 * 
+	 * Resets location data to default values and opens the modal
+	 * for creating a new agency.
+	 * 
+	 * @param {Event} e - Form event
+	 */
 	const handleAddNewAgencyModal = (e) => {
 		e.preventDefault()
-		setData({ country: 'US', state: null, city: null })
+		setData({ country: 'US', state: null, city: null }) // Reset location data
 		setNewAgencyModal(true)
 	}
-	// Handler: new agency NAME
+	
+	/**
+	 * Handles new agency name input changes
+	 * 
+	 * Updates the newAgencyName state when user types in the name field.
+	 * 
+	 * @param {Event} e - Input change event
+	 */
 	const handleNewAgencyName = (e) => {
 		e.preventDefault()
 		setNewAgencyName(e.target.value)
 	}
-	// Handler: new agency EMAIL
+	
+	/**
+	 * Handles new agency admin emails input changes
+	 * 
+	 * Parses comma-separated email addresses and updates the newAgencyEmails state.
+	 * 
+	 * @param {Event} e - Input change event
+	 */
 	const handleNewAgencyEmails = (e) => {
 		e.preventDefault()
 		let usersArr = e.target.value
-		usersArr = usersArr.split(',')
+		usersArr = usersArr.split(',') // Split comma-separated emails
 		setNewAgencyEmails(usersArr)
 	}
-	// Handler: new agency state
+	
+	/**
+	 * Handles new agency state selection
+	 * 
+	 * Updates the location data with selected state and resets city to null
+	 * since city depends on state selection.
+	 * 
+	 * @param {Object} e - Selected state object
+	 */
 	const handleNewAgencyState = (e) => {
 		setData((data) => ({ ...data, state: e, city: null }))
 	}
-	// Handler: new agency city
+	
+	/**
+	 * Handles new agency city selection
+	 * 
+	 * Updates the location data with selected city, handling null values.
+	 * 
+	 * @param {Object} e - Selected city object or null
+	 */
 	const handleNewAgencyCity = (e) => {
 		setData((data) => ({ ...data, city: e !== null ? e : null }))
 	}
-	// Handler: Image Change
+	/**
+	 * Handles image file selection for agency logo upload
+	 * 
+	 * Processes multiple image files selected by the user and adds them to the
+	 * images state array. Triggers the upload process by setting the update flag.
+	 * 
+	 * @param {Event} e - File input change event
+	 */
 	const handleImageChange = (e) => {
-		// Clear the 'images' state to start with an empty array
+		// Clear previous images and start with empty array
 		setImages([])
 
-		// Loop through each selected image and update state
+		// Process each selected file
 		const files = Array.from(e.target.files)
 		for (let i = 0; i < files.length; i++) {
 			const newImage = files[i]
 			setImages((prevState) => [...prevState, newImage])
 		}
 
-		// Trigger the upload by toggling the 'update' state
+		// Trigger upload process
 		setUpdate(!update)
 	}
 
-	// Handler: Upload Images to Firebase Storage
+	/**
+	 * Uploads selected images to Firebase Storage
+	 * 
+	 * Creates unique filenames for each image and uploads them to Firebase Storage.
+	 * Uses Promise.all to handle multiple concurrent uploads. Automatically saves
+	 * the agency data after successful upload.
+	 * 
+	 * @returns {Promise<void>} Promise that resolves when uploads complete
+	 */
 	const handleUpload = async () => {
 		try {
 			if (images.length === 0) {
@@ -131,11 +237,11 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 				return
 			}
 
-			// Create upload tasks
+			// Create upload tasks for all selected images
 			const uploadPromises = images.map(async (image) => {
 				const storageRef = ref(
 					storage,
-					`${new Date().getTime().toString()}.png`,
+					`${new Date().getTime().toString()}.png`, // Unique filename
 				)
 				const uploadTask = uploadBytesResumable(storageRef, image)
 				await uploadTask
@@ -146,20 +252,29 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			// Wait for all uploads to complete
 			const imageURLs = await Promise.all(uploadPromises)
 			setUploadedImageURLs([...imageURLs])
-			setLogo(imageURLs) // Update logo if needed
+			setLogo(imageURLs) // Update logo state
 
-			// Automatically save after successful upload
+			// Automatically save agency data after successful upload
 			saveAgency(imageURLs)
 		} catch (error) {
 			console.error('Error uploading images:', error)
 		}
 	}
 
-	// Handler: Add Agency Users
+	/**
+	 * Adds new admin users to an agency with email validation and invitation
+	 * 
+	 * Processes comma-separated email addresses, validates email format,
+	 * sends sign-in invitations to new users, and updates the agency's
+	 * admin user list in Firestore. Handles duplicate emails and invalid formats.
+	 * 
+	 * @param {Event} e - Form submission event
+	 * @returns {Promise<void>} Promise that resolves when users are added
+	 */
 	const handleAddAgencyUsers = async (e) => {
 		e.preventDefault()
 
-		// Split the input string into an array of emails, trim spaces, and filter out empty strings
+		// Parse and clean email addresses
 		const userEmails = addAgencyUsers
 			.split(',')
 			.map((email) => email.trim())
@@ -168,20 +283,21 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		let tempUsersArr = [...agencyUsersArr]
 		let invalidEmails = []
 
+		// Process each email address
 		for (const userEmail of userEmails) {
-			// Validate the email format using a regex pattern
+			// Validate email format using regex
 			const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 			if (!emailPattern.test(userEmail)) {
 				invalidEmails.push(userEmail)
-				continue // Skip sending sign-in link for invalid email
+				continue // Skip invalid emails
 			}
 
-			// Check if the email already exists in the agencyUsersArr
+			// Check for duplicates and add new users
 			if (!tempUsersArr.includes(userEmail)) {
 				tempUsersArr.push(userEmail)
 
 				try {
-					// Attempt to send the sign-in link to the valid email
+					// Send sign-in invitation to new user
 					await sendSignIn(userEmail)
 					setSendEmail(`Sign-in link sent to ${userEmail}`)
 				} catch (error) {
@@ -193,59 +309,76 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			}
 		}
 
-		// Update Firestore with the new list of agency users
+		// Update Firestore if new users were added
 		if (tempUsersArr.length > agencyUsersArr.length) {
 			const agencyRef = doc(db, 'agency', agencyId)
 			await updateDoc(agencyRef, {
 				agencyUsers: arrayUnion(...tempUsersArr),
 			}).then(() => {
-				setAgencyUsersArr(tempUsersArr) // Update state to reflect changes
-				handleAgencyUpdateSubmit() // Trigger any necessary updates
+				setAgencyUsersArr(tempUsersArr) // Update local state
+				handleAgencyUpdateSubmit() // Trigger parent updates
 			})
 		}
 
-		// Handle display of invalid emails if any were found
+		// Display invalid emails if any were found
 		if (invalidEmails.length > 0) {
 			setSendEmail(`Invalid emails: ${invalidEmails.join(', ')}`)
 		}
 
-		// Clear the input field after processing
+		// Clear input field after processing
 		setAddAgencyUsers('')
 	}
 
-	// Handler: Resend Sign-in Links
+	/**
+	 * Resends sign-in invitation email to a specific user
+	 * 
+	 * Sends a new sign-in link to the specified email address and updates
+	 * the resend email status for user feedback.
+	 * 
+	 * @param {string} email - Email address to send invitation to
+	 * @returns {Promise<void>} Promise that resolves when email is sent
+	 */
 	const sendAgencyLinks = async (email) => {
 		await sendSignIn(email)
 		setResendEmail('Email was sent.')
 	}
 
-	// Handler: Delete Admin User
+	/**
+	 * Removes an admin user from an agency and updates their role
+	 * 
+	 * Removes the specified email from the agency's admin list and updates
+	 * the user's role in the mobileUsers collection from "Admin" to "User".
+	 * Updates both Firestore and local state to reflect the changes.
+	 * 
+	 * @param {string} adminEmail - Email address of admin to remove
+	 * @returns {Promise<void>} Promise that resolves when admin is deleted
+	 */
 	const deleteAdmin = async (adminEmail) => {
 		try {
-			// Step 1: Filter out the admin user to be deleted from the agency's admin list
+			// Remove admin from agency's admin list
 			const updatedUsers = agencyUsersArr.filter((user) => user !== adminEmail)
 			const agencyRef = doc(db, 'agency', agencyId)
 
-			// Step 2: Update Firestore to reflect the removed admin in the agency's document
+			// Update agency document in Firestore
 			await updateDoc(agencyRef, { agencyUsers: updatedUsers })
 
-			// Step 3: Query the mobileUsers collection to find the user with the given email
+			// Find and update user's role in mobileUsers collection
 			const userQuery = query(
 				collection(db, 'mobileUsers'),
 				where('email', '==', adminEmail),
 			)
 			const userSnapshot = await getDocs(userQuery)
 
-			// Step 4: Check if the user exists and update the userRole to "User"
+			// Update user role to "User" if found
 			if (!userSnapshot.empty) {
-				const userDoc = userSnapshot.docs[0] // Assuming there's only one user document with this email
+				const userDoc = userSnapshot.docs[0] // Get first matching user
 				await updateDoc(userDoc.ref, { userRole: 'User' })
 				console.log(`User role updated to 'User' for ${adminEmail}`)
 			} else {
 				console.warn(`No user found with email: ${adminEmail}`)
 			}
 
-			// Step 5: Update state to reflect changes in UI
+			// Update local state and trigger UI refresh
 			setAgencyUsersArr(updatedUsers)
 			setUpdate(!update)
 			console.log('Admin user deleted successfully.')
@@ -254,64 +387,106 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		}
 	}
 
-	// Handler: Form Submit
+	/**
+	 * Handles form submission for agency updates
+	 * 
+	 * Triggers image upload if images are selected, otherwise saves agency data
+	 * directly. Closes the agency modal after successful submission.
+	 * 
+	 * @param {Event} e - Form submission event
+	 * @returns {Promise<void>} Promise that resolves when form is submitted
+	 */
 	const handleSubmitClick = async (e) => {
 		e.preventDefault()
 		if (images.length > 0) {
-        // Use 'update' to trigger the upload
-        setUpdate((prev) => !prev)
+			// Trigger image upload process
+			setUpdate((prev) => !prev)
 		} else {
-			// Proceed to save if no images are selected
+			// Save agency data directly if no images
 			saveAgency(uploadedImageURLs)
 			setAgencyModal(false)
 		}
 	}
 
-	// Handler: Save Agency
+	/**
+	 * Saves agency logo updates to Firestore
+	 * 
+	 * Updates the agency document with new logo URLs and triggers
+	 * parent component updates through the callback function.
+	 * 
+	 * @param {string[]} uploadedImageURLs - Array of uploaded image URLs
+	 * @returns {Promise<void>} Promise that resolves when agency is saved
+	 */
 	const saveAgency = (uploadedImageURLs) => {
 		console.log(uploadedImageURLs)
 		const agencyRef = doc(db, 'agency', agencyId)
 		updateDoc(agencyRef, {
 			logo: uploadedImageURLs,
 		}).then(() => {
-			handleAgencyUpdateSubmit()
+			handleAgencyUpdateSubmit() // Trigger parent updates
 		})
 	}
 
-	// Handler: Form submit NEW & EXISTING AGENCY
+	/**
+	 * Handles form submission for both new and existing agencies
+	 * 
+	 * Routes form submission based on form ID to either create a new agency
+	 * or update an existing one. Triggers appropriate handlers for each case.
+	 * 
+	 * @param {Event} e - Form submission event
+	 * @returns {Promise<void>} Promise that resolves when form is submitted
+	 */
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
 		setUpdate(!update)
-		// check form id
+		
+		// Route based on form type
 		if (e.target.id == 'newAgencyModal') {
-			// NEW AGENCY
+			// Create new agency
 			saveAgency()
 			setNewAgencyModal(false)
 		} else if (e.target.id == 'agencyModal') {
-			// EXISTING AGENCY
+			// Update existing agency
 			handleAgencyUpdate(e)
 		}
 	}
 
-	// Handler: Delete agency modal
+	/**
+	 * Opens the agency deletion confirmation modal
+	 * 
+	 * Sets the agency ID for deletion and opens the confirmation modal
+	 * to allow users to confirm the deletion action.
+	 * 
+	 * @param {string} agencyId - ID of the agency to delete
+	 */
 	const handleAgencyDelete = async (agencyId) => {
 		setDeleteModal(true)
 		setAgencyId(agencyId)
 	}
-	// Handler: delete agency from database and remove related user's agency field
+	
+	/**
+	 * Deletes an agency and updates all associated users
+	 * 
+	 * Removes the agency document from Firestore and updates all users
+	 * who were associated with the agency by clearing their agency field.
+	 * This ensures data consistency when an agency is deleted.
+	 * 
+	 * @param {Event} e - Form submission event
+	 * @returns {Promise<void>} Promise that resolves when agency is deleted
+	 */
 	const handleDelete = async (e) => {
 		e.preventDefault()
 
 		try {
-			// Get agency data
+			// Get agency data to find associated users
 			const agencyRef = doc(db, 'agency', agencyId)
 			const agencySnapshot = await getDoc(agencyRef)
 			const agencyData = agencySnapshot.data()
 
-			// Get agency users
+			// Get list of agency users
 			const agencyUsers = agencyData['agencyUsers']
 
-			// Update agency field for each user
+			// Update agency field for each associated user
 			const updatePromises = []
 
 			for (const userEmail of agencyUsers) {
@@ -325,9 +500,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 					const userData = doc.data()
 					console.log(userData)
 
-					// TODO: Change privilege for user since we're deleting agency
-					// TODO: Check if user account exists - if it does, get rid of agency privilege.
-					// Update the agency field for the user
+					// Clear agency association for user
+					// TODO: Update user privileges when agency is deleted
 					const userUpdatePromise = updateDoc(doc.ref, { agency: '' })
 					updatePromises.push(userUpdatePromise)
 				})
@@ -346,45 +520,62 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		}
 	}
 
-	// Handler: Agency modal
-	// Modal for existing agencies. Modals displayed when user click's the list item to view agency details, or delete an agency.
+	/**
+	 * Opens the agency edit modal and loads agency data
+	 * 
+	 * Fetches agency data from Firestore and populates the modal with
+	 * agency information, users, and logo for editing.
+	 * 
+	 * @param {string} agencyId - ID of the agency to edit
+	 * @returns {Promise<void>} Promise that resolves when agency data is loaded
+	 */
 	const handleAgencyModalShow = async (agencyId) => {
 		setAgencyModal(true)
 		const docRef = await getDoc(doc(db, 'agency', agencyId))
-		setAgencyInfo(docRef.data())
-		setAgencyUsersArr(docRef.data()['agencyUsers'])
-		setAgencyId(agencyId)
-		setLogo(docRef.data()['logo'])
+		setAgencyInfo(docRef.data()) // Set agency data for editing
+		setAgencyUsersArr(docRef.data()['agencyUsers']) // Set agency users
+		setAgencyId(agencyId) // Set current agency ID
+		setLogo(docRef.data()['logo']) // Set agency logo
 	}
-	// Handler: Agency update
+	
+	/**
+	 * Handles agency update form submission
+	 * 
+	 * Currently a placeholder for agency update validation and processing.
+	 * TODO: Implement proper error checking and agency update logic.
+	 * 
+	 * @param {Event} e - Form submission event
+	 * @returns {Promise<void>} Promise that resolves when update is processed
+	 */
 	const handleAgencyUpdate = async (e) => {
 		e.preventDefault()
-		// TODO: Check for any errors
+		// TODO: Implement proper error validation
 		const allErrors = {}
 		setErrors(allErrors)
-		// console.log(e.target.value);
+		
 		if (allErrors > 0) {
 			console.log(Object.keys(allErrors).length + ' Error array length')
 		}
 	}
 
-	// Effects
-	// The useEffect hook is used to trigger the getData function when the component mounts,
-	// ensuring that agency data is fetched from Firestore.
+	// Initialize agency data on component mount
 	useEffect(() => {
 		getData()
-	})
+	}, [])
+	
+	// Trigger image upload when update flag is set
 	useEffect(() => {
 		if (update) {
 			handleUpload()
 		}
-	},[update])
+	}, [update])
 	
+	// Debug logging when agency modal opens
 	useEffect(() => {
 		console.log(agencyInfo)
 	}, [agencyModal])
 
-	// Styles
+	// Component styling object
 	const style = {
 		section_container:
 			'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
@@ -404,10 +595,15 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		button:
 			'flex items-center shadow ml-auto bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
 	}
-	// The return statement defines the JSX structure of the component.
-	// It renders a table with agency information,including logos,names,
-	// locations,and admin users.Users can interact with this table to view,
-	// edit,or delete agency data.
+	/**
+	 * Renders the agencies management interface
+	 * 
+	 * Displays a table with agency information including logos, names, locations,
+	 * and admin users. Users can interact with table rows to view/edit agencies
+	 * or delete them. Includes modals for agency creation, editing, and deletion.
+	 * 
+	 * @returns {JSX.Element} The agencies management component
+	 */
 	return (
 		<div className={style.section_container}>
 			<div className={style.section_wrapper}>
