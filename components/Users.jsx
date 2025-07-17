@@ -1,3 +1,34 @@
+/**
+ * @fileoverview Users Management Component - Comprehensive user administration interface
+ * 
+ * This component provides a complete user management interface for administrators
+ * to view, edit, and manage users across the misinformation dashboard. Key features include:
+ * - User listing with infinite scroll and real-time data
+ * - Role-based access control (Admin, Agency, User)
+ * - User editing with role and agency management
+ * - User creation with email invitation system
+ * - User deletion with confirmation
+ * - Agency association management
+ * - User status tracking (banned, disabled)
+ * - Real-time data fetching from Firebase Auth and Firestore
+ * - Role-based UI rendering (admin vs agency views)
+ * - Data validation and error handling
+ * 
+ * The component integrates with multiple modals for different operations:
+ * - EditUserModal: Edit existing users
+ * - NewUserModal: Create new users
+ * - ConfirmModal: Delete confirmation
+ * 
+ * Role-based functionality:
+ * - Admins: Full access to all users, can edit roles, assign agencies, delete users
+ * - Agency users: Limited view of users within their agency
+ * - Real-time updates when user data changes
+ * 
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
+
 import React, { useState, useEffect, useContext } from 'react'
 import { useAuth } from '../context/AuthContext'
 import {
@@ -91,6 +122,29 @@ const sortByJoinedDate = (users) => {
     return users.sort((a, b) => new Date(b.joined) - new Date(a.joined));
 };
 
+/**
+ * Users Component - Comprehensive user management interface
+ * 
+ * This component provides a complete user administration interface with role-based
+ * access control. It handles user listing, editing, creation, and deletion with
+ * real-time data synchronization between Firebase Auth and Firestore.
+ * 
+ * Key functionality:
+ * - Display users in a table with infinite scroll
+ * - Role-based UI rendering (admin vs agency views)
+ * - User editing with role and agency management
+ * - User creation with email invitation system
+ * - User deletion with confirmation
+ * - Agency association management
+ * - Real-time data updates
+ * - User status tracking (banned, disabled)
+ * 
+ * Role-based access:
+ * - Admins: Full access to all users and operations
+ * - Agency users: Limited view of users within their agency
+ * 
+ * @returns {JSX.Element} The Users management component
+ */
 const Users = () => {
 	// Initialize authentication context
 	const {
@@ -104,32 +158,31 @@ const Users = () => {
 		authGetUserList,
 	} = useAuth()
 
-	// State variables for managing user data
-	const [userRole, setUserRole] = useState('')
-	const [loadedMobileUsers, setLoadedMobileUsers] = useState([])
-	const [isLoading, setIsLoading] = useState(false)
-	const [endIndex, setEndIndex] = useState(0)
-	const [deleteModal, setDeleteModal] = useState(false)
-	const [userEditing, setUserEditing] = useState([])
-	const [name, setName] = useState('')
-	const [email, setEmail] = useState('')
-	// agency
-	// table agency
-	const [agencyName, setAgencyName] = useState('')
-	const [agencyId, setAgencyId] = useState('')
-	const [agenciesArray, setAgenciesArray] = useState([])
-	const [selectedAgency, setSelectedAgency] = useState('')
-	const [banned, setBanned] = useState(false)
-	const [userEditModal, setUserEditModal] = useState(null)
-	const [userId, setUserId] = useState(null)
-	const [update, setUpdate] = useState('')
-	// Add new user
-	const [newUserModal, setNewUserModal] = useState(false)
-	const [data, setData] = useState({
-		email: '',
-	})
-	const [newUserEmail, setNewUserEmail] = useState('')
-	const [errors, setErrors] = useState({})
+	// User data management state
+	const [userRole, setUserRole] = useState('') // Current user's role being edited
+	const [loadedMobileUsers, setLoadedMobileUsers] = useState([]) // List of all users
+	const [isLoading, setIsLoading] = useState(false) // Loading state for data fetching
+	const [endIndex, setEndIndex] = useState(0) // Pagination index for infinite scroll
+	const [deleteModal, setDeleteModal] = useState(false) // Delete confirmation modal
+	const [userEditing, setUserEditing] = useState([]) // User data being edited
+	const [name, setName] = useState('') // User name being edited
+	const [email, setEmail] = useState('') // User email being edited
+	
+	// Agency management state
+	const [agencyName, setAgencyName] = useState('') // Agency name for user
+	const [agencyId, setAgencyId] = useState('') // Agency ID for user
+	const [agenciesArray, setAgenciesArray] = useState([]) // List of all agencies
+	const [selectedAgency, setSelectedAgency] = useState('') // Currently selected agency
+	const [banned, setBanned] = useState(false) // User banned status
+	const [userEditModal, setUserEditModal] = useState(null) // User edit modal state
+	const [userId, setUserId] = useState(null) // Current user ID being edited
+	const [update, setUpdate] = useState('') // Trigger for data refresh
+	
+	// New user creation state
+	const [newUserModal, setNewUserModal] = useState(false) // New user modal state
+	const [data, setData] = useState({ email: '' }) // New user data
+	const [newUserEmail, setNewUserEmail] = useState('') // New user email
+	const [errors, setErrors] = useState({}) // Form validation errors
 
 	/**
 	 * Fetches all agency documents from the Firestore 'agency' collection
@@ -659,10 +712,12 @@ const Users = () => {
 	 * Adds a user's email to the `agencyUsers` array of the specified agency in Firestore.
 	 *
 	 * This function checks if the user's email is already in the agency's `agencyUsers` array
-	 * to prevent duplicates. If not, it appends the email to the array.
+	 * to prevent duplicates. If not, it appends the email to the array. This ensures that
+	 * users are properly associated with their assigned agencies for role-based access control.
 	 *
-	 * @param {string} email - The email of the user to add to the agency.
-	 * @param {string} agencyId - The ID of the agency to which the user should be added.
+	 * @param {string} email - The email of the user to add to the agency
+	 * @param {string} agencyId - The ID of the agency to which the user should be added
+	 * @returns {Promise<void>} Promise that resolves when the user is added to the agency
 	 */
 	const addUserToAgency = async (email, agencyId) => {
 		try {
@@ -829,6 +884,7 @@ const Users = () => {
 						</button>
 					</div>
 				</div>
+				{/* Data status legend for admins - shows data consistency issues */}
 				{!customClaims.agency && (
 					<div className="flex items-center gap-2 p-2 bg-white rounded-lg text-xs mb-2">
 						<div className="font-bold">Key: </div>
@@ -888,22 +944,19 @@ const Users = () => {
 									</tr>
 								</thead>
 								<tbody>
+									{/* Loading state - shows spinner while fetching user data */}
 									{isLoading ? (
 										<tr>
 											<td colSpan="100%" className="text-center">
-												{' '}
-												{/* Ensure it spans all columns */}
 												<div className="flex justify-center items-center h-32">
-													{' '}
-													{/* Adjust height as needed */}
-													Loading...{' '}
-													{/* You can replace this with a spinner or any loading animation */}
+													Loading...
 												</div>
 											</td>
 										</tr>
 									) : (
+										// Render user rows with role-based conditional rendering
 										loadedMobileUsers.map((userObj, key) => {
-											// Directly access user details and user ID
+											// Extract user ID for operations
 											let userId = userObj.mobileUserId
 
 											return (
@@ -915,39 +968,39 @@ const Users = () => {
 															? () => handleEditUser(userObj, userId)
 															: undefined
 													}>
-													{/* Name */}
+													{/* User name column */}
 													<td scope="row" className={column.data}>
 														{userObj.name}
 													</td>
-													{/* TODO: add geopoint fields as a column in table. */}
-													{/* Email */}
+													{/* User email column */}
 													<td className={column.data_center}>
 														{userObj.email}
 													</td>
-													{/* Joined date */}
+													{/* User join date column */}
 													<td className={column.data_center}>
 														{userObj.joined}
 													</td>
-													{/* Agency */}
+													{/* Agency column - only visible to admins */}
 													{customClaims.admin && (
 														<td className={column.data_center}>
 															{userObj.agencyName}
 														</td>
 													)}
-													{/* Role */}
+													{/* User role column - only visible to admins */}
 													{customClaims.admin && (
 														<td className={column.data_center}>
 															{userObj.userRole}
 														</td>
 													)}
-													{/* Banned */}
+													{/* User banned status column */}
 													<td className={column.data_center}>
 														{(userObj.isBanned && 'yes') || 'no'}
 													</td>
+													{/* User disabled status column */}
 													<td className={column.data_center}>
 														{userObj.disabled ? 'Yes' : 'No'}
 													</td>
-													{/* Delete */}
+													{/* Delete action column - only visible to admins */}
 													{customClaims.admin && (
 														<td
 															className={column.data_center}
@@ -981,6 +1034,7 @@ const Users = () => {
 					</div>
 				</div>
 			</div>
+			{/* Delete confirmation modal */}
 			{deleteModal && (
 				<ConfirmModal
 					func={handleDelete}
@@ -990,6 +1044,7 @@ const Users = () => {
 					closeModal={setDeleteModal}
 				/>
 			)}
+			{/* User editing modal */}
 			{userEditModal && (
 				<EditUserModal
 					// User
@@ -1022,6 +1077,7 @@ const Users = () => {
 					onFormSubmit={handleFormSubmit}
 				/>
 			)}
+			{/* New user creation modal */}
 			{newUserModal && (
 				<NewUserModal
 					setNewUserModal={setNewUserModal}
