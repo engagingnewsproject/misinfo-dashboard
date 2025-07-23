@@ -17,6 +17,9 @@ This document tracks the progress of standardizing and completing documentation 
 - ✅ `pages/dashboard.jsx` - Main dashboard page with tab navigation
 - ✅ `pages/index.js` - Root index page with login redirect
 - ✅ `pages/login.jsx` - Login page with authentication and role-based redirect
+- ✅ `pages/report.jsx` - Multi-step reporting flow page
+- ✅ `pages/resetPassword.jsx` - Reset password page
+- ✅ `pages/sentry-example-page.jsx` - Sentry error reporting demo page
 
 ### React Components
 - ✅ `components/Home.jsx` - Main dashboard component with analytics and navigation
