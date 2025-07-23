@@ -1,7 +1,38 @@
-/* Displays pie chart for the trending topics from the past day, three days, and seven days. */
+/**
+ * @fileoverview OverviewGraph Component - Trending topics analytics visualization
+ *
+ * This component displays pie charts for trending topics over the past day, three days, and seven days.
+ * Features include:
+ * - Visualization of topic frequency using Google Charts
+ * - Responsive grid layout for three time periods
+ * - Loading and empty state handling for each chart
+ * - Custom color scheme and chart options
+ *
+ * Integrates with:
+ * - react-google-charts for pie chart rendering
+ * - globalStyles for consistent UI
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
 import React from 'react'
 import { Chart } from "react-google-charts";
 import globalStyles from '../styles/globalStyles';
+/**
+ * OverviewGraph Component
+ *
+ * Renders three pie charts showing trending topics for the past day, three days, and seven days.
+ * Handles loading and empty states for each period.
+ *
+ * @param {Object} props
+ * @param {boolean} props.loaded - Whether the data has finished loading
+ * @param {Array} props.yesterdayReports - Data for yesterday's topics (Google Charts format)
+ * @param {Array} props.threeDayReports - Data for three-day topics (Google Charts format)
+ * @param {Array} props.sevenDayReports - Data for seven-day topics (Google Charts format)
+ * @param {Array<number>} props.numTopics - Number of topics for each period [yesterday, three days, seven days]
+ * @returns {JSX.Element} The rendered trending topics analytics visualization
+ */
 const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayReports, numTopics}) => {
   
   // console.log(numTopics)
