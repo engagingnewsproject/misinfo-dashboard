@@ -32,6 +32,7 @@ This document tracks the progress of standardizing and completing documentation 
 - ✅ `components/LanguageSwitcher.jsx` - Locale/language toggle UI
 - ✅ `components/SwitchRead.jsx` - Read/unread toggle for reports
 - ✅ `components/Toggle.jsx` - Overview/comparison view toggle
+- ✅ `components/TestComponent.jsx` - Demo/testing interface for reports and agencies
 
 ## Documentation Quality Metrics
 
