@@ -1,8 +1,24 @@
-/*
-This component displays the comparison view of the topics selected for the request date range.
-The customization features, including the topics list and calendar dropdown, allow the user
-to select which topics will be displayed
-*/
+/**
+ * @fileoverview ComparisonGraphSetup Component - Topic comparison analytics setup
+ *
+ * This component provides an interface for selecting topics and date ranges to compare trends.
+ * Features include:
+ * - Multi-select dropdown for topics
+ * - Date range picker for custom analytics
+ * - Validation for topic and date selection
+ * - Tabbed interface for setup and graph display
+ * - Integration with agency/topic data from Firestore
+ * - Responsive and accessible design
+ *
+ * Integrates with:
+ * - ComparisonGraphPlotted (for rendering the comparison graph)
+ * - react-date-range and react-select for UI controls
+ * - Firebase Firestore for topic data
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
 import React, { useState, useEffect } from 'react'
 import { DateRange } from 'react-date-range';
 
@@ -22,33 +38,50 @@ import makeAnimated from 'react-select/animated';
 import _ from "lodash";
 import globalStyles from '../styles/globalStyles';
 import firebaseHelper from '../firebase/FirebaseHelper'
+/**
+ * ComparisonGraphSetup Component
+ *
+ * Renders the setup interface for comparing topic trends, including topic selection and date range.
+ * Handles validation and transitions to the plotted graph view.
+ *
+ * @param {Object} props
+ * @param {string} props.privilege - User privilege level (e.g., 'Agency', 'Admin')
+ * @param {string} props.agencyId - Firestore document ID of the selected agency
+ * @returns {JSX.Element} The rendered comparison graph setup interface
+ */
 const ComparisonGraphSetup = ({privilege, agencyId}) => {
 
-  // Indicates which topics and dates have been selected in the dropdowns. 
-  const [selectedTopics, setSelectedTopics] = useState([])
-  const [listTopicChoices, setTopicChoices] = useState([])
+  // --- Topic selection state ---
+  const [selectedTopics, setSelectedTopics] = useState([]) // Topics selected by the user
+  const [listTopicChoices, setTopicChoices] = useState([]) // List of available topics for selection
+
+  // --- Date range state ---
   const defaultStartDay = startOfDay(new Date())
-  defaultStartDay.setHours (-24 * 6, 0, 0, 0)
+  defaultStartDay.setHours(-24 * 6, 0, 0, 0)
   const [dateRange, setDateRange] = useState([
     {
       startDate: subDays(new Date(), 7),
       endDate: new Date(),
       key: 'selection'
-    }]
-  )
+    }
+  ]) // Selected date range for comparison
 
-  // Indicates which initial screen the user is on before displaying the graph.
-  const [tab, setTab] = useState(0)
+  // --- UI navigation state ---
+  const [tab, setTab] = useState(0) // Current tab/view in the setup process
 
-  // Indicates if the number of topics and date range are valid. 
-  const [topicError, setTopicError] = useState(false)
-  const [dateError, setDateError] = useState(false)
+  // --- Validation state ---
+  const [topicError, setTopicError] = useState(false) // Error state for topic selection
+  const [dateError, setDateError] = useState(false) // Error state for date selection
 
-  // Styling for graph setting buttons.
+  // --- Styling for graph setting buttons ---
   const basicStyle = "flex p-2 my-6 mx-2 text-gray-500 hover:bg-blue-100 rounded-lg"
 
-  // Handles the selection of a new date range.
-  const handleDateSelection = (item) =>  {
+  /**
+   * Handles the selection of a new date range.
+   * Validates the range and updates state.
+   * @param {Object} item - The selected date range object from react-date-range
+   */
+  const handleDateSelection = (item) => {
     if (item.selection.endDate !== item.selection.startDate) {
       console.log(item)
       setDateRange([item.selection])
@@ -68,7 +101,10 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
     }
   }, []);
 
-  // Upon the initial screen for the compraison chart, plots graph if the date range is correct.
+  /**
+   * Handles the transition to the graph view if the date range is valid.
+   * Sets error state if invalid.
+   */
   const handleGraphChange = () => {
     console.log("date range before plotting " + dateRange)
     const daysSelected = ((dateRange[0].endDate - dateRange[0].startDate)/(1000*60*60*24)) + 1
@@ -81,7 +117,10 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
     }
   }
 
-  // Ensures that only three topics are selected and displays error otherwise.
+  /**
+   * Handles the transition to the next step if topics are selected.
+   * Sets error state if none selected.
+   */
   const handleTopicSelection = () => {
     console.log(selectedTopics)
     if (selectedTopics.length < 1) {
@@ -92,7 +131,10 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
     }
   }
 
-  // Retrieves list of topic choices
+  /**
+   * Fetches the list of available topics for the agency from Firestore.
+   * Populates the topic choices dropdown.
+   */
   async function getTopicChoices() {
     const topicChoices = []
     let tempTopics = []
