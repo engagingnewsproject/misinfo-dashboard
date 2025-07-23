@@ -1,3 +1,24 @@
+/**
+ * @fileoverview ReportDetails Page - Detailed view for a single report
+ *
+ * This page displays all details for a specific report, including:
+ * - Title, reporter info, label, tag, sources, date/time, links, description, newsroom notes, and images
+ * - Editable newsroom notes and label (with save/cancel)
+ * - Read/unread toggle and sharing functionality
+ * - Fetches report, reporter, and label data from Firestore
+ * - Responsive, accessible, and role-aware UI
+ *
+ * Integrates with:
+ * - SwitchRead for read/unread toggle
+ * - Firebase Firestore for report/user/tag data
+ * - next/router for navigation
+ * - next/image for image display
+ * - react-icons for UI icons
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { getDoc, getDocs, doc, setDoc, collection, updateDoc } from "firebase/firestore";
@@ -12,6 +33,14 @@ import Link from "next/link"
 import Image from 'next/image';
 import globalStyles from '../../../styles/globalStyles';
 
+/**
+ * ReportDetails Page
+ *
+ * Renders a detailed view for a single report, including all metadata, images, and newsroom notes.
+ * Allows editing of notes and label, toggling read status, and sharing the report.
+ *
+ * @returns {JSX.Element} The rendered report details page
+ */
 const ReportDetails = () => {
 	const userId = localStorage.getItem("userId")
 	const router = useRouter()

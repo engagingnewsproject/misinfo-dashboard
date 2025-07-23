@@ -1,3 +1,19 @@
+/**
+ * @fileoverview Custom Hooks - Firestore report data hooks
+ *
+ * This file provides custom React hooks for working with Firestore report data.
+ * Features include:
+ * - Real-time subscription to the "reports" collection
+ * - Returns an array of report objects with id, data, and read status
+ *
+ * Integrates with:
+ * - Firebase Firestore (modular SDK)
+ * - Project-wide Firestore instance
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
 import React, { useState, useEffect } from "react"
 import {
 	collection,
@@ -13,6 +29,14 @@ import {
 } from "firebase/firestore"
 import { db } from "../config/firebase"
 
+/**
+ * useReports Hook
+ *
+ * Subscribes to the "reports" collection in Firestore and returns an array of reports.
+ * Each report object contains the document id, data, and read status.
+ *
+ * @returns {Array<Object>} Array of report objects: { id, data, read }
+ */
 export function useReports() {
 	const [reports, setReports] = useState([])
 

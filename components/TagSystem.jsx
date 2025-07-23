@@ -1,3 +1,26 @@
+/**
+ * @fileoverview TagSystem Component - Tag management interface for agencies and admins
+ *
+ * This component provides an interface for managing tag systems (Topics, Sources, Labels) for agencies.
+ * Features include:
+ * - Viewing, adding, renaming, deleting, and activating/deactivating tags
+ * - Role-based UI for admins and agency users
+ * - Tag search and selection with live filtering
+ * - Tag limits and validation
+ * - Integration with Firestore for persistent tag storage
+ * - Modal dialogs for tag creation, renaming, and deletion
+ * - Responsive and accessible design
+ *
+ * Integrates with:
+ * - NewTagModal, RenameTagModal, ConfirmModal (for tag CRUD operations)
+ * - Firebase Firestore for tag data
+ * - React context for authentication and role management
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
+
 import React, { useState, useEffect } from 'react'
 import { tagSystems } from './Settings'
 import NewTagModal from './modals/NewTagModal'
@@ -18,7 +41,15 @@ import Image from 'next/image'
 
 const maxTags = [0, 7, 10, 7] // default, Topic, Source, Labels (respectively)
 
-const setData = async(tagSystem, list, active, agency) => {
+/**
+ * setData - Updates or creates the tag document for the agency in Firestore.
+ * @param {number} tagSystem - Index of the tag system (1=Topics, 2=Sources, 3=Labels)
+ * @param {Array<string>} list - All tags for the system
+ * @param {Array<string>} active - Active (enabled) tags
+ * @param {string} agency - Firestore agency document ID
+ * @returns {Promise<void>}
+ */
+const setData = async (tagSystem, list, active, agency) => {
 
   const docRef = await doc(db, "tags", agency)
   const docSnap = await getDoc(docRef);
@@ -47,31 +78,55 @@ const setData = async(tagSystem, list, active, agency) => {
     return updatedDocRef
 }
 
+/**
+ * TagSystem Component
+ *
+ * Renders the tag management interface for a selected agency and tag system (Topics, Sources, Labels).
+ * Allows users to add, rename, delete, and activate/deactivate tags with role-based controls.
+ *
+ * @param {Object} props
+ * @param {number} props.tagSystem - Index of the current tag system (1=Topics, 2=Sources, 3=Labels)
+ * @param {function} props.setTagSystem - Function to set the current tag system view
+ * @param {string} props.agencyID - Firestore document ID of the selected agency
+ * @returns {JSX.Element} The rendered tag management interface
+ */
 const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
-    const [list, setList] = useState([])
-    const [active, setActive] = useState([])
+    // --- Tag lists and active tags ---
+    const [list, setList] = useState([]) // All tags for the current system
+    const [active, setActive] = useState([]) // Active (enabled) tags
 
-    const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
-    const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
-    const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"] // tag system 3
+    // --- Tag system defaults ---
+    const defaultTopics = ["Health","Other","Politics","Weather"] // Default topics
+    const defaultSources = ["Newspaper", "Other","Social","Website"] // Default sources
+    const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"] // Default labels
+
+    // --- UI and selection state ---
+    const [selected, setSelected] = useState("") // Currently selected tag
+    const [search, setSearch] = useState("") // Search input value
+    const [searchResult, setSearchResult] = useState(list) // Filtered search results
+
+    // --- Modal visibility state ---
+    const [newTagModal, setNewTagModal] = useState(false) // New tag modal
+    const [renameModal, setRenameTagModal] = useState(false) // Rename tag modal
+    const [deleteModal, setDeleteModal] = useState(false) // Delete tag modal
+
+    // --- Error and validation state ---
+    const [maxTagsError, setMaxTagsError] = useState(false) // Tag limit error
 
     const tags = ["Topic", "Source", "Labels"]
     //const docRef = getDoc(db, "tags", tagSystem)
     const { user, customClaims, setCustomClaims} = useAuth()
-
-    const [selected, setSelected] = useState("")
-    const [search, setSearch] = useState("")
-    const [searchResult, setSearchResult] = useState(list)
-    const [newTagModal, setNewTagModal] = useState(false)
-    const [renameModal, setRenameTagModal] = useState(false)
-    const [deleteModal, setDeleteModal] = useState(false)
-    const [maxTagsError, setMaxTagsError] = useState(false)
 
     // On page load (mount), update the tags from firebase
     useEffect(() => {
         getData(agencyID)
     }, [])
 
+    /**
+     * getData - Fetches tag data for the current agency and tag system from Firestore.
+     * Populates the tag list and active tags, and sorts "Other" to the end.
+     * @param {string} agencyID - Firestore agency document ID
+     */
     const getData = (agencyID) => {
 
         // determine which agency the current user is a part of
@@ -97,9 +152,9 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
           } else {
             // docSnap.data() will be undefined in this case
             console.log("No such document!");
-            setData(tagSystem, defaultTopics, defaultTopics, agencyId)
-            setData(tagSystem, defaultLabels, defaultLabels, agencyId)
-            setData(tagSystem, defaultSources, defaultSources, agencyId)
+            setData(tagSystem, defaultTopics, defaultTopics, agencyID)
+            setData(tagSystem, defaultLabels, defaultLabels, agencyID)
+            setData(tagSystem, defaultSources, defaultSources, agencyID)
 
             console.log("tag system not correctly configured")
             
@@ -107,6 +162,12 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
         })
     }
 
+    /**
+     * updateTag - Handles tag activation, deactivation, deletion, and renaming.
+     * Updates Firestore and local state accordingly.
+     * @param {Event} e - The triggering event
+     * @param {string} updateType - The type of update ("activate", "deactivate", "delete", "rename")
+     */
     const updateTag = (e, updateType) => {
         switch (updateType) {
             case "activate":
@@ -134,6 +195,9 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
         setData(tagSystem, list, active, agencyID)
     }
 
+    /**
+     * deleteTag - Removes the selected tag from both the list and active arrays, updates Firestore, and closes the modal.
+     */
     const deleteTag = () => {
         // e.preventDefault
         if (list.includes(selected)) {
@@ -147,6 +211,10 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
         setDeleteModal(false)
     }
 
+    /**
+     * replaceTag - Renames the selected tag in both the list and active arrays, updates Firestore, and clears selection.
+     * @param {string} tag - The new tag name
+     */
     const replaceTag = (tag) => {
         list[list.indexOf(selected)] = tag
         try {
@@ -161,6 +229,10 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
         }
     }
 
+    /**
+     * addNewTag - Adds a new tag to the list and updates Firestore.
+     * @param {string} tag - The new tag to add
+     */
     const addNewTag = (tag) => {
         let arr = list
         arr.push(tag)
@@ -169,17 +241,29 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
         setSearch("")
     }
 
+    /**
+     * handleAddNew - Opens the modal to add a new tag.
+     * @param {Event} e - The triggering event
+     */
     const handleAddNew = (e) => {
         e.preventDefault()
         setSearchResult([])
         setNewTagModal(true)
     }
 
+    /**
+     * handleSearch - Handles the search form submission (currently a no-op).
+     * @param {Event} e - The triggering event
+     */
     const handleSearch = (e) => {
         e.preventDefault()
         if (search.length == 0) return
     }
 
+    /**
+     * handleChange - Updates the search state and filters the tag list.
+     * @param {Event} e - The input change event
+     */
     const handleChange = (e) => {
         setSearch(e.target.value)
         setSearchResult(list.filter(i => i.toLowerCase().includes(search.toLowerCase())))

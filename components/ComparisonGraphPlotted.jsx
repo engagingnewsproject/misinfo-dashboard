@@ -1,8 +1,25 @@
-/*
-This component displays the comparison view of the topics selected for the request date range.
-The customization features, including the topics list and calendar dropdown, allow the user
-to select which topics will be displayed
-*/
+/**
+ * @fileoverview ComparisonGraphPlotted Component - Topic comparison analytics visualization
+ *
+ * This component displays a line graph comparing selected topics over a custom date range.
+ * Features include:
+ * - Fetching and aggregating report data from Firestore
+ * - Dynamic date range and topic selection
+ * - Responsive line chart using react-chartjs-2
+ * - Customizable graph menu and tab navigation
+ * - Validation for topic and date selection
+ * - Role-based logic for agency/admin users
+ *
+ * Integrates with:
+ * - ComparisonGraphMenu (for graph controls)
+ * - react-chartjs-2 and chart.js for visualization
+ * - Firebase Firestore for report data
+ * - AuthContext for user roles
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
 import React, { useState, useEffect } from 'react'
 import { useAuth } from "../context/AuthContext"
 import 'react-date-range/dist/styles.css'; // main style file
@@ -24,30 +41,49 @@ import ComparisonGraphMenu from './ComparisonGraphMenu'
 
 import _ from "lodash";
 
+/**
+ * ComparisonGraphPlotted Component
+ *
+ * Renders a line graph comparing report counts for selected topics over a chosen date range.
+ * Handles data fetching, aggregation, and validation for analytics visualization.
+ *
+ * @param {Object} props
+ * @param {Array} props.dateRange - Selected date range for the graph
+ * @param {Function} props.setDateRange - Setter for date range state
+ * @param {Array} props.selectedTopics - Topics selected for comparison
+ * @param {Function} props.setSelectedTopics - Setter for selected topics state
+ * @param {Array} props.topicList - List of available topics for selection
+ * @param {number} props.tab - Current tab/view in the parent setup
+ * @param {Function} props.setTab - Setter for tab state
+ * @returns {JSX.Element} The rendered comparison analytics graph
+ */
 const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSelectedTopics, topicList, tab, setTab}) => {
 
-  // Data that is displayed via the graph.   
-  const [reportData, setData] = useState([])
-  const [graphData, setGraphData] = useState([])
-  const [dateLabels, setDateLabels] = useState([])
-  const [dates, setDates] = useState([])
+  // --- Data for graph rendering ---
+  const [reportData, setData] = useState([]) // Raw report data fetched from Firestore
+  const [graphData, setGraphData] = useState([]) // Processed data for the line chart
+  const [dateLabels, setDateLabels] = useState([]) // Labels for the x-axis (dates)
+  const [dates, setDates] = useState([]) // Array of Timestamps for the selected date range
   
-  // Indicates when data is ready to be displayed via the graph. 
-  const [updateGraph, setUpdateGraph] = useState(true)
-  const [loaded, setLoaded] = useState(false)
+  // --- UI and loading state ---
+  const [updateGraph, setUpdateGraph] = useState(true) // Triggers graph update when true
+  const [loaded, setLoaded] = useState(false) // Indicates if data is loaded
 
-  // Indicates if the number of topics and date range are valid. 
-  const [topicError, setTopicError] = useState(false)
-  const [dateError, setDateError] = useState(false)
+  // --- Validation state ---
+  const [topicError, setTopicError] = useState(false) // Error state for topic selection
+  const [dateError, setDateError] = useState(false) // Error state for date selection
 
-  // Indicates if current user is an agency or not. 
-  const [agencyName, setAgencyName] = useState("")
-  const [privilege, setPrivilege] = useState(null)
-  const [checkRole, setCheckRole] = useState(false)
-  const { user, verifyRole } = useAuth()
+  // --- User/role state ---
+  const [agencyName, setAgencyName] = useState("") // Name of the current agency (if applicable)
+  const [privilege, setPrivilege] = useState(null) // User privilege level
+  const [checkRole, setCheckRole] = useState(false) // Triggers role check
+  const { user, verifyRole } = useAuth() // Auth context
 
 
-  // Formats and returns date range for the title of the graph.
+  /**
+ * formatDates - Formats the start and end dates for the graph title.
+ * @returns {string} Formatted date range string (e.g., "MM-DD - MM-DD")
+ */
   const formatDates = () => {
     const startRange = new Date(dates[0] * 1000)
     // console.log(new Date(dates[dates.length - 2] * 1000))
@@ -60,8 +96,11 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     return startRange.toLocaleString('en-us', newDateOptions) + '-' + endRange.toLocaleString('en-us', newDateOptions)
   }
   
-  // Returns array that holds array of Firebase timestamp for dates within the rage beginning yesterday up until daysAgo.
-  // and an array of formatted dates for each of the timestamps, which will be used as the labels for the graph. 
+  /**
+ * getDates - Generates arrays of Timestamps and formatted date labels for the selected range.
+ * @param {number} daysAgo - Number of days in the selected range
+ * @returns {Array[]} [timestamps, formattedLabels]
+ */
   const getDates = (daysAgo) => {
 
     // Create deep copy of the starting date to prevent the mutation of the original date range state
@@ -93,7 +132,10 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     return arr
   }
 
-  // Retrieves the number of reports for the selected topics and date range.
+  /**
+ * getDailyTopicReports - Fetches and aggregates report counts for each topic and date in the range.
+ * Updates state with the results for graph rendering.
+ */
   const getDailyTopicReports = async() => {
     // console.log("before date: " + dateRange[0].endDate.getTime())
     const days = Math.ceil((dateRange[0].endDate.getTime()- dateRange[0].startDate.getTime()) / 86400000)
@@ -144,7 +186,10 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     setData(topicArray)
   }
   
-  // Formats data using date range and selected topics to display graph.
+  /**
+ * getGraphData - Processes raw report data into the format required by react-chartjs-2.
+ * Updates graphData and dateLabels state.
+ */
   const getGraphData = () => {
     const arr = []
     // Populates data used for the comparison graph

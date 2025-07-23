@@ -1,3 +1,22 @@
+/**
+ * @fileoverview Signup page component for user registration and agency onboarding
+ * 
+ * This page handles two types of user registration:
+ * 1. Regular user signup with email/password
+ * 2. Agency user signup via email invitation link
+ * 
+ * Features:
+ * - Email verification flow
+ * - Role-based registration (User vs Agency)
+ * - Location selection (State/City)
+ * - Password validation and visibility toggle
+ * - Privacy policy modal
+ * - Internationalization support
+ * 
+ * @author Truth Sleuth Local Team
+ * @version 1.0.0
+ */
+
 import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -32,14 +51,31 @@ import { Button, Typography } from '@material-tailwind/react'
 import { GiMagnifyingGlass } from "react-icons/gi";
 import Head from 'next/head'
 import PrivacyPolicyModal from "../components/modals/PrivacyPolicyModal"
+
+/**
+ * SignUp component for user registration
+ * 
+ * Handles both regular user signup and agency user onboarding via email invitation.
+ * Supports email verification, role assignment, and location-based registration.
+ * 
+ * @component
+ * @returns {JSX.Element} The signup form component
+ */
 const SignUp = () => {
 	const router = useRouter()
 	const { t } = useTranslation(['Welcome', 'NewReport'])
+	
+	// Error state management
 	const [signUpError, setSignUpError] = useState('')
 	const [errors, setErrors] = useState({})
+	
+	// Authentication context
 	const { user, signup, verifyEmail, addAgencyRole, setPassword } = useAuth()
-	// Determines if current user has the privilege to sign up as an agency
+	
+	// Check if current user has agency invitation privilege
 	const isAgency = isSignInWithEmailLink(auth, window.location.href)
+	
+	// Form data state
 	const [data, setData] = useState({
 		name: '',
 		email: '',
@@ -50,14 +86,25 @@ const SignUp = () => {
 		state: '',
 		contact: false,
 	})
-	// password show/hide
+	
+	// Password visibility state
 	const [pass, setPass] = useState('')
 	const [type, setType] = useState('password')
 	const [icon, setIcon] = useState(false)
+	
+	// Privacy policy modal state
 	const [showModal, setShowModal] = useState(false)
 	const openModal = () => setShowModal(true)
 	const closeModal = () => setShowModal(false)
+	
 	// console.log(isAgency);
+	
+	/**
+	 * Creates a new mobile user document in Firestore
+	 * 
+	 * @param {string} privilege - User role ('User', 'Agency', or 'Admin')
+	 * @returns {Promise<void>}
+	 */
 	const addMobileUser = (privilege) => {
 		// Get user object
 		// console.log('addMobileUser start', privilege)
@@ -86,6 +133,15 @@ const SignUp = () => {
 		}
 	}
 
+	/**
+	 * Handles the signup form submission
+	 * 
+	 * Processes both regular user signup and agency user onboarding.
+	 * Validates form data, handles email verification, and creates user profiles.
+	 * 
+	 * @param {Event} e - Form submission event
+	 * @returns {Promise<void>}
+	 */
 	const handleSignUp = async (e) => {
 		e.preventDefault()
 
@@ -232,16 +288,39 @@ const SignUp = () => {
 			}
 		}
 	}
+	
+	/**
+	 * Handles form input changes
+	 * 
+	 * @param {Event} e - Input change event
+	 */
 	const handleChange = (e) => {
 		setData({ ...data, [e.target.id]: e.target.value })
 	}
 
+	/**
+	 * Handles state selection change and resets city
+	 * 
+	 * @param {Object} e - Selected state object
+	 */
 	const handleStateChange = (e) => {
 		setData((data) => ({ ...data, state: e, city: null }))
 	}
+	
+	/**
+	 * Handles city selection change
+	 * 
+	 * @param {Object} e - Selected city object or null
+	 */
 	const handleCityChange = (e) => {
 		setData((data) => ({ ...data, city: e !== null ? e : null }))
 	}
+	
+	/**
+	 * Handles contact checkbox change
+	 * 
+	 * @param {Event} e - Checkbox change event
+	 */
 	const handleChecked = (e) => {
 		setData({ ...data, contact: e.target.checked })
 	}
@@ -250,7 +329,12 @@ const SignUp = () => {
 	// 	// console.log(number)
 	// 	setData({ ...data, phone: number })
 	// }
-	// handle the toggle between the hide password (eyeOff icon) and the show password (eye icon)
+	
+	/**
+	 * Toggles password visibility between text and password type
+	 * 
+	 * @param {Event} e - Click event
+	 */
 	const handleTogglePass = (e) => {
 		if (type === 'password') {
 			setIcon(true)
@@ -268,13 +352,17 @@ const SignUp = () => {
 			</Head>
 			<div className="w-screen h-screen overflow-auto flex justify-center items-start pt-12 pb-8">
 				<div className="w-full max-w-sm font-light">
+					{/* Logo and branding section */}
 					<div className="flex flex-col items-center justify-center mb-2">
 						<div className="bg-blue-600 p-7 rounded-full mb-2">
 							<GiMagnifyingGlass size={30} className="fill-white" />
 						</div>
 						<Typography variant="small" className='text-xs font-semibold text-blue-600'>Truth Sleuth Local</Typography>
 					</div>
+					
+					{/* Signup form */}
 					<form className="px-8 pt-6 pb-4 mb-4" onSubmit={handleSignUp}>
+						{/* Name input (hidden for agency users) */}
 						<div className="mb-4">
 							{!isAgency && (
 								<input
@@ -298,6 +386,8 @@ const SignUp = () => {
 							onChange={handlePhoneNumber}
 						/>
 					</div> */}
+						
+						{/* State selection dropdown */}
 						<div className="mb-4">
 							<Select
 								className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -321,6 +411,7 @@ const SignUp = () => {
 							)}
 						</div>
 
+						{/* City selection dropdown */}
 						<div className="mb-4">
 							<Select
 								className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -341,6 +432,8 @@ const SignUp = () => {
 								onChange={handleCityChange}
 							/>
 						</div>
+						
+						{/* Email input */}
 						<div className="mb-4">
 							<input
 								className={`${isAgency && 'mb-1 '}shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
@@ -358,6 +451,8 @@ const SignUp = () => {
 								</div>
 							)}
 						</div>
+						
+						{/* Password input with visibility toggle */}
 						<>
 							{isAgency && (
 								<div className="mb-1 text-sm italic">
@@ -382,11 +477,15 @@ const SignUp = () => {
 								</span>
 							</div>
 						</>
+						
+						{/* Password length validation */}
 						{data.password.length > 0 && data.password.length < 8 && (
 							<span className="text-red-500 text-sm font-light">
 								Password must be atleast 8 characters
 							</span>
 						)}
+						
+						{/* Confirm password input */}
 						<div className="mt-4 mb-1">
 							<input
 								className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -400,6 +499,7 @@ const SignUp = () => {
 							/>
 						</div>
 
+						{/* Contact permission checkbox */}
 						<div className="mb-1">
 							<input
 								className="shadow border-white rounded-md mx-1"
@@ -412,17 +512,22 @@ const SignUp = () => {
 							/>
 							<label htmlFor="contact">{t('contact')}</label>
 						</div>
+						
+						{/* Password confirmation validation */}
 						{data.password !== data.confirmPW && (
 							<span className="text-red-500 text-sm font-light">
 								{t('password_error')}
 							</span>
 						)}
+						
+						{/* Error display */}
 						{signUpError && (
 							<div className="text-red-500 text-sm font-normal pt-3">
 								{signUpError}
 							</div>
 						)}
 
+						{/* Submit button */}
 						<div className="flex-col items-center content-center mt-7">
 							<Button
 								loading={data.password !== data.confirmPW}
@@ -432,6 +537,8 @@ const SignUp = () => {
 							</Button>
 						</div>
 					</form>
+					
+					{/* Login link */}
 					<p className="text-center text-gray-500 text-sm">
 						{t('haveAccount')}
 						<Link
@@ -440,10 +547,14 @@ const SignUp = () => {
 							{t('login_action')}
 						</Link>
 					</p>
+					
+					{/* Language switcher */}
 					<div className="flex justify-center items-center p-6 gap-1">
 						{/* <span className="text-blue-500 text-md uppercase font-bold py-2 px-2">{t("select")}</span> */}
 						<LanguageSwitcher />
 					</div>
+					
+					{/* Privacy policy link */}
 					<div className="privacy_policy flex justify-center items-center">
 						<a className='cursor-pointer text-blue-600' onClick={openModal}>Privacy Policy</a>
 					</div>
@@ -455,6 +566,12 @@ const SignUp = () => {
 }
 export default SignUp
 
+/**
+ * Server-side translation props for internationalization
+ * 
+ * @param {Object} context - Next.js context with locale information
+ * @returns {Promise<Object>} Props with translation data
+ */
 export async function getStaticProps(context) {
 	// extract the locale identifier from the URL
 	const { locale } = context

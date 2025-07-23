@@ -1,3 +1,26 @@
+/**
+ * @fileoverview Profile Component - User profile and agency management interface
+ *
+ * This component provides a comprehensive profile management interface for users and agencies.
+ * Features include:
+ * - Viewing and editing user profile information (name, email, password, location)
+ * - Agency profile management (name, logo, location)
+ * - Image upload and preview for agency logos
+ * - Role-based access and UI (admin, agency, user)
+ * - Language switching and localization
+ * - Account deletion and logout with confirmation modals
+ * - Integration with Firebase Auth, Firestore, and Storage
+ * - Responsive design and accessibility
+ *
+ * Integrates with:
+ * - UpdatePwModal, UpdateEmailModal, ConfirmModal, DeleteModal
+ * - LocationUpdate form
+ * - LanguageSwitcher
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
 import React, { useState, useEffect, useRef, useTransition } from 'react'
 import UpdatePwModal from './modals/UpdatePwModal'
 import UpdateEmailModal from './modals/UpdateEmailModal'
@@ -31,6 +54,17 @@ import globalStyles from '../styles/globalStyles'
 import LocationUpdate from './partials/forms/LocationUpdate'
 import { Button } from '@material-tailwind/react'
 
+/**
+ * Profile Component
+ *
+ * Renders the user profile page, allowing users to view and update their personal and agency information.
+ * Handles role-based rendering for admins, agencies, and regular users.
+ * Provides modals for updating email, password, and confirming account actions.
+ *
+ * @param {Object} props
+ * @param {Object} props.customClaims - Custom claims object for role-based access
+ * @returns {JSX.Element} The rendered profile management interface
+ */
 const Profile = ({ customClaims }) => {
   const { user, logout, verifyRole, disableUser } = useAuth()
   const { t } = useTranslation('Profile')
@@ -81,6 +115,9 @@ const Profile = ({ customClaims }) => {
       'block flex flex-col text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
   }
 
+  /**
+   * Fetches the current user's data from the mobileUsers collection.
+   */
   const getCurrentUser = async () => {
     try {
       const mobileRef = await getDoc(doc(db, 'mobileUsers', user.accountId))
@@ -95,6 +132,9 @@ const Profile = ({ customClaims }) => {
     }
   }
 
+  /**
+   * Fetches the agency data for the current user.
+   */
   const getAgencyData = async () => {
     const agencyCollection = collection(db, 'agency')
     const q = query(
@@ -139,6 +179,10 @@ const Profile = ({ customClaims }) => {
     }
   }, [isAgency])
 
+  /**
+   * Saves the updated agency data to Firestore.
+   * @param {Array<string>} imageURLs - Array of URLs for the new agency logo.
+   */
   const saveAgency = async (imageURLs) => {
     const docRef = doc(db, 'agency', agency.id)
     console.log('Saving agency data:', {
@@ -160,11 +204,19 @@ const Profile = ({ customClaims }) => {
     }
   }
 
+  /**
+   * Handles the logo edit action.
+   * @param {React.MouseEvent} e - The event object.
+   */
   const handleLogoEdit = (e) => {
     e.preventDefault()
     setEditLogo(!editLogo)
   }
 
+  /**
+   * Handles image file selection for logo upload.
+   * @param {React.ChangeEvent} e - The event object.
+   */
   const handleImageChange = (e) => {
     const selectedImages = []
     for (let i = 0; i < e.target.files.length; i++) {
@@ -174,6 +226,10 @@ const Profile = ({ customClaims }) => {
     // console.log('Selected images:', selectedImages)
   }
 
+  /**
+   * Handles the image upload process.
+   * @returns {Promise<Array<string>>} - An array of uploaded image URLs.
+   */
   const handleUpload = async () => {
     const uploadPromises = images.map((image) => {
       const storageRef = ref(
@@ -219,26 +275,46 @@ const Profile = ({ customClaims }) => {
     }
   }, [agencyUpdate, errors])
 
+  /**
+   * Handles changes in the agency name input field.
+   * @param {React.ChangeEvent} e - The event object.
+   */
   const handleAgencyNameChange = (e) => {
     e.preventDefault()
     setAgencyName(e.target.value)
   }
 
+  /**
+   * Handles the agency location edit action.
+   * @param {React.MouseEvent} e - The event object.
+   */
   const handleAgencyLocationChange = (e) => {
     e.preventDefault()
     setAgencyLocationEdit(!agencyLocationEdit)
   }
 
-  const handleAgencyStateChange = (e) => {
-    setData((data) => ({ ...data, state: e, city: null }))
-    setAgencyState(e.name) // Set state name
+  /**
+   * Handles changes in the agency state selection.
+   * @param {Object} state - The selected state option.
+   */
+  const handleAgencyStateChange = (state) => {
+    setData((data) => ({ ...data, state: state, city: null }))
+    setAgencyState(state.name) // Set state name
   }
 
-  const handleAgencyCityChange = (e) => {
-    setData((data) => ({ ...data, city: e !== null ? e : null }))
-    setAgencyCity(e.name) // Set city name
+  /**
+   * Handles changes in the agency city selection.
+   * @param {Object} city - The selected city option.
+   */
+  const handleAgencyCityChange = (city) => {
+    setData((data) => ({ ...data, city: city !== null ? city : null }))
+    setAgencyCity(city.name) // Set city name
   }
 
+  /**
+   * Handles the form submission for agency updates.
+   * @param {React.FormEvent} e - The event object.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault()
     const allErrors = {}
@@ -280,6 +356,9 @@ const Profile = ({ customClaims }) => {
     }
   }
 
+  /**
+   * Handles the logout action.
+   */
   const handleLogout = () => {
     logout().then(() => {
       router.push('/login')
@@ -287,6 +366,9 @@ const Profile = ({ customClaims }) => {
     })
   }
 
+  /**
+   * Handles the account deletion action.
+   */
   const handleDelete = async () => {
     const uidToDelete = user.accountId
     console.log(uidToDelete);
@@ -322,6 +404,10 @@ const Profile = ({ customClaims }) => {
     fetchUserRoles()
   }, [])
 
+  /**
+   * Renders the language switcher section.
+   * @returns {JSX.Element} The language switcher component.
+   */
   const languageToggle = () => (
     <div className="flex justify-between mx-0 my-6 tracking-normal items-center">
       <div className="text-xl font-extrabold text-blue-600">
@@ -333,6 +419,10 @@ const Profile = ({ customClaims }) => {
     </div>
   )
 
+  /**
+   * Renders the agency settings section.
+   * @returns {JSX.Element} The agency settings form.
+   */
   const agencySettings = () => (
     <div className="z-0 flex-col m-6 bg-slate-100">
       <div className="text-xl font-extrabold text-blue-600 tracking-wider">
@@ -507,6 +597,10 @@ const Profile = ({ customClaims }) => {
     </div>
   )
 // todo: change to "Disable account"
+  /**
+   * Renders the delete account confirmation modal.
+   * @returns {JSX.Element} The delete account confirmation modal.
+   */
   const deleteAccount = () => (
     <div className="self-end m-6">
       <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">

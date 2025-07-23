@@ -1,3 +1,23 @@
+/**
+ * @fileoverview TestComponent - Demo/testing interface for reports and agencies
+ *
+ * This component provides a test interface for viewing, editing, and toggling report and agency data.
+ * Features include:
+ * - Real-time Firestore listeners for reports and agencies
+ * - Modal for viewing/editing individual reports
+ * - Toggle switches for marking reports as read/unread
+ * - Label selection and update logic
+ * - Demo for integrating with TestModal
+ *
+ * Integrates with:
+ * - TestModal for report details
+ * - Firebase Firestore for real-time data
+ * - react-switch for toggle UI
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
 import React, { useEffect, useState } from "react"
 import TestModal from "./modals/TestModal"
 import { db } from "../config/firebase"
@@ -10,6 +30,14 @@ import {
 } from "firebase/firestore"
 import Switch from "react-switch"
 
+/**
+ * TestComponent
+ *
+ * Renders a test interface for managing reports and agencies with real-time updates.
+ * Allows toggling read status, editing labels, and viewing report details in a modal.
+ *
+ * @returns {JSX.Element} The rendered test/demo interface
+ */
 const TestComponent = () => {
 	const userId = localStorage.getItem("userId")
 	const [reports, setReports] = useState([])
@@ -43,10 +71,6 @@ const TestComponent = () => {
 				// Set reportsRead state
 				console.log(initialReportsRead)
 				setReportsRead(initialReportsRead)
-				// const fetchActiveLabels = async () => {
-				// 	// Fetch active labels from Firebase or any other source
-				// 	setActiveLabels(["Important", "Flagged"])
-				// }
 			}
 		)
 		const agencyUnsubscribe = onSnapshot(
@@ -74,12 +98,19 @@ const TestComponent = () => {
 		console.log(agencies)
 	}, [])
 
+	/**
+	 * handleLabelChange - Handles label selection for a report.
+	 * @param {Object} e - The change event object
+	 */
 	const handleLabelChange = async (e) => {
 		setSelectedLabel(e.target.value)
 		// Update label in Firestore or any other action you need
 	}
 
-	// show the modal
+	/**
+	 * handleTestModalShow - Opens the modal for a specific report and fetches its data.
+	 * @param {string} reportId - The ID of the report to view/edit
+	 */
 	const handleTestModalShow = async (reportId) => {
 		// Fetch the specific report by ID
 		const docRef = await getDoc(doc(db, "reports", reportId))
@@ -96,7 +127,11 @@ const TestComponent = () => {
 		setActiveLabels(tagsRef.data()["Labels"]["active"])
 	}
 
-	// list item handle read change
+	/**
+	 * handleChangeRead - Handles toggling the read status for a report.
+	 * @param {string} reportId - The ID of the report
+	 * @param {boolean} checked - The new read status
+	 */
 	const handleChangeRead = async (reportId, checked) => {
 		setReportsRead((prevReportsRead) => ({
 			...prevReportsRead,

@@ -1,3 +1,23 @@
+/**
+ * @fileoverview Report Page - Multi-step reporting flow and profile integration
+ *
+ * This page provides the main reporting flow for users, including:
+ * - Multi-step report creation with reminders, location, and details
+ * - Profile and location modal integration
+ * - Role-based logic and user data fetching
+ * - Responsive and accessible UI
+ *
+ * Integrates with:
+ * - ReportLanding and ReportSystem for reporting flow
+ * - Profile and LocationModal for user info
+ * - AuthContext and Firebase for user/role management
+ * - next-i18next for translations
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
+
 import React, { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import { useAuth } from "../context/AuthContext"

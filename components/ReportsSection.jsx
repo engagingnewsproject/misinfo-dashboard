@@ -1,3 +1,25 @@
+/**
+ * @fileoverview ReportsSection Component
+ * 
+ * A comprehensive reports management component that provides CRUD operations,
+ * filtering, pagination, CSV import/export, and real-time data synchronization
+ * for misinformation reports. This component handles both agency-specific and
+ * admin views with role-based access control.
+ * 
+ * Key Features:
+ * - Real-time data fetching from Firestore
+ * - Advanced filtering (date range, read status, search)
+ * - Pagination with configurable page sizes
+ * - CSV import/export functionality
+ * - Report modal management
+ * - Role-based access control (admin vs agency)
+ * - Bulk read status updates
+ * 
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
+
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import Papa from 'papaparse'
@@ -45,7 +67,10 @@ import {
 	CardBody,
 } from '@material-tailwind/react'
 
-// Table columns
+/**
+ * Table column configuration for the reports table
+ * @type {Array<{label: string, accessor: string, sortable: boolean}>}
+ */
 const columns = [
 	{ label: 'Title', accessor: 'title', sortable: true },
 	{ label: 'Date/Time', accessor: 'createdDate', sortable: true },
@@ -56,74 +81,110 @@ const columns = [
 	{ label: 'Read/Unread', accessor: 'read', sortable: true },
 ]
 
-// Report read values
+/**
+ * Read filter options for filtering reports by read status
+ * @type {Array<{label: string, value: string}>}
+ */
 const readValues = [
 	{ label: 'All', value: 'all' },
 	{ label: 'Read', value: 'true' },
 	{ label: 'Unread', value: 'false' },
 ]
 
+/**
+ * ReportsSection Component
+ * 
+ * Main component for managing and displaying misinformation reports with
+ * comprehensive filtering, pagination, and CRUD operations. Supports both
+ * admin and agency user roles with different data access patterns.
+ * 
+ * @param {Object} props - Component props
+ * @param {boolean} props.newReportSubmitted - Flag indicating if a new report was submitted
+ * @param {Function} props.handleNewReportClick - Callback for new report button click
+ * @returns {JSX.Element} The rendered reports section component
+ * 
+ * @example
+ * <ReportsSection 
+ *   newReportSubmitted={false}
+ *   handleNewReportClick={() => setShowNewReportModal(true)}
+ * />
+ */
 const ReportsSection = ({
 	// search,
 	newReportSubmitted,
 	handleNewReportClick,
 }) => {
+	// Get user ID from localStorage for data fetching
 	const userId = localStorage.getItem('userId')
-	const [reports, setReports] = useState([])
-	// const [loadedReports, setLoadedReports] = useState([])
-	const ITEMS_PER_PAGE = 10 // Set how many items per page
+	
+	// Core data state
+	const [reports, setReports] = useState([]) // All reports from database
+	const ITEMS_PER_PAGE = 10 // Number of items per page for pagination
 	const [endIndex, setEndIndex] = useState(10)
 	const [isDataFetched, setIsDataFetched] = useState(false)
-	const [reportWeek, setReportWeek] = useState('4')
-	const [readFilter, setReadFilter] = useState('all')
-	const [reportTitle, setReportTitle] = useState('')
-	const [agencyName, setAgencyName] = useState('')
-	const [isAgency, setIsAgency] = useState(null)
-	const { user, customClaims } = useAuth()
-	const [search, setSearch] = useState('')
-	const [rowsPerPage, setRowsPerPage] = useState(10) // Initialize rows per page
-	const [currentPage, setCurrentPage] = useState(1)
-	const [filteredReports, setFilteredReports] = useState([])
-	const [loadedReports, setLoadedReports] = useState([])
+	
+	// Filtering state
+	const [reportWeek, setReportWeek] = useState('4') // Week filter (4 weeks by default)
+	const [readFilter, setReadFilter] = useState('all') // Read status filter
+	const [reportTitle, setReportTitle] = useState('') // Report title filter
+	const [agencyName, setAgencyName] = useState('') // Agency name for display
+	const [isAgency, setIsAgency] = useState(null) // User role flag
+	const { user, customClaims } = useAuth() // Authentication context
+	const [search, setSearch] = useState('') // Search term
+	
+	// Pagination state
+	const [rowsPerPage, setRowsPerPage] = useState(10) // Rows per page setting
+	const [currentPage, setCurrentPage] = useState(1) // Current page number
+	const [filteredReports, setFilteredReports] = useState([]) // Reports after filtering
+	const [loadedReports, setLoadedReports] = useState([]) // Reports for current page
 
-	// Calculate total pages based on current filteredReports and rowsPerPage
+	// Calculate pagination values
 	const totalPages = Math.ceil(filteredReports.length / rowsPerPage)
 	const VISIBLE_PAGES = 5 // Number of page buttons to display
 
-	// Report modal states
-	const [report, setReport] = useState('')
-	const [reportId, setReportId] = useState('')
-	const [reportModalShow, setReportModalShow] = useState(false)
-	const [reportModalId, setReportModalId] = useState('')
-	const [note, setNote] = useState('')
-	const [title, setTitle] = useState('')
-	const [detail, setDetail] = useState()
-	const [reportSubmitBy, setReportSubmitBy] = useState('')
-	const [reportRead, setReportRead] = useState(false)
-	const [reportsRead, setReportsRead] = useState({}) // Store checked state for each report
-	const [reportsReadState, setReportsReadState] = useState({})
-	const [info, setInfo] = useState({})
-	const [selectedLabel, setSelectedLabel] = useState('')
-	const [activeLabels, setActiveLabels] = useState([])
-	const [changeStatus, setChangeStatus] = useState('')
-	const [postedDate, setPostedDate] = useState('')
-	const [reportLocation, setReportLocation] = useState('')
-	// const [update,setUpdate] = useState("")
-	const [update, setUpdate] = useState(false)
-	const [deleteModal, setDeleteModal] = useState(false)
+	// Report modal state management
+	const [report, setReport] = useState('') // Selected report data
+	const [reportId, setReportId] = useState('') // Selected report ID
+	const [reportModalShow, setReportModalShow] = useState(false) // Modal visibility
+	const [reportModalId, setReportModalId] = useState('') // Modal report ID
+	const [note, setNote] = useState('') // Report note
+	const [title, setTitle] = useState('') // Report title
+	const [detail, setDetail] = useState() // Report detail
+	const [reportSubmitBy, setReportSubmitBy] = useState('') // Report submitter
+	const [reportRead, setReportRead] = useState(false) // Report read status
+	const [reportsRead, setReportsRead] = useState({}) // Bulk read state tracking
+	const [reportsReadState, setReportsReadState] = useState({}) // Individual read states
+	const [info, setInfo] = useState({}) // Additional report info
+	const [selectedLabel, setSelectedLabel] = useState('') // Selected label
+	const [activeLabels, setActiveLabels] = useState([]) // Available labels
+	const [changeStatus, setChangeStatus] = useState('') // Status change tracking
+	const [postedDate, setPostedDate] = useState('') // Formatted posted date
+	const [reportLocation, setReportLocation] = useState('') // Report location
+	const [update, setUpdate] = useState(false) // Update trigger
+	const [deleteModal, setDeleteModal] = useState(false) // Delete modal visibility
 
-	// Indicates when reports have been updated once user presses the refresh button.
-	const [reportsUpdated, setReportsUpdated] = useState(false)
-	const [refresh, setRefresh] = useState(false)
-	const [showCheckmark, setShowCheckmark] = useState(false)
-	const [open, setOpen] = useState(true)
+	// UI state management
+	const [reportsUpdated, setReportsUpdated] = useState(false) // Update indicator
+	const [refresh, setRefresh] = useState(false) // Refresh loading state
+	const [showCheckmark, setShowCheckmark] = useState(false) // Success indicator
+	const [open, setOpen] = useState(true) // Section open/close state
 
+	/**
+	 * Fetches reports data from Firestore based on user role and permissions
+	 * Handles both agency-specific and admin data fetching patterns
+	 * 
+	 * @async
+	 * @function getData
+	 * @returns {Promise<void>}
+	 */
 	const getData = async () => {
 		let reportArr = []
 		let agencyName = ''
 		let agencyId = ''
 		let agencyTags = []
+		
 		if (isAgency) {
+			// Agency user: fetch reports for their specific agency
 			const agencyQuery = query(
 				collection(db, 'agency'),
 				where('agencyUsers', 'array-contains', user.email),
@@ -133,6 +194,8 @@ const ReportsSection = ({
 				agencyName = doc.data().name
 				agencyId = doc.id
 			})
+			
+			// Fetch reports for the agency
 			const reportsQuery = query(
 				collection(db, 'reports'),
 				where('agency', '==', agencyName),
@@ -143,8 +206,8 @@ const ReportsSection = ({
 				data.reportID = doc.id
 				reportArr.push(data)
 			})
-			// TAGS
-			// Query to get tags related to the agency
+			
+			// Fetch agency-specific tags
 			const tagsDocRef = doc(db, 'tags', agencyId)
 			const tagsDoc = await getDoc(tagsDocRef)
 			if (tagsDoc.exists()) {
@@ -152,6 +215,7 @@ const ReportsSection = ({
 			}
 			setActiveLabels(agencyTags.Labels.active)
 		} else {
+			// Admin user: fetch all reports
 			const reportSnapshot = await getDocs(collection(db, 'reports'))
 			reportSnapshot.forEach((doc) => {
 				const data = doc.data()
@@ -159,10 +223,14 @@ const ReportsSection = ({
 				reportArr.push(data)
 			})
 		}
+		
+		// Update state with fetched data
 		setReports(reportArr)
-		setIsDataFetched(true) // Set flag to true after fetching
+		setIsDataFetched(true)
 		setLoadedReports(reportArr.slice(0, endIndex))
 		setEndIndex(endIndex)
+		
+		// Initialize read states for all reports
 		setReportsReadState(
 			reportArr.reduce((acc, report) => {
 				acc[report.reportID] = report.read
@@ -171,14 +239,21 @@ const ReportsSection = ({
 		)
 	}
 
-	// Handler that is run once user wants to refresh the reports section
+	/**
+	 * Handles manual refresh of reports data with visual feedback
+	 * Shows checkmark icon for 2 seconds after successful refresh
+	 * 
+	 * @async
+	 * @function handleRefresh
+	 * @returns {Promise<void>}
+	 */
 	const handleRefresh = async () => {
 		setRefresh(true)
 		await getData()
 		setReportsUpdated(true)
 		setShowCheckmark(true)
-		// setReadFilter('all')
-		// Set a timer to hide the checkmark icon after 2 seconds
+		
+		// Hide checkmark after 2 seconds
 		setTimeout(() => {
 			setRefresh(false)
 			setShowCheckmark(false)
@@ -186,6 +261,13 @@ const ReportsSection = ({
 		}, 2000)
 	}
 
+	/**
+	 * Filters reports by date range based on selected week
+	 * Week '100' shows all reports, other values filter by weeks ago
+	 * 
+	 * @function handleDateChanged
+	 * @param {string} selectedWeek - Week filter value ('100' for all, or number of weeks ago)
+	 */
 	const handleDateChanged = (selectedWeek) => {
 		setReportWeek(selectedWeek)
 		let filteredArr
@@ -206,6 +288,12 @@ const ReportsSection = ({
 		setCurrentPage(1) // Reset to the first page after filtering
 	}
 
+	/**
+	 * Filters reports by read status (read/unread/all)
+	 * 
+	 * @function handleReadFilterChanged
+	 * @param {string} value - Filter value ('all', 'true', 'false')
+	 */
 	const handleReadFilterChanged = (value) => {
 		setReadFilter(value) // Update the readFilter state first
 		if (value !== 'all') {
@@ -220,6 +308,12 @@ const ReportsSection = ({
 		}
 	}
 
+	/**
+	 * Opens default email client with pre-filled report information
+	 * 
+	 * @function handleUserSendEmail
+	 * @param {string} reportURI - URI/link to the report
+	 */
 	const handleUserSendEmail = (reportURI) => {
 		const subject = 'Misinfo Report'
 		const body = `Link to report:\n${reportURI}`
@@ -229,8 +323,16 @@ const ReportsSection = ({
 		window.open(uri)
 	}
 
+	/**
+	 * Opens the report modal and fetches detailed report data
+	 * Sets report as read for agency users, fetches submitter information
+	 * 
+	 * @async
+	 * @function handleReportModalShow
+	 * @param {string} reportId - ID of the report to display
+	 */
 	const handleReportModalShow = async (reportId) => {
-		// get doc
+		// Fetch report document from Firestore
 		const docRef = await getDoc(doc(db, 'reports', reportId))
 		const reportData = docRef.data()
 		setReport({ id: reportId, ...reportData })
@@ -240,12 +342,14 @@ const ReportsSection = ({
 		setSelectedLabel(docRef.data().selectedLabel)
 		setInfo(docRef.data())
 		setReportModalId(reportId)
-		// only set report as read if an agency user clicks
-		// admin users should not be changing the read status
+		
+		// Only set report as read if an agency user clicks
+		// Admin users should not be changing the read status
 		if (customClaims.agency || customClaims.admin) {
 			await handleChangeReadModal(reportId, true)
 		}
 
+		// Fetch submitter information from mobileUsers collection
 		const mUserRef = doc(db, 'mobileUsers', docRef.data().userID)
 		const docSnap = await getDoc(mUserRef)
 
@@ -253,11 +357,19 @@ const ReportsSection = ({
 			setReportSubmitBy(docSnap.data())
 		}
 		setReportModalShow(true)
-	} // end handleReportModalShow
+	}
 
-	// list item handle read change
+	/**
+	 * Updates report read status with optimistic UI updates and error handling
+	 * Provides immediate visual feedback while updating Firestore in background
+	 * 
+	 * @async
+	 * @function handleRowChangeRead
+	 * @param {string} reportId - ID of the report to update
+	 * @param {boolean} checked - New read status (true = read, false = unread)
+	 */
 	const handleRowChangeRead = async (reportId, checked) => {
-		// Optimistic UI update
+		// Optimistic UI update for immediate feedback
 		setReports((prevReports) =>
 			prevReports.map((report) =>
 				report.reportID === reportId ? { ...report, read: checked } : report,
@@ -275,7 +387,7 @@ const ReportsSection = ({
 			[reportId]: checked,
 		}))
 
-		// Firestore update
+		// Firestore update with error handling
 		try {
 			const docRef = doc(db, 'reports', reportId)
 			await updateDoc(docRef, { read: checked })
@@ -301,19 +413,41 @@ const ReportsSection = ({
 		}
 	}
 
-	// modal item read change
-	// function runs when report modal is displayed
-	// and user clicks the read/unread toggle
+	/**
+	 * Updates report read status from within the modal
+	 * Triggers data refresh after update
+	 * 
+	 * @async
+	 * @function handleChangeReadModal
+	 * @param {string} reportId - ID of the report to update
+	 * @param {boolean} checked - New read status
+	 */
 	const handleChangeReadModal = async (reportId, checked) => {
 		const docRef = doc(db, 'reports', reportId)
 		await updateDoc(docRef, { read: checked })
-		setUpdate(!update)
+		setUpdate(!update) // Trigger data refresh
 	}
 
+	/**
+	 * Handles form submission in the report modal
+	 * 
+	 * @async
+	 * @function handleFormSubmit
+	 * @param {Event} e - Form submission event
+	 */
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
 		setReportModalShow(false)
 	}
+	
+	/**
+	 * Updates report note in Firestore when changed in modal
+	 * Only updates if the note value has actually changed
+	 * 
+	 * @async
+	 * @function handleNoteChange
+	 * @param {Event} e - Input change event
+	 */
 	const handleNoteChange = async (e) => {
 		e.preventDefault()
 		let reportId = reportModalId
@@ -325,6 +459,14 @@ const ReportsSection = ({
 			setUpdate('')
 		}
 	}
+	/**
+	 * Updates report label in Firestore when changed in modal
+	 * Only updates if the label value has actually changed
+	 * 
+	 * @async
+	 * @function handleLabelChange
+	 * @param {Event} e - Input change event
+	 */
 	const handleLabelChange = async (e) => {
 		e.preventDefault()
 		const newLabel = e.target.value
@@ -345,16 +487,32 @@ const ReportsSection = ({
 			setUpdate('') // Reset the update state if the label didn't change
 		}
 	}
-	// Delete report
+	/**
+	 * Initiates report deletion process
+	 * Shows confirmation modal before actual deletion
+	 * 
+	 * @async
+	 * @function handleReportDelete
+	 * @param {Event|string} e - Event object or report ID
+	 */
 	const handleReportDelete = async (e) => {
 		reportModalShow ? e.preventDefault() : setReportModalId(e)
 		setDeleteModal(true)
 	}
+	
+	/**
+	 * Performs actual report deletion from Firestore
+	 * Refreshes data and closes modals after successful deletion
+	 * 
+	 * @async
+	 * @function handleDelete
+	 * @param {Event} e - Event object
+	 */
 	const handleDelete = async (e) => {
 		const docRef = doc(db, 'reports', reportModalId)
 		deleteDoc(docRef)
 			.then(() => {
-				getData()
+				getData() // Refresh data after deletion
 				setReportModalShow(false)
 				setDeleteModal(false)
 			})
@@ -363,11 +521,20 @@ const ReportsSection = ({
 			})
 	}
 
+	/**
+	 * Sorts reports by specified field and order
+	 * Handles null/undefined values and numeric sorting
+	 * 
+	 * @function handleSorting
+	 * @param {string} sortField - Field name to sort by
+	 * @param {string} sortOrder - Sort order ('asc' or 'desc')
+	 */
 	const handleSorting = (sortField, sortOrder) => {
 		const sortedReports = [...filteredReports].sort((a, b) => {
 			const aValue = a[sortField]
 			const bValue = b[sortField]
 
+			// Handle null/undefined values
 			if (aValue === null || aValue === undefined) return 1
 			if (bValue === null || bValue === undefined) return -1
 			if (aValue === null && bValue === null) return 0
@@ -382,7 +549,14 @@ const ReportsSection = ({
 		setLoadedReports(sortedReports)
 	}
 
-	// Dynamically extract all unique keys from the JSON objects
+	/**
+	 * Dynamically extracts all unique keys from JSON objects for CSV headers
+	 * Handles nested objects and special cases like createdDate
+	 * 
+	 * @function extractHeaders
+	 * @param {Array<Object>} jsonArray - Array of report objects
+	 * @returns {Array<string>} Array of header names
+	 */
 	const extractHeaders = (jsonArray) => {
 		const headersSet = new Set()
 
@@ -409,6 +583,14 @@ const ReportsSection = ({
 		return Array.from(headersSet) // Convert Set to Array
 	}
 
+	/**
+	 * Converts user ID to email address by querying mobileUsers collection
+	 * 
+	 * @async
+	 * @function userIDToEmail
+	 * @param {string} userID - User ID to convert
+	 * @returns {Promise<string>} Email address or empty string if not found
+	 */
 	const userIDToEmail = async (userID) => {
 		const docRef = doc(db, 'mobileUsers', userID)
 		const docSnap = await getDoc(docRef)
@@ -420,7 +602,15 @@ const ReportsSection = ({
 		}
 	}
 
-	// Convert JSON array to CSV
+	/**
+	 * Converts JSON array of reports to CSV format
+	 * Handles date formatting, user email lookup, and CSV escaping
+	 * 
+	 * @async
+	 * @function convertToCSV
+	 * @param {Array<Object>} jsonArray - Array of report objects
+	 * @returns {Promise<string>} CSV string
+	 */
 	const convertToCSV = async (jsonArray) => {
 		const headers = extractHeaders(jsonArray)
 
@@ -486,7 +676,13 @@ const ReportsSection = ({
 		return csvRows.join('\n')
 	}
 
-	// Trigger download of CSV file
+	/**
+	 * Triggers download of CSV file containing all reports
+	 * Creates blob and downloads file as 'reports.csv'
+	 * 
+	 * @async
+	 * @function downloadCSV
+	 */
 	const downloadCSV = async () => {
 		const csvData = await convertToCSV(reports)
 		const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
@@ -501,7 +697,13 @@ const ReportsSection = ({
 		document.body.removeChild(link)
 	}
 
-	// Function to handle CSV import
+	/**
+	 * Handles CSV file import and bulk report creation
+	 * Parses CSV using Papa Parse and creates reports in Firestore
+	 * 
+	 * @function handleCSVImport
+	 * @param {File} file - CSV file to import
+	 */
 	const handleCSVImport = (file) => {
 		if (!user) {
 			alert('User not logged in')
@@ -578,11 +780,12 @@ const ReportsSection = ({
 		})
 	}
 
-	// Non filtering hooks
+	// Data fetching effect - triggers when update state changes
 	useEffect(() => {
 		getData()
 	}, [update])
 
+	// Agency data fetching effect - fetches agency name for agency users
 	useEffect(() => {
 		if (isAgency && user.email) {
 			firebaseHelper.fetchAgencyByUserEmail(user.email, (response) => {
@@ -596,6 +799,7 @@ const ReportsSection = ({
 		}
 	}, [isAgency, user.email])
 
+	// User role determination effect - sets isAgency based on custom claims
 	useEffect(() => {
 		if (customClaims.admin) {
 			setIsAgency(false)
@@ -604,6 +808,7 @@ const ReportsSection = ({
 		}
 	}, [customClaims])
 
+	// Report modal state management effect - handles modal data setup and read status
 	useEffect(() => {
 		// Only proceed if reportModalShow is true
 		if (reportModalShow && reportModalId && customClaims.agency) {
@@ -762,20 +967,43 @@ const ReportsSection = ({
 		setLoadedReports(paginatedReports)
 	}, [filteredReports, currentPage, rowsPerPage])
 
-	// Pagination functions to change pages
+	/**
+	 * Navigates to the previous page in pagination
+	 * Ensures page number doesn't go below 1
+	 * 
+	 * @function goToPreviousPage
+	 */
 	const goToPreviousPage = () => {
 		setCurrentPage((prevPage) => Math.max(prevPage - 1, 1))
 	}
 
+	/**
+	 * Navigates to the next page in pagination
+	 * Ensures page number doesn't exceed total pages
+	 * 
+	 * @function goToNextPage
+	 */
 	const goToNextPage = () => {
 		setCurrentPage((prevPage) => Math.min(prevPage + 1, totalPages))
 	}
 
+	/**
+	 * Navigates to a specific page number
+	 * 
+	 * @function goToPage
+	 * @param {number} pageNumber - Target page number
+	 */
 	const goToPage = (pageNumber) => {
 		setCurrentPage(pageNumber)
 	}
 
-	// Helper function to calculate visible page numbers
+	/**
+	 * Calculates which page numbers should be visible in pagination controls
+	 * Centers the current page with VISIBLE_PAGES number of buttons
+	 * 
+	 * @function getVisiblePageNumbers
+	 * @returns {Array<number>} Array of page numbers to display
+	 */
 	const getVisiblePageNumbers = () => {
 		const pages = []
 		const startPage = Math.max(1, currentPage - Math.floor(VISIBLE_PAGES / 2))

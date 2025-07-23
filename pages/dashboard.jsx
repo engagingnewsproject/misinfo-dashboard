@@ -1,3 +1,24 @@
+/**
+ * @fileoverview Dashboard Page - Main authenticated dashboard with tab navigation
+ *
+ * This page provides the main dashboard for authenticated users, including:
+ * - Tab navigation for Home, Profile, Settings, Users, Agencies, and Help Requests
+ * - Role-based access and tab visibility
+ * - Modal for creating new reports
+ * - Integration with AuthContext for user/role management
+ * - Responsive and accessible UI
+ *
+ * Integrates with:
+ * - All major dashboard components (Home, Profile, Settings, Users, Agencies, HelpRequests)
+ * - AuthContext for authentication and role management
+ * - Firebase Auth for user/role verification
+ * - next/head for meta tags
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
+
 import { useRouter } from 'next/router'
 import React from 'react'
 import { useState, useEffect } from 'react'
@@ -23,6 +44,13 @@ const tabList = [
 	'ReportSettings',
 ]
 
+/**
+ * Dashboard Page
+ *
+ * Renders the main dashboard with tab navigation, role-based access, and modals.
+ *
+ * @returns {JSX.Element} The rendered dashboard page
+ */
 const Dashboard = () => {
 	const {
 		user,

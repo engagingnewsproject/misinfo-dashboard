@@ -1,3 +1,25 @@
+/**
+ * @fileoverview HelpRequests Component - Admin interface for managing user help requests
+ *
+ * This component provides an interface for viewing, responding to, and deleting user help requests.
+ * Features include:
+ * - Fetching and displaying help requests from Firestore
+ * - Viewing detailed help request information in a modal
+ * - Deleting help requests with confirmation
+ * - Generating mailto links for direct email responses
+ * - Loading state and error handling
+ * - Responsive and accessible table UI
+ *
+ * Integrates with:
+ * - HelpRequestsModal (for viewing request details)
+ * - Firebase Firestore for help request data
+ * - React context for authentication (if needed)
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
+
 import React, { useEffect, useState } from 'react'
 import {
 	collection,
@@ -33,12 +55,23 @@ const style = {
 		'flex items-center shadow ml-auto bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
 }
 
+/**
+ * HelpRequests Component
+ *
+ * Renders a table of user help requests for admin review and management.
+ * Allows viewing request details, deleting requests, and generating email responses.
+ *
+ * @returns {JSX.Element} The rendered help requests management interface
+ */
 const HelpRequests = () => {
 	const [helpRequests, setHelpRequests] = useState([])
 	const [showHelpRequestModal, setShowHelpRequestModal] = useState(false)
 	const [selectedHelpRequest, setSelectedHelpRequest] = useState(null)
 	const [loading, setLoading] = useState(true)
 
+	/**
+	 * Fetches help requests from Firestore and updates the state.
+	 */
 	const getData = async () => {
 		const helpRequestsCollection = collection(db, 'helpRequests')
 		const helpRequestsSnapshot = await getDocs(helpRequestsCollection)
@@ -56,6 +89,12 @@ const HelpRequests = () => {
 		setLoading(false)
 	}
 
+	/**
+	 * Formats a Firebase Timestamp object into a readable date and time string.
+	 *
+	 * @param {Timestamp} timestamp - The Firebase Timestamp object.
+	 * @returns {string} A formatted date and time string.
+	 */
 	const formatDate = (timestamp) => {
 		if (timestamp instanceof Timestamp) {
 			const date = timestamp.toDate()
@@ -64,18 +103,31 @@ const HelpRequests = () => {
 		return ''
 	}
 
+	/**
+	 * Opens the HelpRequestsModal to display details of a specific help request.
+	 *
+	 * @param {Object} data - The help request data to display.
+	 */
 	const handleRequestModalShow = (data) => {
 		// Open the modal when the button is clicked
 		setSelectedHelpRequest(data)
 		setShowHelpRequestModal(true)
 	}
 
+	/**
+	 * Closes the HelpRequestsModal.
+	 */
 	const handleRequestModalClose = () => {
 		// Close the modal when the close button is clicked
 		setShowHelpRequestModal(false)
 		setSelectedHelpRequest(null)
 	}
 
+	/**
+	 * Deletes a help request from Firestore.
+	 *
+	 * @param {string} id - The ID of the help request to delete.
+	 */
 	const handleDeleteRequest = async (id) => {
 		try {
 			console.log('Deleting help request:', id)
@@ -93,6 +145,12 @@ const HelpRequests = () => {
 		getData()
 	}, [])
 
+	/**
+	 * Generates a mailto link for a specific help request.
+	 *
+	 * @param {Object} helpRequestInfo - The help request information.
+	 * @returns {string} A mailto link string.
+	 */
 	const getMailtoLink = (helpRequestInfo) => {
 		const formattedBody =
 			`Hi [NAME],%0A%0A%0A%0A%0A%0A` +

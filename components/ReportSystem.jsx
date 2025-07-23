@@ -1,3 +1,28 @@
+/**
+ * @fileoverview Report System Component - Multi-step form for creating and submitting reports
+ * 
+ * This component provides a comprehensive multi-step form interface for users to create
+ * and submit reports about potential misinformation. The form includes:
+ * - Agency selection (filtered by user's state)
+ * - Topic categorization with custom topic support
+ * - Source identification with custom source support
+ * - Detailed information input (title, links, images, description)
+ * - Form validation and error handling
+ * - Image upload functionality with Firebase Storage
+ * - Real-time data fetching from Firestore
+ * - Internationalization support (English/Spanish)
+ * - Google Analytics event tracking
+ * 
+ * The component uses a step-based navigation system (reportSystem state) to guide users
+ * through the report creation process, with validation at each step and the ability to
+ * navigate forward/backward. It also includes a reminder system for first-time users
+ * and supports custom tag creation for topics and sources.
+ * 
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
+
 import React, { useState, useEffect, useRef } from "react"
 import { reportSystems } from "../pages/report"
 import { IoMdArrowRoundForward, IoMdArrowRoundBack } from "react-icons/io"
@@ -56,6 +81,35 @@ import {
 import { logEvent } from "firebase/analytics"
 import { analytics } from "../config/firebase"
 
+/**
+ * ReportSystem Component - Multi-step form for creating and submitting reports
+ * 
+ * This component provides a comprehensive interface for users to create reports about
+ * potential misinformation. It uses a step-based navigation system to guide users through
+ * the report creation process, with validation at each step.
+ * 
+ * The component handles:
+ * - Multi-step form navigation (steps 1-7)
+ * - Agency selection filtered by user's state
+ * - Topic and source categorization with custom options
+ * - Image upload and storage
+ * - Form validation and error handling
+ * - Real-time data fetching from Firestore
+ * - Google Analytics event tracking
+ * - Internationalization support
+ * 
+ * @param {Object} props - Component props
+ * @param {number} props.tab - Current tab index for navigation
+ * @param {Function} props.setTab - Function to update tab index
+ * @param {number} props.reportSystem - Current step in the report creation process (1-7)
+ * @param {Function} props.setReportSystem - Function to update report system step
+ * @param {boolean} props.reminderShow - Whether to show the reminder for first-time users
+ * @param {Function} props.onChangeCheckbox - Function to handle reminder checkbox changes
+ * @param {Function} props.onReminderStart - Function to handle starting the report process
+ * @param {Function} props.onReportSystemPrevStep - Function to handle going to previous step
+ * @param {boolean} props.disableReminder - Whether the reminder should be disabled
+ * @returns {JSX.Element} The ReportSystem component
+ */
 const ReportSystem = ({
 	tab,
 	setTab,
@@ -67,94 +121,121 @@ const ReportSystem = ({
 	onReportSystemPrevStep,
 	disableReminder,
 }) => {
-	// used for Spanish translations
-	const { t, i18n } = useTranslation("NewReport")
-	const { user, customClaims } = useAuth()
-	const [key, setKey] = useState(self.crypto.randomUUID())
-	const [data, setData] = useState({ country: "US", state: null, city: null })
-	const [isSearchable, setIsSearchable] = useState(true)
-	const [userData, setUserData] = useState(null)
-	const storage = getStorage()
-	const [reportId, setReportId] = useState("")
-	const imgPicker = useRef(null)
-	const [images, setImages] = useState([])
-	const [imageURLs, setImageURLs] = useState([])
-	const [update, setUpdate] = useState(false)
-	const [title,setTitle] = useState("")
-	const [titleError, setTitleError] = useState(false)
-	const [link, setLink] = useState("")
-	const [secondLink, setSecondLink] = useState("")
-	const [detail,setDetail] = useState("")
-	const [detailError, setDetailError] = useState(false)
-	const [allTopicsArr, setAllTopicsArr] = useState([])
-	const [agencies, setAgencies] = useState([])
-	const [selectedAgency, setSelectedAgency] = useState("")
-  const [agencyID, setSelectedAgencyID] = useState("");
-
-	const [selectedTopic, setSelectedTopic] = useState("")
-	const [sources, setSources] = useState([])
-	const [selectedSource, setSelectedSource] = useState("")
-	const [errors, setErrors] = useState({})
-	const [showOtherTopic, setShowOtherTopic] = useState(false)
-	const [showOtherSource, setShowOtherSource] = useState(false)
-	const [otherTopic, setOtherTopic] = useState("")
-	const [otherSource, setOtherSource] = useState("")
-	const [topicList, setTopicList] = useState([])
-	const [sourceList, setSourceList] = useState([])
-	const [active, setActive] = useState([])
-	const [activeSources, setActiveSources] = useState([])
-	const [reportResetModal, setReportResetModal] = useState(false)
-	const [refresh, setRefresh] = useState(false)
-	const formRef = useRef(null)
-
-  const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
-  const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
-  const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"] // tag system 3
-
-	// useEffect(() => {
-	// 	console.log('Authenticated user:', user);
-	// }, [])
+	// Internationalization and authentication
+	const { t, i18n } = useTranslation("NewReport") // Translation hook for Spanish/English
+	const { user, customClaims } = useAuth() // User authentication and custom claims
 	
+	// Form state management
+	const [key, setKey] = useState(self.crypto.randomUUID()) // Unique key for form reset
+	const [data, setData] = useState({ country: "US", state: null, city: null }) // Location data
+	const [isSearchable, setIsSearchable] = useState(true) // Search functionality toggle
+	const [userData, setUserData] = useState(null) // User profile data from Firestore
+	const storage = getStorage() // Firebase Storage instance
 	
-	// On page load (mount), update the tags from firebase
+	// Report data state
+	const [reportId, setReportId] = useState("") // Generated report ID
+	const imgPicker = useRef(null) // File input reference for image upload
+	const [images, setImages] = useState([]) // Selected image files
+	const [imageURLs, setImageURLs] = useState([]) // Uploaded image URLs
+	const [update, setUpdate] = useState(false) // Trigger for image upload
+	
+	// Form field states
+	const [title, setTitle] = useState("") // Report title
+	const [titleError, setTitleError] = useState(false) // Title validation error
+	const [link, setLink] = useState("") // Primary link URL
+	const [secondLink, setSecondLink] = useState("") // Secondary link URL
+	const [detail, setDetail] = useState("") // Report description
+	const [detailError, setDetailError] = useState(false) // Detail validation error
+	
+	// Agency and topic selection
+	const [allTopicsArr, setAllTopicsArr] = useState([]) // All available topics
+	const [agencies, setAgencies] = useState([]) // Available agencies for user's state
+	const [selectedAgency, setSelectedAgency] = useState("") // Selected agency name
+	const [agencyID, setSelectedAgencyID] = useState("") // Selected agency ID
+	
+	// Source selection
+	const [selectedTopic, setSelectedTopic] = useState("") // Selected topic
+	const [sources, setSources] = useState([]) // Available sources
+	const [selectedSource, setSelectedSource] = useState("") // Selected source
+	
+	// Form validation and UI state
+	const [errors, setErrors] = useState({}) // Form validation errors
+	const [showOtherTopic, setShowOtherTopic] = useState(false) // Show custom topic input
+	const [showOtherSource, setShowOtherSource] = useState(false) // Show custom source input
+	const [otherTopic, setOtherTopic] = useState("") // Custom topic value
+	const [otherSource, setOtherSource] = useState("") // Custom source value
+	
+	// Tag management
+	const [topicList, setTopicList] = useState([]) // Topic tags list
+	const [sourceList, setSourceList] = useState([]) // Source tags list
+	const [active, setActive] = useState([]) // Active topic tags
+	const [activeSources, setActiveSources] = useState([]) // Active source tags
+	
+	// Modal and refresh state
+	const [reportResetModal, setReportResetModal] = useState(false) // Reset confirmation modal
+	const [refresh, setRefresh] = useState(false) // Form refresh trigger
+	const formRef = useRef(null) // Form element reference
+
+	// Default tag systems for categorization
+	const defaultTopics = ["Health","Other","Politics","Weather"] // Tag system 1: Topic categories
+	const defaultSources = ["Newspaper", "Other","Social","Website"] // Tag system 2: Source types
+	const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"] // Tag system 3: Investigation status
+
+	// Initialize user data on component mount
 	useEffect(() => {
 		getUserData()
 	}, [])
 
+	// Trigger image upload when update flag is set
 	useEffect(() => {
 		if (update) {
 			handleUpload()
 		}
 	}, [update])
-	// Save Report
+	/**
+	 * Saves a new report to Firestore with all collected form data
+	 * 
+	 * This function creates a new report document in the Firestore 'reports' collection
+	 * with all the form data including user information, location, agency, topic,
+	 * source, title, links, images, and detailed description. It also handles
+	 * Google Analytics event tracking for non-admin users and custom tag creation.
+	 * 
+	 * @param {string[]} imageURLs - Array of uploaded image URLs to associate with the report
+	 * @returns {Promise<void>} Promise that resolves when the report is saved
+	 * @throws {Error} If user is not authenticated or Firestore operation fails
+	 */
 	const saveReport = (imageURLs) => {
+		// Validate user authentication
 		if (!user) {
 			console.error('User is not authenticated');
 			return;
 		}
+		
+		// Create new report document reference
 		const newReportRef = doc(collection(db, "reports"))
-		setReportId(newReportRef.id) // set report id
+		setReportId(newReportRef.id) // Set report ID for tracking
 		console.log(newReportRef.id);
 		
+		// Save report data to Firestore
 		setDoc(newReportRef, {
-			userID: user.accountId,
-			state: userData.state.name,
-			city: userData.city.name,
-			agency: selectedAgency,
-			title: title,
-			link: link,
-			secondLink: secondLink,
-			images: imageURLs,
-			detail: detail,
-			createdDate: moment().toDate(),
-			isApproved: true,
-			read: false,
-			topic: selectedTopic,
-			hearFrom: selectedSource,
+			userID: user.accountId, // User who submitted the report
+			state: userData.state.name, // User's state
+			city: userData.city.name, // User's city
+			agency: selectedAgency, // Selected agency
+			title: title, // Report title
+			link: link, // Primary link
+			secondLink: secondLink, // Secondary link
+			images: imageURLs, // Array of image URLs
+			detail: detail, // Detailed description
+			createdDate: moment().toDate(), // Current timestamp
+			isApproved: true, // Auto-approve user submissions
+			read: false, // Mark as unread
+			topic: selectedTopic, // Selected topic category
+			hearFrom: selectedSource, // Selected source
 		}).then(() => {
 			console.log('Success: report saved: ' + reportId)
 
-			// Track the event with Google Analytics if the user is not an admin
+			// Track analytics event for non-admin users
 			if (!customClaims.admin) {
 				console.log('Logging event to Google Analytics')
 				logEvent(analytics, 'report_submitted', {
@@ -164,34 +245,55 @@ const ReportSystem = ({
 				})
 			}
 
+			// Create custom tags if user selected "Other" options
 			if (showOtherSource || showOtherTopic) {
 				addNewTag(selectedTopic, selectedSource, agencyID)
 			}
+			
+			// Refresh form after successful save
 			handleRefresh()
 		}).catch((error) => {
-      console.error("Error saving report: ", error);
-    });
+			console.error("Error saving report: ", error);
+		});
 	}
 
+	/**
+	 * Fetches user profile data from Firestore
+	 * 
+	 * Retrieves the current user's profile information from the 'mobileUsers' collection
+	 * and stores it in the userData state. This data includes location information
+	 * needed for agency filtering.
+	 * 
+	 * @returns {Promise<void>} Promise that resolves when user data is fetched
+	 */
 	const getUserData = async () => {
 		await getDoc(doc(db, "mobileUsers", user.accountId)).then((mobileRef) =>
 			setUserData(mobileRef.data())
 		)
 	}
+	
+	/**
+	 * Fetches and filters agencies based on user's state
+	 * 
+	 * Retrieves all agencies from the 'agency' collection and filters them to only
+	 * show agencies that operate in the user's state. This ensures users only see
+	 * relevant agencies for their location.
+	 * 
+	 * @returns {Promise<void>} Promise that resolves when agencies are fetched and filtered
+	 */
 	async function getAllAgencies() {
-		// Get agency collection docs
+		// Get all agency documents from Firestore
 		const agencyRef = await getDocs(collection(db, "agency"))
 		try {
-			// build an array of agency names
+			// Filter agencies by user's state
 			var arr = []
 			agencyRef.forEach((doc) => {
-				// console.log("doc state is " +doc.data()['state'] )
-				// console.log("user location is " +userData?.state?.name )
+				// Only include agencies that match user's state
 				if (doc.data()["state"] == userData?.state?.name) {
 					arr.push(doc.data()["name"])
 				}
 			})
-			// set the agencies state with the agency names
+			// Update agencies state with filtered list
 			setAgencies(arr)
 		} catch (error) {
 			console.log(error)
@@ -281,104 +383,113 @@ const ReportSystem = ({
   //   }
   // }, [allTopicsArr])
 
-	// Get topics
+	/**
+	 * Fetches and manages topic tags for the selected agency
+	 * 
+	 * This function retrieves topic tags from the 'tags' collection for the selected agency.
+	 * If no tags document exists for the agency, it creates one with default topics.
+	 * The topics are sorted with "Other" moved to the end for better UX.
+	 * 
+	 * @returns {Promise<void>} Promise that resolves when topics are fetched/created
+	 */
 	async function getAllTopics() {
-    try {
-      // console.log("Current agency's ID is " + agencyID)
-      let docRef = await getDoc(doc(db, 'tags', agencyID));
-       // TODO: test to make sure not null
+		try {
+			// Get the tags document for the current agency
+			let docRef = await getDoc(doc(db, 'tags', agencyID));
 
-       // create tags collection if current agency does not have one
-       if (!docRef.exists()) {
-          // console.log("Need to create tag collection for agency. ")
-          const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
-          const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
-          const defaultLabels = ["Important", "Flagged"] // tag system 3
+			// Create tags collection if agency doesn't have one
+			if (!docRef.exists()) {
+				// Default tag values for new agencies
+				const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
+				const defaultSources = ["Newspaper", "Other","Social","Website"] // tag system 2
+				const defaultLabels = ["Important", "Flagged"] // tag system 3
 
-          // reference to tags collection 
-          const myDocRef = doc(db, "tags", agencyID);
-          setAllTopicsArr(defaultTopics)
-          setActive(defaultTopics['active'])
+				// Set initial topics array
+				const myDocRef = doc(db, "tags", agencyID);
+				setAllTopicsArr(defaultTopics)
+				setActive(defaultTopics['active'])
 
-          // create topics document for the new agency
-          await setDoc(myDocRef, {
-          Labels: {
-            list: defaultLabels,
-            active: defaultLabels
-          },
-          Source: {
-            list: defaultSources,
-            active: defaultSources
-          },
-          Topic: {
-              list: defaultTopics,
-              active: defaultTopics
-          }
-        })
-        // retrieve list of topics again after creating document of tags for agency
-        // console.log("in if statement")
-       
-    
-  
-
-      // Otherwise, tag collection already exists.
-      } else {
-				 const tagsData = docRef.data()['Topic']
-				//  console.log(docRef.ref.path);
-				//  console.log('tagData-> ', tagsData);
-        setAllTopicsArr(docRef.data()['Topic']['active']);
-        tagsData['active'].sort((a, b) => {
-          if (a === t('Other')) return 1; // Move "Other" to the end
-          if (b === t('Other')) return -1; // Move "Other" to the end
-          return a.localeCompare(b); // Default sorting for other elements
-        });
-        // console.log(tagsData['active'])
-        setActive(tagsData['active']);
-      }
-  
-    } catch (error) {
-      console.log(error);
-    } finally {
-      // console.log('Cleanup here'); // cleanup, always executed
-  }		
-  // const topicDoc = doc(db, "tags", "FKSpyOwuX6JoYF1fyv6b")
-		// const topicRef = await getDoc(topicDoc)
-		// let topics = topicRef.get("Topic")["active"]
-		// let topicsSorted = topics
-		// topicsSorted.sort((a, b) => {
-		// 	if (a === "Other") return 1 // Move "Other" to the end
-		// 	if (b === "Other") return -1 // Move "Other" to the end
-		// 	return a.localeCompare(b) // Default sorting for other elements
-		// })
-		// setAllTopicsArr(topicsSorted)
-	}
-	// Get sources
-	async function getAllSources() {
-    if (selectedAgency == "") {
-      setSources([])
-		} else {
-      const sourceDoc = doc(db, 'tags', agencyID);
-      const sourceRef = await getDoc(sourceDoc);
-			const sources = sourceRef.get('Source')['active'];
-      setSources(sources);
+				// Create new tags document for the agency
+				await setDoc(myDocRef, {
+					Labels: {
+						list: defaultLabels,
+						active: defaultLabels
+					},
+					Source: {
+						list: defaultSources,
+						active: defaultSources
+					},
+					Topic: {
+						list: defaultTopics,
+						active: defaultTopics
+					}
+				})
+			} else {
+				// Agency already has tags, retrieve and sort them
+				const tagsData = docRef.data()['Topic']
+				setAllTopicsArr(docRef.data()['Topic']['active']);
+				
+				// Sort topics with "Other" at the end
+				tagsData['active'].sort((a, b) => {
+					if (a === t('Other')) return 1; // Move "Other" to the end
+					if (b === t('Other')) return -1; // Move "Other" to the end
+					return a.localeCompare(b); // Default sorting for other elements
+				});
+				setActive(tagsData['active']);
 			}
-    }
+		} catch (error) {
+			console.log(error);
+		}
+	}
 	
-	// Handlers
+	/**
+	 * Fetches source tags for the selected agency
+	 * 
+	 * Retrieves the active source tags from the agency's tags document.
+	 * If no agency is selected, clears the sources array.
+	 * 
+	 * @returns {Promise<void>} Promise that resolves when sources are fetched
+	 */
+	async function getAllSources() {
+		if (selectedAgency == "") {
+			setSources([]) // Clear sources if no agency selected
+		} else {
+			// Get sources from agency's tags document
+			const sourceDoc = doc(db, 'tags', agencyID);
+			const sourceRef = await getDoc(sourceDoc);
+			const sources = sourceRef.get('Source')['active'];
+			setSources(sources);
+		}
+	}
+	
+	/**
+	 * Handles form submission validation and processing
+	 * 
+	 * Validates required fields (title and at least one of: images, detail, or link)
+	 * before submitting the report. Triggers image upload if images are selected,
+	 * then saves the report to Firestore.
+	 * 
+	 * @param {Event} e - Form submission event
+	 */
 	const handleSubmitClick = (e) => {
 		e.preventDefault()
+		
+		// Validate title is provided
 		if (!title) {
 			setTitleError(true)
 			alert(t("titleRequired"))
-		} else if (images == "" && !detail && !link) {
+		} 
+		// Validate at least one of: images, detail, or link is provided
+		else if (images == "" && !detail && !link) {
 			setDetailError(true)
 			alert(t("atLeast"))
 		} else {
+			// Trigger image upload if images are selected
 			if (images.length > 0) {
 				setUpdate(!update)
 			}
+			// Save report to Firestore
 			saveReport(imageURLs)
-			// setReportSystem(7)
 		}
 	}
 	const handleNewReport = async (e) => {
@@ -418,20 +529,34 @@ const ReportSystem = ({
 			handleSubmitClick(e)
 		}
 	}
-  const handleImageChange = (e) => {
-		// Image upload:
-		// (https://github.com/honglytech/reactjs/blob/react-firebase-multiple-images-upload/src/index.js,
-		// https://www.youtube.com/watch?v=S4zaZvM8IeI)
-		// console.log('handle image change run');
+	/**
+	 * Handles image file selection from file input
+	 * 
+	 * Processes multiple image files selected by the user and adds them to the
+	 * images state array. Triggers the upload process by setting the update flag.
+	 * 
+	 * @param {Event} e - File input change event
+	 */
+	const handleImageChange = (e) => {
+		// Process each selected file
 		for (let i = 0; i < e.target.files.length; i++) {
 			const newImage = e.target.files[i]
 			setImages((prevState) => [...prevState, newImage])
-			setUpdate(!update)
+			setUpdate(!update) // Trigger upload process
 		}
 	}
+	
+	/**
+	 * Uploads selected images to Firebase Storage
+	 * 
+	 * Creates unique filenames for each image and uploads them to Firebase Storage.
+	 * Tracks upload progress and retrieves download URLs upon completion.
+	 * Uses Promise.all to handle multiple concurrent uploads.
+	 */
 	const handleUpload = () => {
-		// Image upload to firebase
 		const promises = []
+		
+		// Upload each image with unique filename
 		images.map((image) => {
 			const storageRef = ref(
 				storage,
@@ -439,108 +564,174 @@ const ReportSystem = ({
 			)
 			const uploadTask = uploadBytesResumable(storageRef, image)
 			promises.push(uploadTask)
+			
+			// Track upload progress and handle completion
 			uploadTask.on(
 				"state_changed",
 				(snapshot) => {
-					// You can track the upload progress here if needed
+					// Upload progress tracking (can be implemented if needed)
 				},
 				(error) => {
 					console.log(error)
 				},
 				() => {
+					// Get download URL when upload completes
 					getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-						// console.log('File available at', downloadURL);
-						setImageURLs((prev) => [...prev, downloadURL])					})
+						setImageURLs((prev) => [...prev, downloadURL])
+					})
 				}
 			)
 		})
+		
+		// Wait for all uploads to complete
 		Promise.all(promises).catch((err) => console.log(err))
 	}
+	/**
+	 * Handles topic selection changes
+	 * 
+	 * If "Other" is selected, shows the custom topic input field.
+	 * Otherwise, sets the selected topic and hides the custom input.
+	 * 
+	 * @param {string} e - Selected topic value
+	 */
 	const handleTopicChange = (e) => {
 		if (e.includes("Other")) {
 			setSelectedTopic("")
-			setShowOtherTopic(true)
+			setShowOtherTopic(true) // Show custom topic input
 		} else {
-			setShowOtherTopic(false)
+			setShowOtherTopic(false) // Hide custom topic input
 			setSelectedTopic(e)
 		}
 	}
+	
+	/**
+	 * Handles custom topic input changes
+	 * 
+	 * Updates both the otherTopic state and the selectedTopic when user
+	 * types in the custom topic field.
+	 * 
+	 * @param {Event} e - Input change event
+	 */
 	const handleOtherTopicChange = (e) => {
 		setOtherTopic(e.target.value)
 		setSelectedTopic(e.target.value)
 	}
+	
+	/**
+	 * Handles source selection changes
+	 * 
+	 * If "Other" is selected, shows the custom source input field.
+	 * Otherwise, sets the selected source and hides the custom input.
+	 * 
+	 * @param {string} e - Selected source value
+	 */
 	const handleSourceChange = (e) => {
 		if (e.includes("Other")) {
 			setSelectedSource("")
-			setShowOtherSource(true)
+			setShowOtherSource(true) // Show custom source input
 		} else {
-			setShowOtherSource(false)
+			setShowOtherSource(false) // Hide custom source input
 			setSelectedSource(e)
 		}
 	}
+	
+	/**
+	 * Handles custom source input changes
+	 * 
+	 * Updates both the otherSource state and the selectedSource when user
+	 * types in the custom source field.
+	 * 
+	 * @param {Event} e - Input change event
+	 */
 	const handleOtherSourceChange = (e) => {
 		setOtherSource(e.target.value)
 		setSelectedSource(e.target.value)
 	}
+	/**
+	 * Adds new custom tags to the agency's tag collection
+	 * 
+	 * Prepares new topic and source tags for addition to the agency's tag system.
+	 * Calls updateTopicTags to persist the changes to Firestore and clears
+	 * temporary arrays after successful update.
+	 * 
+	 * @param {string} tag - Custom topic tag to add
+	 * @param {string} source - Custom source tag to add
+	 * @param {string} agencyId - Agency ID for the tag collection
+	 */
 	const addNewTag = (tag, source, agencyId) => {
 		let tempTopicArr = [...topicList]
 		let tempSourceArr = [...sourceList]
+		
+		// Add new topic tag if provided
 		if (tag) {
 			tempTopicArr.push(tag)
 			setTopicList(tempTopicArr)
 		}
 
+		// Add new source tag if provided
 		if (source) {
 			tempSourceArr.push(source)
 			setSourceList(tempSourceArr)
 		}
 
+		// Update Firestore with new tags
 		updateTopicTags(
 			tag ? tempTopicArr : null,
 			source ? tempSourceArr : null,
 			agencyId,
 		).then(() => {
-			// Clear the temporary arrays after updating the document
+			// Clear temporary arrays after successful update
 			setTopicList([])
 			setSourceList([])
 		})
 	}
+	/**
+	 * Updates the agency's tag collection with new topics and sources
+	 * 
+	 * Fetches the current tag document for the agency and adds new topics/sources
+	 * that don't already exist. Uses Firestore's arrayUnion to append new tags
+	 * without duplicates. Only updates if there are new tags to add.
+	 * 
+	 * @param {string[]} topic - Array of topic tags to add
+	 * @param {string[]} source - Array of source tags to add
+	 * @param {string} agencyId - Agency ID for the tag collection
+	 * @returns {Promise<DocumentReference|null>} Promise that resolves to document reference or null
+	 */
 	const updateTopicTags = async (topic, source, agencyId) => {
 		try {
-			// Reference to the document
+			// Reference to the agency's tags document
 			const docRef = doc(db, 'tags', agencyId)
 
-			// Fetch the current document data
+			// Fetch current document data
 			const docSnap = await getDoc(docRef)
 
 			if (docSnap.exists()) {
 				const currentData = docSnap.data()
 				const updateData = {}
 
-				// Check if topic is provided and update it
+				// Process new topic tags
 				if (topic) {
 					const currentTopicList = currentData.Topic?.list || []
 					const newTopicList = topic.filter(
-						(item) => !currentTopicList.includes(item),
+						(item) => !currentTopicList.includes(item), // Only add non-duplicates
 					)
 					if (newTopicList.length > 0) {
 						updateData['Topic.list'] = arrayUnion(...newTopicList)
 					}
 				}
 
-				// Check if source is provided and update it
+				// Process new source tags
 				if (source) {
 					const currentSourceList = currentData.Source?.list || []
-					console.log('currentSourceList--> ', currentSourceList);
 					const newSourceList = source.filter(
-						(item) => !currentSourceList.includes(item),
+						(item) => !currentSourceList.includes(item), // Only add non-duplicates
 					)
 					if (newSourceList.length > 0) {
 						updateData['Source.list'] = arrayUnion(...newSourceList)
 					}
 				}
 
-				// Update the document with the prepared update data
+				// Update document only if there are new tags to add
 				if (Object.keys(updateData).length > 0) {
 					await updateDoc(docRef, updateData)
 					console.log('Document updated successfully')
@@ -558,6 +749,13 @@ const ReportSystem = ({
 		}
 	}
 	
+	/**
+	 * Logs current form data for debugging purposes
+	 * 
+	 * Creates a comprehensive object containing all form field values
+	 * for debugging and development purposes. Called on reportSystem
+	 * and update state changes.
+	 */
 	const logFormData = () => {
 		const formData = {
 			Agency: selectedAgency,
@@ -577,51 +775,86 @@ const ReportSystem = ({
 			"Report KEY": key
 		};
 		
+		// Debug logging (commented out in production)
 		// console.log("Form Data: ", formData);
 	};
+	
+	// Log form data when report system step or update state changes
 	useEffect(() => {
 		logFormData()
 	}, [reportSystem, update])
 	
+	/**
+	 * Handles form field changes and clears validation errors
+	 * 
+	 * Clears title error when user starts typing in title field.
+	 * Clears detail error when user provides content in any required field.
+	 * 
+	 * @param {Event} e - Form field change event
+	 */
 	const handleChange = (e) => {
-		// console.log('handleChange--> ', e.target.value)
+		// Clear title error when user starts typing
 		if (titleError) {
 			e.target.id == 'title' && setTitleError(false)
-		} else if (detailError) {
+		} 
+		// Clear detail error when user provides content
+		else if (detailError) {
 			e.target.id == 'link' || 'multiple_files' || 'detail' && setTitleError(false)
 		}
 	}
+	
+	/**
+	 * Resets the entire form to initial state
+	 * 
+	 * Generates a new unique key, resets the form element, clears all state
+	 * variables, and returns to the initial step (0). This provides a complete
+	 * form reset for starting a new report.
+	 */
 	const handleRefresh = () => {
+		// Generate new unique key for form reset
 		setKey(self.crypto.randomUUID())
-		// Reset the form directly if the ref is currently pointing to the form element
-    if (formRef.current) {
-        formRef.current.reset();  // Resets all input fields to their initial values
-    }
-		// if (formRef.current) {
+		
+		// Reset form element if available
+		if (formRef.current) {
+			formRef.current.reset(); // Reset all input fields to initial values
+		}
+		
+		// Reset all state variables
 		setSelectedAgency("")
 		setSelectedAgencyID('')
-		// Topics
+		
+		// Reset topic-related state
 		setSelectedTopic("")
 		setShowOtherTopic(false)
 		setOtherTopic('')
 		setAllTopicsArr([])
-		// Sources
+		
+		// Reset source-related state
 		setSelectedSource("")
 		setShowOtherSource(false)
 		setOtherSource('')
+		
+		// Reset form fields
 		setTitle("")
 		setLink("")
 		setSecondLink("")
 		setImageURLs([])
 		setDetail("")
 		setReportId('')
+		
+		// Reset UI state
 		setReportResetModal(false)
-		setReportSystem(0)
-		// } else {
-		// console.log("not current form")
-		// }
+		setReportSystem(0) // Return to initial step
 	}
-	// Elements
+	
+	/**
+	 * Forward navigation arrow component
+	 * 
+	 * Renders a forward arrow button that advances to the next step
+	 * in the report creation process.
+	 * 
+	 * @returns {JSX.Element} Forward arrow button
+	 */
 	const ForwardArrow = () => {
 		return (
 			<IconButton
@@ -632,6 +865,15 @@ const ReportSystem = ({
 			</IconButton>
 		)
 	}
+	
+	/**
+	 * Back navigation arrow component
+	 * 
+	 * Renders a back arrow button that returns to the previous step
+	 * in the report creation process.
+	 * 
+	 * @returns {JSX.Element} Back arrow button
+	 */
 	const BackArrow = () => {
 		return (
 			<IconButton
@@ -642,6 +884,15 @@ const ReportSystem = ({
 			</IconButton>
 		)
 	}
+	
+	/**
+	 * Refresh/reset button component
+	 * 
+	 * Renders a refresh button that opens the reset confirmation modal
+	 * to allow users to start over with a new report.
+	 * 
+	 * @returns {JSX.Element} Refresh button
+	 */
 	const RefreshButton = () => {
 		return (
 			<IconButton

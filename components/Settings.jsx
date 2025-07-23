@@ -1,3 +1,24 @@
+/**
+ * @fileoverview Settings Component - Tagging system and agency management interface
+ *
+ * This component provides an interface for admins and agency users to manage tagging systems
+ * (Topics, Sources, Labels) and agency selection. Features include:
+ * - Tag system selection and editing (Topics, Sources, Labels)
+ * - Agency and state selection for admins
+ * - Dynamic tag document creation for agencies in Firestore
+ * - Role-based UI (admin vs agency)
+ * - Integration with TagSystem component for tag editing
+ * - Responsive and accessible design
+ *
+ * Integrates with:
+ * - TagSystem (for tag editing)
+ * - Firebase Firestore for agency/tag data
+ * - country-state-city and react-select for location selection
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
 import React, { useState, useEffect } from 'react'
 import TagSystem from './TagSystem';
 import { useAuth } from '../context/AuthContext'
@@ -10,23 +31,39 @@ import { Country, State, City } from 'country-state-city';
 
 export const tagSystems = ['default', 'Topic', 'Source', 'Labels'];
 
+/**
+ * Settings Component
+ *
+ * Renders the settings page for tag system and agency management.
+ * Allows admins to select a state and agency, and edit tag systems (Topics, Sources, Labels).
+ * Agency users can view and edit their own agency’s tags.
+ *
+ * @returns {JSX.Element} The rendered settings management interface
+ */
 const Settings = () => {
-  const [openModal, setOpenModal] = useState(false)
-  const [tagSystem, setTagSystem] = useState(0)
-  const {user, customClaims, setCustomClaims} = useAuth()
+  // --- State for modal and tag system selection ---
+  const [openModal, setOpenModal] = useState(false) // Controls modal visibility (future use)
+  const [tagSystem, setTagSystem] = useState(0) // 0 = main menu, 1 = Topics, 2 = Sources, 3 = Labels
+
+  // --- Auth and user claims ---
+  const { user, customClaims, setCustomClaims } = useAuth() // Auth context and role claims
+
+  // --- Agency selection and management ---
+  const [agencyID, setAgencyID] = useState() // Selected agency ID (admin or agency user)
+  const [agency, setSelectedAgency] = useState() // Selected agency name (admin or agency user)
+  const [agencies, setAgencies] = useState([]) // List of agencies for admin selection
+
+  // --- State/city selection for admin filtering ---
+  const [stateSelected, setStateSelected] = useState({ country: 'US', state: null, city: null }) // Selected state/city for agency filtering
 
 
-  // agency id of logged in agency or selected agency
-  const [agencyID, setAgencyID] = useState()
-  const [agency, setSelectedAgency] = useState()
-
-  // list of agencies for admin to choose from
-  const [agencies, setAgencies] = useState([])
-  const [stateSelected, setStateSelected] = useState({ country: 'US', state: null, city: null })
-
-  
-
-  const setData = async(agencyID) => {
+  /**
+   * Initializes default tag documents for a new agency in Firestore.
+   * Creates default Topics, Sources, and Labels lists for the agency.
+   * @param {string} agencyID - The Firestore document ID of the agency
+   * @returns {Promise<void>}
+   */
+  const setData = async (agencyID) => {
     const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
     const defaultSources = ["Newspaper", "Other/Otro","Social","Website"] // tag system 2
     const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"] // tag system 3
@@ -50,13 +87,23 @@ const Settings = () => {
      
   }
 
-  const handleAgencyChange= (e) => {
+  /**
+   * Handles agency selection from the dropdown.
+   * Updates agencyID and agency name state.
+   * @param {Object} e - The selected agency object from react-select
+   */
+  const handleAgencyChange = (e) => {
     console.log("Item is " + e)
     console.log("Agency id is " + e.id);
     setAgencyID(e.id)
     setSelectedAgency(e.name)
   }
 
+  /**
+   * Handles state selection for admin filtering.
+   * Updates stateSelected and fetches agencies in the selected state.
+   * @param {Object} e - The selected state object from react-select
+   */
   const handleStateChange = (e) => {
     console.log(e)
     setStateSelected(e)
@@ -82,13 +129,15 @@ const Settings = () => {
   })
 }
 
-  useEffect(()=> {
+  // Effect: Log when agency changes (admin only, placeholder for future logic)
+  useEffect(() => {
     if (customClaims.admin && stateSelected != null) {
       // TODO: fix
       console.log('NEed to update agency ID here')
     }
   }, [agency])
-  useEffect(()=> {
+  // Effect: On mount or tagSystem change, determine agency for agency users or prompt admin to select
+  useEffect(() => {
     // If current user is an agency, determine which agency
     if (!customClaims.admin) {
       const agencyCollection = collection(db,"agency")
@@ -110,7 +159,8 @@ const Settings = () => {
     // Otherwise, have the admin member select which agency tags they went 
   }, [tagSystem])
 
-  useEffect(()=> {
+  // Effect: When agencyID changes, ensure tag document exists for the agency
+  useEffect(() => {
     if (agencyID) {
       const agencyRef = doc(db, 'tags', agencyID);
       getDoc(agencyRef).then((docSnap)=> {
