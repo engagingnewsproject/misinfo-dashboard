@@ -1,3 +1,26 @@
+/**
+ * @fileoverview Custom Next.js App - Global providers and route protection
+ *
+ * This file customizes the Next.js App component to:
+ * - Provide global authentication context
+ * - Enforce route protection for authenticated pages
+ * - Set up theme and global styles
+ * - Integrate next-i18next for translations
+ * - Configure Sentry for error monitoring
+ * - Set up global meta tags and favicons
+ *
+ * Integrates with:
+ * - AuthContextProvider for authentication state
+ * - ProtectedRoute for route guarding
+ * - ThemeProvider for Material Tailwind theme
+ * - next-i18next for i18n
+ * - Sentry for error monitoring
+ * - Next.js Head for meta tags and icons
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
 import { useRouter } from "next/router"
 import ProtectedRoute from "../components/ProtectedRoute"
 import { AuthContextProvider } from "../context/AuthContext"
@@ -14,6 +37,17 @@ import "../sentry.server.config";
 
 const noAuthRequired = ["/login", "/signup", "/resetPassword", "/testPage"]
 // for testing page add '/testPage' above
+/**
+ * MyApp (Custom Next.js App)
+ *
+ * Wraps all pages with global providers, theme, authentication, and route protection.
+ * Handles public vs. protected routes and sets up global meta tags.
+ *
+ * @param {Object} props
+ * @param {React.ComponentType} props.Component - The active page component
+ * @param {Object} props.pageProps - Props for the active page
+ * @returns {JSX.Element} The wrapped app component
+ */
 function MyApp({ Component, pageProps }) {
 	const router = useRouter()
 
