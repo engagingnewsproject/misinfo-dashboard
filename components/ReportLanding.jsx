@@ -1,3 +1,23 @@
+/**
+ * @fileoverview ReportLanding Component - Entry point for reporting and report history
+ *
+ * This component serves as the landing page for users to start a new report or view their report history.
+ * Features include:
+ * - Button to start a new report (with image and translation support)
+ * - Displays a list of previous reports
+ * - Handles user authentication and role-based logic
+ * - Responsive and accessible UI
+ *
+ * Integrates with:
+ * - ReportList for displaying report history
+ * - ReportSystem for starting a new report (via callback)
+ * - AuthContext and Firebase Auth for user/role management
+ * - next-i18next for translations
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
 import React,{ useState,useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Image from 'next/image';
@@ -11,6 +31,25 @@ import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'next-i18next';
 
 
+/**
+ * ReportLanding Component
+ *
+ * Renders the landing page for reporting, including a start report button and report history.
+ * Handles user authentication, role-based logic, and translation.
+ *
+ * @param {Object} props
+ * @param {Function} props.onReportStartClick - Callback to start a new report
+ * @param {string} props.reportSystem - Current report system
+ * @param {Function} props.setReportSystem - Setter for report system
+ * @param {string} props.reportView - Current report view
+ * @param {Function} props.setReportView - Setter for report view
+ * @param {boolean} props.reminderShow - Whether to show a reminder
+ * @param {Function} props.setReminderShow - Setter for reminder visibility
+ * @param {boolean} props.disableReminder - Whether reminders are disabled
+ * @param {Function} props.setDisableReminder - Setter for disabling reminders
+ * @param {Object} props.translations - Translation strings or object
+ * @returns {JSX.Element} The rendered report landing UI
+ */
 const ReportLanding = ({ 
 	onReportStartClick,
 	reportSystem, 
@@ -51,7 +90,9 @@ const ReportLanding = ({
 
 
 
-	// get current user's email
+	/**
+	 * get current user's email
+	 */
 	const userEmail = auth.currentUser.email
 	useEffect(()=> {
 		// TODO: debugging callback function to verify user role before displaying dashboard view
