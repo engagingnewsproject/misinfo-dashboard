@@ -9,6 +9,7 @@ This document tracks the progress of standardizing and completing documentation 
 - ✅ `context/AuthContext.jsx` - Authentication context with role management
 - ✅ `functions/index.js` - Firebase Cloud Functions with comprehensive API documentation
 - ✅ `config/firebase.js` - Firebase configuration and service initialization
+- ✅ `firebase/FirebaseHelper.jsx` - Firestore utility class and helper methods
 
 ### React Components
 - ✅ `components/Home.jsx` - Main dashboard component with analytics and navigation

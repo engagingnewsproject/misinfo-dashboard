@@ -1,7 +1,31 @@
+/**
+ * @fileoverview FirebaseHelper - Utility class for Firestore operations
+ *
+ * This file provides a class-based utility for common Firestore operations, including:
+ * - Fetching documents by ID
+ * - Fetching all records from a collection
+ * - Fetching a record with a callback
+ * - Fetching an agency by user email
+ * - Centralized error handling and logging
+ *
+ * Integrates with:
+ * - Firebase Firestore (modular SDK)
+ * - Project-wide Firestore instance
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
 import React from 'react'
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
 import { db } from '../config/firebase'
 
+/**
+ * FirebaseServices
+ *
+ * Utility class for common Firestore operations.
+ * Provides methods for fetching documents, collections, and agency data.
+ */
 class FirebaseServices {
 	constructor() {}
 
@@ -32,7 +56,13 @@ class FirebaseServices {
 		}
 	}
 
-	fetchAllRecordsOfCollection = async (collectionName) => {
+	/**
+	 * Fetches all documents from a Firestore collection.
+	 * @param {string} collectionName - The name of the collection to fetch.
+	 * @returns {Promise<Array<Object>>} A promise that resolves to an array of document data.
+	 * @throws {Error} Throws an error if the fetch operation fails.
+	 */
+	async fetchAllRecordsOfCollection(collectionName) {
 		try {
 			const querySnapshot = await getDocs(collection(db, collectionName))
 			const records = []
