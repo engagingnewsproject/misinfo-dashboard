@@ -20,6 +20,9 @@ This document tracks the progress of standardizing and completing documentation 
 - ✅ `pages/report.jsx` - Multi-step reporting flow page
 - ✅ `pages/resetPassword.jsx` - Reset password page
 - ✅ `pages/sentry-example-page.jsx` - Sentry error reporting demo page
+- ✅ `pages/signup.jsx` - User registration and agency onboarding page
+- ✅ `pages/testPage.jsx` - Development testing page
+- ✅ `pages/verifyEmail.jsx` - Email verification page
 
 ### React Components
 - ✅ `components/Home.jsx` - Main dashboard component with analytics and navigation
@@ -54,8 +57,8 @@ This document tracks the progress of standardizing and completing documentation 
 ## Documentation Quality Metrics
 
 ### JSDoc Coverage
-- **File Headers**: 100% (13/13 files)
-- **Component Documentation**: 100% (13/13 components)
+- **File Headers**: 100% (16/16 files)
+- **Component Documentation**: 100% (16/16 components)
 - **Function Documentation**: 95%+ (comprehensive coverage)
 - **Parameter Documentation**: 100% for documented functions
 - **Return Value Documentation**: 100% for documented functions
