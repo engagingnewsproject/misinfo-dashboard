@@ -1,3 +1,22 @@
+/**
+ * @fileoverview SwitchRead Component - Toggle for marking reports as read/unread
+ *
+ * This component provides a UI switch to mark a report as read or unread.
+ * Features include:
+ * - Fetching report and reporter data from Firestore
+ * - Updating the "read" status of a report in Firestore
+ * - Visual feedback with icons and text for read/unread state
+ * - Accessible and responsive toggle UI
+ *
+ * Integrates with:
+ * - Firebase Firestore for report and user data
+ * - @headlessui/react for the switch UI
+ * - react-icons for status icons
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
 import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
 import { getDoc, doc, updateDoc, collection, app } from "firebase/firestore"
@@ -7,6 +26,16 @@ import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"
 
 const dbInstance = collection(db, 'FKSpyOwuX6JoYF1fyv6b');
 
+/**
+ * SwitchRead Component
+ *
+ * Renders a toggle switch for marking a report as read or unread.
+ * Fetches report data, updates Firestore, and provides visual feedback.
+ *
+ * @param {Object} props
+ * @param {string} props.setReportModalId - The ID of the report to toggle
+ * @returns {JSX.Element} The rendered read/unread toggle UI
+ */
 export default function SwitchRead({ setReportModalId }) {
 	const [info, setInfo] = useState({})
 	const [reporterInfo, setReporterInfo] = useState({})
@@ -24,7 +53,9 @@ export default function SwitchRead({ setReportModalId }) {
 		)
 	}
 
-	// Use the firebase data
+	/**
+	 * getData - Fetches report and reporter data from Firestore and updates state.
+	 */
 	useEffect(() => {
 		getData()
 	}, [])
@@ -37,7 +68,10 @@ export default function SwitchRead({ setReportModalId }) {
 		}
 	}, [info])
 
-	// Handle onClick event
+	/**
+	 * handleReadChange - Handles toggling the read status and updates Firestore.
+	 * @param {boolean} e - The current read state
+	 */
 	async function handleReadChange(e) {
 		// Toggle the switch value (true/false)
 		e === !e
