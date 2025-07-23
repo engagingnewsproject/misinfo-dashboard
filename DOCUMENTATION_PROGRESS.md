@@ -25,6 +25,7 @@ This document tracks the progress of standardizing and completing documentation 
 - ✅ `components/Profile.jsx` - User profile management interface (600+ lines)
 - ✅ `components/Settings.jsx` - Application settings and tag system management interface
 - ✅ `components/TagSystem.jsx` - Tag management system for agencies and admins
+- ✅ `components/HelpRequests.jsx` - Help request management interface for admins
 
 ## Documentation Quality Metrics
 
@@ -58,4 +59,7 @@ This document tracks the progress of standardizing and completing documentation 
 4. ~~`components/TagSystem.jsx`~~ ✅ **COMPLETED**
 
 ### Medium Priority (Moderate Complexity)
-5. `
+5. ~~`components/HelpRequests.jsx`~~ ✅ **COMPLETED**
+6. `components/OverviewGraph.jsx` - Analytics visualization
+7. `components/ComparisonGraphSetup.jsx` - Graph configuration
+8. `components/ComparisonGraphPlotted.jsx` - Graph rendering
