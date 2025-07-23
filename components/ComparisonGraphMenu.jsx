@@ -1,5 +1,22 @@
-/* This component is the settings bar for the comparison chart
-that allows the user to change the topics and dates selected. */
+/**
+ * @fileoverview ComparisonGraphMenu Component - Settings bar for comparison chart
+ *
+ * This component provides the settings bar for the comparison chart, allowing users to:
+ * - Select and change topics for comparison
+ * - Pick a custom date range using a calendar dropdown
+ * - Refresh or clear the graph
+ * - See error and status notifications for selection validation
+ * - Responsive and accessible UI with tooltips and icons
+ *
+ * Integrates with:
+ * - react-date-range for date selection
+ * - react-select for topic selection
+ * - react-icons and react-tooltip for UI/UX
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
 import React, { useState, useEffect } from 'react'
 import { DateRange } from 'react-date-range';
 
@@ -18,6 +35,30 @@ import { Tooltip } from "react-tooltip";
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
 
+/**
+ * ComparisonGraphMenu Component
+ *
+ * Renders the settings bar for the comparison chart, including topic and date selection,
+ * refresh/clear actions, and error/status notifications.
+ *
+ * @param {Object} props
+ * @param {Array} props.dateRange - The currently selected date range
+ * @param {Function} props.setDateRange - Setter for date range state
+ * @param {Array} props.selectedTopics - The currently selected topics
+ * @param {Function} props.setSelectedTopics - Setter for selected topics state
+ * @param {Array} props.listTopicChoices - List of available topics for selection
+ * @param {number} props.tab - Current tab/view in the parent setup
+ * @param {Function} props.setTab - Setter for tab state
+ * @param {Function} props.setTopicError - Setter for topic error state
+ * @param {boolean} props.topicError - Whether there is a topic selection error
+ * @param {Function} props.setDateError - Setter for date error state
+ * @param {boolean} props.dateError - Whether there is a date selection error
+ * @param {boolean} props.updateGraph - Whether the graph needs to be updated
+ * @param {Function} props.setUpdateGraph - Setter for updateGraph state
+ * @param {boolean} props.loaded - Whether the graph data is loaded
+ * @param {Function} props.setLoaded - Setter for loaded state
+ * @returns {JSX.Element} The rendered comparison graph menu UI
+ */
 const ComparisonGraphMenu = ({dateRange, setDateRange, 
                             selectedTopics, setSelectedTopics, 
                             listTopicChoices, tab, setTab, setTopicError, topicError, setDateError, dateError,
@@ -39,7 +80,9 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
   const errorOutline = "border-2 border-rose-600 "
   const animatedComponents = makeAnimated();
 
-  // Handles selection for the calendar dropdown. 
+  /**
+   * handleSelect - Handles toggling the calendar dropdown for date selection.
+   */
   const handleSelect = () =>  {
     if (showCalendar == 1)
       {  
@@ -51,7 +94,10 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
       }
   }
 
-  // Determines if graph should be refreshed. 
+  /**
+   * handleGraphUpdate - Handles refreshing the graph based on current selections.
+   * Validates topic and date selection.
+   */
   const handleGraphUpdate = () => {
     setShowCalendar(0)
 
@@ -74,7 +120,11 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
   }
 
   
-  // Handles the selection of a new date range.
+  /**
+   * handleDateSelection - Handles the selection of a new date range from the calendar.
+   * Updates state and triggers validation.
+   * @param {Object} item - The selected date range object from react-date-range
+   */
   const handleDateSelection = (item) =>  {
     if (item.selection.endDate !== item.selection.startDate) {
         console.log(item)
@@ -88,7 +138,9 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
     } 
   }
 
-  // Allows user to clear graph and restart the selection process. 
+  /**
+   * handleReset - Clears the current topic and date selections and resets the view.
+   */
   const handleReset = () => {
     setDateRange ([
       {
