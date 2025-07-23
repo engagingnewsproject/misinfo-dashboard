@@ -4,6 +4,30 @@ import { useAuth } from '../context/AuthContext';
 import { Button, Typography } from "@material-tailwind/react"
 import Link from 'next/link';
 import Head from 'next/head';
+/**
+ * @fileoverview Custom 404 Page - Not Found handler with role-based redirect
+ *
+ * This file customizes the Next.js 404 page to:
+ * - Display a user-friendly "Page Not Found" message
+ * - Redirect users to the appropriate home/dashboard page based on their role
+ * - Prefetches the target page for faster navigation
+ *
+ * Integrates with:
+ * - AuthContext for user role detection
+ * - next/router for navigation
+ * - Material Tailwind for UI components
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
+/**
+ * Custom404
+ *
+ * Renders a 404 Not Found page with a role-based home/dashboard redirect button.
+ *
+ * @returns {JSX.Element} The rendered 404 page
+ */
 export default function Custom404() {
 	const router = useRouter()
 	const customClaims = useAuth()
