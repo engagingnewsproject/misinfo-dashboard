@@ -14,6 +14,9 @@ This document tracks the progress of standardizing and completing documentation 
 - ✅ `pages/_app.js` - Custom Next.js App with global providers and route protection
 - ✅ `pages/_error.jsx` - Custom error page with Sentry integration
 - ✅ `pages/404.js` - Custom 404 page with role-based redirect
+- ✅ `pages/dashboard.jsx` - Main dashboard page with tab navigation
+- ✅ `pages/index.js` - Root index page with login redirect
+- ✅ `pages/login.jsx` - Login page with authentication and role-based redirect
 
 ### React Components
 - ✅ `components/Home.jsx` - Main dashboard component with analytics and navigation
