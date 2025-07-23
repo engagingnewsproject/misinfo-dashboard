@@ -40,6 +40,7 @@ This document tracks the progress of standardizing and completing documentation 
 - ✅ `components/ProtectedRoute.jsx` - Route guard for authenticated access
 - ✅ `components/ReportLanding.jsx` - Entry point for reporting and report history
 - ✅ `components/UseUserAgent.jsx` - Custom hook for user agent and device detection
+- ✅ `pages/dashboard/reports/[reportId].jsx` - Detailed report view page
 
 ## Documentation Quality Metrics
 
