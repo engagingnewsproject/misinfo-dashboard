@@ -1,11 +1,40 @@
-/* Generates the toggle that determines whether the dashboard should display
-the comparison view or overview of the graphs for trending tag topics.*/
+/**
+ * @fileoverview Toggle Component - Switch between overview and comparison graph views
+ *
+ * This component renders a toggle UI for switching between the overview and comparison views
+ * of the dashboard's trending tag topics.
+ * Features include:
+ * - Two-button toggle for selecting the current view
+ * - Visual indication of the active view
+ * - Stateless, controlled via parent props
+ *
+ * Integrates with:
+ * - Parent dashboard or graph components for view state
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
 import { roundToNearestMinutes } from 'date-fns/fp'
 import React from 'react'
 
+/**
+ * Toggle Component
+ *
+ * Renders a two-button toggle for switching between overview and comparison views.
+ * Calls the parent setter to update the current view.
+ *
+ * @param {Object} props
+ * @param {string} props.viewVal - The current view ("overview" or "comparison")
+ * @param {Function} props.setViewVal - Setter function to update the view
+ * @returns {JSX.Element} The rendered toggle UI
+ */
 const Toggle = ({ viewVal, setViewVal }) => {   
     
-    // Sets the view to overview or comparison based on which button was clicked
+    /**
+     * handleViewChanged - Handles button click to change the dashboard view.
+     * @param {Object} e - The click event object
+     */
     const handleViewChanged = (e) => {
         setViewVal(e.target.id)
     }

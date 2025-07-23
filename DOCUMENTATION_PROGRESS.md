@@ -31,6 +31,7 @@ This document tracks the progress of standardizing and completing documentation 
 - ✅ `components/ComparisonGraphPlotted.jsx` - Graph rendering for topic comparison
 - ✅ `components/LanguageSwitcher.jsx` - Locale/language toggle UI
 - ✅ `components/SwitchRead.jsx` - Read/unread toggle for reports
+- ✅ `components/Toggle.jsx` - Overview/comparison view toggle
 
 ## Documentation Quality Metrics
 
