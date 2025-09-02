@@ -39,7 +39,7 @@ import {
 import { db, auth } from '../config/firebase'
 import Select from 'react-select'
 // import PhoneInput from 'react-phone-input-2'
-import LanguageSwitcher from '../components/LanguageSwitcher'
+import LanguageSwitcher from '../components/layout/LanguageSwitcher'
 import { useTranslation } from 'next-i18next'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 // import 'react-phone-input-2/lib/style.css'
