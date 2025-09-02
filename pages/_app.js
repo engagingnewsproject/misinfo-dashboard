@@ -22,7 +22,7 @@
  * @since 2024
  */
 import { useRouter } from "next/router"
-import ProtectedRoute from "../components/ProtectedRoute"
+import ProtectedRoute from "../components/layout/ProtectedRoute"
 import { AuthContextProvider } from "../context/AuthContext"
 import "../styles/globals.css"
 import "react-tooltip/dist/react-tooltip.css"

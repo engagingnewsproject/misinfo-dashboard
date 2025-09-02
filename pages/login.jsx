@@ -26,7 +26,7 @@ import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import { analytics } from '../config/firebase'
 import { db, auth } from '../config/firebase'
-import LanguageSwitcher from '../components/LanguageSwitcher'
+import LanguageSwitcher from '../components/layout/LanguageSwitcher'
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { MdOutlineRemoveRedEye } from "react-icons/md"; // <MdOutlineRemoveRedEye />

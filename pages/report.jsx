@@ -22,11 +22,11 @@ import React, { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import { useAuth } from "../context/AuthContext"
 // Components 
-import Navbar from "../components/Navbar"
-import Headbar from "../components/Headbar"
-import ReportLanding from "../components/ReportLanding"
-import ReportSystem from "../components/ReportSystem"
-import Profile from "../components/Profile"
+import Navbar from "../components/layout/Navbar"
+import Headbar from "../components/layout/Headbar"
+import ReportLanding from "../components/reports/ReportLanding"
+import ReportSystem from "../components/reports/ReportSystem"
+import Profile from "../components/profile/Profile"
 import LocationModal from '../components/modals/LocationModal'
 // For location modal
 import {
