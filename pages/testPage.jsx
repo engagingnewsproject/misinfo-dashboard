@@ -13,7 +13,7 @@ import React, { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import { useAuth } from "../context/AuthContext"
 import { auth } from "../config/firebase"
-import TestComponent from "../components/TestComponent"
+import TestComponent from "../components/common/TestComponent"
 
 /**
  * TestPage component for development testing
