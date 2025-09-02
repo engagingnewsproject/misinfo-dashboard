@@ -15,6 +15,7 @@ import { Typography, Input, Textarea } from '@material-tailwind/react'
 import { useTranslation } from 'next-i18next'
 import { IoIosInformationCircle } from 'react-icons/io'
 import globalStyles from '../../../styles/globalStyles'
+import Image from 'next/image'
 
 /**
  * DetailsStep Component
@@ -197,7 +198,7 @@ const DetailsStep = ({
             <div className="flex gap-2 overflow-x-auto">
               {imagePreview.map((url, index) => (
                 <div key={index} className="flex-shrink-0">
-                  <img
+                  <Image
                     src={url}
                     alt={`Preview ${index + 1}`}
                     className="w-20 h-20 object-cover rounded border"
