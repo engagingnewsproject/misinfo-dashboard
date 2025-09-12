@@ -179,7 +179,9 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
                 setSelected("")
                 break
             case "deactivate":
-                active.splice(active.indexOf(search), 1)
+                if (active && active.includes && active.includes(search)) {
+                    active.splice(active.indexOf(search), 1)
+                }
                 setMaxTagsError(false)
                 setSelected("")
                 break
@@ -200,10 +202,10 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
      */
     const deleteTag = () => {
         // e.preventDefault
-        if (list.includes(selected)) {
+        if (list && list.includes && list.includes(selected)) {
             list.splice(list.indexOf(selected), 1)
         }
-        if (active.includes(selected)) {
+        if (active && active.includes && active.includes(selected)) {
             active.splice(active.indexOf(selected), 1)
         }
         setSelected("")
@@ -216,9 +218,11 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
      * @param {string} tag - The new tag name
      */
     const replaceTag = (tag) => {
-        list[list.indexOf(selected)] = tag
         try {
-            if (active.includes(selected)) {
+            if (list && list.includes && list.includes(selected)) {
+                list[list.indexOf(selected)] = tag
+            }
+            if (active && active.includes && active.includes(selected)) {
                 active[active.indexOf(selected)] = tag
             }
             setData(tagSystem,list,active,agencyID)
