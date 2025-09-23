@@ -6,7 +6,8 @@
 		"dev": "./start-dev.sh",
 		"build": "next build",
 		"start": "next start",
-		"lint": "next lint"
+		"lint": "next lint",
+		"seed-users": "node scripts/seed-users.js"
 	},
 	"dependencies": {
 		"@firebase/app": "0.x",
