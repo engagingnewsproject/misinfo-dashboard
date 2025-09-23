@@ -38,10 +38,15 @@ console.log('🔧 Configuring Firebase Admin for emulators...');
 console.log('   Auth emulator: localhost:9099');
 console.log('   Firestore emulator: localhost:8080');
 
-// Sample users data - you can modify this array as needed
+// Generate unique timestamp for this run
+const timestamp = Date.now();
+console.log(`🕐 Generated unique timestamp: ${timestamp}`);
+
+// Generate users with unique emails for each run
 const users = [
+  // Regular Users (8 users)
   {
-    email: 'testuser1@example.com',
+    email: `testuser1-${timestamp}@example.com`,
     password: 'password123',
     displayName: 'Alice Johnson',
     role: 'User',
@@ -50,7 +55,7 @@ const users = [
     contact: '+1-555-0101'
   },
   {
-    email: 'testuser2@example.com',
+    email: `testuser2-${timestamp}@example.com`,
     password: 'password123',
     displayName: 'Bob Smith',
     role: 'User',
@@ -59,7 +64,7 @@ const users = [
     contact: '+1-555-0102'
   },
   {
-    email: 'testuser3@example.com',
+    email: `testuser3-${timestamp}@example.com`,
     password: 'password123',
     displayName: 'Carol Davis',
     role: 'User',
@@ -68,7 +73,7 @@ const users = [
     contact: '+1-555-0103'
   },
   {
-    email: 'testuser4@example.com',
+    email: `testuser4-${timestamp}@example.com`,
     password: 'password123',
     displayName: 'David Wilson',
     role: 'User',
@@ -77,7 +82,7 @@ const users = [
     contact: '+1-555-0104'
   },
   {
-    email: 'testuser5@example.com',
+    email: `testuser5-${timestamp}@example.com`,
     password: 'password123',
     displayName: 'Eva Martinez',
     role: 'User',
@@ -86,7 +91,7 @@ const users = [
     contact: '+1-555-0105'
   },
   {
-    email: 'testuser6@example.com',
+    email: `testuser6-${timestamp}@example.com`,
     password: 'password123',
     displayName: 'Frank Anderson',
     role: 'User',
@@ -95,7 +100,7 @@ const users = [
     contact: '+1-555-0106'
   },
   {
-    email: 'testuser7@example.com',
+    email: `testuser7-${timestamp}@example.com`,
     password: 'password123',
     displayName: 'Grace Taylor',
     role: 'User',
@@ -104,7 +109,7 @@ const users = [
     contact: '+1-555-0107'
   },
   {
-    email: 'testuser8@example.com',
+    email: `testuser8-${timestamp}@example.com`,
     password: 'password123',
     displayName: 'Henry Brown',
     role: 'User',
@@ -112,60 +117,62 @@ const users = [
     city: 'Denver',
     contact: '+1-555-0108'
   },
+  // Agency Users (2 users)
   {
-    email: 'testuser9@example.com',
+    email: `agency1-${timestamp}@example.com`,
     password: 'password123',
-    displayName: 'Ivy Chen',
-    role: 'User',
-    state: 'Nevada',
-    city: 'Las Vegas',
-    contact: '+1-555-0109'
+    displayName: 'Agency Representative 1',
+    role: 'Agency',
+    state: 'New York',
+    city: 'Albany',
+    contact: '+1-555-0301'
   },
   {
-    email: 'testuser10@example.com',
+    email: `agency2-${timestamp}@example.com`,
     password: 'password123',
-    displayName: 'Jack Thompson',
-    role: 'User',
-    state: 'Arizona',
-    city: 'Phoenix',
-    contact: '+1-555-0110'
+    displayName: 'Agency Representative 2',
+    role: 'Agency',
+    state: 'California',
+    city: 'Sacramento',
+    contact: '+1-555-0302'
   },
+  // Admin Users (2 users)
   {
-    email: 'admin1@example.com',
+    email: `admin1-${timestamp}@example.com`,
     password: 'password123',
-    displayName: 'Admin User',
+    displayName: 'Admin User 1',
     role: 'Admin',
     state: 'Texas',
     city: 'Austin',
     contact: '+1-555-0201'
   },
   {
-    email: 'moderator1@example.com',
+    email: `admin2-${timestamp}@example.com`,
     password: 'password123',
-    displayName: 'Moderator User',
-    role: 'Moderator',
-    state: 'California',
-    city: 'San Francisco',
+    displayName: 'Admin User 2',
+    role: 'Admin',
+    state: 'Florida',
+    city: 'Tallahassee',
     contact: '+1-555-0202'
-  },
-  {
-    email: 'agency1@example.com',
-    password: 'password123',
-    displayName: 'Agency Representative',
-    role: 'Agency',
-    state: 'New York',
-    city: 'Albany',
-    contact: '+1-555-0301'
   }
 ];
 
 /**
  * Creates a user in Firebase Authentication
  * @param {Object} userData - User data object
- * @returns {Promise<Object>} Created user record
+ * @returns {Promise<Object>} Created user record or existing user
  */
 async function createAuthUser(userData) {
   try {
+    // First, try to get the user by email to check if they already exist
+    try {
+      const existingUser = await admin.auth().getUserByEmail(userData.email);
+      console.log(`⚠️  User already exists: ${userData.email} (UID: ${existingUser.uid})`);
+      return existingUser; // Return existing user
+    } catch (getUserError) {
+      // User doesn't exist, proceed with creation
+    }
+
     const userRecord = await admin.auth().createUser({
       email: userData.email,
       password: userData.password,
@@ -189,6 +196,15 @@ async function createAuthUser(userData) {
  */
 async function createFirestoreUser(uid, userData) {
   try {
+    // Check if document already exists
+    const docRef = db.collection('mobileUsers').doc(uid);
+    const docSnapshot = await docRef.get();
+    
+    if (docSnapshot.exists) {
+      console.log(`⚠️  Firestore document already exists for: ${userData.email}`);
+      return;
+    }
+
     const userDoc = {
       name: userData.displayName,
       email: userData.email,
@@ -200,7 +216,7 @@ async function createFirestoreUser(uid, userData) {
       contact: userData.contact
     };
 
-    await db.collection('mobileUsers').doc(uid).set(userDoc);
+    await docRef.set(userDoc);
     console.log(`✅ Created Firestore document for: ${userData.email}`);
   } catch (error) {
     console.error(`❌ Failed to create Firestore document for ${userData.email}:`, error.message);
@@ -213,7 +229,8 @@ async function createFirestoreUser(uid, userData) {
  */
 async function seedUsers() {
   console.log('🌱 Starting user seeding process...');
-  console.log(`📊 Total users to create: ${users.length}`);
+  console.log(`📊 Total new users to create: ${users.length}`);
+  console.log(`🕐 Run timestamp: ${timestamp}`);
   console.log('');
   
   // Test Firebase connection first
@@ -243,6 +260,7 @@ async function seedUsers() {
   const results = {
     success: 0,
     failed: 0,
+    skipped: 0,
     errors: []
   };
 
@@ -258,14 +276,14 @@ async function seedUsers() {
       await createFirestoreUser(userRecord.uid, userData);
       
       results.success++;
-      console.log(`✅ Successfully created: ${userData.email}`);
+      console.log(`✅ Successfully processed: ${userData.email}`);
     } catch (error) {
       results.failed++;
       results.errors.push({
         email: userData.email,
         error: error.message
       });
-      console.log(`❌ Failed to create: ${userData.email}`);
+      console.log(`❌ Failed to process: ${userData.email}`);
     }
     
     console.log(''); // Add spacing between users
@@ -274,8 +292,9 @@ async function seedUsers() {
   // Print summary
   console.log('📋 SEEDING SUMMARY');
   console.log('==================');
-  console.log(`✅ Successful: ${results.success}`);
+  console.log(`✅ New users created: ${results.success}`);
   console.log(`❌ Failed: ${results.failed}`);
+  console.log(`🕐 Timestamp used: ${timestamp}`);
   
   if (results.errors.length > 0) {
     console.log('\n🚨 Errors:');
@@ -291,7 +310,7 @@ async function seedUsers() {
     console.log(`⚠️  Warning: ${results.failed} users failed to create`);
     process.exit(1);
   } else {
-    console.log('✅ All users created successfully!');
+    console.log('✅ All new users created successfully!');
     process.exit(0);
   }
 }

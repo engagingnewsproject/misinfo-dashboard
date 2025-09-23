@@ -50,28 +50,25 @@ node scripts/seed-users.js
 
 ## Test Users Created
 
-The script creates 13 test users with different roles:
+The script creates 12 test users with different roles:
 
-### Regular Users (10 users)
-- `testuser1@example.com` through `testuser10@example.com`
+### Regular Users (8 users)
+- `testuser1-{timestamp}@example.com` through `testuser8-{timestamp}@example.com`
 - Password: `password123`
 - Role: `User`
 - Various US states and cities
 
-### Admin Users (1 user)
-- `admin1@example.com`
-- Password: `password123`
-- Role: `Admin`
-
-### Moderator Users (1 user)
-- `moderator1@example.com`
-- Password: `password123`
-- Role: `Moderator`
-
-### Agency Users (1 user)
-- `agency1@example.com`
+### Agency Users (2 users)
+- `agency1-{timestamp}@example.com`
+- `agency2-{timestamp}@example.com`
 - Password: `password123`
 - Role: `Agency`
+
+### Admin Users (2 users)
+- `admin1-{timestamp}@example.com`
+- `admin2-{timestamp}@example.com`
+- Password: `password123`
+- Role: `Admin`
 
 ## Customizing Users
 
@@ -83,7 +80,7 @@ const users = [
     email: 'your-email@example.com',
     password: 'your-password',
     displayName: 'Your Name',
-    role: 'User', // or 'Admin', 'Moderator', 'Agency'
+    role: 'User', // or 'Admin', 'Agency'
     state: 'Your State',
     city: 'Your City',
     contact: '+1-555-0123'
