@@ -1,3 +1,23 @@
+/**
+ * @fileoverview Firebase Configuration - Initializes Firebase services and emulators
+ *
+ * This file sets up and exports the Firebase app, Firestore, Auth, Storage, Functions, Analytics, and Performance.
+ * Features include:
+ * - Loads configuration from environment variables
+ * - Initializes Firebase app and services
+ * - Connects to local emulators in development mode
+ * - Sets up App Check with ReCaptcha Enterprise
+ * - Exports initialized services for use throughout the app
+ *
+ * Integrates with:
+ * - Firebase JS SDK (modular)
+ * - .env environment variables for configuration
+ * - Firebase emulators for local development
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
 import { initializeApp } from 'firebase/app'
 
 import { getAuth, connectAuthEmulator } from 'firebase/auth'
@@ -26,6 +46,8 @@ const firebaseConfig = {
 	measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 }
 
+// Firebase configuration loaded from environment variables
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig)
 
@@ -33,7 +55,7 @@ const app = initializeApp(firebaseConfig)
 let analytics = null // Initialize to null
 let perf = null
 
-// Check if we're running in a browser environment
+// Initialize Analytics, Performance, and App Check only in the browser
 if (typeof window !== 'undefined') {
 	// Initialize Analytics
 	analytics = getAnalytics(app)
@@ -61,7 +83,7 @@ export const functions = getFunctions(app)
 // UNCOMMENT BELOW: enable connection to firebase functions emulator
 // connectFunctionsEmulator(functions,"127.0.0.1",5001)
 
-// If running in development environment, connect to Firestore emulator
+// Connect to Firebase emulators in development mode
 if (process.env.NODE_ENV === 'development') {
 	console.log('Running Emulator')
 	connectAuthEmulator(auth, 'http://127.0.0.1:9099')

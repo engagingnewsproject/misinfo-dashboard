@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { IoClose } from "react-icons/io5"
+import * as Sentry from '@sentry/react'
 
 const RenameTagModal = ({ replaceTag, selected, list, setRenameTagModal, addNewTag }) => {
     const lower = []
@@ -9,22 +10,35 @@ const RenameTagModal = ({ replaceTag, selected, list, setRenameTagModal, addNewT
     const [tag, setTag] = useState("")
 
     const handleChange = (e) => {
-        setTag(e.target.value)
+        try {
+            setTag(e.target.value)
+        } catch (error) {
+            console.error("Error in handleChange:", error)
+        }
     }
 
     const handleAddNewTag = (e) => {
         e.preventDefault()
-        if (tag.length != 0 && tag.length <= 20) {
-            addNewTag(tag)
-            setRenameTagModal(false)
+        try {
+            if (tag.length != 0 && tag.length <= 20) {
+                addNewTag(tag)
+                setRenameTagModal(false)
+            }
+        } catch (error) {
+            console.error("Error in handleAddNewTag:", error)
         }
     }
 
     const handleReplaceTag = (e) => {
         e.preventDefault()
-        if (!lower.includes(tag.toLowerCase()) && tag.length != 0 && tag.length <= 20) {
-            replaceTag(tag)
-            setRenameTagModal(false)
+        try {
+            if (!lower.includes(tag.toLowerCase()) && tag.length != 0 && tag.length <= 25) {
+                replaceTag(tag)
+                setRenameTagModal(false)
+            }
+        } catch (error) {
+            Sentry.captureException(error)
+            console.error("Error in handleReplaceTag:", error)
         }
     }
 
@@ -53,7 +67,7 @@ const RenameTagModal = ({ replaceTag, selected, list, setRenameTagModal, addNewT
                                 />
                         </div>
                         {lower.includes(tag.toLowerCase()) && <p className="text-red-500 text-sm font-light">This tag already exists, do you want to replace?</p>}
-                        {tag.length > 20 && <p className="text-red-500 text-sm font-light">You cannot type a tag more than 18 characters long. Please try another name</p>}
+                        {tag.length > 25 && <p className="text-red-500 text-sm font-light">You cannot type a tag more than 18 characters long. Please try another name</p>}
                         <div className="mt-6 flex justify-between">
                             <button
                                 onClick={handleReplaceTag}
