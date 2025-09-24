@@ -1,6 +1,6 @@
 /**
  * @fileoverview Users Management Component - Comprehensive user administration interface
- * 
+ *
  * This component provides a complete user management interface for administrators
  * to view, edit, and manage users across the misinformation dashboard. Key features include:
  * - User listing with infinite scroll and real-time data
@@ -13,17 +13,17 @@
  * - Real-time data fetching from Firebase Auth and Firestore
  * - Role-based UI rendering (admin vs agency views)
  * - Data validation and error handling
- * 
+ *
  * The component integrates with multiple modals for different operations:
  * - EditUserModal: Edit existing users
  * - NewUserModal: Create new users
  * - ConfirmModal: Delete confirmation
- * 
+ *
  * Role-based functionality:
  * - Admins: Full access to all users, can edit roles, assign agencies, delete users
  * - Agency users: Limited view of users within their agency
  * - Real-time updates when user data changes
- * 
+ *
  * @author Misinformation Dashboard Team
  * @version 1.0.0
  * @since 2024
@@ -43,8 +43,9 @@ import {
 	where,
 	addDoc,
 	arrayUnion,
-	limit, 
+	limit,
 	startAfter,
+	getCountFromServer,
 } from 'firebase/firestore'
 import { db, auth } from '../../config/firebase'
 import { Tooltip } from 'react-tooltip'
@@ -90,7 +91,7 @@ const style = {
  * This function determines the user's join date by checking the `joiningDate` field in the Firestore
  * user document (`firestoreUser`). If the `joiningDate` is present, it is converted to a human-readable
  * format. If the `joiningDate` is not available, the function falls back to using the `creationTime`
- * from the user's Firebase Auth metadata (`authUser`). If neither source provides a date, it returns 
+ * from the user's Firebase Auth metadata (`authUser`). If neither source provides a date, it returns
  * a default message indicating that no date is available.
  *
  * @param {Object} firestoreUser - The Firestore document data for the user, containing a possible `joiningDate` field.
@@ -98,17 +99,23 @@ const style = {
  * @returns {string} The user's join date formatted as a human-readable string, or 'No Date' if unavailable.
  */
 const getJoinedDate = (firestoreUser, authUser) => {
-    if (firestoreUser && firestoreUser.joiningDate) {
-        // If Firestore user data exists and has a 'joiningDate', use it
-        return new Date(firestoreUser.joiningDate * 1000).toLocaleString('en-US', dateOptions);
-    } else if (authUser) {
-        // Otherwise, use 'metadata.creationTime' from the Auth user
-        return new Date(authUser.metadata.creationTime).toLocaleString('en-US', dateOptions);
-    } else {
-        // Fallback if neither is available
-        return 'No Date';
-    }
-};
+	if (firestoreUser && firestoreUser.joiningDate) {
+		// If Firestore user data exists and has a 'joiningDate', use it
+		return new Date(firestoreUser.joiningDate * 1000).toLocaleString(
+			'en-US',
+			dateOptions,
+		)
+	} else if (authUser) {
+		// Otherwise, use 'metadata.creationTime' from the Auth user
+		return new Date(authUser.metadata.creationTime).toLocaleString(
+			'en-US',
+			dateOptions,
+		)
+	} else {
+		// Fallback if neither is available
+		return 'No Date'
+	}
+}
 
 /**
  * Sorts an array of users by their join date in descending order.
@@ -121,16 +128,16 @@ const getJoinedDate = (firestoreUser, authUser) => {
  * @returns {Array<Object>} The sorted array of users, with the most recently joined users first.
  */
 const sortByJoinedDate = (users) => {
-    return users.sort((a, b) => new Date(b.joined) - new Date(a.joined));
-};
+	return users.sort((a, b) => new Date(b.joined) - new Date(a.joined))
+}
 
 /**
  * Users Component - Comprehensive user management interface
- * 
+ *
  * This component provides a complete user administration interface with role-based
  * access control. It handles user listing, editing, creation, and deletion with
  * real-time data synchronization between Firebase Auth and Firestore.
- * 
+ *
  * Key functionality:
  * - Display users in a table with infinite scroll
  * - Role-based UI rendering (admin vs agency views)
@@ -140,11 +147,11 @@ const sortByJoinedDate = (users) => {
  * - Agency association management
  * - Real-time data updates
  * - User status tracking (banned, disabled)
- * 
+ *
  * Role-based access:
  * - Admins: Full access to all users and operations
  * - Agency users: Limited view of users within their agency
- * 
+ *
  * @returns {JSX.Element} The Users management component
  */
 const Users = () => {
@@ -162,14 +169,15 @@ const Users = () => {
 
 	// User data management state
 	const [userRole, setUserRole] = useState('') // Current user's role being edited
-	const [loadedMobileUsers, setLoadedMobileUsers] = useState([]) // List of all users
+	const [loadedMobileUsers, setLoadedMobileUsers] = useState([]) // Loaded users
+	const [totalUsersCount, setTotalUsersCount] = useState(0) // Total users count
 	const [isLoading, setIsLoading] = useState(false) // Loading state for data fetching
 	const [endIndex, setEndIndex] = useState(0) // Pagination index for infinite scroll
 	const [deleteModal, setDeleteModal] = useState(false) // Delete confirmation modal
 	const [userEditing, setUserEditing] = useState([]) // User data being edited
 	const [name, setName] = useState('') // User name being edited
 	const [email, setEmail] = useState('') // User email being edited
-	
+
 	// Agency management state
 	const [agencyName, setAgencyName] = useState('') // Agency name for user
 	const [agencyId, setAgencyId] = useState('') // Agency ID for user
@@ -179,13 +187,13 @@ const Users = () => {
 	const [userEditModal, setUserEditModal] = useState(null) // User edit modal state
 	const [userId, setUserId] = useState(null) // Current user ID being edited
 	const [update, setUpdate] = useState('') // Trigger for data refresh
-	
+
 	// New user creation state
 	const [newUserModal, setNewUserModal] = useState(false) // New user modal state
 	const [data, setData] = useState({ email: '' }) // New user data
 	const [newUserEmail, setNewUserEmail] = useState('') // New user email
 	const [errors, setErrors] = useState({}) // Form validation errors
-	
+
 	// Infinite scroll state
 	const [lastVisible, setLastVisible] = useState(null) // The last document fetched
 	const [hasMore, setHasMore] = useState(true) // To track if more users are available to load
@@ -378,80 +386,121 @@ const Users = () => {
 		}
 	}
 
-	const USERS_PER_PAGE = 10; // Number of users to fetch per page
+	const USERS_PER_PAGE = 15 // Number of users to fetch per page
 
-const getInitialUsers = async () => {
-	setIsLoading(true);
-	const userQuery = query(
-		collection(db, 'mobileUsers'),
-		limit(USERS_PER_PAGE)
-	);
+	const getInitialUsers = async () => {
+		setIsLoading(true)
 
-	try {
-		const querySnapshot = await getDocs(userQuery);
-		const users = querySnapshot.docs.map(doc => ({
-			mobileUserId: doc.id,
-			...doc.data(),
-		}));
+		try {
+			if (customClaims.agency) {
+				await getData()
+				setHasMore(false)
+				// For agency users, the total count is just the loaded users length
+				setTotalUsersCount(loadedMobileUsers.length)
+			} else {
+				// Get total count of users in mobileUsers collection
+				const totalCountQuery = query(collection(db, 'mobileUsers'))
+				const totalSnapshot = await getCountFromServer(totalCountQuery)
+				setTotalUsersCount(totalSnapshot.data().count)
 
-		setLoadedMobileUsers(users);
+				const userQuery = query(
+					collection(db, 'mobileUsers'),
+					limit(USERS_PER_PAGE),
+				)
+				const querySnapshot = await getDocs(userQuery)
 
-		// Set the last visible document for pagination
-		const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-		setLastVisible(lastVisibleDoc);
+				const users = await Promise.all(
+					querySnapshot.docs.map(async (doc) => {
+						const userData = doc.data()
+						userData.mobileUserId = doc.id
+						userData.disabled = await fetchUserDetails(doc.id)
+						userData.joined = getJoinedDate(userData, null)
+						return userData
+					}),
+				)
+				setLoadedMobileUsers(users)
 
-		// If less than USERS_PER_PAGE were fetched, no more users are available
-		if (querySnapshot.docs.length < USERS_PER_PAGE) {
-			setHasMore(false);
+				// Set the last visible document for pagination
+				const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1]
+				setLastVisible(lastVisibleDoc)
+
+				// If less than USERS_PER_PAGE were fetched, no more users are available
+				if (querySnapshot.docs.length < USERS_PER_PAGE) {
+					setHasMore(false)
+				} else {
+					console.log('More users available, hasMore should be true')
+				}
+			}
+		} catch (error) {
+			console.error('Error fetching users:', error)
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	useEffect(() => {
+		if (customClaims.admin) {
+			getInitialUsers() // Fetch users when the component mounts
+		}
+	}, [])
+
+	const fetchMoreUsers = async () => {
+		if (!lastVisible || !hasMore || isLoading || customClaims.agency) {
+			return // Prevent fetching if already loading or no more users
 		}
 
-		setIsLoading(false);
-	} catch (error) {
-		console.error("Error fetching users:", error);
-		setIsLoading(false);
-	}
-};
+		setIsLoading(true)
 
-useEffect(() => {
-	getInitialUsers(); // Fetch users when the component mounts
-}, []);
+		try {
+			const nextUserQuery = query(
+				collection(db, 'mobileUsers'),
+				startAfter(lastVisible), // Start after the last loaded document
+				limit(USERS_PER_PAGE),
+			)
 
-const fetchMoreUsers = async () => {
-	if (!lastVisible || !hasMore || isLoading) return; // Prevent fetching if already loading or no more users
+			const querySnapshot = await getDocs(nextUserQuery)
 
-	setIsLoading(true);
+			// Process each user with disabled status and join date (consistent with getData)
+			const users = await Promise.all(
+				querySnapshot.docs.map(async (doc) => {
+					const userData = doc.data()
+					userData.mobileUserId = doc.id
+					userData.disabled = await fetchUserDetails(doc.id) // Add disabled status
+					userData.joined = getJoinedDate(userData, null) // Add join date
+					return userData
+				}),
+			)
 
-	const nextUserQuery = query(
-		collection(db, 'mobileUsers'),
-		startAfter(lastVisible), // Start after the last loaded document
-		limit(USERS_PER_PAGE)
-	);
+			// Add deduplication to prevent duplicate users
+			setLoadedMobileUsers((prevUsers) => {
+				const existingIds = new Set(prevUsers.map((user) => user.mobileUserId))
+				const newUsers = users.filter(
+					(user) => !existingIds.has(user.mobileUserId),
+				)
+				console.log(
+					'Adding',
+					newUsers.length,
+					'new users. Total will be:',
+					prevUsers.length + newUsers.length,
+				)
 
-	try {
-		const querySnapshot = await getDocs(nextUserQuery);
-		const users = querySnapshot.docs.map(doc => ({
-			mobileUserId: doc.id,
-			...doc.data(),
-		}));
+				return [...prevUsers, ...newUsers]
+			})
 
-		// Append newly loaded users to the existing list
-		setLoadedMobileUsers((prevUsers) => [...prevUsers, ...users]);
+			// Update the last visible document for the next batch
+			const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1]
+			setLastVisible(lastVisibleDoc)
 
-		// Update the last visible document for the next batch
-		const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-		setLastVisible(lastVisibleDoc);
-
-		// If less than USERS_PER_PAGE were fetched, no more users are available
-		if (querySnapshot.docs.length < USERS_PER_PAGE) {
-			setHasMore(false);
+			// If less than USERS_PER_PAGE were fetched, no more users are available
+			if (querySnapshot.docs.length < USERS_PER_PAGE) {
+				setHasMore(false)
+			}
+		} catch (error) {
+			console.error('Error fetching more users:', error)
+		} finally {
+			setIsLoading(false) // Always set loading to false in finally block
 		}
-
-		setIsLoading(false);
-	} catch (error) {
-		console.error("Error fetching more users:", error);
-		setIsLoading(false);
 	}
-};
 
 	/**
 	 * Handles the event when the "Add New User" button is clicked, opening the modal to add a new user.
@@ -567,7 +616,6 @@ const fetchMoreUsers = async () => {
 			if (customClaims.admin) {
 				// Admin: Fetch all agencies and user data
 				await fetchAgencies()
-				await getData()
 			} else if (customClaims.agency) {
 				// Agency user: Fetch only the agency details and user data
 				const agencySnapshot = await getDocs(
@@ -589,8 +637,6 @@ const fetchMoreUsers = async () => {
 					setAgencyName(agencyName)
 
 					await getData()
-					// Fetch data relevant to this agency
-					// await getData(agencyId) // Pass the agencyId to fetch data for this agency
 				} else {
 					console.error('No agency found for the current user.')
 				}
@@ -941,7 +987,9 @@ const fetchMoreUsers = async () => {
 	 * @dependency {boolean} update - The state that triggers the data fetching when it changes.
 	 */
 	useEffect(() => {
-		getData()
+		if (customClaims.agency) {
+			getData()
+		}
 	}, [update])
 
 	return (
@@ -980,143 +1028,153 @@ const fetchMoreUsers = async () => {
 					</div>
 				)}
 				<div className={style.table_main}>
-					<div className="flex flex-col h-full">
-						<InfiniteScroll
-							className="overflow-x-auto"
-							dataLength={loadedMobileUsers.length} // The length of currently loaded users
-							next={fetchMoreUsers} // Function to load more users when the user scrolls to the bottom
-							hasMore={hasMore} // Boolean to indicate if more users are available to fetch
-							loader={<h4>Loading more users...</h4>} // Loader for when more users are being fetched
-							scrollableTarget="scrollableDiv" // The target div that is scrollable
-							inverse={false}
-						>
-							<table className="min-w-full bg-white rounded-xl p-1">
-								<thead className="border-b dark:border-indigo-100 bg-slate-100">
-									<tr className="border-b transition duration-300 ease-in-out dark:border-indigo-100">
-										<th scope="col" className={tableHeading.default}>
-											Name
-										</th>
-										<th scope="col" className={tableHeading.default_center}>
-											Email
-										</th>
-										<th scope="col" className={tableHeading.default_center}>
-											Join Date
-										</th>
-										{customClaims.admin && (
-											<th scope="col" className={tableHeading.default_center}>
-												Agency
-											</th>
-										)}
-										{customClaims.admin && (
-											<th scope="col" className={tableHeading.default_center}>
-												Role
-											</th>
-										)}
-										<th scope="col" className={tableHeading.default_center}>
-											Banned
-										</th>
-										<th scope="col" className={tableHeading.default_center}>
-											Disabled
-										</th>
-										{customClaims.admin && (
-											<th
-												scope="col"
-												colSpan={2}
-												className={tableHeading.default_center}>
-												Delete
-											</th>
-										)}
+					<table className="min-w-full bg-white rounded-xl p-1">
+						<thead className="border-b dark:border-indigo-100 bg-slate-100 sticky top-0 z-10">
+							<tr className="border-b transition duration-300 ease-in-out dark:border-indigo-100">
+								<th scope="col" className={tableHeading.default_center}>
+									#
+								</th>
+								<th scope="col" className={tableHeading.default}>
+									Name
+								</th>
+								<th scope="col" className={tableHeading.default_center}>
+									Email
+								</th>
+								<th scope="col" className={tableHeading.default_center}>
+									Join Date
+								</th>
+								{customClaims.admin && (
+									<th scope="col" className={tableHeading.default_center}>
+										Agency
+									</th>
+								)}
+								{customClaims.admin && (
+									<th scope="col" className={tableHeading.default_center}>
+										Role
+									</th>
+								)}
+								<th scope="col" className={tableHeading.default_center}>
+									Banned
+								</th>
+								<th scope="col" className={tableHeading.default_center}>
+									Disabled
+								</th>
+								{customClaims.admin && (
+									<th
+										scope="col"
+										colSpan={2}
+										className={tableHeading.default_center}>
+										Delete
+									</th>
+								)}
+							</tr>
+						</thead>
+					</table>
+					{/* <div 
+						id="scrollableDiv"
+						className="max-h-[600px] overflow-auto"
+						style={{ height: '600px' }}
+					> */}
+					<InfiniteScroll
+						dataLength={loadedMobileUsers.length}
+						next={fetchMoreUsers}
+						hasMore={hasMore && !customClaims.agency}
+						loader={<h4>Loading more users...</h4>}
+						endMessage={
+							<p style={{ textAlign: 'center' }}>
+								<b>You have seen all users</b>
+							</p>
+						}
+						scrollThreshold={0.8}
+						inverse={false}>
+						<table className="min-w-full bg-white">
+							<tbody>
+								{/* Loading state - shows spinner while fetching user data */}
+								{isLoading ? (
+									<tr>
+										<td colSpan="100%" className="text-center">
+											<div className="flex justify-center items-center h-32">
+												Loading...
+											</div>
+										</td>
 									</tr>
-								</thead>
-								<tbody>
-									{/* Loading state - shows spinner while fetching user data */}
-									{isLoading ? (
-										<tr>
-											<td colSpan="100%" className="text-center">
-												<div className="flex justify-center items-center h-32">
-													Loading...
-												</div>
-											</td>
-										</tr>
-									) : (
-										// Render user rows with role-based conditional rendering
-										loadedMobileUsers.map((userObj, key) => {
-											// Extract user ID for operations
-											let userId = userObj.mobileUserId
+								) : (
+									// Render user rows with role-based conditional rendering
+									loadedMobileUsers.map((userObj, key) => {
+										// Extract user ID for operations
+										let userId = userObj.mobileUserId
 
-											return (
-												<tr
-													className={`border-b transition duration-300 ease-in-out dark:border-indigo-100 ${!customClaims.agency && !userObj.hasFirestoreDoc && 'bg-red-50'} ${userObj.disabled && 'bg-yellow-100'}`}
-													key={key}
-													onClick={
-														customClaims.admin
-															? () => handleEditUser(userObj, userId)
-															: undefined
-													}>
-													{/* User name column */}
-													<td scope="row" className={column.data}>
-														{userObj.name}
-													</td>
-													{/* User email column */}
+										return (
+											<tr
+												className={`border-b transition duration-300 ease-in-out dark:border-indigo-100 ${!customClaims.agency && !userObj.hasFirestoreDoc && 'bg-red-50'} ${userObj.disabled && 'bg-yellow-100'}`}
+												key={key}
+												onClick={
+													customClaims.admin
+														? () => handleEditUser(userObj, userId)
+														: undefined
+												}>
+												<td className={column.data_center}>{key + 1}</td>
+												{/* User name column */}
+												<td scope="row" className={column.data}>
+													{userObj.name}
+												</td>
+												{/* User email column */}
+												<td className={column.data_center}>{userObj.email}</td>
+												{/* User join date column */}
+												<td className={column.data_center}>{userObj.joined}</td>
+												{/* Agency column - only visible to admins */}
+												{customClaims.admin && (
 													<td className={column.data_center}>
-														{userObj.email}
+														{userObj.agencyName}
 													</td>
-													{/* User join date column */}
+												)}
+												{/* User role column - only visible to admins */}
+												{customClaims.admin && (
 													<td className={column.data_center}>
-														{userObj.joined}
+														{userObj.userRole}
 													</td>
-													{/* Agency column - only visible to admins */}
-													{customClaims.admin && (
-														<td className={column.data_center}>
-															{userObj.agencyName}
-														</td>
-													)}
-													{/* User role column - only visible to admins */}
-													{customClaims.admin && (
-														<td className={column.data_center}>
-															{userObj.userRole}
-														</td>
-													)}
-													{/* User banned status column */}
-													<td className={column.data_center}>
-														{(userObj.isBanned && 'yes') || 'no'}
+												)}
+												{/* User banned status column */}
+												<td className={column.data_center}>
+													{(userObj.isBanned && 'yes') || 'no'}
+												</td>
+												{/* User disabled status column */}
+												<td className={column.data_center}>
+													{userObj.disabled ? 'Yes' : 'No'}
+												</td>
+												{/* Delete action column - only visible to admins */}
+												{customClaims.admin && (
+													<td
+														className={column.data_center}
+														onClick={(e) => e.stopPropagation()}>
+														<button
+															onClick={() => handleMobileUserDelete(userId)}
+															className={`${style.icon} tooltip-delete-user`}>
+															<IoTrash
+																size={20}
+																className="ml-4 fill-gray-400 hover:fill-red-600"
+															/>
+															<Tooltip
+																anchorSelect=".tooltip-delete-user"
+																place="top"
+																delayShow={500}>
+																Delete User
+															</Tooltip>
+														</button>
 													</td>
-													{/* User disabled status column */}
-													<td className={column.data_center}>
-														{userObj.disabled ? 'Yes' : 'No'}
-													</td>
-													{/* Delete action column - only visible to admins */}
-													{customClaims.admin && (
-														<td
-															className={column.data_center}
-															onClick={(e) => e.stopPropagation()}>
-															<button
-																onClick={() => handleMobileUserDelete(userId)}
-																className={`${style.icon} tooltip-delete-user`}>
-																<IoTrash
-																	size={20}
-																	className="ml-4 fill-gray-400 hover:fill-red-600"
-																/>
-																<Tooltip
-																	anchorSelect=".tooltip-delete-user"
-																	place="top"
-																	delayShow={500}>
-																	Delete User
-																</Tooltip>
-															</button>
-														</td>
-													)}
-												</tr>
-											)
-										})
-									)}
-								</tbody>
-							</table>
-						</InfiniteScroll>
-						<div className="mt-2 self-end text-xs">
-							Total users: {loadedMobileUsers.length}
+												)}
+											</tr>
+										)
+									})
+								)}
+							</tbody>
+						</table>
+						<div className="mt-2 text-xs text-gray-600 border-t pt-2 bg-gray-50 px-4 py-2 sticky bottom-0">
+							<p>Loaded users: {loadedMobileUsers.length}</p>
+							<p>Total users in database: {totalUsersCount}</p>
 						</div>
-					</div>
+					</InfiniteScroll>
+					{/* </div> */}
 				</div>
 			</div>
 			{/* Delete confirmation modal */}
