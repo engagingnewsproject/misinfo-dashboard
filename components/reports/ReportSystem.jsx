@@ -58,6 +58,7 @@ import {
 } from "@material-tailwind/react"
 import { logEvent } from "firebase/analytics"
 import { analytics } from "../../config/firebase"
+import { useLocalStorage } from "../../hooks/useLocalStorage"
 
 // Import step components
 import {
@@ -100,7 +101,18 @@ const ReportSystem = ({
 	// Internationalization and authentication
 	const { t, i18n } = useTranslation("NewReport")
 	const { user, customClaims } = useAuth()
-	
+
+	const storageKey = `misinfo_report_draft_${user?.accountId || 'loading'}`
+	const [persistedData, setPersistData, clearPersistData, isExpired] =
+		useLocalStorage(
+			storageKey,
+			null,
+			24, // 24 hours
+		)
+
+	// Only use persisted data when we have a real user ID
+	const validPersistedData = user?.accountId ? persistedData : null
+
 	// Form state management
 	const [key, setKey] = useState(self.crypto.randomUUID())
 	const [data, setData] = useState({ country: "US", state: null, city: null })
@@ -151,36 +163,167 @@ const ReportSystem = ({
 	const [refresh, setRefresh] = useState(false)
 	const formRef = useRef(null)
 
+	// Persistence state
+	const [hasCheckedForPersistedData, setHasCheckedForPersistedData] =
+		useState(false)
+	const [isInitialLoad, setIsInitialLoad] = useState(true)
+	const [hasRestored, setHasRestored] = useState(false)
+
 	// Default tag systems for categorization
 	const defaultTopics = ["Health","Other","Politics","Weather"]
 	const defaultSources = ["Newspaper", "Other","Social","Website"]
 	const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"]
 
-	// Initialize user data on component mount
+	// Initialize user data on component mount and check for persisted data
 	useEffect(() => {
 		getUserData()
-		// Reset form on initial mount to ensure clean state
-		resetForm()
-	}, [])
-
-	// Reset form when starting a new report
-	useEffect(() => {
-		if (reportSystem === 0 || reportSystem === 1) {
-			resetForm()
+		if (user?.accountId && !hasCheckedForPersistedData) {
+			setHasCheckedForPersistedData(true)
 		}
-	}, [reportSystem])
+
+	}, [user?.accountId, hasCheckedForPersistedData])
+
+	// Mark initial load as complete after user data and restoration check
+	useEffect(() => {
+		if (user?.accountId && hasCheckedForPersistedData) {
+			// Give auto-restoration a chance to run, then mark initial load complete
+			const timer = setTimeout(() => {
+				setIsInitialLoad(false)
+			}, 100)
+
+			return () => clearTimeout(timer)
+		}
+	}, [user?.accountId, hasCheckedForPersistedData])
+
+	// Reset form when starting a new report (but not on initial load)
+	useEffect(() => {
+		if ((reportSystem === 0 || reportSystem === 1) && !isInitialLoad) {
+			resetForm(true) // Clear storage when starting new report
+			setHasRestored(false) // Reset restoration flag
+		}
+	}, [reportSystem, isInitialLoad])
 
 	// Reset form when component unmounts (cleanup)
 	useEffect(() => {
 		return () => {
-			resetForm()
+			resetForm(false)
 		}
 	}, [])
+
+	// Auto-save form data when key fields change
+	useEffect(() => {
+		autoSaveFormData()
+	}, [
+		selectedAgency,
+		selectedTopic,
+		selectedSource,
+		otherTopic,
+		otherSource,
+		title,
+		link,
+		secondLink,
+		detail,
+		showOtherTopic,
+		showOtherSource,
+		reportSystem,
+		user?.accountId,
+		imageURLs,
+	])
+
+	// Update current step in persistence when reportSystem changes
+	useEffect(() => {
+		if (user?.accountId && reportSystem >= 2 && reportSystem <= 6) {
+			// Only update if we have existing persisted data to avoid overwriting
+			if (validPersistedData && validPersistedData.currentStep !== reportSystem) {
+				const updatedData = {
+					...validPersistedData,
+					currentStep: reportSystem,
+					lastSaved: new Date().toISOString(),
+				}
+				setPersistData(updatedData)
+			}
+		}
+	}, [reportSystem, user?.accountId, validPersistedData])
+
+	// Auto-restore form data when persistedData becomes available
+	useEffect(() => {
+		if (validPersistedData && !isExpired && user?.accountId && hasCheckedForPersistedData && !hasRestored) {
+
+			const hasContent =
+				validPersistedData.formData &&
+				(validPersistedData.formData.title ||
+					validPersistedData.formData.detail ||
+					validPersistedData.formData.selectedAgency ||
+					validPersistedData.formData.selectedTopic ||
+					validPersistedData.formData.selectedSource)
+
+			if (hasContent) {
+				// Check if current form is empty (to avoid overwriting user input)
+				const currentFormIsEmpty = !title && !detail && !selectedAgency && !selectedTopic && !selectedSource
+
+				if (currentFormIsEmpty) {
+					const { formData, currentStep } = validPersistedData
+					setSelectedAgency(formData.selectedAgency || '')
+					setSelectedTopic(formData.selectedTopic || '')
+					setSelectedSource(formData.selectedSource || '')
+					setOtherTopic(formData.otherTopic || '')
+					setOtherSource(formData.otherSource || '')
+					setTitle(formData.title || '')
+					setLink(formData.link || '')
+					setSecondLink(formData.secondLink || '')
+					setDetail(formData.detail || '')
+					setShowOtherTopic(formData.showOtherTopic || false)
+					setShowOtherSource(formData.showOtherSource || false)
+					setImageURLs(formData.imageURLs || [])
+
+					// Restore current step if valid and not already set
+					if (currentStep >= 2 && currentStep <= 6 && reportSystem <= 1) {
+						setReportSystem(currentStep)
+					}
+
+					setHasRestored(true)
+				}
+			}
+		}
+	}, [validPersistedData, isExpired, user?.accountId, hasCheckedForPersistedData, hasRestored, title, detail, selectedAgency, selectedTopic, selectedSource, reportSystem])
+
+	/**
+	 * Auto-saves current form state
+	 */
+	const autoSaveFormData = () => {
+		if (user?.accountId && reportSystem >= 2 && reportSystem <= 6) {
+			const currentFormData = {
+				selectedAgency,
+				selectedTopic,
+				selectedSource,
+				otherTopic,
+				otherSource,
+				title,
+				link,
+				secondLink,
+				detail,
+				showOtherTopic,
+				showOtherSource,
+				imageURLs,
+			}
+
+			const dataToSave = {
+				currentStep: reportSystem,
+				formData: currentFormData,
+				errors,
+				lastSaved: new Date().toISOString(),
+			}
+
+			setPersistData(dataToSave)
+		}
+	}
 
 	/**
 	 * Fetches user data from Firestore and initializes form data
 	 */
 	const getUserData = async () => {
+		if (!user?.accountId) return
+
 		try {
 			const mobileRef = await getDoc(doc(db, "mobileUsers", user.accountId))
 			setUserData(mobileRef.data())
@@ -406,6 +549,8 @@ const ReportSystem = ({
 				})
 			}
 
+			clearPersistData()
+
 			// Move to success step
 			setReportSystem(7)
 		} catch (error) {
@@ -415,8 +560,9 @@ const ReportSystem = ({
 
 	/**
 	 * Resets the form to initial state
+	 * @param {boolean} clearStorage - Whether to clear localStorage data (default: false)
 	 */
-	const resetForm = () => {
+	const resetForm = (clearStorage = false) => {
 		setTitle("")
 		setLink("")
 		setSecondLink("")
@@ -431,10 +577,15 @@ const ReportSystem = ({
 		setImages([])
 		setImageURLs([])
 		setErrors({})
-		
+
 		// Clear file input
 		if (imgPicker.current) {
 			imgPicker.current.value = ""
+		}
+
+		// Only clear persisted data when explicitly requested
+		if (clearStorage && user?.accountId) {
+			clearPersistData()
 		}
 	}
 
@@ -443,7 +594,7 @@ const ReportSystem = ({
 	 */
 	const handleRefresh = () => {
 		setKey(self.crypto.randomUUID())
-		resetForm()
+		resetForm(true) // Clear storage when explicitly refreshing
 		setReportSystem(2)
 		setReportResetModal(false)
 	}
@@ -670,7 +821,7 @@ const ReportSystem = ({
 					
 					{/* View Report */}
 					{reportSystem === 7 && (
-						<div className={globalStyles.form.view}>
+					<div className={globalStyles.form.view}>
 							{/* Title */}
 							<div className='mb-6 p-0'>
 								<Typography variant='h6' color='blue'>
@@ -730,7 +881,7 @@ const ReportSystem = ({
 							<Button color='blue' onClick={() => setReportSystem(0)}>
 								{t("backReports")}
 							</Button>
-						</div>
+					</div>
 					)}
 				</div>
 			)}
