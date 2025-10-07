@@ -1,10 +1,32 @@
+/**
+ * @fileoverview Login Page - User authentication and role-based redirect
+ *
+ * This page provides the login form for users, including:
+ * - Email/password authentication
+ * - Role-based redirect to dashboard or report page
+ * - Email verification and resend logic
+ * - Error handling and loading state
+ * - Integration with next-i18next for translations
+ * - Privacy policy modal and language switcher
+ *
+ * Integrates with:
+ * - AuthContext for authentication and role management
+ * - Firebase Auth and Firestore for user/role verification
+ * - next-i18next for translations
+ * - Material Tailwind for UI components
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
+
 import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import { analytics } from '../config/firebase'
 import { db, auth } from '../config/firebase'
-import LanguageSwitcher from '../components/LanguageSwitcher'
+import LanguageSwitcher from '../components/layout/LanguageSwitcher'
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { MdOutlineRemoveRedEye } from "react-icons/md"; // <MdOutlineRemoveRedEye />
@@ -22,6 +44,13 @@ import Head from 'next/head';
 import { Typography } from '@material-tailwind/react'
 import PrivacyPolicyModal from '../components/modals/PrivacyPolicyModal'
 
+/**
+ * Login Page
+ *
+ * Renders the login form, handles authentication, and redirects users based on role.
+ *
+ * @returns {JSX.Element} The rendered login page
+ */
 const Login = () => {
   const router = useRouter()
 
