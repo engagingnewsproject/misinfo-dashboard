@@ -84,7 +84,8 @@ export const functions = getFunctions(app)
 // connectFunctionsEmulator(functions,"127.0.0.1",5001)
 
 // Connect to Firebase emulators in development mode
-if (process.env.NODE_ENV === 'development') {
+// Only connect if USE_EMULATORS environment variable is set to 'true'
+if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_EMULATORS === 'true') {
 	console.log('Running Emulator')
 	connectAuthEmulator(auth, 'http://127.0.0.1:9099')
 	connectFirestoreEmulator(db, 'localhost', 8080)

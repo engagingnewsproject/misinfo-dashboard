@@ -4,6 +4,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "./start-dev.sh",
+		"dev:live": "next dev",
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint"
