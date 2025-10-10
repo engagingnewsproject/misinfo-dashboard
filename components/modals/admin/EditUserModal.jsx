@@ -35,9 +35,9 @@ const EditUserModal = ({
 		modal_background:
 			"fixed z-[9998] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto",
 		modal_container:
-			"absolute inset-0 flex justify-center items-center z-[9999] sm:overflow-y-scroll",
+			"absolute top-8 inset-0 flex justify-center items-start z-[9999] overflow-y-scroll",
 		modal_wrapper:
-			"flex-col justify-center items-center w-10/12 md:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible",
+			"flex-col justify-center items-start w-10/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible",
 		modal_header_container: "grid md:gap-5 lg:gap-5 auto-cols-auto mb-6",
 		modal_header_wrapper: "flex w-full items-baseline justify-between",
 		modal_header: "text-lg font-bold text-blue-600 tracking-wider",
@@ -526,7 +526,7 @@ const EditUserModal = ({
 								/>
 								{Object.keys(mobileUserDetails || {}).length > 0 && (
 									<Fragment>
-										<div className={`${style.modal_form_label} col-span-3 pt-4`}>
+										<div className={`${style.modal_header} col-span-3 pt-4`}>
 											Additional details
 										</div>
 										{Object.entries(mobileUserDetails).map(([fieldKey, fieldValue]) => (
