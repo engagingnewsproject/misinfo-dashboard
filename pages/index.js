@@ -1,4 +1,6 @@
+import React from 'react'
 import { useRouter } from 'next/router'
+import { Spinner } from '@material-tailwind/react'
 
 /**
  * @fileoverview Root Index Page - Redirects to login
@@ -15,21 +17,21 @@ import { useRouter } from 'next/router'
  */
 
 export default function Home() {
+	const router = useRouter()
 
-  const router = useRouter()
-  router.push('/login')
+	router.push('/login')
 
-  /**
-   * Home (Index Page)
-   *
-   * Redirects users to the login page.
-   *
-   * @returns {JSX.Element} The loading/redirect UI
-   */
+	/**
+	 * Home (Index Page)
+	 *
+	 * Redirects users to the login page.
+	 *
+	 * @returns {JSX.Element} The loading/redirect UI
+	 */
 
-  return (
-    <div>
-      <h1>Loading...</h1>
-    </div>
-  )
+	return (
+		<div className="w-screen h-screen flex justify-center items-center">
+			<Spinner color="blue" />
+		</div>
+	)
 }
