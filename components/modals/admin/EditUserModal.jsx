@@ -35,9 +35,9 @@ const EditUserModal = ({
 		modal_background:
 			"fixed z-[9998] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto",
 		modal_container:
-			"absolute inset-0 flex justify-center items-center z-[9999] sm:overflow-y-scroll",
+			"absolute top-8 inset-0 flex justify-center items-start z-[9999] overflow-y-scroll",
 		modal_wrapper:
-			"flex-col justify-center items-center w-10/12 md:w-8/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible",
+			"flex-col justify-center items-start w-10/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible",
 		modal_header_container: "grid md:gap-5 lg:gap-5 auto-cols-auto mb-6",
 		modal_header_wrapper: "flex w-full items-baseline justify-between",
 		modal_header: "text-lg font-bold text-blue-600 tracking-wider",
@@ -63,6 +63,9 @@ const EditUserModal = ({
 	const [timestampErrors, setTimestampErrors] = useState({})
 	const [geoPointDrafts, setGeoPointDrafts] = useState({})
 	const [geoPointErrors, setGeoPointErrors] = useState({})
+	const [cityDraft, setCityDraft] = useState('')
+	const [stateDraft, setStateDraft] = useState('')
+	const [isEditingLocation, setIsEditingLocation] = useState(false)
 
 	const formatTimestampDraftValue = (fieldKey, rawValue) => {
 		if (typeof rawValue === 'string') {
@@ -85,6 +88,25 @@ const EditUserModal = ({
 		return ''
 	}
 
+	// Convert Unix seconds <-> input[type="datetime-local"] value
+	const unixSecondsToLocalInput = (secs) => {
+		if (secs === undefined || secs === null || Number.isNaN(Number(secs))) return ''
+		const d = new Date(Number(secs) * 1000)
+		const pad = (n) => String(n).padStart(2, '0')
+		const yyyy = d.getFullYear()
+		const MM = pad(d.getMonth() + 1)
+		const dd = pad(d.getDate())
+		const hh = pad(d.getHours())
+		const mm = pad(d.getMinutes())
+		return `${yyyy}-${MM}-${dd}T${hh}:${mm}`
+	}
+
+	const localInputToUnixSeconds = (str) => {
+		if (!str) return null
+		const ms = new Date(str).getTime()
+		return Number.isNaN(ms) ? null : Math.floor(ms / 1000)
+	}
+
 	const formatGeoPointDraftValue = (rawValue) => {
 		const latitude = rawValue?.latitude ?? rawValue?.lat
 		const longitude = rawValue?.longitude ?? rawValue?.lng
@@ -98,6 +120,58 @@ const EditUserModal = ({
 					? ''
 					: String(longitude),
 		}
+	}
+
+	// Helper: normalize city/state to string values
+	const normalizeTextFrom = (value, preferenceKeys = []) => {
+		if (value == null) return ''
+		if (typeof value === 'string') return value
+		if (typeof value === 'number') return String(value)
+		if (Array.isArray(value)) {
+			return value.map((v) => normalizeTextFrom(v, preferenceKeys)).filter(Boolean).join(', ')
+		}
+		if (typeof value === 'object') {
+			for (const k of preferenceKeys) {
+				if (typeof value[k] === 'string' && value[k].trim()) return value[k]
+			}
+			// Last resort: try a generic human-friendly field
+			if (typeof value.label === 'string') return value.label
+			if (typeof value.value === 'string') return value.value
+		}
+		return ''
+	}
+
+	const normalizeCityState = (rawCity, rawState) => {
+		const cityText = normalizeTextFrom(rawCity, ['name', 'city', 'text', 'label', 'value'])
+		const stateFromTopLevel = normalizeTextFrom(rawState, ['code', 'abbr', 'abbreviation', 'state', 'name', 'text'])
+		const stateFromCity =
+			rawCity && typeof rawCity === 'object' && !Array.isArray(rawCity)
+				? (rawCity.stateCode || rawCity.state || '')
+				: ''
+		return { city: cityText, state: stateFromTopLevel || stateFromCity }
+	}
+
+	// Helper: build an object for a field expected to be an object, preserving prior keys
+	const upsertObjectValue = (prev, newText, preferredKeys = [], fallbackKey = 'name') => {
+		const base = (prev && typeof prev === 'object' && !Array.isArray(prev)) ? { ...prev } : {}
+		if (!newText) return null
+		// choose the first matching key present in prev, else preferred list, else fallback
+		const keysToTry = [
+			...preferredKeys.filter((k) => base.hasOwnProperty(k)),
+			...preferredKeys,
+			fallbackKey,
+		]
+		const chosenKey = keysToTry.find(Boolean)
+		base[chosenKey] = newText
+		return base
+	}
+
+	// Helper: update city map (preserve all existing keys like countryCode, latitude, longitude, stateCode)
+	const mergeCityMap = (prevCity, { name, stateCode }) => {
+		const base = (prevCity && typeof prevCity === 'object' && !Array.isArray(prevCity)) ? { ...prevCity } : {}
+		if (name != null && name !== '') base.name = name
+		if (stateCode != null && stateCode !== '') base.stateCode = stateCode
+		return Object.keys(base).length ? base : null
 	}
 
 	useEffect(() => {
@@ -129,6 +203,59 @@ const EditUserModal = ({
 		setGeoPointDrafts(nextGeoPointDrafts)
 		setGeoPointErrors({})
 	}, [mobileUserDetails, mobileUserFieldTypes])
+
+	useEffect(() => {
+		const { city, state } = normalizeCityState(
+			mobileUserDetails?.city ?? userEditing?.city,
+			mobileUserDetails?.state ?? userEditing?.state,
+		)
+		setCityDraft(city)
+		setStateDraft(state)
+	}, [mobileUserDetails, userEditing])
+
+	const handleLocationSave = () => {
+		if (!isAdmin) return
+		const cityText = (cityDraft || '').trim()
+		const stateText = (stateDraft || '').trim()
+
+		const cityType = mobileUserFieldTypes?.city?.type
+		const stateType = mobileUserFieldTypes?.state?.type
+
+		// Start from the actual current city map only (avoid falling back to any generic originalValue)
+		const prevCity = mobileUserDetails?.city
+
+		let nextCityValue = null
+
+		if (cityType === 'object' || typeof prevCity === 'object') {
+			// Preferred schema: everything lives under the city map
+			nextCityValue = mergeCityMap(prevCity, { name: cityText, stateCode: stateText })
+			onMobileFieldChange && onMobileFieldChange('city', nextCityValue)
+		} else if (cityType === 'array') {
+			nextCityValue = cityText ? [cityText] : null
+			onMobileFieldChange && onMobileFieldChange('city', nextCityValue)
+		} else {
+			// city is a plain string/number field
+			onMobileFieldChange && onMobileFieldChange('city', cityText || null)
+		}
+
+		// Only write a separate top-level `state` field if the schema explicitly defines it
+		if (stateType) {
+			let nextStateValue = stateText || null
+			if (stateType === 'object') {
+				const prevState = mobileUserDetails?.state
+				nextStateValue = upsertObjectValue(
+					prevState,
+					stateText,
+					['code', 'abbr', 'abbreviation', 'state', 'name', 'text', 'label', 'value'],
+					'code',
+				)
+			}
+			if (stateType === 'array' && stateText) nextStateValue = [stateText]
+			onMobileFieldChange && onMobileFieldChange('state', nextStateValue)
+		}
+
+		setIsEditingLocation(false)
+	}
 
 	const clearStructuredFieldError = (fieldKey) => {
 		if (!structuredFieldErrors[fieldKey]) {
@@ -358,31 +485,37 @@ const EditUserModal = ({
 		}
 
 		if (fieldType === 'number') {
-			const displayValue = fieldValue ?? ''
-			const formattedDate =
-				fieldKey === 'joiningDate' && typeof fieldValue === 'number'
-					? new Date(fieldValue * 1000).toLocaleString('en-US')
-					: null
-			return (
-				<div className='flex flex-col gap-1'>
+			// Special-case: numeric Unix-seconds timestamp for joiningDate
+			if (fieldKey === 'joiningDate') {
+				const dateValue = unixSecondsToLocalInput(fieldValue)
+				return (
 					<input
 						{...commonInputProps}
-						type='number'
-						value={displayValue}
-						onChange={(event) => {
-							const { value } = event.target
-							onMobileFieldChange(
-								fieldKey,
-								value === '' ? '' : Number(value),
-							)
+						type='datetime-local'
+						value={dateValue}
+						onChange={(e) => {
+							const secs = localInputToUnixSeconds(e.target.value)
+							onMobileFieldChange(fieldKey, secs)
 						}}
 					/>
-					{formattedDate && (
-						<div className='text-xs text-slate-600'>
-							Readable date: {formattedDate}
-						</div>
-					)}
-				</div>
+				)
+			}
+
+			// Default numeric field
+			const displayValue = fieldValue ?? ''
+			return (
+				<input
+					{...commonInputProps}
+					type='number'
+					value={displayValue}
+					onChange={(event) => {
+						const { value } = event.target
+						onMobileFieldChange(
+							fieldKey,
+							value === '' ? '' : Number(value),
+						)
+					}}
+				/>
 			)
 		}
 
@@ -524,23 +657,80 @@ const EditUserModal = ({
 									onChange={onEmailChange}
 									defaultValue={userEditing.email}
 								/>
+
+								{/* Location (City & State) */}
+								<div className='col-span-3 flex items-center justify-between pt-2'>
+									<div className={style.modal_form_label}>Location</div>
+									{isAdmin && (
+										<button
+											type='button'
+											className='text-blue-600 underline'
+											onClick={() => setIsEditingLocation((s) => !s)}
+										>
+											{isEditingLocation ? 'Cancel' : 'Change Location'}
+										</button>
+									)}
+								</div>
+
+								{/* Show current location when not editing */}
+								{!isEditingLocation && (
+									<div className='col-span-3 text-sm text-slate-700 pb-1'>
+										Current: {cityDraft || '—'}, {stateDraft || '—'}
+									</div>
+								)}
+
+								<label htmlFor='city' className={style.modal_form_label}>City</label>
+								<input
+									id='city'
+									type='text'
+									className={style.modal_form_input}
+									value={cityDraft || ''}
+									onChange={(e) => setCityDraft(e.target.value)}
+									disabled={!isAdmin || !isEditingLocation}
+								/>
+
+								<label htmlFor='state' className={style.modal_form_label}>State</label>
+								<input
+									id='state'
+									type='text'
+									className={style.modal_form_input}
+									value={stateDraft || ''}
+									onChange={(e) => setStateDraft(e.target.value)}
+									disabled={!isAdmin || !isEditingLocation}
+								/>
+
+								{/* Save location */}
+								{isAdmin && isEditingLocation && (
+									<div className='col-span-3 flex justify-end'>
+										<button
+											type='button'
+											className={style.modal_form_button}
+											onClick={handleLocationSave}
+										>
+											Save Location
+										</button>
+									</div>
+								)}
+
 								{Object.keys(mobileUserDetails || {}).length > 0 && (
 									<Fragment>
-										<div className={`${style.modal_form_label} col-span-3 pt-4`}>
+										<div className={`${style.modal_header} col-span-3 pt-4`}>
 											Additional details
 										</div>
-										{Object.entries(mobileUserDetails).map(([fieldKey, fieldValue]) => (
-											<Fragment key={fieldKey}>
-												<label
-													htmlFor={`mobile-field-${fieldKey}`}
-													className={style.modal_form_label}>
-													{formatFieldLabel(fieldKey)}
-												</label>
-												<div className='col-span-2'>
-													{renderAdditionalField(fieldKey, fieldValue)}
-												</div>
-											</Fragment>
-										))}
+										{Object.entries(mobileUserDetails)
+											.filter(([k]) => k !== 'city' && k !== 'state')
+											.map(([fieldKey, fieldValue]) => (
+												<Fragment key={fieldKey}>
+													<label
+														htmlFor={`mobile-field-${fieldKey}`}
+														className={style.modal_form_label}>
+														{formatFieldLabel(fieldKey)}
+													</label>
+													<div className='col-span-2'>
+														{renderAdditionalField(fieldKey, fieldValue)}
+													</div>
+												</Fragment>
+											))}
 										{!isAdmin && (
 											<div className='col-span-3 text-xs text-slate-600'>
 												Only admins can edit these values.
