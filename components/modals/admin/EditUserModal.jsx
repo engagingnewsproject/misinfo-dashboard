@@ -66,6 +66,8 @@ const EditUserModal = ({
 	const [cityDraft, setCityDraft] = useState('')
 	const [stateDraft, setStateDraft] = useState('')
 	const [isEditingLocation, setIsEditingLocation] = useState(false)
+	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+	const [unsavedWarning, setUnsavedWarning] = useState('')
 
 	const formatTimestampDraftValue = (fieldKey, rawValue) => {
 		if (typeof rawValue === 'string') {
@@ -174,6 +176,26 @@ const EditUserModal = ({
 		return Object.keys(base).length ? base : null
 	}
 
+	// Mark-as-dirty wrappers
+	const commitMobileFieldChange = (key, value) => {
+		setHasUnsavedChanges(true)
+		onMobileFieldChange && onMobileFieldChange(key, value)
+	}
+	const handleNameLocal = (e) => { setHasUnsavedChanges(true); onNameChange && onNameChange(e) }
+	const handleEmailLocal = (e) => { setHasUnsavedChanges(true); onEmailChange && onEmailChange(e) }
+	const handleRoleLocal = (role) => { setHasUnsavedChanges(true); onRoleChange && onRoleChange(role) }
+	const handleAgencyLocal = (e) => { setHasUnsavedChanges(true); onAgencyChange && onAgencyChange(e) }
+	const handleBannedLocal = (checked) => { setHasUnsavedChanges(true); onBannedChange && onBannedChange(checked) }
+
+	// Intercept modal close if there are unsaved changes
+	const attemptCloseModal = () => {
+		if (isAdmin && hasUnsavedChanges) {
+			setUnsavedWarning('Did you save your changes?')
+			return
+		}
+		setUserEditModal(false)
+	}
+
 	useEffect(() => {
 		const nextStructuredDrafts = {}
 		const nextTimestampDrafts = {}
@@ -229,13 +251,13 @@ const EditUserModal = ({
 		if (cityType === 'object' || typeof prevCity === 'object') {
 			// Preferred schema: everything lives under the city map
 			nextCityValue = mergeCityMap(prevCity, { name: cityText, stateCode: stateText })
-			onMobileFieldChange && onMobileFieldChange('city', nextCityValue)
+			commitMobileFieldChange('city', nextCityValue)
 		} else if (cityType === 'array') {
 			nextCityValue = cityText ? [cityText] : null
-			onMobileFieldChange && onMobileFieldChange('city', nextCityValue)
+			commitMobileFieldChange('city', nextCityValue)
 		} else {
 			// city is a plain string/number field
-			onMobileFieldChange && onMobileFieldChange('city', cityText || null)
+			commitMobileFieldChange('city', cityText || null)
 		}
 
 		// Only write a separate top-level `state` field if the schema explicitly defines it
@@ -251,7 +273,7 @@ const EditUserModal = ({
 				)
 			}
 			if (stateType === 'array' && stateText) nextStateValue = [stateText]
-			onMobileFieldChange && onMobileFieldChange('state', nextStateValue)
+			commitMobileFieldChange('state', nextStateValue)
 		}
 
 		setIsEditingLocation(false)
@@ -283,7 +305,7 @@ const EditUserModal = ({
 		const trimmedValue = rawValue?.trim()
 
 		if (!trimmedValue) {
-			onMobileFieldChange(fieldKey, null)
+			commitMobileFieldChange(fieldKey, null)
 			clearStructuredFieldError(fieldKey)
 			return
 		}
@@ -307,7 +329,7 @@ const EditUserModal = ({
 				}))
 				return
 			}
-			onMobileFieldChange(fieldKey, parsedValue)
+			commitMobileFieldChange(fieldKey, parsedValue)
 			clearStructuredFieldError(fieldKey)
 		} catch (error) {
 			setStructuredFieldErrors((prev) => ({
@@ -345,14 +367,14 @@ const EditUserModal = ({
 			'Enter an ISO 8601 date string or JSON with "seconds" and "nanoseconds".'
 
 		if (!trimmedValue) {
-			onMobileFieldChange(fieldKey, null)
+			commitMobileFieldChange(fieldKey, null)
 			clearTimestampError(fieldKey)
 			return
 		}
 
 		const parsedDate = new Date(trimmedValue)
 		if (!Number.isNaN(parsedDate.getTime())) {
-			onMobileFieldChange(fieldKey, trimmedValue)
+			commitMobileFieldChange(fieldKey, trimmedValue)
 			clearTimestampError(fieldKey)
 			return
 		}
@@ -367,7 +389,7 @@ const EditUserModal = ({
 				const seconds = Number(parsedJson.seconds)
 				const nanoseconds = Number(parsedJson.nanoseconds ?? 0)
 				if (!Number.isNaN(seconds) && !Number.isNaN(nanoseconds)) {
-					onMobileFieldChange(fieldKey, {
+					commitMobileFieldChange(fieldKey, {
 						seconds,
 						nanoseconds,
 					})
@@ -415,7 +437,7 @@ const EditUserModal = ({
 		const longitudeInput = draft.longitude?.trim?.() ?? ''
 
 		if (!latitudeInput && !longitudeInput) {
-			onMobileFieldChange(fieldKey, null)
+			commitMobileFieldChange(fieldKey, null)
 			clearGeoPointError(fieldKey)
 			return
 		}
@@ -438,7 +460,7 @@ const EditUserModal = ({
 			return
 		}
 
-		onMobileFieldChange(fieldKey, { latitude, longitude })
+		commitMobileFieldChange(fieldKey, { latitude, longitude })
 		clearGeoPointError(fieldKey)
 	}
 
@@ -463,7 +485,7 @@ const EditUserModal = ({
 				<div className={`${style.modal_form_switch} ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}>
 					<Switch
 						checked={Boolean(fieldValue)}
-						onChange={(checked) => onMobileFieldChange(fieldKey, checked)}
+						onChange={(checked) => commitMobileFieldChange(fieldKey, checked)}
 						disabled={!isAdmin}
 						className={`${
 							Boolean(fieldValue) ? "bg-blue-600" : "bg-gray-200"
@@ -495,7 +517,7 @@ const EditUserModal = ({
 						value={dateValue}
 						onChange={(e) => {
 							const secs = localInputToUnixSeconds(e.target.value)
-							onMobileFieldChange(fieldKey, secs)
+							commitMobileFieldChange(fieldKey, secs)
 						}}
 					/>
 				)
@@ -510,7 +532,7 @@ const EditUserModal = ({
 					value={displayValue}
 					onChange={(event) => {
 						const { value } = event.target
-						onMobileFieldChange(
+						commitMobileFieldChange(
 							fieldKey,
 							value === '' ? '' : Number(value),
 						)
@@ -607,7 +629,7 @@ const EditUserModal = ({
 				{...commonInputProps}
 				type='text'
 				value={fallbackValue}
-				onChange={(event) => onMobileFieldChange(fieldKey, event.target.value)}
+				onChange={(event) => commitMobileFieldChange(fieldKey, event.target.value)}
 			/>
 		)
 	}
@@ -615,7 +637,7 @@ const EditUserModal = ({
 	return (
 		<div
 			className={style.modal_background}
-			onClick={() => setUserEditModal(false)}>
+			onClick={attemptCloseModal}>
 			<div className={style.modal_container}>
 				<div
 					className={style.modal_wrapper}
@@ -624,14 +646,14 @@ const EditUserModal = ({
 						<div className={style.modal_header_wrapper}>
 							<div className={style.modal_header}>User Info</div>
 							<button
-								onClick={() => setUserEditModal(false)}
+								onClick={attemptCloseModal}
 								className={style.modal_close}>
 								<IoClose size={25} />
 							</button>
 						</div>
 					</div>
 					<div>
-						<form onSubmit={onFormSubmit}>
+						<form onSubmit={(e) => { onFormSubmit(e); setHasUnsavedChanges(false); setUnsavedWarning('') }}>
 							<div className={style.modal_form_container}>
 								{/* Name */}
 								<label htmlFor='name' className={style.modal_form_label}>
@@ -641,7 +663,7 @@ const EditUserModal = ({
 									className={style.modal_form_input}
 									id='name'
 									type='text'
-									onChange={onNameChange}
+									onChange={handleNameLocal}
 									defaultValue={userEditing.name || 'Name not set'}
 								/>
 								<label htmlFor='name' className={style.modal_form_label}>
@@ -654,7 +676,7 @@ const EditUserModal = ({
 									className={style.modal_form_input}
 									id='email'
 									type='text'
-									onChange={onEmailChange}
+									onChange={handleEmailLocal}
 									defaultValue={userEditing.email}
 								/>
 
@@ -685,7 +707,7 @@ const EditUserModal = ({
 									type='text'
 									className={style.modal_form_input}
 									value={cityDraft || ''}
-									onChange={(e) => setCityDraft(e.target.value)}
+									onChange={(e) => { setCityDraft(e.target.value); setHasUnsavedChanges(true) }}
 									disabled={!isAdmin || !isEditingLocation}
 								/>
 
@@ -695,7 +717,7 @@ const EditUserModal = ({
 									type='text'
 									className={style.modal_form_input}
 									value={stateDraft || ''}
-									onChange={(e) => setStateDraft(e.target.value)}
+									onChange={(e) => { setStateDraft(e.target.value); setHasUnsavedChanges(true) }}
 									disabled={!isAdmin || !isEditingLocation}
 								/>
 
@@ -742,12 +764,9 @@ const EditUserModal = ({
 								{/* BANNED */}
 								<div className={style.modal_form_switch}>
 									<Switch
-										// Set checked to the initial banned value (false)
 										checked={banned}
-										// When switch toggled setBanned
-										onChange={onBannedChange} 
-										// On click handler
-										onClick={() => setBanned(!banned)}
+										onChange={(checked) => handleBannedLocal(checked)}
+										onClick={() => { setBanned(!banned); setHasUnsavedChanges(true) }}
 										className={`${
 											banned ? "bg-red-600" : "bg-gray-200"
 										} relative inline-flex h-6 w-11 items-center rounded-full mr-2`}>
@@ -776,7 +795,7 @@ const EditUserModal = ({
 													value='Admin'
 													id='admin'
 													checked={userRole === "Admin"}
-													onChange={() => onRoleChange("Admin")} // Update user role to "Admin" when this radio button is selected
+													onChange={() => handleRoleLocal("Admin")}
 													className={style.modal_form_radio}
 												/>
 												Admin
@@ -787,7 +806,7 @@ const EditUserModal = ({
 													value='Agency'
 													id='agency'
 													checked={userRole === "Agency"}
-													onChange={() => onRoleChange("Agency")} // Pass "Agency" as the selected role value
+													onChange={() => handleRoleLocal("Agency")}
 													className={style.modal_form_radio}
 												/>
 												Agency
@@ -798,7 +817,7 @@ const EditUserModal = ({
 													value='User'
 													id='user'
 													checked={userRole === "User"}
-											    onChange={() => onRoleChange("User")} // Update user role to "User" when this radio button is selected
+													onChange={() => handleRoleLocal("User")}
 													className={style.modal_form_radio}
 												/>
 												User
@@ -809,21 +828,26 @@ const EditUserModal = ({
 											<>
 												<div className={style.modal_form_label}>Agency</div>
 												<select
-														id='agency'
-														onChange={onAgencyChange}
-														value={selectedAgency || ''}  // Ensure this is never null
-														className={`${style.modal_form_input}`}
+													id='agency'
+													onChange={(e) => handleAgencyLocal(e)}
+													value={selectedAgency || ''}
+													className={`${style.modal_form_input}`}
 												>
-														<option value="">None</option>
-														{agenciesArray.map((agency) => (
-																<option value={agency.id} key={agency.id}>
-																		{agency.name}
-																</option>
-														))}
+													<option value="">None</option>
+													{agenciesArray.map((agency) => (
+														<option value={agency.id} key={agency.id}>
+															{agency.name}
+														</option>
+													))}
 												</select>
 											</>
 										)}
 									</>
+								)}
+								{unsavedWarning && (
+									<div className='col-span-3 text-sm text-red-600 text-center'>
+										{unsavedWarning}
+									</div>
 								)}
 								{mobileFieldFormError && (
 									<div className='col-span-3 text-sm text-red-600 text-center'>
