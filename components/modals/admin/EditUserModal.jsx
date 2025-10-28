@@ -1,6 +1,8 @@
-import React, { Fragment, useEffect, useState } from "react"
+import React, { Fragment, useEffect, useMemo, useState } from "react"
 import { IoClose } from "react-icons/io5"
 import { Switch } from "@headlessui/react"
+import Select from "react-select"
+import { State, City } from "country-state-city"
 
 const EditUserModal = ({
 	userEditingUID,
@@ -68,6 +70,18 @@ const EditUserModal = ({
 	const [isEditingLocation, setIsEditingLocation] = useState(false)
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 	const [unsavedWarning, setUnsavedWarning] = useState('')
+	const [locationError, setLocationError] = useState('')
+	const [selectedStateOption, setSelectedStateOption] = useState(null)
+	const [selectedCityOption, setSelectedCityOption] = useState(null)
+
+	const stateOptions = useMemo(() => State.getStatesOfCountry('US'), [])
+	const cityOptions = useMemo(() => {
+		if (!selectedStateOption) return []
+		return City.getCitiesOfState(
+			selectedStateOption.countryCode,
+			selectedStateOption.isoCode,
+		)
+	}, [selectedStateOption])
 
 	const formatTimestampDraftValue = (fieldKey, rawValue) => {
 		if (typeof rawValue === 'string') {
@@ -169,10 +183,19 @@ const EditUserModal = ({
 	}
 
 	// Helper: update city map (preserve all existing keys like countryCode, latitude, longitude, stateCode)
-	const mergeCityMap = (prevCity, { name, stateCode }) => {
+	const mergeCityMap = (prevCity, { name, stateCode, countryCode, latitude, longitude }) => {
 		const base = (prevCity && typeof prevCity === 'object' && !Array.isArray(prevCity)) ? { ...prevCity } : {}
 		if (name != null && name !== '') base.name = name
 		if (stateCode != null && stateCode !== '') base.stateCode = stateCode
+		if (countryCode != null && countryCode !== '') base.countryCode = countryCode
+		if (latitude !== undefined) {
+			const lat = Number(latitude)
+			if (!Number.isNaN(lat)) base.latitude = lat
+		}
+		if (longitude !== undefined) {
+			const lng = Number(longitude)
+			if (!Number.isNaN(lng)) base.longitude = lng
+		}
 		return Object.keys(base).length ? base : null
 	}
 
@@ -196,6 +219,7 @@ const EditUserModal = ({
 		setUserEditModal(false)
 	}
 
+	// Sync dropdown selections with the user's existing location data
 	useEffect(() => {
 		const nextStructuredDrafts = {}
 		const nextTimestampDrafts = {}
@@ -227,18 +251,91 @@ const EditUserModal = ({
 	}, [mobileUserDetails, mobileUserFieldTypes])
 
 	useEffect(() => {
-		const { city, state } = normalizeCityState(
-			mobileUserDetails?.city ?? userEditing?.city,
-			mobileUserDetails?.state ?? userEditing?.state,
-		)
+		const sourceCity = mobileUserDetails?.city ?? userEditing?.city
+		const sourceState = mobileUserDetails?.state ?? userEditing?.state
+		const { city, state } = normalizeCityState(sourceCity, sourceState)
+
 		setCityDraft(city)
 		setStateDraft(state)
-	}, [mobileUserDetails, userEditing])
+
+		let nextStateOption = null
+
+		const tryFindState = (matcher) =>
+			stateOptions.find((option) => matcher(option)) || null
+
+		if (sourceState && typeof sourceState === 'object' && !Array.isArray(sourceState)) {
+			const isoCode = sourceState.isoCode || sourceState.code || sourceState.stateCode
+			if (isoCode) {
+				nextStateOption = tryFindState((option) => option.isoCode === isoCode)
+			}
+			if (!nextStateOption && sourceState.name) {
+				const target = String(sourceState.name).toLowerCase()
+				nextStateOption = tryFindState((option) => option.name.toLowerCase() === target)
+			}
+		}
+
+		if (!nextStateOption && state) {
+			const normalizedState = state.toLowerCase()
+			nextStateOption = tryFindState(
+				(option) =>
+					option.name.toLowerCase() === normalizedState ||
+					option.isoCode.toLowerCase() === normalizedState,
+			)
+		}
+
+		setSelectedStateOption(nextStateOption)
+
+		let nextCityOption = null
+		if (nextStateOption) {
+			const candidateCities = City.getCitiesOfState(
+				nextStateOption.countryCode,
+				nextStateOption.isoCode,
+			)
+			if (sourceCity && typeof sourceCity === 'object' && !Array.isArray(sourceCity)) {
+				if (sourceCity.name) {
+					const target = String(sourceCity.name).toLowerCase()
+					nextCityOption = candidateCities.find((cityOption) => {
+						const matchName = cityOption.name.toLowerCase() === target
+						const matchStateCode = sourceCity.stateCode
+							? cityOption.stateCode === sourceCity.stateCode
+							: true
+						return matchName && matchStateCode
+					})
+				}
+				if (!nextCityOption && sourceCity.latitude && sourceCity.longitude) {
+					const lat = Number(sourceCity.latitude)
+					const lng = Number(sourceCity.longitude)
+					if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+						nextCityOption = candidateCities.find(
+							(cityOption) =>
+								Number(cityOption.latitude) === lat &&
+								Number(cityOption.longitude) === lng,
+						)
+					}
+				}
+			}
+			if (!nextCityOption && city) {
+				const targetCity = city.toLowerCase()
+				nextCityOption = candidateCities.find(
+					(cityOption) => cityOption.name.toLowerCase() === targetCity,
+				)
+			}
+		}
+
+		setSelectedCityOption(nextCityOption)
+		setLocationError('')
+	}, [mobileUserDetails, userEditing, stateOptions])
 
 	const handleLocationSave = () => {
 		if (!isAdmin) return
-		const cityText = (cityDraft || '').trim()
-		const stateText = (stateDraft || '').trim()
+
+		if (!selectedStateOption || !selectedCityOption) {
+			setLocationError('Select both a state and a city.')
+			return
+		}
+
+		const cityText = selectedCityOption.name?.trim?.() || ''
+		const stateText = selectedStateOption.name?.trim?.() || ''
 
 		const cityType = mobileUserFieldTypes?.city?.type
 		const stateType = mobileUserFieldTypes?.state?.type
@@ -250,7 +347,19 @@ const EditUserModal = ({
 
 		if (cityType === 'object' || typeof prevCity === 'object') {
 			// Preferred schema: everything lives under the city map
-			nextCityValue = mergeCityMap(prevCity, { name: cityText, stateCode: stateText })
+			nextCityValue = mergeCityMap(prevCity, {
+				name: cityText,
+				stateCode: selectedCityOption.stateCode || selectedStateOption.isoCode,
+				countryCode: selectedCityOption.countryCode || selectedStateOption.countryCode,
+				latitude:
+					selectedCityOption.latitude != null
+						? Number(selectedCityOption.latitude)
+						: undefined,
+				longitude:
+					selectedCityOption.longitude != null
+						? Number(selectedCityOption.longitude)
+						: undefined,
+			})
 			commitMobileFieldChange('city', nextCityValue)
 		} else if (cityType === 'array') {
 			nextCityValue = cityText ? [cityText] : null
@@ -265,17 +374,21 @@ const EditUserModal = ({
 			let nextStateValue = stateText || null
 			if (stateType === 'object') {
 				const prevState = mobileUserDetails?.state
-				nextStateValue = upsertObjectValue(
-					prevState,
-					stateText,
-					['code', 'abbr', 'abbreviation', 'state', 'name', 'text', 'label', 'value'],
-					'code',
-				)
+				const statePayload = {
+					...(prevState && typeof prevState === 'object' && !Array.isArray(prevState)
+						? prevState
+						: {}),
+					name: selectedStateOption.name,
+					countryCode: selectedStateOption.countryCode,
+					isoCode: selectedStateOption.isoCode,
+				}
+				nextStateValue = statePayload
 			}
 			if (stateType === 'array' && stateText) nextStateValue = [stateText]
 			commitMobileFieldChange('state', nextStateValue)
 		}
 
+		setLocationError('')
 		setIsEditingLocation(false)
 	}
 
@@ -687,7 +800,10 @@ const EditUserModal = ({
 										<button
 											type='button'
 											className='text-blue-600 underline'
-											onClick={() => setIsEditingLocation((s) => !s)}
+											onClick={() => {
+												setIsEditingLocation((s) => !s)
+												setLocationError('')
+											}}
 										>
 											{isEditingLocation ? 'Cancel' : 'Change Location'}
 										</button>
@@ -701,25 +817,59 @@ const EditUserModal = ({
 									</div>
 								)}
 
-								<label htmlFor='city' className={style.modal_form_label}>City</label>
-								<input
-									id='city'
-									type='text'
-									className={style.modal_form_input}
-									value={cityDraft || ''}
-									onChange={(e) => { setCityDraft(e.target.value); setHasUnsavedChanges(true) }}
-									disabled={!isAdmin || !isEditingLocation}
-								/>
-
 								<label htmlFor='state' className={style.modal_form_label}>State</label>
-								<input
-									id='state'
-									type='text'
-									className={style.modal_form_input}
-									value={stateDraft || ''}
-									onChange={(e) => { setStateDraft(e.target.value); setHasUnsavedChanges(true) }}
-									disabled={!isAdmin || !isEditingLocation}
-								/>
+								<div className='col-span-2'>
+									<Select
+										inputId='state'
+										className='text-sm'
+										classNamePrefix='location-select'
+										isDisabled={!isAdmin || !isEditingLocation}
+										value={selectedStateOption}
+										onChange={(option) => {
+											setSelectedStateOption(option || null)
+											setSelectedCityOption(null)
+											setStateDraft(option?.name || '')
+											setCityDraft('')
+											setHasUnsavedChanges(true)
+											setLocationError('')
+										}}
+										options={stateOptions}
+										getOptionLabel={(option) => option.name}
+										getOptionValue={(option) => option.isoCode}
+										placeholder='Select a state'
+									/>
+								</div>
+
+								<label htmlFor='city' className={style.modal_form_label}>City</label>
+								<div className='col-span-2'>
+									<Select
+										inputId='city'
+										className='text-sm'
+										classNamePrefix='location-select'
+										isDisabled={
+											!isAdmin || !isEditingLocation || !selectedStateOption
+										}
+										value={selectedCityOption}
+										onChange={(option) => {
+											setSelectedCityOption(option || null)
+											setCityDraft(option?.name || '')
+											setHasUnsavedChanges(true)
+											setLocationError('')
+										}}
+										options={cityOptions}
+										getOptionLabel={(option) => option.name}
+										getOptionValue={(option) =>
+											`${option.name}-${option.stateCode}-${option.latitude}-${option.longitude}`
+										}
+										placeholder={
+											selectedStateOption ? 'Select a city' : 'Select a state first'
+										}
+									/>
+								</div>
+
+								{locationError && (
+									<div className='col-span-3 text-sm text-red-600'>{locationError}</div>
+								)}
 
 								{/* Save location */}
 								{isAdmin && isEditingLocation && (
