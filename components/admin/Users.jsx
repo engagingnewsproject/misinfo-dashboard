@@ -43,6 +43,8 @@ import {
 	where,
 	addDoc,
 	arrayUnion,
+	Timestamp,
+	GeoPoint,
 } from 'firebase/firestore'
 import { db, auth } from '../../config/firebase'
 import { Tooltip } from 'react-tooltip'
@@ -122,6 +124,183 @@ const sortByJoinedDate = (users) => {
     return users.sort((a, b) => new Date(b.joined) - new Date(a.joined));
 };
 
+const describeFirestoreField = (fieldValue) => {
+	if (fieldValue === undefined) {
+		return { value: null, type: 'null', originalValue: null }
+	}
+	if (fieldValue instanceof Timestamp) {
+		return {
+			value: fieldValue.toDate().toISOString(),
+			type: 'timestamp',
+			originalValue: fieldValue,
+		}
+	}
+	if (fieldValue instanceof GeoPoint) {
+		return {
+			value: {
+				latitude: fieldValue.latitude,
+				longitude: fieldValue.longitude,
+			},
+			type: 'geopoint',
+			originalValue: fieldValue,
+		}
+	}
+	if (Array.isArray(fieldValue)) {
+		return {
+			value: fieldValue,
+			type: 'array',
+			originalValue: fieldValue,
+		}
+	}
+	if (fieldValue === null) {
+		return { value: null, type: 'null', originalValue: null }
+	}
+	const primitiveType = typeof fieldValue
+	if (primitiveType === 'object') {
+		return {
+			value: fieldValue,
+			type: 'object',
+			originalValue: fieldValue,
+		}
+	}
+	return {
+		value: fieldValue,
+		type: primitiveType,
+		originalValue: fieldValue,
+	}
+}
+
+const serializeFieldForFirestore = (fieldName, value, metadata) => {
+	const fieldType = metadata?.type ?? typeof value
+
+	switch (fieldType) {
+		case 'number': {
+			if (value === '' || value === null) {
+				return null
+			}
+			const numericValue = Number(value)
+			if (Number.isNaN(numericValue)) {
+				throw new Error(`Field "${fieldName}" must be a number.`)
+			}
+			return numericValue
+		}
+		case 'boolean': {
+			if (typeof value === 'boolean') {
+				return value
+			}
+			if (value === '' || value === null) {
+				return false
+			}
+			if (typeof value === 'string') {
+				const normalized = value.trim().toLowerCase()
+				if (normalized === 'true') {
+					return true
+				}
+				if (normalized === 'false') {
+					return false
+				}
+			}
+			return Boolean(value)
+		}
+		case 'timestamp': {
+			if (value === '' || value === null) {
+				return null
+			}
+			if (value instanceof Timestamp) {
+				return value
+			}
+			if (typeof value === 'string') {
+				const parsedDate = new Date(value)
+				if (Number.isNaN(parsedDate.getTime())) {
+					throw new Error(
+						`Field "${fieldName}" must be a valid ISO date string (received "${value}").`,
+					)
+				}
+				return Timestamp.fromDate(parsedDate)
+			}
+			if (value && typeof value === 'object') {
+				const seconds = Number(value.seconds)
+				const nanoseconds = Number(value.nanoseconds ?? 0)
+				if (Number.isNaN(seconds) || Number.isNaN(nanoseconds)) {
+					throw new Error(
+						`Field "${fieldName}" timestamp JSON must include numeric seconds and nanoseconds.`,
+					)
+				}
+				return new Timestamp(seconds, nanoseconds)
+			}
+			throw new Error(`Unsupported value provided for timestamp field "${fieldName}".`)
+		}
+		case 'geopoint': {
+			if (!value) {
+				return null
+			}
+			const latitude = Number(value.latitude)
+			const longitude = Number(value.longitude)
+			if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+				throw new Error(
+					`Field "${fieldName}" requires numeric latitude and longitude values.`,
+				)
+			}
+			return new GeoPoint(latitude, longitude)
+		}
+		case 'array': {
+			if (value == null) {
+				return null
+			}
+			if (Array.isArray(value)) {
+				return value
+			}
+			if (typeof value === 'string') {
+				try {
+					const parsed = JSON.parse(value)
+					if (!Array.isArray(parsed)) {
+						throw new Error()
+					}
+					return parsed
+				} catch (error) {
+					throw new Error(
+						`Field "${fieldName}" must be a JSON array when provided as text.`,
+					)
+				}
+			}
+			throw new Error(`Unsupported value provided for array field "${fieldName}".`)
+		}
+		case 'object': {
+			if (value == null) {
+				return null
+			}
+			if (typeof value === 'object' && !Array.isArray(value)) {
+				return value
+			}
+			if (typeof value === 'string') {
+				try {
+					const parsed = JSON.parse(value)
+					if (parsed === null || Array.isArray(parsed)) {
+						throw new Error()
+					}
+					return parsed
+				} catch (error) {
+					throw new Error(
+						`Field "${fieldName}" must be valid JSON representing an object.`,
+					)
+				}
+			}
+			throw new Error(`Unsupported value provided for object field "${fieldName}".`)
+		}
+		case 'null': {
+			return null
+		}
+		case 'string': {
+			if (value == null) {
+				return ''
+			}
+			return String(value)
+		}
+		default:
+			return value
+	}
+}
+
 /**
  * Users Component - Comprehensive user management interface
  * 
@@ -177,6 +356,9 @@ const Users = () => {
 	const [userEditModal, setUserEditModal] = useState(null) // User edit modal state
 	const [userId, setUserId] = useState(null) // Current user ID being edited
 	const [update, setUpdate] = useState('') // Trigger for data refresh
+	const [mobileUserDetails, setMobileUserDetails] = useState({}) // Additional Firestore fields for the user
+	const [mobileUserFieldTypes, setMobileUserFieldTypes] = useState({}) // Track original field types for serialization
+	const [mobileFieldFormError, setMobileFieldFormError] = useState('') // Validation error surfaced by additional field edits
 	
 	// New user creation state
 	const [newUserModal, setNewUserModal] = useState(false) // New user modal state
@@ -559,10 +741,43 @@ const Users = () => {
 		setUserId(userId)
 		const userRef = await getDoc(doc(db, 'mobileUsers', userId))
 		setUserEditing(userObj)
-		setUserEditModal(true)
+		toggleUserEditModal(true)
+
+		const firestoreData = userRef.data() || {}
+		const {
+			name: fetchedName = '',
+			email: fetchedEmail = userObj?.email ?? '',
+			isBanned: fetchedIsBanned = false,
+			userRole: fetchedUserRole = userObj?.userRole ?? 'User',
+			...remainingFields
+		} = firestoreData
+
+		const { details: additionalDetails, metadata: additionalMetadata } = Object.entries(
+			remainingFields,
+		).reduce(
+			(acc, [key, value]) => {
+				const description = describeFirestoreField(value)
+				acc.details[key] = description.value
+				acc.metadata[key] = {
+					type: description.type,
+					originalValue: description.originalValue,
+				}
+				return acc
+			},
+			{ details: {}, metadata: {} },
+		)
+
+		setMobileUserDetails(additionalDetails)
+		setMobileUserFieldTypes(additionalMetadata)
+		setMobileFieldFormError('')
+
+		setName(fetchedName)
+		setEmail(fetchedEmail)
+		setBanned(fetchedIsBanned)
+		setUserRole(fetchedUserRole)
 
 		// Retrieve the email from the `mobileUsers` document and convert it to lowercase
-		const email = userRef.data().email.toLowerCase()
+		const email = fetchedEmail.toLowerCase()
 
 		// Query all agencies and find the one where the email matches case-insensitively
 		const agenciesSnapshot = await getDocs(collection(db, 'agency'))
@@ -591,10 +806,33 @@ const Users = () => {
 		}
 
 		// setSelectedAgency(userAgency || '')
-		setName(userRef.data()['name'] ?? '')
-		setEmail(userRef.data()['email'])
-		setBanned(userRef.data()['isBanned'] ?? false)
-		setUserRole(userRef.data()['userRole'] ?? 'User')
+		if (!firestoreData?.email) {
+			setEmail(userObj?.email ?? '')
+		}
+}
+
+	/**
+	 * Handles changes to dynamic Firestore-backed user fields surfaced in the modal.
+	 *
+	 * Maintains a controlled object map of additional mobileUsers document fields so
+	 * they can be reviewed and edited before persisting.
+	 *
+	 * @param {string} field - Firestore field name being updated
+	 * @param {*} value - New value for the field
+	 */
+	const handleMobileUserFieldChange = (field, value) => {
+		setMobileFieldFormError('')
+		setMobileUserDetails((prev) => ({
+			...prev,
+			[field]: value,
+		}))
+	}
+
+	const toggleUserEditModal = (isOpen) => {
+		if (!isOpen) {
+			setMobileFieldFormError('')
+		}
+		setUserEditModal(isOpen)
 	}
 
 	/**
@@ -788,13 +1026,40 @@ const Users = () => {
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
 		const docRef = doc(db, 'mobileUsers', userId)
-		// add user email to agency agencyUsers doc
-		await updateDoc(docRef, {
-			name: name,
-			email: email,
-			isBanned: banned,
-			userRole: userRole,
-		})
+
+		let serializedAdditionalFields = {}
+		try {
+			serializedAdditionalFields = Object.fromEntries(
+				Object.entries(mobileUserDetails).map(([key, value]) => {
+					const metadata = mobileUserFieldTypes[key]
+					const serializedValue = serializeFieldForFirestore(key, value, metadata)
+					return [key, serializedValue]
+				}),
+			)
+		} catch (error) {
+			console.error('Failed to serialize additional user fields:', error)
+			setMobileFieldFormError(
+				error.message || 'Unable to save changes. Please verify all additional field values.',
+			)
+			return
+		}
+
+		try {
+			await updateDoc(docRef, {
+				...serializedAdditionalFields,
+				name: name,
+				email: email,
+				isBanned: banned,
+				userRole: userRole,
+			})
+		} catch (error) {
+			console.error('Failed to update user document:', error)
+			setMobileFieldFormError(
+				error.message || 'An error occurred while saving user changes.',
+			)
+			return
+		}
+		setMobileFieldFormError('')
 		console.log('Selected Agency ID:', selectedAgency) // Debug: Check the selected agency ID
 		// Check if the user's role has been modified
 		if (userRole !== userEditing.userRole) {
@@ -832,22 +1097,22 @@ const Users = () => {
 
 		// Update the loadedMobileUsers state after successful update
 		setLoadedMobileUsers((prevUsers) =>
-			prevUsers.map((userObj) =>
-				userObj.id === userId
-					? {
-							id: userId,
-							data: {
-								...userObj.data,
-								name: name,
-								email: email,
-								isBanned: banned,
-								userRole: userRole,
-							},
-						}
-					: userObj,
-			),
+			prevUsers.map((userObj) => {
+				const identifier = userObj?.uid || userObj?.mobileUserId || userObj?.id
+				if (identifier !== userId) {
+					return userObj
+				}
+				return {
+					...userObj,
+					...serializedAdditionalFields,
+					name: name,
+					email: email,
+					isBanned: banned,
+					userRole: userRole,
+				}
+			}),
 		)
-		setUserEditModal(false)
+		toggleUserEditModal(false)
 		setUpdate(!update)
 	}
 
@@ -1047,13 +1312,17 @@ const Users = () => {
 			{/* User editing modal */}
 			{userEditModal && (
 				<EditUserModal
+					mobileUserDetails={mobileUserDetails}
+					onMobileFieldChange={handleMobileUserFieldChange}
+					mobileUserFieldTypes={mobileUserFieldTypes}
+					mobileFieldFormError={mobileFieldFormError}
 					// User
 					userId={userId}
 					userEditing={userEditing}
 					// Claims
 					customClaims={customClaims}
 					// Modal
-					setUserEditModal={setUserEditModal}
+					setUserEditModal={toggleUserEditModal}
 					// Name
 					name={name}
 					onNameChange={handleNameChange}
