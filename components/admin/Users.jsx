@@ -1,6 +1,6 @@
 /**
  * @fileoverview Users Management Component - Comprehensive user administration interface
- * 
+ *
  * This component provides a complete user management interface for administrators
  * to view, edit, and manage users across the misinformation dashboard. Key features include:
  * - User listing with infinite scroll and real-time data
@@ -13,23 +13,29 @@
  * - Real-time data fetching from Firebase Auth and Firestore
  * - Role-based UI rendering (admin vs agency views)
  * - Data validation and error handling
- * 
+ *
  * The component integrates with multiple modals for different operations:
  * - EditUserModal: Edit existing users
  * - NewUserModal: Create new users
  * - ConfirmModal: Delete confirmation
- * 
+ *
  * Role-based functionality:
  * - Admins: Full access to all users, can edit roles, assign agencies, delete users
  * - Agency users: Limited view of users within their agency
  * - Real-time updates when user data changes
- * 
+ *
  * @author Misinformation Dashboard Team
  * @version 1.0.0
  * @since 2024
  */
 
-import React, { useState, useEffect, useContext } from 'react'
+import React, {
+	useState,
+	useEffect,
+	useContext,
+	useMemo,
+	useCallback,
+} from 'react'
 import { useAuth } from '../../context/AuthContext'
 import {
 	collection,
@@ -53,6 +59,8 @@ import EditUserModal from '../modals/admin/EditUserModal'
 import NewUserModal from '../modals/admin/NewUserModal'
 import { FaPlus } from 'react-icons/fa'
 import globalStyles from '../../styles/globalStyles'
+import { useUsersPagination } from '../../hooks/useUsersPagination'
+import { searchUsers } from '../../utils/firebase-helpers'
 
 const dateOptions = {
 	day: '2-digit',
@@ -88,7 +96,7 @@ const style = {
  * This function determines the user's join date by checking the `joiningDate` field in the Firestore
  * user document (`firestoreUser`). If the `joiningDate` is present, it is converted to a human-readable
  * format. If the `joiningDate` is not available, the function falls back to using the `creationTime`
- * from the user's Firebase Auth metadata (`authUser`). If neither source provides a date, it returns 
+ * from the user's Firebase Auth metadata (`authUser`). If neither source provides a date, it returns
  * a default message indicating that no date is available.
  *
  * @param {Object} firestoreUser - The Firestore document data for the user, containing a possible `joiningDate` field.
@@ -96,17 +104,23 @@ const style = {
  * @returns {string} The user's join date formatted as a human-readable string, or 'No Date' if unavailable.
  */
 const getJoinedDate = (firestoreUser, authUser) => {
-    if (firestoreUser && firestoreUser.joiningDate) {
-        // If Firestore user data exists and has a 'joiningDate', use it
-        return new Date(firestoreUser.joiningDate * 1000).toLocaleString('en-US', dateOptions);
-    } else if (authUser) {
-        // Otherwise, use 'metadata.creationTime' from the Auth user
-        return new Date(authUser.metadata.creationTime).toLocaleString('en-US', dateOptions);
-    } else {
-        // Fallback if neither is available
-        return 'No Date';
-    }
-};
+	if (firestoreUser && firestoreUser.joiningDate) {
+		// If Firestore user data exists and has a 'joiningDate', use it
+		return new Date(firestoreUser.joiningDate * 1000).toLocaleString(
+			'en-US',
+			dateOptions,
+		)
+	} else if (authUser) {
+		// Otherwise, use 'metadata.creationTime' from the Auth user
+		return new Date(authUser.metadata.creationTime).toLocaleString(
+			'en-US',
+			dateOptions,
+		)
+	} else {
+		// Fallback if neither is available
+		return 'No Date'
+	}
+}
 
 /**
  * Sorts an array of users by their join date in descending order.
@@ -119,16 +133,16 @@ const getJoinedDate = (firestoreUser, authUser) => {
  * @returns {Array<Object>} The sorted array of users, with the most recently joined users first.
  */
 const sortByJoinedDate = (users) => {
-    return users.sort((a, b) => new Date(b.joined) - new Date(a.joined));
-};
+	return users.sort((a, b) => new Date(b.joined) - new Date(a.joined))
+}
 
 /**
  * Users Component - Comprehensive user management interface
- * 
+ *
  * This component provides a complete user administration interface with role-based
  * access control. It handles user listing, editing, creation, and deletion with
  * real-time data synchronization between Firebase Auth and Firestore.
- * 
+ *
  * Key functionality:
  * - Display users in a table with infinite scroll
  * - Role-based UI rendering (admin vs agency views)
@@ -138,11 +152,11 @@ const sortByJoinedDate = (users) => {
  * - Agency association management
  * - Real-time data updates
  * - User status tracking (banned, disabled)
- * 
+ *
  * Role-based access:
  * - Admins: Full access to all users and operations
  * - Agency users: Limited view of users within their agency
- * 
+ *
  * @returns {JSX.Element} The Users management component
  */
 const Users = () => {
@@ -160,14 +174,13 @@ const Users = () => {
 
 	// User data management state
 	const [userRole, setUserRole] = useState('') // Current user's role being edited
-	const [loadedMobileUsers, setLoadedMobileUsers] = useState([]) // List of all users
-	const [isLoading, setIsLoading] = useState(false) // Loading state for data fetching
-	const [endIndex, setEndIndex] = useState(0) // Pagination index for infinite scroll
+	const [searchTerm, setSearchTerm] = useState('') // Search term for filtering users
+	const [roleFilter, setRoleFilter] = useState('all') // Role filter for users
 	const [deleteModal, setDeleteModal] = useState(false) // Delete confirmation modal
 	const [userEditing, setUserEditing] = useState([]) // User data being edited
 	const [name, setName] = useState('') // User name being edited
 	const [email, setEmail] = useState('') // User email being edited
-	
+
 	// Agency management state
 	const [agencyName, setAgencyName] = useState('') // Agency name for user
 	const [agencyId, setAgencyId] = useState('') // Agency ID for user
@@ -177,12 +190,48 @@ const Users = () => {
 	const [userEditModal, setUserEditModal] = useState(null) // User edit modal state
 	const [userId, setUserId] = useState(null) // Current user ID being edited
 	const [update, setUpdate] = useState('') // Trigger for data refresh
-	
+
 	// New user creation state
 	const [newUserModal, setNewUserModal] = useState(false) // New user modal state
 	const [data, setData] = useState({ email: '' }) // New user data
 	const [newUserEmail, setNewUserEmail] = useState('') // New user email
 	const [errors, setErrors] = useState({}) // Form validation errors
+
+	// State for agency-specific user management
+	const [agencyUsers, setAgencyUsers] = useState([]) // Users filtered by agency
+	const [agencyLoading, setAgencyLoading] = useState(false) // Loading state for agency users
+
+	// Initialize pagination hook for fetching users in batches
+	// For Admin users: fetches all users with pagination
+	// For Agency users: we'll handle filtering separately due to complex agency logic
+	const {
+		users: paginatedUsers,
+		loading: isLoading,
+		initialLoading,
+		error: paginationError,
+		hasMore,
+		loadMore,
+		reset: resetPagination,
+		refresh: refreshUsers,
+	} = useUsersPagination({
+		pageSize: 50,
+		userRole: roleFilter !== 'all' ? roleFilter : null,
+		autoLoad: false, // We'll manually trigger loading after setup
+		orderField: 'joiningDate',
+		orderDirection: 'desc',
+	})
+
+	// Processed users: combines pagination data with auth details and applies search
+	const loadedMobileUsers = useMemo(() => {
+		const baseUsers = customClaims?.agency ? agencyUsers : paginatedUsers
+
+		// Apply search filter if search term exists
+		if (searchTerm && searchTerm.trim()) {
+			return searchUsers(baseUsers, searchTerm)
+		}
+
+		return baseUsers
+	}, [paginatedUsers, agencyUsers, searchTerm, customClaims])
 
 	/**
 	 * Fetches all agency documents from the Firestore 'agency' collection
@@ -283,22 +332,22 @@ const Users = () => {
 	}
 
 	/**
-	 * Asynchronous function to fetch and process user data from Firestore and Firebase Auth.
+	 * Asynchronous function to fetch and process user data with pagination.
 	 *
 	 * This function is responsible for retrieving a list of users, either from Firestore's `mobileUsers`
 	 * collection or from Firebase Auth, depending on the user's role (Agency or Admin). It processes
-	 * and combines the user data, including additional fields like `joined` and `disabled`, and sets
-	 * the processed data into the component's state.
+	 * and combines the user data, including additional fields like `joined` and `disabled`.
 	 *
 	 * For Agency users:
 	 * - Fetches users from Firestore's `mobileUsers` collection.
 	 * - Filters users by the agency associated with the logged-in user's email.
 	 * - Sets the filtered and sorted list of users into the component's state.
+	 * - Note: Agency users still load all their users at once due to complex filtering requirements
 	 *
 	 * For Admin users:
-	 * - Fetches users from both Firebase Auth and Firestore's `mobileUsers` collection.
-	 * - Combines and processes data from both sources.
-	 * - Sets the combined and sorted list of users into the component's state.
+	 * - Uses pagination hook to fetch users in batches (50 at a time)
+	 * - Enhances paginated data with Firebase Auth details
+	 * - Combines data from both sources for complete user information
 	 *
 	 * @async
 	 * @function
@@ -307,15 +356,17 @@ const Users = () => {
 	 * @throws Will log an error to the console if the data fetching or processing fails.
 	 */
 	const getData = async () => {
-		setIsLoading(true)
 		try {
-			// Pull firestore `mobileUsers` list of users
-			const mobileUsersQuerySnapshot = await getDocs(
-				collection(db, 'mobileUsers'),
-			)
-
 			if (customClaims.agency) {
 				// Agency user is viewing Users table
+				// Note: Agency logic is complex due to cross-collection filtering
+				// For now, we still load all agency users at once
+				setAgencyLoading(true)
+
+				// Pull firestore `mobileUsers` list of users
+				const mobileUsersQuerySnapshot = await getDocs(
+					collection(db, 'mobileUsers'),
+				)
 
 				const mobileUsersArr = await Promise.all(
 					mobileUsersQuerySnapshot.docs.map(async (doc) => {
@@ -329,48 +380,76 @@ const Users = () => {
 					}),
 				)
 
-				// Here you need to await the filterUsersByAgency because it's async
+				// Filter users by agency
 				const filteredUsers = await filterUsersByAgency(
 					mobileUsersArr,
 					user.email,
 				)
 
 				// Ensure filteredUsers is always an array
-				setLoadedMobileUsers(sortByJoinedDate(filteredUsers) || [])
-				// Admin only
+				setAgencyUsers(sortByJoinedDate(filteredUsers) || [])
+				setAgencyLoading(false)
 			} else {
-				const result = await authGetUserList() // Call the function from context
-				// Pull auth list of users
-				const usersFromAuth = result.data.users
-				const mobileUsersMap = new Map()
-				mobileUsersQuerySnapshot.forEach((doc) => {
-					const userData = doc.data() // mobileUsers data
-					userData.mobileUserId = doc.id // mobileUsers doc id
-					mobileUsersMap.set(doc.id, userData) // mobileUsers map list
-				})
-
-				// Combine data from Auth and Firestore
-				const combinedUsers = usersFromAuth.map((authUser) => {
-					const firestoreUser = mobileUsersMap.get(authUser.uid) // auth user data
-					return {
-						...authUser,
-						...firestoreUser,
-						hasFirestoreDoc: !!firestoreUser,
-						// Use metadata.creationTime for the joined date
-						joined: getJoinedDate(firestoreUser, authUser),
-					}
-				})
-				// TODO: get each users agency name
-				//
-				// Sort users by the 'joined' date
-				setLoadedMobileUsers(sortByJoinedDate(combinedUsers)) // array combination of mobileUsers doc and auth user info
+				// Admin user - use pagination hook
+				// The pagination hook will handle the initial load
+				// We just need to trigger it
+				loadMore()
 			}
 		} catch (error) {
 			console.error('Failed to fetch or process user data:', error)
-		} finally {
-			setIsLoading(false)
+			setAgencyLoading(false)
 		}
 	}
+
+	/**
+	 * Enhances paginated users with Firebase Auth details for Admin users
+	 * This is called after pagination data is loaded to add auth-specific information
+	 */
+	const enhanceWithAuthDetails = useCallback(
+		async (users) => {
+			if (!customClaims.admin || users.length === 0) {
+				return users
+			}
+
+			try {
+				// Get auth details for all users at once
+				// Note: This is an optimization opportunity - could be done in batches
+				const result = await authGetUserList()
+				const usersFromAuth = result.data.users
+
+				// Create a map of auth users by UID for quick lookup
+				const authUsersMap = new Map()
+				usersFromAuth.forEach((authUser) => {
+					authUsersMap.set(authUser.uid, authUser)
+				})
+
+				// Enhance paginated users with auth details
+				return users.map((firestoreUser) => {
+					const authUser = authUsersMap.get(firestoreUser.id)
+					if (authUser) {
+						return {
+							...authUser,
+							...firestoreUser,
+							hasFirestoreDoc: true,
+							joined: getJoinedDate(firestoreUser, authUser),
+							mobileUserId: firestoreUser.id,
+						}
+					}
+					// User exists in Firestore but not in Auth
+					return {
+						...firestoreUser,
+						hasFirestoreDoc: true,
+						joined: getJoinedDate(firestoreUser, null),
+						mobileUserId: firestoreUser.id,
+					}
+				})
+			} catch (error) {
+				console.error('Failed to enhance users with auth details:', error)
+				return users
+			}
+		},
+		[customClaims, authGetUserList],
+	)
 
 	/**
 	 * Handles the event when the "Add New User" button is clicked, opening the modal to add a new user.
@@ -541,6 +620,7 @@ const Users = () => {
 		const docRef = doc(db, 'mobileUsers', userId)
 		await deleteDoc(docRef)
 		setDeleteModal(false)
+		setUpdate(!update) // Trigger data refresh after deletion
 	}
 
 	/**
@@ -830,25 +910,9 @@ const Users = () => {
 			}
 		}
 
-		// Update the loadedMobileUsers state after successful update
-		setLoadedMobileUsers((prevUsers) =>
-			prevUsers.map((userObj) =>
-				userObj.id === userId
-					? {
-							id: userId,
-							data: {
-								...userObj.data,
-								name: name,
-								email: email,
-								isBanned: banned,
-								userRole: userRole,
-							},
-						}
-					: userObj,
-			),
-		)
+		// Close modal and trigger data refresh
 		setUserEditModal(false)
-		setUpdate(!update)
+		setUpdate(!update) // This will trigger getData() via useEffect, refreshing the user list
 	}
 
 	/**
@@ -878,12 +942,26 @@ const Users = () => {
 						)}
 					</div>
 					<div className={style.section_filtersWrap}>
+						<input
+							type="text"
+							placeholder="Search users by name or email..."
+							value={searchTerm}
+							onChange={(e) => setSearchTerm(e.target.value)}
+							className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm mr-2"
+						/>
 						<button className={style.button} onClick={handleAddNewUserModal}>
 							<FaPlus className="text-blue-600 mr-2" size={12} />
 							Add User
 						</button>
 					</div>
 				</div>
+				{/* Error message for pagination issues */}
+				{paginationError && (
+					<div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm mb-2 text-red-700">
+						<div className="font-bold">Error:</div>
+						<div>{paginationError}</div>
+					</div>
+				)}
 				{/* Data status legend for admins - shows data consistency issues */}
 				{!customClaims.agency && (
 					<div className="flex items-center gap-2 p-2 bg-white rounded-lg text-xs mb-2">
@@ -902,9 +980,14 @@ const Users = () => {
 					<div className="flex flex-col h-full">
 						<InfiniteScroll
 							className="overflow-x-auto"
-							dataLength={endIndex}
-							inverse={false}
-							scrollableTarget="scrollableDiv">
+							dataLength={loadedMobileUsers.length}
+							next={loadMore}
+							hasMore={hasMore && !customClaims.agency}
+							loader={
+								<div className="text-center py-4">
+									<span className="text-gray-500">Loading more users...</span>
+								</div>
+							}>
 							<table className="min-w-full bg-white rounded-xl p-1">
 								<thead className="border-b dark:border-indigo-100 bg-slate-100">
 									<tr>
@@ -945,11 +1028,21 @@ const Users = () => {
 								</thead>
 								<tbody>
 									{/* Loading state - shows spinner while fetching user data */}
-									{isLoading ? (
+									{initialLoading ||
+									(isLoading && loadedMobileUsers.length === 0) ||
+									agencyLoading ? (
 										<tr>
 											<td colSpan="100%" className="text-center">
 												<div className="flex justify-center items-center h-32">
 													Loading...
+												</div>
+											</td>
+										</tr>
+									) : loadedMobileUsers.length === 0 ? (
+										<tr>
+											<td colSpan="100%" className="text-center">
+												<div className="flex justify-center items-center h-32">
+													No users found
 												</div>
 											</td>
 										</tr>
