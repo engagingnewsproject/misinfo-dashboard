@@ -202,7 +202,7 @@ _The `dev` branch is the branch that contains the dev live site code._
 
     `git push origin dev`
 
-4.  Open the [Netlify UI for the dev site](https://app.netlify.com/sites/dev-misinfo-dashboard/deploys) and monitor the progress. Make sure the top bar has `dev-misinfo-dashboard` active. On the left sidebar navigate to the "Deploys" link. Your latest push will be listed at the top.
+4.  Open the [Netlify UI for the dev site](https://app.netlify.com/projects/dev-truthsleuthlocal/deploys) and monitor the progress. Make sure the top bar has `dev-truthsleuthlocal` active. On the left sidebar navigate to the "Deploys" link. Your latest push will be listed at the top.
 
 #### Deploy to prod
 Link: https://misinfo-dashboard.netlify.app/
