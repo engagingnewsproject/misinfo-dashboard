@@ -258,17 +258,25 @@ exports.addAdminRole = functions.https.onCall((data, context) => {
  */
 exports.addAgencyRole = functions.https.onCall(
     (data, context) => {
+      // Validate email input before attempting to update auth
+      const email = typeof data?.email === "string" ? data.email.trim() : "";
+      if (!email) {
+        log("addAgencyRole skipped: email not provided");
+        return {
+          message: "No email provided. Skipping agency role assignment.",
+        };
+      }
+
       // get user and add custom claim to user
-      return admin.auth().getUserByEmail(data.email).then((user) => {
+      return admin.auth().getUserByEmail(email).then((user) => {
         // Once user object is retrieved, updates custom claim
         return admin.auth().setCustomUserClaims(user.uid, {agency: true});
 
         // callback for frontend if success
-      }).then((result) => {
-        console.log(result.data.message); // Display the message in the console
+      }).then(() => {
         return {
-          message: `Success! ${data.email} has been made an agency admin`
-        }
+          message: `Success! ${email} has been made an agency admin`,
+        };
 
         // callback if there is an error
       }).catch((err) => {
