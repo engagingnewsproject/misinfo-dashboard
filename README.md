@@ -184,7 +184,7 @@ Links: [Chrome React Developer Tools](https://chrome.google.com/webstore/detail/
 ## Deploy to Netlify
 
 #### Deploy to dev
-Link: https://dev-misinfo-dashboard.netlify.app/
+Link: https://dev-truthsleuthlocal.netlify.app/
 
 To push all changes to the dev site on Netlify using the [Engaging News Project's misinfo-dashboard](https://github.com/engagingnewsproject/misinfo-dashboard) repo's `dev` branch.
 
