@@ -4,6 +4,7 @@
  * This component provides an interface for viewing, responding to, and deleting user help requests.
  * Features include:
  * - Fetching and displaying help requests from Firestore
+ * - Searching and filtering help requests by email, subject, message, or user ID
  * - Viewing detailed help request information in a modal
  * - Deleting help requests with confirmation
  * - Generating mailto links for direct email responses
@@ -29,7 +30,7 @@ import {
 	Timestamp,
 } from 'firebase/firestore'
 import { db } from '../../config/firebase'
-import { IoTrash } from 'react-icons/io5'
+import { IoTrash, IoClose } from 'react-icons/io5'
 import { Tooltip } from 'react-tooltip'
 import HelpRequestsModal from '../modals/HelpRequestsModal'
 import Link from 'next/link'
@@ -68,6 +69,38 @@ const HelpRequests = () => {
 	const [showHelpRequestModal, setShowHelpRequestModal] = useState(false)
 	const [selectedHelpRequest, setSelectedHelpRequest] = useState(null)
 	const [loading, setLoading] = useState(true)
+	const [searchTerm, setSearchTerm] = useState('')
+
+	/**
+	 * Filters help requests based on search term.
+	 * Searches across email, subject, message, and userID fields.
+	 * Case-insensitive substring matching.
+	 *
+	 * @returns {Array} Filtered array of help requests
+	 */
+	const getFilteredHelpRequests = () => {
+		if (!searchTerm || searchTerm.trim() === '') {
+			return helpRequests
+		}
+
+		const lowerSearch = searchTerm.toLowerCase().trim()
+
+		return helpRequests.filter((request) => {
+			const email = request.email?.toLowerCase() || ''
+			const subject = request.subject?.toLowerCase() || ''
+			const message = request.message?.toLowerCase() || ''
+			const userID = request.userID?.toLowerCase() || ''
+
+			return (
+				email.includes(lowerSearch) ||
+				subject.includes(lowerSearch) ||
+				message.includes(lowerSearch) ||
+				userID.includes(lowerSearch)
+			)
+		})
+	}
+
+	const filteredHelpRequests = getFilteredHelpRequests()
 
 	/**
 	 * Fetches help requests from Firestore and updates the state.
@@ -175,7 +208,32 @@ const HelpRequests = () => {
 				<div className={style.section_wrapper}>
 					<div className={style.section_header}>
 						<div className={style.section_title}>Help Requests</div>
+						<div className={style.section_filtersWrap}>
+							<div className="relative">
+								<input
+									type="text"
+									placeholder="Search help requests..."
+									value={searchTerm}
+									onChange={(e) => setSearchTerm(e.target.value)}
+									className="px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+								/>
+								{searchTerm && (
+									<button
+										onClick={() => setSearchTerm('')}
+										className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+										aria-label="Clear search">
+										<IoClose size={18} />
+									</button>
+								)}
+							</div>
+						</div>
 					</div>
+					{searchTerm && (
+						<div className="text-sm text-gray-600 mb-2 ml-10 md:ml-0">
+							Showing {filteredHelpRequests.length} of {helpRequests.length}{' '}
+							help requests
+						</div>
+					)}
 					<table className={style.table_main}>
 						<thead className={style.table_thead}>
 							<tr>
@@ -197,16 +255,18 @@ const HelpRequests = () => {
 								</tr>
 							)}
 
-							{!loading && helpRequests.length == 0 && (
+							{!loading && filteredHelpRequests.length == 0 && (
 								<tr>
 									<td colSpan="5" className={`${style.table_td} text-center`}>
-										No help requests found
+										{searchTerm
+											? `No help requests found matching "${searchTerm}"`
+											: 'No help requests found'}
 									</td>
 								</tr>
 							)}
 
-							{helpRequests.length > 0 &&
-								helpRequests
+							{filteredHelpRequests.length > 0 &&
+								filteredHelpRequests
 									.sort(
 										(a, b) => new Date(b.createdDate) - new Date(a.createdDate),
 									)
