@@ -75,7 +75,8 @@ const ReportsSection = ({
 	const [isDataFetched, setIsDataFetched] = useState(false)
 	const [reportWeek, setReportWeek] = useState('4')
 	const [readFilter, setReadFilter] = useState('all')
-	const [reporterFilter, setReporterFilter] = useState('all') // 'all' | 'mine'
+	const [agencyFilter, setAgencyFilter] = useState('all') // 'all' or agency name
+	const [agencies, setAgencies] = useState([])
 	const [typeFilter, setTypeFilter] = useState('all') // 'all' | 'scrape' | 'public'
 	const [reportTitle, setReportTitle] = useState('')
 	const [agencyName, setAgencyName] = useState('')
@@ -164,6 +165,12 @@ const ReportsSection = ({
 		setIsDataFetched(true) // Set flag to true after fetching
 		setLoadedReports(reportArr.slice(0, endIndex))
 		setEndIndex(endIndex)
+
+		// Collect unique agency names for the agency filter select
+		const uniqueAgencies = Array.from(
+			new Set(reportArr.map((r) => (r.agency ? r.agency : '')).filter(Boolean)),
+		)
+		setAgencies(uniqueAgencies)
 		setReportsReadState(
 			reportArr.reduce((acc, report) => {
 				acc[report.reportID] = report.read
@@ -174,12 +181,11 @@ const ReportsSection = ({
 
 	// Helper to apply combined filters (date range, read status, reporter)
 	const applyCombinedFilters = (baseReports = reports, opts = {}) => {
-		const { week = reportWeek, read = readFilter, reporter = reporterFilter, type = typeFilter } = opts
+		const { week = reportWeek, read = readFilter, agency = agencyFilter, type = typeFilter } = opts
 		let filteredArr = [...baseReports]
 
-		if (reporter === 'mine') {
-			const currentUserId = user?.uid || localStorage.getItem('userId')
-			filteredArr = filteredArr.filter((r) => r.userID === currentUserId)
+		if (agency && agency !== 'all') {
+			filteredArr = filteredArr.filter((r) => (r.agency ? r.agency : '') === agency)
 		}
 
 		if (week !== '100') {
@@ -714,7 +720,7 @@ const ReportsSection = ({
 			setFilteredReports(combined)
 			setCurrentPage(1)
 		}
-	}, [reportWeek, reports, isDataFetched, reporterFilter, typeFilter])
+	}, [reportWeek, reports, isDataFetched, agencyFilter, typeFilter])
 
 	// Read Filter - applies to already date-filtered reports
 	useEffect(() => {
@@ -754,11 +760,10 @@ const ReportsSection = ({
 
 	// Read Filter
 	useEffect(() => {
-		// Recompute filteredReports applying read + date + reporter filters
 		const combined = applyCombinedFilters(reports, { read: readFilter, week: reportWeek })
 		setFilteredReports(combined)
 		setCurrentPage(1)
-	}, [readFilter, reports, reportWeek, reporterFilter, typeFilter])
+	}, [readFilter, reports, reportWeek, agencyFilter, typeFilter])
 
 	// Reset loadedReports on refresh
 	useEffect(() => {
@@ -768,7 +773,7 @@ const ReportsSection = ({
 			setSearch('')
 			setCurrentPage(1) // Reset pagination on refresh
 		}
-	}, [refresh, reports, typeFilter])
+	}, [refresh, reports, typeFilter, agencyFilter])
 
 	// Pagination logic, triggered only when currentPage, rowsPerPage, or filteredReports change
 	useEffect(() => {
@@ -885,15 +890,19 @@ const ReportsSection = ({
 							refresh={refresh}
 							showCheckmark={showCheckmark}
 						/>
-						<div className="flex items-center gap-2 md:gap-4">
-							<select
-								value={reporterFilter}
-								onChange={(e) => setReporterFilter(e.target.value)}
-								className="px-2 py-1 text-sm border rounded md:text-base">
-								<option value="all">All reporters</option>
-								<option value="mine">Only my reports</option>
-							</select>
-						</div>
+							<div className="flex items-center gap-2 md:gap-4">
+								<select
+									value={agencyFilter}
+									onChange={(e) => setAgencyFilter(e.target.value)}
+									className="px-2 py-1 text-sm border rounded md:text-base">
+									<option value="all">All agencies</option>
+									{agencies.map((a) => (
+										<option key={a} value={a}>
+											{a}
+										</option>
+									))}
+								</select>
+							</div>
 						<div className="w-full md:w-72 basis-1/3">
 							<Input
 								label="Search"
