@@ -1,11 +1,11 @@
-import React from 'react'
 import {
+	Button,
 	Menu,
 	MenuHandler,
-	MenuList,
 	MenuItem,
-	Button,
+	MenuList,
 } from '@material-tailwind/react'
+import React from 'react'
 import { IoChevronDownOutline } from 'react-icons/io5'
 
 const weekOptions = [
@@ -23,9 +23,17 @@ const rowsOptions = [
 	{ label: '50 rows', value: 50 },
 ]
 
-export function TableDropdownMenu({ reportWeek, onChange, rowsPerPage, setRowsPerPage, setCurrentPage }) {
+const typeOptions = [
+	{ label: 'All types', value: 'all' },
+	{ label: 'Scraped', value: 'scrape' },
+	{ label: 'Community', value: 'public' },
+]
+
+export function TableDropdownMenu({ reportWeek, onChange, rowsPerPage, setRowsPerPage, setCurrentPage, onTypeChange }) {
 	const [openMenu,setOpenMenu] = React.useState(false)
 	const [openRowsMenu, setOpenRowsMenu] = React.useState(false)
+	const [openTypesMenu, setOpenTypesMenu] = React.useState(false)
+	const [selectedType, setSelectedType] = React.useState(typeOptions[0])
 
 	const handleWeekSelect = (value) => {
 		onChange(value)
@@ -36,8 +44,38 @@ export function TableDropdownMenu({ reportWeek, onChange, rowsPerPage, setRowsPe
 		setCurrentPage(1) // Reset to the first page when rows per page changes
 		setOpenRowsMenu(false) // Close menu after selection
 	}
+
+	const handleTypeSelect = (option) => {
+		// set selected type for display and notify parent to filter
+		setSelectedType(option)
+		setOpenTypesMenu(false)
+		if (onTypeChange) onTypeChange(option.value)
+	}
 	return (
 		<div className='flex flex-row'>
+			<Menu open={openTypesMenu} handler={setOpenTypesMenu} allowHover>
+				<MenuHandler>
+					<Button
+						variant="text"
+						size="sm"
+						color="gray"
+						className="flex items-center gap-1 text-sm capitalize border-b-2 border-l-2 border-r-2">
+						{selectedType?.label || 'Type'}
+						<IoChevronDownOutline
+							strokeWidth={2.5}
+							className={`h-3.5 w-3.5 transition-transform ${openTypesMenu ? 'rotate-180' : ''}`}
+						/>
+					</Button>
+				</MenuHandler>
+				<MenuList>
+					{typeOptions.map((option) => (
+						<MenuItem key={option.value} onClick={() => handleTypeSelect(option)}>
+							{option.label}
+						</MenuItem>
+					))}
+				</MenuList>
+			</Menu>
+
 			<Menu open={openRowsMenu} handler={setOpenRowsMenu} allowHover>
 				<MenuHandler>
 					<Button
