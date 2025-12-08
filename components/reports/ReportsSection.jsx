@@ -25,23 +25,37 @@ import { useAuth } from '../../context/AuthContext'
 import Papa from 'papaparse'
 import firebaseHelper from '../../firebase/FirebaseHelper'
 import {
+	addDoc,
 	collection,
+	deleteDoc,
+	doc,
 	getDoc,
 	getDocs,
-	doc,
 	query,
-	where,
-	updateDoc,
-	deleteDoc,
-	addDoc,
 	Timestamp,
+	updateDoc,
+	where,
 } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 // Icons
 import {
-	IoMdRefresh,
+	Button,
+	Card,
+	CardBody,
+	CardFooter,
+	CardHeader,
+	IconButton,
+	Input,
+	Tooltip,
+	Typography,
+} from '@material-tailwind/react'
+import { FaFileExport, FaFileImport } from 'react-icons/fa'
+import { HiDocumentAdd } from 'react-icons/hi'
+import { HiMagnifyingGlass } from 'react-icons/hi2'
+import {
 	IoIosInformationCircle,
 	IoMdCheckmark,
+	IoMdRefresh,
 } from 'react-icons/io'
 import { IoAdd, IoTrash } from 'react-icons/io5'
 import { HiMagnifyingGlass } from 'react-icons/hi2'
@@ -237,6 +251,72 @@ const ReportsSection = ({
 				return acc
 			}, {}),
 		)
+	}
+
+	// Helper to apply combined filters (date range, read status, reporter)
+	const applyCombinedFilters = (baseReports = reports, opts = {}) => {
+		const { week = reportWeek, read = readFilter, agency = agencyFilter, type = typeFilter } = opts
+		let filteredArr = [...baseReports]
+
+		if (agency && agency !== 'all') {
+			filteredArr = filteredArr.filter((r) => (r.agency ? r.agency : '') === agency)
+		}
+
+		if (week !== '100') {
+			const filterDate = new Date()
+			filterDate.setDate(filterDate.getDate() - week * 7)
+			filteredArr = filteredArr.filter((report) => {
+				if (!report.createdDate) return false
+				const reportDate = report.createdDate.toDate()
+				return reportDate >= filterDate
+			})
+		}
+
+		if (read !== 'all') {
+			const filterValue = read === 'true'
+			filteredArr = filteredArr.filter((report) => report.read === filterValue)
+		}
+
+		if (type && type !== 'all') {
+			filteredArr = filteredArr.filter((report) => {
+				return report.source === type
+			})
+		}
+
+		return filteredArr
+	}
+
+	// Helper to apply combined filters (date range, read status, reporter)
+	const applyCombinedFilters = (baseReports = reports, opts = {}) => {
+		const { week = reportWeek, read = readFilter, agency = agencyFilter, type = typeFilter } = opts
+		let filteredArr = [...baseReports]
+
+		if (agency && agency !== 'all') {
+			filteredArr = filteredArr.filter((r) => (r.agency ? r.agency : '') === agency)
+		}
+
+		if (week !== '100') {
+			const filterDate = new Date()
+			filterDate.setDate(filterDate.getDate() - week * 7)
+			filteredArr = filteredArr.filter((report) => {
+				if (!report.createdDate) return false
+				const reportDate = report.createdDate.toDate()
+				return reportDate >= filterDate
+			})
+		}
+
+		if (read !== 'all') {
+			const filterValue = read === 'true'
+			filteredArr = filteredArr.filter((report) => report.read === filterValue)
+		}
+
+		if (type && type !== 'all') {
+			filteredArr = filteredArr.filter((report) => {
+				return report.source === type
+			})
+		}
+
+		return filteredArr
 	}
 
 	/**
@@ -880,25 +960,11 @@ const ReportsSection = ({
 	// Date Filtering
 	useEffect(() => {
 		if (isDataFetched && reportWeek) {
-			let filteredArr
-
-			if (reportWeek === '100') {
-				filteredArr = [...reports] // Show all
-			} else {
-				const filterDate = new Date()
-				filterDate.setDate(filterDate.getDate() - reportWeek * 7)
-
-				filteredArr = reports.filter((report) => {
-					const reportDate = report.createdDate.toDate()
-					return reportDate >= filterDate
-				})
-			}
-
-			setFilteredReports(filteredArr) // Only update `filteredReports`
-			// setLoadedReports(filteredArr.slice(0, ITEMS_PER_PAGE)) // Paginate based on filtered reports
-			setCurrentPage(1) // Reset to first page on filter change
+			const combined = applyCombinedFilters(reports, { week: reportWeek })
+			setFilteredReports(combined)
+			setCurrentPage(1)
 		}
-	}, [reportWeek, reports, isDataFetched])
+	}, [reportWeek, reports, isDataFetched, agencyFilter, typeFilter])
 
 	// Read Filter - applies to already date-filtered reports
 	useEffect(() => {
@@ -938,25 +1004,20 @@ const ReportsSection = ({
 
 	// Read Filter
 	useEffect(() => {
-		if (readFilter === 'all') {
-			setFilteredReports(reports)
-		} else {
-			const readFiltered = reports.filter(
-				(report) => report.read === (readFilter === 'true'),
-			)
-			setFilteredReports(readFiltered)
-		}
-		setCurrentPage(1) // Reset to first page on filter change
-	}, [readFilter, reports])
+		const combined = applyCombinedFilters(reports, { read: readFilter, week: reportWeek })
+		setFilteredReports(combined)
+		setCurrentPage(1)
+	}, [readFilter, reports, reportWeek, agencyFilter, typeFilter])
 
 	// Reset loadedReports on refresh
 	useEffect(() => {
 		if (refresh) {
-			setFilteredReports(reports)
+			const combined = applyCombinedFilters(reports)
+			setFilteredReports(combined)
 			setSearch('')
 			setCurrentPage(1) // Reset pagination on refresh
 		}
-	}, [refresh, reports])
+	}, [refresh, reports, typeFilter, agencyFilter])
 
 	// Pagination logic, triggered only when currentPage, rowsPerPage, or filteredReports change
 	useEffect(() => {
@@ -1020,17 +1081,17 @@ const ReportsSection = ({
 		<>
 			<Card className="w-full mt-4">
 				<CardHeader floated={false} shadow={false} className="rounded-none">
-					<div className="mb-8 flex items-center justify-between gap-8">
+					<div className="flex items-center justify-between gap-8 mb-8">
 						<Typography variant="h5" color="blue" className="basis-1/3">
 							List of Reports
 						</Typography>
 						<Typography
-							className="flex-initial basis-1/3 text-center"
+							className="flex-initial text-center basis-1/3"
 							variant="small">
 							{loadedReports.length}{' '}
 							{loadedReports.length == 1 ? 'report' : 'reports'}
 						</Typography>
-						<div className="flex flex-row gap-1 justify-end basis-1/3">
+						<div className="flex flex-row justify-end gap-1 basis-1/3">
 							{!isAgency && (
 								<>
 									{/* Export Button */}
@@ -1096,10 +1157,23 @@ const ReportsSection = ({
 							refresh={refresh}
 							showCheckmark={showCheckmark}
 						/>
+							<div className="flex items-center gap-2 md:gap-4">
+								<select
+									value={agencyFilter}
+									onChange={(e) => setAgencyFilter(e.target.value)}
+									className="px-2 py-1 text-sm border rounded md:text-base">
+									<option value="all">All agencies</option>
+									{agencies.map((a) => (
+										<option key={a} value={a}>
+											{a}
+										</option>
+									))}
+								</select>
+							</div>
 						<div className="w-full md:w-72 basis-1/3">
 							<Input
 								label="Search"
-								icon={<HiMagnifyingGlass className="h-5 w-5" />}
+								icon={<HiMagnifyingGlass className="w-5 h-5" />}
 								value={search}
 								onChange={(e) => setSearch(e.target.value)}
 							/>
@@ -1110,11 +1184,12 @@ const ReportsSection = ({
 							rowsPerPage={rowsPerPage}
 							setRowsPerPage={(value) => setRowsPerPage(value)} // Update rows per page
 							setCurrentPage={(page) => setCurrentPage(page)} // Reset page to 1 when rows per page changes
+							onTypeChange={(val) => setTypeFilter(val)}
 						/>
 					</div>
 				</CardHeader>
-				<CardBody className="overflow-scroll px-0 pt-0">
-					<table className="mt-4 w-full min-w-full table-fixed text-left">
+				<CardBody className="px-0 pt-0 overflow-scroll">
+					<table className="w-full min-w-full mt-4 text-left table-fixed">
 						<TableHead columns={columns} handleSorting={handleSorting} />
 
 						<TableBody
@@ -1155,7 +1230,7 @@ const ReportsSection = ({
 					)}
 				</CardBody>
 				{/* Pagination Footer */}
-				<CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4">
+				<CardFooter className="flex items-center justify-between p-4 border-t border-blue-gray-50">
 					<Button
 						variant="outlined"
 						size="sm"
