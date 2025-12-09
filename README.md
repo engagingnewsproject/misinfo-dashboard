@@ -196,7 +196,7 @@ _The `dev` branch is the branch that contains the dev live site code._
 
 2.  Merge changes from `main` to `dev`
 
-    `git marge main`
+    `git merge main`
 
 3. Push the merge into `dev`
 
@@ -217,7 +217,7 @@ _The `prod` branch is the branch that contains the live site code._
 
 2.  Merge changes from `dev` into `main`
 
-    `git marge dev`
+    `git merge dev`
 
 3. Push the merge into `main`
 
