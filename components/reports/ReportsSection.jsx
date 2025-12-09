@@ -58,10 +58,6 @@ import {
 	IoMdRefresh,
 } from 'react-icons/io'
 import { IoAdd, IoTrash } from 'react-icons/io5'
-import { HiMagnifyingGlass } from 'react-icons/hi2'
-import { HiDocumentAdd } from 'react-icons/hi'
-import { FaFileExport } from 'react-icons/fa'
-import { FaFileImport } from 'react-icons/fa'
 import ReportModal from '../modals/reports/ReportModal'
 import ConfirmModal from '../modals/common/ConfirmModal'
 import globalStyles from '../../styles/globalStyles'
@@ -69,17 +65,6 @@ import TableHead from '../table/TableHead'
 import TableBody from '../table/TableBody'
 import { TableDropdownMenu } from '../table/TableDropdownMenu'
 import TableFilterControls from '../table/TableFilterControls'
-import {
-	Button,
-	Card,
-	CardHeader,
-	CardFooter,
-	IconButton,
-	Tooltip,
-	Typography,
-	Input,
-	CardBody,
-} from '@material-tailwind/react'
 
 /**
  * Table column configuration for the reports table
@@ -145,6 +130,9 @@ const ReportsSection = ({
 	const [isAgency, setIsAgency] = useState(null) // User role flag
 	const { user, customClaims } = useAuth() // Authentication context
 	const [search, setSearch] = useState('') // Search term
+	const [agencyFilter, setAgencyFilter] = useState('all') // Agency filter
+	const [typeFilter, setTypeFilter] = useState('all') // Type/source filter
+	const [agencies, setAgencies] = useState([]) // List of agencies for filter dropdown
 	
 	// Pagination state
 	const [rowsPerPage, setRowsPerPage] = useState(10) // Rows per page setting
@@ -251,39 +239,6 @@ const ReportsSection = ({
 				return acc
 			}, {}),
 		)
-	}
-
-	// Helper to apply combined filters (date range, read status, reporter)
-	const applyCombinedFilters = (baseReports = reports, opts = {}) => {
-		const { week = reportWeek, read = readFilter, agency = agencyFilter, type = typeFilter } = opts
-		let filteredArr = [...baseReports]
-
-		if (agency && agency !== 'all') {
-			filteredArr = filteredArr.filter((r) => (r.agency ? r.agency : '') === agency)
-		}
-
-		if (week !== '100') {
-			const filterDate = new Date()
-			filterDate.setDate(filterDate.getDate() - week * 7)
-			filteredArr = filteredArr.filter((report) => {
-				if (!report.createdDate) return false
-				const reportDate = report.createdDate.toDate()
-				return reportDate >= filterDate
-			})
-		}
-
-		if (read !== 'all') {
-			const filterValue = read === 'true'
-			filteredArr = filteredArr.filter((report) => report.read === filterValue)
-		}
-
-		if (type && type !== 'all') {
-			filteredArr = filteredArr.filter((report) => {
-				return report.source === type
-			})
-		}
-
-		return filteredArr
 	}
 
 	// Helper to apply combined filters (date range, read status, reporter)
