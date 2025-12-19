@@ -20,7 +20,7 @@
  * @version 1.0.0
  * @since 2024
  */
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useAuth } from "../../context/AuthContext"
 import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css'; // theme css file
@@ -79,6 +79,21 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   const [checkRole, setCheckRole] = useState(false) // Triggers role check
   const { user, verifyRole } = useAuth() // Auth context
 
+  const palette = [
+    '#2563EB', '#A855F7', '#22C55E', '#F59E0B', '#0EA5E9', '#EF4444', '#14B8A6',
+    '#F97316', '#8B5CF6', '#10B981', '#6366F1', '#EC4899', '#84CC16', '#06B6D4'
+  ]
+
+  // Keep topic colors consistent even if the selection order changes.
+  const topicColorMap = useRef(new Map())
+
+  const withOpacity = (hex, opacity = 0.16) => {
+    const clean = hex.replace('#', '')
+    const r = parseInt(clean.substring(0, 2), 16)
+    const g = parseInt(clean.substring(2, 4), 16)
+    const b = parseInt(clean.substring(4, 6), 16)
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`
+  }
 
   /**
  * formatDates - Formats the start and end dates for the graph title.
@@ -194,11 +209,30 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     const arr = []
     // Populates data used for the comparison graph
     for (let topic = 0; topic < selectedTopics.length; topic++) {
+      const topicValue = selectedTopics[topic].value
+      if (!topicColorMap.current.has(topicValue)) {
+        const paletteIndex = topicColorMap.current.size
+        const fallbackIndex = topicColorMap.current.size
+        const color =
+          palette[paletteIndex] ||
+          `hsl(${(fallbackIndex * 53) % 360}, 70%, 54%)`
+        topicColorMap.current.set(topicValue, color)
+      }
+
+      const color = topicColorMap.current.get(topicValue)
       const topicData = {
         label: selectedTopics[topic].label,
         data: reportData[topic],
-        borderColor: colors[topic],
-        backgroundColor: colors[topic],
+        borderColor: color,
+        backgroundColor: withOpacity(color, 0.25),
+        borderWidth: 3,
+        pointRadius: 4,
+        pointHoverRadius: 7,
+        pointBorderWidth: 2,
+        pointBackgroundColor: '#fff',
+        pointBorderColor: color,
+        tension: 0.32,
+        fill: true,
       }
       arr.push(topicData)
     }
@@ -266,9 +300,16 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     Legend
   )
 
-  const colors = ['#F6413A', '#FFCA29', '#2196F3']
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
+    layout: {
+      padding: 12,
+    },
     scales: {
       y: {
         suggestedMin: 0,
@@ -287,38 +328,35 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
         title: {
           text: "Number of Reports",
           display: true,
-          font: function (context) {
-            var avgSize = Math.round((context.chart.height + context.chart.width) / 2);
-            var size = Math.round(avgSize / 32);
-            size = size > 16 ? 16 : size; // setting max font size limit to 18
-            return {
-                size: size,
-            };
+          font: {
+            size: 14,
+            weight: 600,
+            family: 'Inter, system-ui, -apple-system, sans-serif'
           },
+        },
+        grid: {
+          color: '#E5E7EB',
         }
       },
       x: {
         title: {
           text: "Date",
           display: true,
-          font: function (context) {
-            var avgSize = Math.round((context.chart.height + context.chart.width) / 2);
-            var size = Math.round(avgSize / 32);
-            size = size > 16 ? 16 : size; // setting max font size limit to 18
-            return {
-                size: size,
-            };
+          font: {
+            size: 14,
+            weight: 600,
+            family: 'Inter, system-ui, -apple-system, sans-serif'
           },
         },
         ticks: {
-          font: function (context) {
-            var avgSize = Math.round((context.chart.height + context.chart.width) / 2);
-            var size = Math.round(avgSize / 32);
-            size = size > 16 ? 16 : size; // setting max font size limit to 18
-            return {
-                size: size,
-            };
-          }
+          font: {
+            size: 12,
+            family: 'Inter, system-ui, -apple-system, sans-serif'
+          },
+          color: '#4B5563'
+        },
+        grid: {
+          color: '#F3F4F6'
         }
       }
     },
@@ -326,17 +364,24 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
       legend: {
         position: 'bottom',
         labels: {
-        // This more specific font property overrides the global property
-          font: function (context) {
-            var avgSize = Math.round((context.chart.height + context.chart.width) / 2);
-            var size = Math.round(avgSize / 32);
-            size = size > 16 ? 16 : size; // setting max limit to 12
-            return {
-                size: size,
-            };
-        },
+          usePointStyle: true,
+          pointStyle: 'circle',
+          boxWidth: 10,
+          padding: 16,
+          font: {
+            size: 12,
+            family: 'Inter, system-ui, -apple-system, sans-serif'
+          },
+          color: '#1F2937'
         }
-                
+      },
+      tooltip: {
+        backgroundColor: '#0F172A',
+        titleFont: { size: 13, weight: 700, family: 'Inter, system-ui, -apple-system, sans-serif' },
+        bodyFont: { size: 12, family: 'Inter, system-ui, -apple-system, sans-serif' },
+        padding: 12,
+        cornerRadius: 8,
+        displayColors: true
       }
     }
   
@@ -359,7 +404,9 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
             <div className="m-auto">	
               {/* Displays graph once data is collected for the topics. */}	
               <div className="text-xl lg:text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Topic Reports - {formatDates()}</div>	
-              <Line className="lg:pl-20 lg:pr-20 overflow-x-auto" options={options} data={graphData} />	
+              <div className="relative lg:pl-20 lg:pr-20 overflow-x-auto max-h-[420px] min-h-[260px]">
+                <Line height={360} options={options} data={graphData} />
+              </div>	
             </div>	
             }	
         </div>
@@ -368,6 +415,3 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
 }
 export default ComparisonGraphPlotted
  
-
-
-

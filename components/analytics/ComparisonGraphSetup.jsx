@@ -72,6 +72,7 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
   // --- Validation state ---
   const [topicError, setTopicError] = useState(false) // Error state for topic selection
   const [dateError, setDateError] = useState(false) // Error state for date selection
+  const [dateRangeSelected, setDateRangeSelected] = useState(false) // Whether the user actively picked dates
 
   // --- Styling for graph setting buttons ---
   const basicStyle = "flex p-2 my-6 mx-2 text-gray-500 hover:bg-blue-100 rounded-lg"
@@ -86,6 +87,7 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
       console.log(item)
       setDateRange([item.selection])
       const daysSelected = ((item.selection.endDate  - item.selection.startDate)/(1000*60*60*24)) + 1
+      setDateRangeSelected(true)
       if (daysSelected > 2 && daysSelected < 31) {
         setDateError(false)
       }
@@ -127,6 +129,7 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
       setTopicError(true)
     } else  {
       setTopicError(false)
+      setDateRangeSelected(false)
       setTab(1)
     }
   }
@@ -159,6 +162,8 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
 
   const animatedComponents = makeAnimated();
 
+  const canProceedToDates = selectedTopics.length > 0
+
   return (
     <div className="relative h-full lg:h-1/2">
       <h1 className={`${globalStyles.heading.h1.blue} text-center`}>Compare Topic Reports</h1>
@@ -176,12 +181,15 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
                 value={selectedTopics}
                 />
               </div>
-              <button
-                onClick={() => handleTopicSelection()}
-                className={`${basicStyle} tooltip-next`}>
-                <IoIosArrowForward size={25} />
-                <Tooltip anchorSelect=".tooltip-next" place="top" delayShow={500}>Next</Tooltip>
-              </button>
+              {canProceedToDates &&
+                <button
+                  onClick={() => handleTopicSelection()}
+                  className={`${basicStyle} tooltip-next`}>
+                  <span className="font-semibold pr-2">Next</span>
+                  <IoIosArrowForward size={25} />
+                  <Tooltip anchorSelect=".tooltip-next" place="top" delayShow={500}>Select dates</Tooltip>
+                </button>
+              }
             </div>
             }
             {/* Second screen that appears when user selects the comparison view. Allows user to select date range. */}
@@ -220,12 +228,15 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
                     </div>
                    
                 </div>
-                <button
-                  onClick={() => handleGraphChange()}
-                  className={`${basicStyle} tooltip-display-graph`}>
-                  <IoIosArrowForward size={25} />
-                  <Tooltip anchorSelect=".tooltip-display-graph" place="top" delayShow={500}>Display Graph</Tooltip>
-                </button>
+                {dateRangeSelected &&
+                  <button
+                    onClick={() => handleGraphChange()}
+                    className={`${basicStyle} tooltip-display-graph`}>
+                    <span className="font-semibold pr-2">Next</span>
+                    <IoIosArrowForward size={25} />
+                    <Tooltip anchorSelect=".tooltip-display-graph" place="top" delayShow={500}>Display Graph</Tooltip>
+                  </button>
+                }
               </div>
             }
           
@@ -246,7 +257,5 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
   )
 }
 export default ComparisonGraphSetup
-
-
 
 

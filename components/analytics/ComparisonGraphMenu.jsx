@@ -163,7 +163,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
 
   return (
   <>
-    <div className="flex justify-stretch lg:justify-between flex-wrap">
+    <div className="relative flex justify-stretch lg:justify-between flex-wrap">
       <div className="flex justify-between items-center">
         {/* Calendar allows user to change date range. */}
         {showCalendar == 0 ? 
@@ -257,8 +257,8 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
     </div>
     {showCalendar == 1 &&  
       <>    
-        <div className="bg-gray-100 p-1 absolute z-9">
-        <DateRange
+        <div className="absolute z-50 mt-2 right-0 bg-white p-2 rounded-lg shadow-xl border border-gray-200">
+          <DateRange
             editableDateInputs={true}
             onChange={item => handleDateSelection(item)}
             moveRangeOnFirstSelection={false}
