@@ -1,3 +1,21 @@
+/**
+ * @fileoverview Sentry Example Page - Sentry error reporting demo
+ *
+ * This page demonstrates Sentry integration by allowing users to trigger a sample error.
+ * Features include:
+ * - Button to throw a frontend error and send it to Sentry
+ * - Links to Sentry issues and documentation
+ * - Responsive and accessible UI
+ *
+ * Integrates with:
+ * - Sentry for error monitoring
+ * - next/head for meta tags
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
+
 import Head from "next/head";
 import * as Sentry from "@sentry/nextjs";
 

@@ -15,6 +15,7 @@ trap cleanup EXIT
 
 # Start the Firebase Emulator and import the test data in the background
 echo "Starting Firebase Emulators with imported test data..."
+export NEXT_PUBLIC_USE_EMULATORS=true
 firebase emulators:start --import=./emulator-data &
 
 # Save the PID of the Firebase emulator process

@@ -1,9 +1,38 @@
+/**
+ * @fileoverview Reset Password Page - Password reset email flow
+ *
+ * This page provides a form for users to request a password reset email.
+ * Features include:
+ * - Email input and validation
+ * - Success/failure messaging
+ * - Integration with AuthContext for password reset
+ * - Responsive and accessible UI
+ *
+ * Integrates with:
+ * - AuthContext for password reset
+ * - next/head for meta tags
+ * - next/link for navigation
+ * - next/image for icons
+ *
+ * @author Misinformation Dashboard Team
+ * @version 1.0.0
+ * @since 2024
+ */
+
 import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from "next/image"
 import { useAuth } from '../context/AuthContext'
 import Head from 'next/head'
+
+/**
+ * ResetPassword Page
+ *
+ * Renders the password reset form and handles email sending.
+ *
+ * @returns {JSX.Element} The rendered reset password page
+ */
 const ResetPassword = () => {
     const router = useRouter()
     const { resetPassword } = useAuth()
