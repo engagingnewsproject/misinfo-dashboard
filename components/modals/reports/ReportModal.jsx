@@ -233,13 +233,14 @@ const ReportModal = ({
 										<textarea
 											placeholder='No detail provided'
 											id='detail'
+											onChange={onDetailChange}
 											className={
 												report.detail
 													? style.textarea
 													: style.textarea + ` italic`
 											}
-											disabled
-											value={report.detail}
+											readOnly={customClaims.admin ? false : true}
+											defaultValue={detail}
 											rows='6'
 										/>
 									</div>
@@ -411,7 +412,7 @@ const ReportModal = ({
 									placeholder='No notes yet...'
 									className={note ? style.textarea : style.textarea + ` italic`}
 									rows='6'
-									readOnly={customClaims.admin ? true : false} // Admin users cannot edit notes
+									readOnly={customClaims.admin || customClaims.agency ? false : true}
 									defaultValue={note}></textarea>
 							</div>
 							
