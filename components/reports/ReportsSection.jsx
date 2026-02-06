@@ -239,6 +239,12 @@ const ReportsSection = ({
 				return acc
 			}, {}),
 		)
+
+		// Extract unique agencies from reports for filter dropdown
+		const uniqueAgencies = Array.from(
+			new Set(reportArr.map((r) => (r.agency ? r.agency : '')).filter(Boolean)),
+		)
+		setAgencies(uniqueAgencies)
 	}
 
 	// Helper to apply combined filters (date range, read status, reporter)
