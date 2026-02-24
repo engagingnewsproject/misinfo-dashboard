@@ -15,10 +15,6 @@ env:
     value: "false"
     availability:
       - BUILD
-  - variable: CI
-    value: ""
-    availability:
-      - BUILD
 
   # --- Public env (NEXT_PUBLIC_* available at BUILD and RUNTIME) ---
   # Firebase API key: use secret so it is not in the repo (Google flags keys in public sources).
