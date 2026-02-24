@@ -1,0 +1,101 @@
+# Firebase App Hosting configuration for misinfo-dashboard (Next.js)
+# See: https://firebase.google.com/docs/app-hosting/configure
+
+# Optional: Cloud Run service tuning (defaults are usually fine)
+# runConfig:
+#   minInstances: 0
+#   maxInstances: 100
+#   concurrency: 80
+#   memoryMiB: 512
+#   cpu: 1
+
+env:
+  # --- Public env (NEXT_PUBLIC_* available at BUILD and RUNTIME) ---
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyAsGCi7VgxuovHAbY4tRDAKDRN6sxw8MHo"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "misinfo-5d004.firebaseapp.com"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "misinfo-5d004"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "misinfo-5d004.appspot.com"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "2581605663"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:2581605663:web:5c1f1a43d80568fd5b542a"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    value: "G-L4GJJGV0V1"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_RECAPTCHA_ENTERPRISE_SITE_KEY
+    value: "6LejY88pAAAAAMxotghWgJiIPx-KEufTBEOMUw9b"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Optional: only for dev/debug; omit or use a separate backend for production
+  - variable: NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN
+    value: "4ac538b3-98f5-40fd-b5fe-abca2c10d6e6"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_SENTRY_DSN
+    value: "https://845c7860c580e1b6c2fa9ce325d1257c@o204741.ingest.us.sentry.io/4507670446931968"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Set to your App Hosting URL (or custom domain) after first deploy; used for auth email links
+  - variable: NEXT_PUBLIC_APP_URL
+    value: "https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # --- Secrets: create in Google Cloud Console → Secret Manager, then grant access ---
+  # 1. Create secret "SENDGRID_API_KEY" in Secret Manager (console.cloud.google.com).
+  # 2. firebase apphosting:secrets:grantaccess SENDGRID_API_KEY --backend YOUR_BACKEND_ID --project misinfo-5d004
+  - variable: SENDGRID_API_KEY
+    secret: SENDGRID_API_KEY
+
+  # Same for SENTRY_AUTH_TOKEN: create in Secret Manager, then grantaccess.
+  - variable: SENTRY_AUTH_TOKEN
+    secret: SENTRY_AUTH_TOKEN
+
+  # If your app uses Slack webhook server-side only, create secret and uncomment:
+  # - variable: NEXT_PUBLIC_SLACK_WEBHOOK_URL
+  #   secret: SLACK_WEBHOOK_URL
+
+  # If Slack webhook is used from client (current .env), you can keep as value (less secure):
+  - variable: NEXT_PUBLIC_SLACK_WEBHOOK_URL
+    value: "https://hooks.slack.com/services/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"
+    availability:
+      - BUILD
+      - RUNTIME
