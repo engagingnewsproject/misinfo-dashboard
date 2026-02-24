@@ -9,13 +9,11 @@
 #   memoryMiB: 512
 #   cpu: 1
 
-env:
-  # Prefer npm install over npm ci so lock file doesn't have to match build env exactly (fixes sync errors)
-  - variable: NPM_CONFIG_PREFER_CI
-    value: "false"
-    availability:
-      - BUILD
+# Use npm install instead of buildpack's npm ci so lock file doesn't have to match build env exactly
+scripts:
+  buildCommand: npm install && npm run build
 
+env:
   # --- Public env (NEXT_PUBLIC_* available at BUILD and RUNTIME) ---
   # Firebase API key: use secret so it is not in the repo (Google flags keys in public sources).
   # Create secret FIREBASE_API_KEY in Secret Manager, then: firebase apphosting:secrets:grantaccess FIREBASE_API_KEY --backend truthsleuthlocal --project misinfo-5d004
