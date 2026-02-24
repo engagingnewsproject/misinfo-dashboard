@@ -26,10 +26,10 @@ npm
 npm run dev
 ```
 
-yarn
+npm
 
 ```
-yarn dev
+npm run dev
 ```
 
 Visit http://localhost:3000 to view your application.
@@ -64,7 +64,7 @@ This section provides an overview of the file and folder structure of the Misin 
 | [`package.json`](https://docs.npmjs.com/cli/v9/configuring-npm/package-json) | Project npm dependencies and scripts |
 | [`postcss.config.json`](https://nextjs.org/docs/pages/building-your-application/configuring/post-css#customizing-plugins) | PostCSS configuration |
 | [`tailwind.config.js`](https://tailwindcss.com/docs/configuration) | Tailwindcss configuration |
-| [`yarn.lock`](https://classic.yarnpkg.com/lang/en/docs/yarn-lock/) | Project `yarn` dependencies and scripts |
+| [`package-lock.json`](https://docs.npmjs.com/cli/v10/configuring-npm/package-lock-json) | Project npm dependency lockfile |
 
 ### Top-level folders
 

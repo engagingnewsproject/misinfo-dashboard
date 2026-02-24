@@ -26,7 +26,7 @@ sleep 20
 
 # Start the Next.js development server
 echo "Starting Next.js development server..."
-yarn next dev
+npx next dev
 
 # Wait for the Next.js server to exit before continuing
 wait $EMULATOR_PID

@@ -170,8 +170,9 @@ export const AuthContextProvider = ({children}) => {
      */
     const verifyEmail = (user) => {
         return new Promise((resolve, reject) => {
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://truthsleuthlocal.netlify.app';
             const actionCodeSettings = {
-                'url': 'https://truthsleuthlocal.netlify.app/login',
+                'url': `${baseUrl}/login`,
                 'handleCodeInApp': true,
             };
 
@@ -386,11 +387,11 @@ export const AuthContextProvider = ({children}) => {
      * await sendSignIn('user@example.com');
      */
     const sendSignIn = async (email) => {
-        // Determine the base URL based on the environment
-        const isLocalhost = window.location.hostname === 'localhost'
+        // Base URL for email action links: localhost in dev, NEXT_PUBLIC_APP_URL in production (e.g. Firebase Hosting URL)
+        const isLocalhost = window.location.hostname === 'localhost';
         const baseUrl = isLocalhost
             ? 'http://localhost:3000/signup'
-            : 'https://truthsleuthlocal.netlify.app/signup'
+            : (process.env.NEXT_PUBLIC_APP_URL || 'https://truthsleuthlocal.netlify.app') + '/signup';
 
         const actionCodeSettings = {
             url: baseUrl,

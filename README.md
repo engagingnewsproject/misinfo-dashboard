@@ -30,28 +30,12 @@ First step! Clone this repo into a local directory (ex. `~/username/sites/`) on 
 
 At this time of writing (April 26, 2024) the latest working update is at Node v20.12.2. Ensure this is the version by running `node -v`. If you are not on that Node version check out this article to set the correct Node version: [Easily switch between multiple Node versions without using nvm](https://dev.to/andreasbergstrom/easily-switch-between-multiple-node-versions-without-using-nvm-52k9).
 
-#### Yarn
-Install/update [`yarn`](https://yarnpkg.com/) package manager on your machine ([installation docs](https://yarnpkg.com/getting-started/install))
-
-- Enable [Corepack](https://yarnpkg.com/corepack), if it isn't already; this will add the `yarn` binary to your PATH:
+#### npm
+From the root of the project install dependencies by running:
 
     ```
-    corepack enable
+    npm install
     ```
-
-- Set the yarn version by running:
-
-```
-yarn set version 1.22.1
-```
-
-- From the root of the project install dependencies by running:
-
-    ```
-    yarn install
-    ```
-
-    > _**Why not `npm install`?** Glad you asked! [Netlify](https://www.netlify.com/), the service that hosts the dashboard, will not allow us to upload updates because `npm install` creates a `package-lock.json` file. Netlify doesn't like `package-lock.json` files._
 
 ### 3. Add Firebase configuration
 
@@ -72,7 +56,7 @@ curl -sL firebase.tools | bash
 To boot up the development server and Firebase Emulator run:
 
 ```
-yarn dev
+npm run dev
 ```
 
 This command will boot up the [Firebase Emulator UI](https://firebase.google.com/docs/emulator-suite) and the NextJS server. Look over your terminal output and click the Emulator links (Emulator UI) and localhost link.
@@ -180,6 +164,24 @@ With proper permissions access Firebase Console or Firebase Cloud Console.
 - Firebase storage name: misinfo-5d004.appspot.com
 
 Links: [Chrome React Developer Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi) || [VS Code React-Native snippets](https://marketplace.visualstudio.com/items?itemName=dsznajder.es7-react-js-snippets) || [VS Code Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
+
+## Deploy to Firebase Hosting
+
+The app is configured for Firebase Hosting with the Next.js web frameworks integration. To deploy:
+
+1. Ensure `firebase experiments:enable webframeworks` has been run (one-time).
+2. Set environment variables for the Hosting/Next.js runtime (Firebase Console → your project → Hosting or Functions). For auth email links, set `NEXT_PUBLIC_APP_URL` to your live URL (e.g. `https://misinfo-5d004.web.app`).
+3. From the project root run:
+
+   ```
+   firebase deploy
+   ```
+
+   This deploys Hosting and the Next.js server (Cloud Functions). To deploy only hosting and the framework backend: `firebase deploy --only hosting`.
+
+4. Open your Hosting URL (e.g. `https://misinfo-5d004.web.app`) to verify.
+
+---
 
 ## Deploy to Netlify
 

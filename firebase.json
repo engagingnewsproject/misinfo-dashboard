@@ -1,64 +1,75 @@
 {
-	"firestore": {
-		"rules": "firestore.rules",
-		"indexes": "firestore.indexes.json"
-	},
-	"functions": [
-		{
-			"source": "functions",
-			"codebase": "default",
-			"runtime": "nodejs20",
-			"ignore": [
-				"node_modules",
-				".git",
-				"firebase-debug.log",
-				"firebase-debug.*.log"
-			],
-			"predeploy": [
-				"npm --prefix \"$RESOURCE_DIR\" run lint"
-			  ]
-		}
-	],
-	"emulators": {
-		"auth": {
-			"port": 9099
-		},
-		"functions": {
-			"port": 5001,
-			"cors": [
-				{
-					"origin": [
-						"https://misinfo-dashboard.netlify.app",
-						"https://dev-misinfo-dashboard.netlify.app",
-						"https://truthsleuthlocal.netlify.app",
-						"https://dev-truthsleuthlocal.netlify.app",
-						"http://localhost:3000"
-					],
-					"method": [
-						"GET",
-						"PUT",
-						"POST",
-						"DELETE"
-					  ],
-					"maxAgeSeconds": 3600
-				}
-			]
-		},
-		"firestore": {
-			"port": 8080
-		},
-		"ui": {
-			"enabled": true
-		},
-		"singleProjectMode": true,
-		"storage": {
-			"port": 9199
-		}
-	},
-	"storage": {
-		"rules": "storage.rules"
-	},
-	"scripts": {
-		"prestart": "node initializeFirestore.js"
-	}
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "nodejs20",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ],
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "functions": {
+      "port": 5001,
+      "cors": [
+        {
+          "origin": [
+            "https://misinfo-dashboard.netlify.app",
+            "https://dev-misinfo-dashboard.netlify.app",
+            "https://truthsleuthlocal.netlify.app",
+            "https://dev-truthsleuthlocal.netlify.app",
+            "http://localhost:3000","https://misinfo-5d004.web.app","https://misinfo-5d004.firebaseapp.com"
+          ],
+          "method": [
+            "GET",
+            "PUT",
+            "POST",
+            "DELETE"
+          ],
+          "maxAgeSeconds": 3600
+        }
+      ]
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": true
+    },
+    "singleProjectMode": true,
+    "storage": {
+      "port": 9199
+    }
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "scripts": {
+    "prestart": "node initializeFirestore.js"
+  },
+  "hosting": {
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "frameworksBackend": {
+      "region": "us-central1"
+    }
+  }
 }

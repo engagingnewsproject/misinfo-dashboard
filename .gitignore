@@ -4,7 +4,6 @@
 /node_modules
 /.pnp
 .pnp.js
-package-lock.json
 
 # testing
 /coverage
@@ -41,6 +40,7 @@ firestore-debug.log
 firebase-debug.log
 functions/firestore-debug.log
 ui-debug.log
+.firebase/
 
 # Auto Generated PWA files
 **/public/workbox-*.js
@@ -66,8 +66,8 @@ functions/sendgrid.env
 
 # Sentry Config File
 .env.sentry-build-plugin
-misinfo-dashboard.code-workspace
 .runtimeconfig.json
 functions/.env.default
 functions/.eslintrc.js
 misinfo-5d004-firebase-adminsdk-*.json
+*.code-workspace

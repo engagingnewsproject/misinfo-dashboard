@@ -5,6 +5,36 @@ const { i18n } = require('./next-i18next.config.js');
 const nextConfig = {
   i18n,
   reactStrictMode: true,
+  // Headers for static assets (migrated from netlify.toml for Firebase Hosting)
+  async headers() {
+    return [
+      {
+        source: '/_next/static/css/:path*',
+        headers: [
+          { key: 'Content-Type', value: 'text/css; charset=utf-8' },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        source: '/_next/static/js/:path*',
+        headers: [
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+    ];
+  },
+  // Optional: redirect legacy dev Netlify URL to dev truthsleuthlocal (only relevant if that URL is still in use)
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'dev-misinfo-dashboard.netlify.app' }],
+        destination: 'https://dev-truthsleuthlocal.netlify.app/:path*',
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
