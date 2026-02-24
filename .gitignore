@@ -71,3 +71,4 @@ functions/.env.default
 functions/.eslintrc.js
 misinfo-5d004-firebase-adminsdk-*.json
 *.code-workspace
+netlify.toml
