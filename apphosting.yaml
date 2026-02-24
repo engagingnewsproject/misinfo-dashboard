@@ -11,8 +11,11 @@
 
 env:
   # --- Public env (NEXT_PUBLIC_* available at BUILD and RUNTIME) ---
+  # Firebase API key: use secret so it is not in the repo (Google flags keys in public sources).
+  # Create secret FIREBASE_API_KEY in Secret Manager, then: firebase apphosting:secrets:grantaccess FIREBASE_API_KEY --backend truthsleuthlocal --project misinfo-5d004
+  # Also restrict this key in Cloud Console: APIs & Services → Credentials → Application restrictions (HTTP referrer) + API restrictions.
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    value: "AIzaSyAsGCi7VgxuovHAbY4tRDAKDRN6sxw8MHo"
+    secret: FIREBASE_API_KEY
     availability:
       - BUILD
       - RUNTIME
@@ -61,7 +64,7 @@ env:
 
   # Optional: only for dev/debug; omit or use a separate backend for production
   - variable: NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN
-    value: "4ac538b3-98f5-40fd-b5fe-abca2c10d6e6"
+    secret: NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN
     availability:
       - BUILD
       - RUNTIME
@@ -89,13 +92,7 @@ env:
   - variable: SENTRY_AUTH_TOKEN
     secret: SENTRY_AUTH_TOKEN
 
-  # If your app uses Slack webhook server-side only, create secret and uncomment:
-  # - variable: NEXT_PUBLIC_SLACK_WEBHOOK_URL
-  #   secret: SLACK_WEBHOOK_URL
-
-  # If Slack webhook is used from client (current .env), you can keep as value (less secure):
-  - variable: NEXT_PUBLIC_SLACK_WEBHOOK_URL
-    value: "https://hooks.slack.com/services/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"
-    availability:
-      - BUILD
-      - RUNTIME
+  # Slack webhook: server-only secret (use in API routes, not client). Grant access:
+  # firebase apphosting:secrets:grantaccess SLACK_WEBHOOK_URL --backend truthsleuthlocal --project misinfo-5d004
+  - variable: SLACK_WEBHOOK_URL
+    secret: SLACK_WEBHOOK_URL
