@@ -35,6 +35,7 @@ import React, {
 	useContext,
 	useMemo,
 	useCallback,
+	useRef,
 } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import {
@@ -403,18 +404,27 @@ const Users = () => {
 		orderField: 'joiningDate',
 		orderDirection: 'desc',
 	})
+	
+	// Auth-enriched list for admin (from enhanceWithAuthDetails)
+	const [enhancedPaginatedUsers, setEnhancedPaginatedUsers] = useState([])
+	const paginatedUsersRef = useRef(paginatedUsers)
+	paginatedUsersRef.current = paginatedUsers
 
 	// Processed users: combines pagination data with auth details and applies search
 	const loadedMobileUsers = useMemo(() => {
-		const baseUsers = customClaims?.agency ? agencyUsers : paginatedUsers
-
+		const baseUsers = customClaims?.agency
+			? agencyUsers
+			: customClaims?.admin && enhancedPaginatedUsers.length === paginatedUsers.length
+				? enhancedPaginatedUsers
+				: paginatedUsers
+				
 		// Apply search filter if search term exists
 		if (searchTerm && searchTerm.trim()) {
 			return searchUsers(baseUsers, searchTerm)
 		}
 
 		return baseUsers
-	}, [paginatedUsers, agencyUsers, searchTerm, customClaims])
+	}, [paginatedUsers, agencyUsers, enhancedPaginatedUsers, searchTerm, customClaims])
 
 	/**
 	 * Fetches all agency documents from the Firestore 'agency' collection
@@ -633,6 +643,21 @@ const Users = () => {
 		},
 		[customClaims, authGetUserList],
 	)
+	
+	// For admin, enrich paginated users with Auth details when the list changes
+	useEffect(() => {
+		if (!customClaims?.admin || paginatedUsers.length === 0) {
+			setEnhancedPaginatedUsers([])
+			return
+		}
+		let cancelled = false
+		const list = paginatedUsersRef.current
+		enhanceWithAuthDetails(list).then((result) => {
+			if (!cancelled) setEnhancedPaginatedUsers(result)
+		})
+		return () => { cancelled = true }
+	}, [paginatedUsers.length, customClaims?.admin, enhanceWithAuthDetails])
+	
 
 	/**
 	 * Handles the event when the "Add New User" button is clicked, opening the modal to add a new user.
