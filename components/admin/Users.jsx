@@ -35,6 +35,7 @@ import React, {
 	useContext,
 	useMemo,
 	useCallback,
+	useRef,
 } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import {
@@ -349,6 +350,7 @@ const Users = () => {
 		customClaims,
 		fetchUserRecord,
 		authGetUserList,
+		functionsReady,
 	} = useAuth()
 
 	// User data management state
@@ -403,18 +405,27 @@ const Users = () => {
 		orderField: 'joiningDate',
 		orderDirection: 'desc',
 	})
+	
+	// Auth-enriched list for admin (from enhanceWithAuthDetails)
+	const [enhancedPaginatedUsers, setEnhancedPaginatedUsers] = useState([])
+	const paginatedUsersRef = useRef(paginatedUsers)
+	paginatedUsersRef.current = paginatedUsers
 
 	// Processed users: combines pagination data with auth details and applies search
 	const loadedMobileUsers = useMemo(() => {
-		const baseUsers = customClaims?.agency ? agencyUsers : paginatedUsers
-
+		const baseUsers = customClaims?.agency
+			? agencyUsers
+			: customClaims?.admin && enhancedPaginatedUsers.length === paginatedUsers.length
+				? enhancedPaginatedUsers
+				: paginatedUsers
+				
 		// Apply search filter if search term exists
 		if (searchTerm && searchTerm.trim()) {
 			return searchUsers(baseUsers, searchTerm)
 		}
 
 		return baseUsers
-	}, [paginatedUsers, agencyUsers, searchTerm, customClaims])
+	}, [paginatedUsers, agencyUsers, enhancedPaginatedUsers, searchTerm, customClaims])
 
 	/**
 	 * Fetches all agency documents from the Firestore 'agency' collection
@@ -633,6 +644,22 @@ const Users = () => {
 		},
 		[customClaims, authGetUserList],
 	)
+	
+	// For admin, enrich paginated users with Auth details when the list changes (only after Functions is ready)
+	useEffect(() => {
+		if (!customClaims?.admin || paginatedUsers.length === 0) {
+			setEnhancedPaginatedUsers([])
+			return
+		}
+		if (!functionsReady) return
+		let cancelled = false
+		const list = paginatedUsersRef.current
+		enhanceWithAuthDetails(list).then((result) => {
+			if (!cancelled) setEnhancedPaginatedUsers(result)
+		})
+		return () => { cancelled = true }
+	}, [paginatedUsers.length, customClaims?.admin, functionsReady, enhanceWithAuthDetails])
+	
 
 	/**
 	 * Handles the event when the "Add New User" button is clicked, opening the modal to add a new user.
@@ -819,6 +846,10 @@ const Users = () => {
 	 * @param {string} userId - The ID of the user to be edited.
 	 */
 	const handleEditUser = async (userObj, userId) => {
+		if (userId == null || String(userId).trim() === '') {
+			console.warn('handleEditUser: missing or empty userId', userObj)
+			return
+		}
 		setUserId(userId)
 		const userRef = await getDoc(doc(db, 'mobileUsers', userId))
 		setUserEditing(userObj)
@@ -1333,12 +1364,11 @@ const Users = () => {
 										// Render user rows with role-based conditional rendering
 										loadedMobileUsers.map((userObj, key) => {
 											// Extract user ID for operations
-											let userId = userObj.mobileUserId
-
+											let userId = userObj.mobileUserId ?? userObj.id ?? userObj.uid
 											return (
 												<tr
 													className={`border-b transition duration-300 ease-in-out dark:border-indigo-100 ${!customClaims.agency && !userObj.hasFirestoreDoc && 'bg-red-50'} ${userObj.disabled && 'bg-yellow-100'}`}
-													key={key}
+													key={`${userId ?? 'unknown'}-${key}`}
 													onClick={
 														customClaims.admin
 															? () => handleEditUser(userObj, userId)

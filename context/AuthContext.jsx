@@ -13,7 +13,7 @@
  * @requires react
  */
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import { 
     createUserWithEmailAndPassword,
     onAuthStateChanged,
@@ -29,10 +29,8 @@ import {
     EmailAuthProvider
 } from 'firebase/auth'
 
-import {
-  httpsCallable,
-} from "firebase/functions";
-import { auth, app, db, functions } from '../config/firebase'
+import { httpsCallable } from 'firebase/functions'
+import { auth, app, db } from '../config/firebase'
 import { getDoc, doc, setDoc } from "firebase/firestore";
 import moment from 'moment'
 
@@ -75,6 +73,39 @@ export const AuthContextProvider = ({children}) => {
     const [loading, setLoading] = useState(true)
     const [userRole, setUserRole] = useState('user')
     const [customClaims, setCustomClaims] = useState({agency: false, admin: false})
+
+    // Functions instance created on the client so callables work (avoids null during SSR).
+    // If the SDK throws "Service functions is not available" (e.g. in some Next.js/build envs), we degrade gracefully.
+    const [functionsInstance, setFunctionsInstance] = useState(null)
+    useEffect(() => {
+        if (typeof window === 'undefined') return
+        let cancelled = false
+        const init = () => {
+            import('firebase/functions')
+                .then(({ getFunctions }) => {
+                    if (cancelled) return
+                    try {
+                        const fn = getFunctions(app, 'us-central1')
+                        setFunctionsInstance(fn)
+                    } catch (e) {
+                        setFunctionsInstance(null)
+                        if (process.env.NODE_ENV === 'development') {
+                            console.warn(
+                                'Cloud Functions client unavailable (e.g. "Service functions is not available"). Admin features that use callables will be limited.',
+                            )
+                        }
+                    }
+                })
+                .catch(() => {
+                    if (!cancelled) setFunctionsInstance(null)
+                })
+        }
+        const id = setTimeout(init, 0)
+        return () => {
+            cancelled = true
+            clearTimeout(id)
+        }
+    }, [])
 
     /**
      * Effect hook to monitor authentication state changes.
@@ -124,17 +155,34 @@ export const AuthContextProvider = ({children}) => {
         return () => unsubscribe()
     }, [])
 
-    // Firebase Cloud Functions for user management
-    const addAdminRole = httpsCallable(functions,'addAdminRole')
-    const addAgencyRole = httpsCallable(functions, 'addAgencyRole')
-    const viewRole = httpsCallable(functions, 'viewRole')
-    const addUserRole = httpsCallable(functions, 'addUserRole')
-    const getUserByEmail = httpsCallable(functions,'getUserByEmail')
-    const deleteUser = httpsCallable(functions,'deleteUser')
-    const disableUser = httpsCallable(functions,'disableUser')
-    const getUserRecord = httpsCallable(functions, 'getUserRecord');
-    const authGetUserList = httpsCallable(functions, 'authGetUserList')
-  
+    // Firebase Cloud Functions for user management - only when functions is available (browser); null during SSR/build
+    const noopCallable = () => Promise.reject(new Error('Functions not available'))
+    const callables = useMemo(() => {
+        if (!functionsInstance) {
+            return {
+                addAdminRole: noopCallable,
+                addAgencyRole: noopCallable,
+                viewRole: noopCallable,
+                addUserRole: noopCallable,
+                getUserByEmail: noopCallable,
+                deleteUser: noopCallable,
+                disableUser: noopCallable,
+                getUserRecord: noopCallable,
+                authGetUserList: noopCallable,
+            }
+        }
+        return {
+            addAdminRole: httpsCallable(functionsInstance, 'addAdminRole'),
+            addAgencyRole: httpsCallable(functionsInstance, 'addAgencyRole'),
+            viewRole: httpsCallable(functionsInstance, 'viewRole'),
+            addUserRole: httpsCallable(functionsInstance, 'addUserRole'),
+            getUserByEmail: httpsCallable(functionsInstance, 'getUserByEmail'),
+            deleteUser: httpsCallable(functionsInstance, 'deleteUser'),
+            disableUser: httpsCallable(functionsInstance, 'disableUser'),
+            getUserRecord: httpsCallable(functionsInstance, 'getUserRecord'),
+            authGetUserList: httpsCallable(functionsInstance, 'authGetUserList'),
+        }
+    }, [functionsInstance])
     /**
      * Fetches a user record from Firebase Auth by UID.
      * 
@@ -146,7 +194,7 @@ export const AuthContextProvider = ({children}) => {
      */
     const fetchUserRecord = async (uid) => {
         try {
-            const result = await getUserRecord({ uid });
+            const result = await callables.getUserRecord({ uid });
             return result.data;
         } catch (error) {
             console.log(`Error fetching Auth user record uid: ${uid}`, error);
@@ -290,7 +338,7 @@ export const AuthContextProvider = ({children}) => {
      * await deleteAdminUser(currentUser);
      */
     const deleteAdminUser = (user) => {
-        return deleteUser(user)
+        return callables.deleteUser({ uid: user.uid })
     }
 
     /**
@@ -304,7 +352,7 @@ export const AuthContextProvider = ({children}) => {
      */
     const disableUserFunction = async (userId) => {
         try {
-            const result = await disableUser({ uid: userId });
+            const result = await callables.disableUser({ uid: userId });
             console.log('User disabled:', result.data.message);
             return result.data;
         } catch (error) {
@@ -411,31 +459,32 @@ export const AuthContextProvider = ({children}) => {
     }
  
     return (
-        <AuthContext.Provider value={{ 
-            user, 
-            customClaims, 
-            setCustomClaims, 
-            login, 
-            signup, 
-            logout, 
-            resetPassword, 
-            deleteAdminUser, 
-            updateUserPassword, 
-            updateUserEmail, 
-            setPassword, 
-            verifyEmail, 
-            sendSignIn, 
-            addAdminRole, 
-            addAgencyRole, 
-            verifyRole, 
-            viewRole, 
-            addUserRole, 
-            getUserByEmail, 
-            deleteUser, 
-            disableUser: disableUserFunction, 
-            fetchUserRecord, 
-            getUserRecord, 
-            authGetUserList 
+        <AuthContext.Provider value={{
+            user,
+            customClaims,
+            setCustomClaims,
+            functionsReady: !!functionsInstance,
+            login,
+            signup,
+            logout,
+            resetPassword,
+            deleteAdminUser,
+            updateUserPassword,
+            updateUserEmail,
+            setPassword,
+            verifyEmail,
+            sendSignIn,
+            addAdminRole: callables.addAdminRole,
+            addAgencyRole: callables.addAgencyRole,
+            verifyRole,
+            viewRole: callables.viewRole,
+            addUserRole: callables.addUserRole,
+            getUserByEmail: callables.getUserByEmail,
+            deleteUser: callables.deleteUser,
+            disableUser: disableUserFunction,
+            fetchUserRecord,
+            getUserRecord: callables.getUserRecord,
+            authGetUserList: callables.authGetUserList,
         }}>
             {loading ? null : children}
         </AuthContext.Provider>

@@ -1,47 +1,24 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState } from "react"
 import { IoClose } from "react-icons/io5"
 import Image from "next/image"
 import ConfirmModal from "../common/ConfirmModal"
-
-import { db } from "../../../config/firebase"
-import { 
-	doc, 
-	updateDoc,
-	arrayUnion,
-	} from 'firebase/firestore'
-
-import { auth } from '../../../config/firebase'
-
 import { useAuth } from '../../../context/AuthContext'
-
-import { getStorage, ref, uploadBytesResumable, getDownloadURL, getMetadata, updateMetadata } from 'firebase/storage';
 
 const AgencyModal = ({
   setAgencyModal,
   handleImageChange,
-  handleUpload,
   handleAddAgencyUsers,
-  sendAgencyLinks,
   deleteAdmin, // deleteAdmin handler passed from the parent
   handleSubmitClick,
-  saveAgency,
   agencyInfo,
   agencyUsersArr,
-  images,
-  resendEmail,
   sendEmail,
-  adminDelete,
 	setAddAgencyUsers,
 	addAgencyUsers, // handle the input value for new agency emails
-  setErrors,
   setSendEmail,
-  setResendEmail,
 	imgPicker,
 	uploadedImageURLs,
 	errors }) => {
-    const { user, sendSignIn, addUserRole } = useAuth() // Add agency user send signup email
-
-	const storage = getStorage();
 
   // delete modal
   const [deleteModal, setDeleteModal] = useState(false)
@@ -164,14 +141,14 @@ const AgencyModal = ({
                   />
                 )
 								: 
-									agencyInfo.logo && (
+									agencyInfo.logo?.[0] ? (
 										<Image
-											src={agencyInfo.logo[0]} // Use the first logo URL since it's a single image
+											src={agencyInfo.logo[0]}
 											width={100}
 											height={100}
 											alt="Agency logo"
 										/>
-									)
+									) : null
 								}
 								<label className="block">
 									<span className="sr-only">Choose files</span>
