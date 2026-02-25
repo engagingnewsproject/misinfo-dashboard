@@ -76,6 +76,7 @@ export async function fetchUsersBatch({
     const users = snapshot.docs.slice(0, pageSize).map((doc) => ({
       id: doc.id,
       ...doc.data(),
+      hasFirestoreDoc: true,  // All users from this query are from mobileUsers
     }));
 
     // Get the last document for the next query (excluding the extra one)
