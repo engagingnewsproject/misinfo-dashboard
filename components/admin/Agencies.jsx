@@ -35,8 +35,8 @@ import {
 	query,
 	where
 } from 'firebase/firestore'
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
-import { db, storage } from "../../config/firebase"
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
+import { db, storage, app } from "../../config/firebase"
 import { useAuth } from '../../context/AuthContext'
 import Image from 'next/image'
 import AgencyModal from '../modals/admin/AgencyModal'
@@ -229,7 +229,23 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 */
 	const handleUpload = async () => {
 		try {
-			if (!storage) {
+			// Use shared storage from config, or lazy-init in browser when storageBucket is set
+			let storageInstance = storage
+			if (!storageInstance && typeof window !== 'undefined') {
+				if (!app.options?.storageBucket) {
+					console.error('Firebase Storage is not configured. Set NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET in your .env file (e.g. your-project-id.appspot.com), then restart the dev server.')
+					return
+				}
+				try {
+					const storageModule = await import('firebase/storage')
+					const bucket = app.options.storageBucket
+					storageInstance = storageModule.getStorage(app, bucket?.startsWith('gs://') ? bucket : `gs://${bucket}`)
+				} catch (lazyErr) {
+					console.error('Firebase Storage failed despite bucket being set. Enable Cloud Storage in Firebase Console (Storage → Get started) and ensure a default bucket exists.')
+					throw lazyErr
+				}
+			}
+			if (!storageInstance) {
 				console.error('Firebase Storage is not available.')
 				return
 			}
@@ -241,7 +257,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			// Create upload tasks for all selected images
 			const uploadPromises = images.map(async (image) => {
 				const storageRef = ref(
-					storage,
+					storageInstance,
 					`${new Date().getTime().toString()}.png`, // Unique filename
 				)
 				const uploadTask = uploadBytesResumable(storageRef, image)
