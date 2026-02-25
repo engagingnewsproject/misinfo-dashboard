@@ -95,6 +95,23 @@ Firebase authentication on pages and components.
 | `config/firebase.js` | Auth entry point |
 | `context/AuthContext.jsx` | defines user authorization |
 
+### Firebase App Hosting deployment (lock file)
+
+When deploying via [Firebase App Hosting](https://firebase.google.com/docs/app-hosting) (Git-backed), the remote build runs `npm ci`, which requires `package-lock.json` to match the build environment (Node 20.20.0). If you change dependencies locally, the lock file can go out of sync and the build will fail.
+
+**Regenerate the lock file with Node 20.20.0 before pushing:**
+
+1. From the project root, run (requires [Docker](https://docs.docker.com/get-docker/)):
+
+   ```bash
+   docker run --rm -v "$(pwd):/workspace" -w /workspace node:20.20.0 \
+     bash -c "rm -rf node_modules package-lock.json && npm install"
+   ```
+
+2. Commit and push the new `package-lock.json`.
+
+See [README – Deploy to Firebase Hosting → Firebase App Hosting](https://github.com/engagingnewsproject/misinfo-dashboard#deploy-to-firebase-hosting) for full deployment steps.
+
 ## Dashboard
 
 pages/index.jsx - dashboard entry point, importing main dashboard (pages/dashboard.jsx)

@@ -181,6 +181,30 @@ The app is configured for Firebase Hosting with the Next.js web frameworks integ
 
 4. Open your Hosting URL (e.g. `https://misinfo-5d004.web.app`) to verify.
 
+#### Firebase App Hosting (Git-backed)
+
+The app can also be deployed via [Firebase App Hosting](https://firebase.google.com/docs/app-hosting), which builds and deploys from your Git repo (e.g. on push to `main`). Configuration is in `apphosting.yaml`; the live backend URL is typically `https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app`.
+
+**Important: keep `package-lock.json` in sync with the build.** The App Hosting build runs `npm ci`, which requires the lock file to match the build environment (Node 20.20.0). If you add or update dependencies (e.g. run `npm install <pkg>` or change `package.json`), regenerate the lock file with Node 20.20.0 before pushing, or the build will fail with "package.json and package-lock.json are in sync" / "Missing: … from lock file" errors.
+
+1. Install [Docker](https://docs.docker.com/get-docker/) if you don’t have it.
+2. From the project root, run:
+
+   ```bash
+   docker run --rm -v "$(pwd):/workspace" -w /workspace node:20.20.0 \
+     bash -c "rm -rf node_modules package-lock.json && npm install"
+   ```
+
+3. Commit and push the updated `package-lock.json`:
+
+   ```bash
+   git add package-lock.json
+   git commit -m "chore: regenerate package-lock.json with node 20.20.0 for App Hosting"
+   git push
+   ```
+
+Do this whenever you change dependencies and intend to deploy via App Hosting.
+
 ---
 
 ## Deploy to Netlify
