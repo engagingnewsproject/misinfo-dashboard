@@ -30,19 +30,10 @@ import Navbar from '../components/layout/Navbar'
 import { useAuth } from '../context/AuthContext'
 import Agencies from '../components/admin/Agencies'
 import NewReportModal from '../components/modals/reports/NewReportModal'
-import { db, auth } from '../config/firebase'
-import LanguageSwitcher from '../components/layout/LanguageSwitcher'
+import { auth } from '../config/firebase'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import Head from 'next/head'
 import HelpRequests from '../components/admin/HelpRequests'
-const tabList = [
-	'Home',
-	'Profile',
-	'Settings',
-	'Users',
-	'Agencies',
-	'ReportSettings',
-]
 
 /**
  * Dashboard Page
