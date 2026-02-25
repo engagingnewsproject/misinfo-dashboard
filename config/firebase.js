@@ -83,10 +83,12 @@ if (typeof window !== 'undefined') {
 }
 export { storage }
 export const auth = getAuth(app)
-export const functions = getFunctions(app)
-
-// UNCOMMENT BELOW: enable connection to firebase functions emulator
-// connectFunctionsEmulator(functions,"127.0.0.1",5001)
+// Functions only in browser so Next.js build (Node) does not run getFunctions(); avoids "Service functions is not available"
+let functions = null
+if (typeof window !== 'undefined') {
+	functions = getFunctions(app)
+}
+export { functions }
 
 // Connect to Firebase emulators in development mode
 // Only connect if USE_EMULATORS environment variable is set to 'true'
@@ -95,5 +97,5 @@ if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_EMULAT
 	connectAuthEmulator(auth, 'http://127.0.0.1:9099')
 	connectFirestoreEmulator(db, 'localhost', 8080)
 	if (storage) connectStorageEmulator(storage, '127.0.0.1', 9199)
-	connectFunctionsEmulator(functions, '127.0.0.1', 5001)
+	if (functions) connectFunctionsEmulator(functions, '127.0.0.1', 5001)
 }
