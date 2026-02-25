@@ -24,7 +24,7 @@
 # redirect from netlify subdomain to google app hosting domain
 [[redirects]]
   from = "https://truthsleuthlocal.netlify.app"
-  to = "https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app/:splat"
+  to = "https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app"
   status = 301
   force = true
 
