@@ -819,6 +819,10 @@ const Users = () => {
 	 * @param {string} userId - The ID of the user to be edited.
 	 */
 	const handleEditUser = async (userObj, userId) => {
+		if (userId == null || String(userId).trim() === '') {
+			console.warn('handleEditUser: missing or empty userId', userObj)
+			return
+		}
 		setUserId(userId)
 		const userRef = await getDoc(doc(db, 'mobileUsers', userId))
 		setUserEditing(userObj)
@@ -1333,12 +1337,11 @@ const Users = () => {
 										// Render user rows with role-based conditional rendering
 										loadedMobileUsers.map((userObj, key) => {
 											// Extract user ID for operations
-											let userId = userObj.mobileUserId
-
+											let userId = userObj.mobileUserId ?? userObj.id ?? userObj.uid
 											return (
 												<tr
 													className={`border-b transition duration-300 ease-in-out dark:border-indigo-100 ${!customClaims.agency && !userObj.hasFirestoreDoc && 'bg-red-50'} ${userObj.disabled && 'bg-yellow-100'}`}
-													key={key}
+													key={userId ?? `row-${key}`}
 													onClick={
 														customClaims.admin
 															? () => handleEditUser(userObj, userId)
