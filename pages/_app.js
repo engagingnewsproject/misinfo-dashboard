@@ -48,9 +48,18 @@ const noAuthRequired = ["/login", "/signup", "/resetPassword", "/testPage"]
  * @param {Object} props.pageProps - Props for the active page
  * @returns {JSX.Element} The wrapped app component
  */
+/** Fallback when Next.js passes undefined Component (e.g. during error or route resolve). */
+function FallbackPage() {
+	return (
+		<div className="w-screen h-screen flex justify-center items-center">
+			<p>Loading…</p>
+		</div>
+	)
+}
+
 function MyApp({ Component, pageProps }) {
 	const router = useRouter()
-
+	const SafeComponent = Component ?? FallbackPage
 
 	return (
 		<>
@@ -67,10 +76,10 @@ function MyApp({ Component, pageProps }) {
 					<div className='bg-sky-100 w-full max-w-full overflow-x-hidden min-h-screen'>
 						<div className='w-screen content-center'>
 							{noAuthRequired.includes(router.pathname) ? (
-								<Component {...pageProps} />
+								<SafeComponent {...pageProps} />
 							) : (
 								<ProtectedRoute>
-									<Component {...pageProps} />
+									<SafeComponent {...pageProps} />
 								</ProtectedRoute>
 							)}
 						</div>
@@ -79,6 +88,15 @@ function MyApp({ Component, pageProps }) {
 			</ThemeProvider>
 		</>
 	)
+}
+
+MyApp.getInitialProps = async (appContext) => {
+	const { Component, ctx } = appContext
+	let pageProps = {}
+	if (Component && typeof Component.getInitialProps === 'function') {
+		pageProps = await Component.getInitialProps(ctx)
+	}
+	return { pageProps }
 }
 
 export default appWithTranslation(MyApp)
