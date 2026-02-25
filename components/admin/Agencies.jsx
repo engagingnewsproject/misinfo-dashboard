@@ -35,8 +35,8 @@ import {
 	query,
 	where
 } from 'firebase/firestore'
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
-import { db } from "../../config/firebase"
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
+import { db, storage } from "../../config/firebase"
 import { useAuth } from '../../context/AuthContext'
 import Image from 'next/image'
 import AgencyModal from '../modals/admin/AgencyModal'
@@ -69,7 +69,6 @@ import { Button } from '@material-tailwind/react'
 const Agencies = ({handleAgencyUpdateSubmit}) => {
 	// Authentication and Firebase
 	const { sendSignIn } = useAuth() // User authentication and email sending
-	const storage = getStorage() // Firebase Storage instance
 	const imgPicker = useRef(null) // File input reference for image upload
 	
 	// Agency data management
@@ -230,6 +229,10 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 */
 	const handleUpload = async () => {
 		try {
+			if (!storage) {
+				console.error('Firebase Storage is not available.')
+				return
+			}
 			if (images.length === 0) {
 				console.error('No images to upload.')
 				return
