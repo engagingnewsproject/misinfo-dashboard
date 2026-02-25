@@ -29,7 +29,7 @@ import {
     EmailAuthProvider
 } from 'firebase/auth'
 
-import { getFunctions, httpsCallable } from "firebase/functions";
+import { httpsCallable } from 'firebase/functions'
 import { auth, app, db } from '../config/firebase'
 import { getDoc, doc, setDoc } from "firebase/firestore";
 import moment from 'moment'
@@ -74,15 +74,36 @@ export const AuthContextProvider = ({children}) => {
     const [userRole, setUserRole] = useState('user')
     const [customClaims, setCustomClaims] = useState({agency: false, admin: false})
 
-    // Functions instance created on the client so callables work (avoids null during SSR)
+    // Functions instance created on the client so callables work (avoids null during SSR).
+    // If the SDK throws "Service functions is not available" (e.g. in some Next.js/build envs), we degrade gracefully.
     const [functionsInstance, setFunctionsInstance] = useState(null)
     useEffect(() => {
         if (typeof window === 'undefined') return
-        try {
-            setFunctionsInstance(getFunctions(app, 'us-central1'))
-        } catch (e) {
-            console.error('AuthContext: getFunctions failed', e)
-            setFunctionsInstance(null)
+        let cancelled = false
+        const init = () => {
+            import('firebase/functions')
+                .then(({ getFunctions }) => {
+                    if (cancelled) return
+                    try {
+                        const fn = getFunctions(app, 'us-central1')
+                        setFunctionsInstance(fn)
+                    } catch (e) {
+                        setFunctionsInstance(null)
+                        if (process.env.NODE_ENV === 'development') {
+                            console.warn(
+                                'Cloud Functions client unavailable (e.g. "Service functions is not available"). Admin features that use callables will be limited.',
+                            )
+                        }
+                    }
+                })
+                .catch(() => {
+                    if (!cancelled) setFunctionsInstance(null)
+                })
+        }
+        const id = setTimeout(init, 0)
+        return () => {
+            cancelled = true
+            clearTimeout(id)
         }
     }, [])
 
