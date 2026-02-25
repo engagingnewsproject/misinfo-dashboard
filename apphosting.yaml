@@ -9,10 +9,6 @@
 #   memoryMiB: 512
 #   cpu: 1
 
-# Use npm install instead of buildpack's npm ci so lock file doesn't have to match build env exactly
-scripts:
-  buildCommand: npm install && npm run build
-
 env:
   # --- Public env (NEXT_PUBLIC_* available at BUILD and RUNTIME) ---
   # Firebase API key: use secret so it is not in the repo (Google flags keys in public sources).
