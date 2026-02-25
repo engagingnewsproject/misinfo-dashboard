@@ -124,16 +124,17 @@ export const AuthContextProvider = ({children}) => {
         return () => unsubscribe()
     }, [])
 
-    // Firebase Cloud Functions for user management
-    const addAdminRole = httpsCallable(functions,'addAdminRole')
-    const addAgencyRole = httpsCallable(functions, 'addAgencyRole')
-    const viewRole = httpsCallable(functions, 'viewRole')
-    const addUserRole = httpsCallable(functions, 'addUserRole')
-    const getUserByEmail = httpsCallable(functions,'getUserByEmail')
-    const deleteUser = httpsCallable(functions,'deleteUser')
-    const disableUser = httpsCallable(functions,'disableUser')
-    const getUserRecord = httpsCallable(functions, 'getUserRecord');
-    const authGetUserList = httpsCallable(functions, 'authGetUserList')
+    // Firebase Cloud Functions for user management - only when functions is available (browser); null during SSR/build
+    const noopCallable = () => Promise.reject(new Error('Functions not available'))
+    const addAdminRole = functions ? httpsCallable(functions, 'addAdminRole') : noopCallable
+    const addAgencyRole = functions ? httpsCallable(functions, 'addAgencyRole') : noopCallable
+    const viewRole = functions ? httpsCallable(functions, 'viewRole') : noopCallable
+    const addUserRole = functions ? httpsCallable(functions, 'addUserRole') : noopCallable
+    const getUserByEmail = functions ? httpsCallable(functions, 'getUserByEmail') : noopCallable
+    const deleteUser = functions ? httpsCallable(functions, 'deleteUser') : noopCallable
+    const disableUser = functions ? httpsCallable(functions, 'disableUser') : noopCallable
+    const getUserRecord = functions ? httpsCallable(functions, 'getUserRecord') : noopCallable
+    const authGetUserList = functions ? httpsCallable(functions, 'authGetUserList') : noopCallable
   
     /**
      * Fetches a user record from Firebase Auth by UID.
