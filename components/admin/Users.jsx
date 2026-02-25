@@ -350,6 +350,7 @@ const Users = () => {
 		customClaims,
 		fetchUserRecord,
 		authGetUserList,
+		functionsReady,
 	} = useAuth()
 
 	// User data management state
@@ -644,19 +645,20 @@ const Users = () => {
 		[customClaims, authGetUserList],
 	)
 	
-	// For admin, enrich paginated users with Auth details when the list changes
+	// For admin, enrich paginated users with Auth details when the list changes (only after Functions is ready)
 	useEffect(() => {
 		if (!customClaims?.admin || paginatedUsers.length === 0) {
 			setEnhancedPaginatedUsers([])
 			return
 		}
+		if (!functionsReady) return
 		let cancelled = false
 		const list = paginatedUsersRef.current
 		enhanceWithAuthDetails(list).then((result) => {
 			if (!cancelled) setEnhancedPaginatedUsers(result)
 		})
 		return () => { cancelled = true }
-	}, [paginatedUsers.length, customClaims?.admin, enhanceWithAuthDetails])
+	}, [paginatedUsers.length, customClaims?.admin, functionsReady, enhanceWithAuthDetails])
 	
 
 	/**
