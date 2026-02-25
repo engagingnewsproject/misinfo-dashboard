@@ -40,12 +40,11 @@ import {
   doc,
 } from 'firebase/firestore'
 import {
-  getStorage,
   ref,
   uploadBytesResumable,
   getDownloadURL,
 } from 'firebase/storage'
-import { db, auth } from '../../config/firebase'
+import { db, auth, storage } from '../../config/firebase'
 import { State, City } from 'country-state-city'
 import Select from 'react-select'
 import Image from 'next/image'
@@ -91,7 +90,6 @@ const Profile = ({ customClaims }) => {
   const [isSearchable, setIsSearchable] = useState(true)
   const [errors, setErrors] = useState({})
   const imgPicker = useRef(null)
-  const storage = getStorage()
   const [editLogo, setEditLogo] = useState(false)
   const [images, setImages] = useState([])
   const [imageURLs, setImageURLs] = useState([])
@@ -231,6 +229,10 @@ const Profile = ({ customClaims }) => {
    * @returns {Promise<Array<string>>} - An array of uploaded image URLs.
    */
   const handleUpload = async () => {
+    if (!storage) {
+      console.warn('Storage not available'); 
+      return []; 
+    }
     const uploadPromises = images.map((image) => {
       const storageRef = ref(
         storage,
