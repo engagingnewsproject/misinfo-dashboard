@@ -10,8 +10,6 @@
 		"lint": "next lint"
 	},
 	"dependencies": {
-		"@firebase/app": "0.x",
-		"@firebase/firestore": "^4.6.1",
 		"@google-cloud/storage": "^7.10.1",
 		"@headlessui/react": "^1.7.19",
 		"@material-tailwind/react": "^2.1.9",
