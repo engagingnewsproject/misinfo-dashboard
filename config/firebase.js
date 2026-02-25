@@ -90,13 +90,18 @@ if (typeof window !== 'undefined') {
 export { app, analytics, perf, appCheck }
 
 export const db = getFirestore(app)
-// Storage: init only in browser; try/catch so any SDK throw (build, SSR, edge) yields null instead of crash
+// Storage: init only in browser when storageBucket is set; otherwise getStorage() throws "Service storage is not available"
 let storage = null
 if (typeof window !== 'undefined') {
-	try {
-		storage = getStorage(app)
-	} catch {
-		storage = null
+	if (firebaseConfig.storageBucket) {
+		try {
+			const bucketUrl = firebaseConfig.storageBucket.startsWith('gs://') ? firebaseConfig.storageBucket : `gs://${firebaseConfig.storageBucket}`
+			storage = getStorage(app, bucketUrl)
+		} catch {
+			storage = null
+		}
+	} else {
+		console.warn('Firebase Storage skipped: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET is not set. Set it in .env to enable uploads.')
 	}
 }
 export { storage }
