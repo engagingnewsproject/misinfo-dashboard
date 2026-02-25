@@ -76,7 +76,12 @@ if (typeof window !== 'undefined') {
 export { app, analytics, perf }
 
 export const db = getFirestore(app)
-export const storage = getStorage(app)
+// Storage only in browser so Next.js build (Node) does not run getStorage(); avoids "Service storage is not available"
+let storage = null
+if (typeof window !== 'undefined') {
+	storage = getStorage(app)
+}
+export { storage }
 export const auth = getAuth(app)
 export const functions = getFunctions(app)
 
@@ -89,6 +94,6 @@ if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_EMULAT
 	console.log('Running Emulator')
 	connectAuthEmulator(auth, 'http://127.0.0.1:9099')
 	connectFirestoreEmulator(db, 'localhost', 8080)
-	connectStorageEmulator(storage, '127.0.0.1', 9199)
+	if (storage) connectStorageEmulator(storage, '127.0.0.1', 9199)
 	connectFunctionsEmulator(functions, '127.0.0.1', 5001)
 }
