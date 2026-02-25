@@ -1341,7 +1341,7 @@ const Users = () => {
 											return (
 												<tr
 													className={`border-b transition duration-300 ease-in-out dark:border-indigo-100 ${!customClaims.agency && !userObj.hasFirestoreDoc && 'bg-red-50'} ${userObj.disabled && 'bg-yellow-100'}`}
-													key={userId ?? `row-${key}`}
+													key={`${userId ?? 'unknown'}-${key}`}
 													onClick={
 														customClaims.admin
 															? () => handleEditUser(userObj, userId)
