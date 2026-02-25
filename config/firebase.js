@@ -54,39 +54,61 @@ const app = initializeApp(firebaseConfig)
 // Initialize Analytics and Performance Monitoring if running in the browser
 let analytics = null // Initialize to null
 let perf = null
+let appCheck = null
 
 // Initialize Analytics, Performance, and App Check only in the browser
 if (typeof window !== 'undefined') {
 	// Initialize Analytics
-	analytics = getAnalytics(app)
+	try {
+		analytics = getAnalytics(app)
+	} catch (e) {
+		analytics = null
+	}
 	// Initialize Performance Monitoring
-	perf = getPerformance(app)
+	try {
+		perf = getPerformance(app)
+	} catch (e) {
+		perf = null
+	}
 	// Initialize App Check with ReCaptcha Enterprise
 	// Docs: https://firebase.google.com/docs/app-check/web/debug-provider?authuser=0
-	self.FIREBASE_APPCHECK_DEBUG_TOKEN =
-		process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN
-	initializeAppCheck(app, {
-		provider: new ReCaptchaEnterpriseProvider(
-			process.env.NEXT_PUBLIC_FIREBASE_RECAPTCHA_ENTERPRISE_SITE_KEY,
-		),
-		isTokenAutoRefreshEnabled: true, // Set to true to allow auto-refresh.
-	})
+	try {
+		self.FIREBASE_APPCHECK_DEBUG_TOKEN =
+			process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN
+		initializeAppCheck(app, {
+			provider: new ReCaptchaEnterpriseProvider(
+				process.env.NEXT_PUBLIC_FIREBASE_RECAPTCHA_ENTERPRISE_SITE_KEY,
+			),
+			isTokenAutoRefreshEnabled: true, // Set to true to allow auto-refresh.
+		})
+		appCheck = true  // optional: signal success
+	} catch (e) {
+		appCheck = null
+	}
 }
 
-export { app, analytics, perf }
+export { app, analytics, perf, appCheck }
 
 export const db = getFirestore(app)
-// Storage only in browser so Next.js build (Node) does not run getStorage(); avoids "Service storage is not available"
+// Storage: init only in browser; try/catch so any SDK throw (build, SSR, edge) yields null instead of crash
 let storage = null
 if (typeof window !== 'undefined') {
-	storage = getStorage(app)
+	try {
+		storage = getStorage(app)
+	} catch {
+		storage = null
+	}
 }
 export { storage }
 export const auth = getAuth(app)
-// Functions only in browser so Next.js build (Node) does not run getFunctions(); avoids "Service functions is not available"
+// Functions: init only in browser; try/catch so any SDK throw (build, SSR, edge) yields null instead of crash
 let functions = null
 if (typeof window !== 'undefined') {
-	functions = getFunctions(app)
+	try {
+		functions = getFunctions(app)
+	} catch {
+		functions = null
+	}
 }
 export { functions }
 
