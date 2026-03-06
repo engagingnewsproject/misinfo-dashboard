@@ -30,6 +30,8 @@ import { useAuth } from '../../context/AuthContext';
 
 import { useTranslation } from 'next-i18next';
 
+/** Report card image (bundled so it works on Firebase App Hosting where public/ may not be served). */
+import reportImg from '../../public/img/report.png';
 
 /**
  * ReportLanding Component
@@ -123,7 +125,7 @@ const ReportLanding = ({
 				<h2 className={style.header}>{t("hello")}</h2>
 			</div>
 			<button onClick={onReportStartClick} className={style.buttonLg}>
-				<Image src="/img/report.png" width={200} height={120} priority alt="report" className='h-auto max-w-36 sm:h-auto' as="image" />
+				<Image src={reportImg} width={200} height={120} priority alt="report" className='h-auto max-w-36 sm:h-auto' />
 				<span className='flex flex-col text-left'>
 					<span className='flex items-center'>{t("report")}<IoChevronForward size={25}/></span>
 					<span className='text-xs'>{t("potential")}</span>
