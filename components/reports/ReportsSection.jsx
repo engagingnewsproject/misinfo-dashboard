@@ -482,6 +482,26 @@ const ReportsSection = ({
 	}
 	
 	/**
+	 * Updates report detail in Firestore when changed in modal
+	 * Only updates if the detail value has actually changed
+	 * 
+	 * @async
+	 * @function handleDetailChange
+	 * @param {Event} e - Input change event
+	 */
+	const handleDetailChange = async (e) => {
+		e.preventDefault()
+		let reportId = reportModalId
+		if (e.target.value !== report['detail']) {
+			const docRef = doc(db, 'reports', reportId)
+			await updateDoc(docRef, { detail: e.target.value })
+			setUpdate(e.target.value)
+		} else {
+			setUpdate('')
+		}
+	}
+
+	/**
 	 * Updates report note in Firestore when changed in modal
 	 * Only updates if the note value has actually changed
 	 * 
@@ -1178,6 +1198,7 @@ const ReportsSection = ({
 							setReportModalShow={setReportModalShow}
 							reportModalId={reportModalId}
 							onNoteChange={handleNoteChange}
+							onDetailChange={handleDetailChange}
 							onLabelChange={handleLabelChange}
 							selectedLabel={selectedLabel}
 							activeLabels={activeLabels}

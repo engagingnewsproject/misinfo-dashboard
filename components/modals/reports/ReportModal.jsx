@@ -30,15 +30,15 @@ import Link from "next/link"
 import Image from "next/image"
 import {Tooltip} from "react-tooltip";
 // icons
-import { RiMessage2Fill } from "react-icons/ri"
-import { BiEditAlt } from "react-icons/bi"
+import { BiEditAlt } from "react-icons/bi";
+import { RiMessage2Fill } from "react-icons/ri";
 // import { BsShareFill } from "react-icons/bs"
+import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai";
 import { BiLinkExternal } from "react-icons/bi";
-import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
 // import { MdOutlineLocalPhone } from "react-icons/md";
 
-import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
 import { useTranslation } from 'next-i18next';
+import { IoBusinessOutline, IoClose, IoLocation, IoTrash } from "react-icons/io5";
 
 /**
  * ReportModal Component
@@ -109,6 +109,7 @@ const ReportModal = ({
 	// read status END
 	postedDate,
 	reportLocation,
+	onDetailChange,
 	onNoteChange,
 	onReportDelete,
 	changeStatus,
@@ -189,14 +190,14 @@ const ReportModal = ({
 			onClick={() => setReportModalShow(false)}>
 			<div className='absolute flex justify-center items-center z-[9999] top-4 left-0 right-0 sm:overflow-y-scroll'>
 				<div
-					className='flex-col justify-center items-center rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible md:w-10/12 lg:w-10/12' // {style.wrap}
+					className='flex-col items-center justify-center px-10 py-10 rounded-2xl bg-sky-100 sm:overflow-visible md:w-10/12 lg:w-10/12' // {style.wrap}
 					onClick={(e) => {
 						e.stopPropagation() // Prevent modal close when clicking inside
 					}}>
 					{/* Modal Header */}
 					<div className='flex justify-between w-full mb-6'>
-						<div className='flex w-full items-baseline'>
-							<div className='text-2xl font-bold text-blue-600 tracking-wider'>
+						<div className='flex items-baseline w-full'>
+							<div className='text-2xl font-bold tracking-wider text-blue-600'>
 								Report Information
 							</div>
 							{/* External link to full report view */}
@@ -220,7 +221,7 @@ const ReportModal = ({
 								<>
 									{/* Report Title */}
 									<div className={style.header}>Title</div>
-									<div className='text-sm bg-white rounded-xl p-4 mb-5'>
+									<div className='p-4 mb-5 text-sm bg-white rounded-xl'>
 										{report.title || (
 											<span className='italic text-gray-400'>No Title</span>
 										)}
@@ -232,13 +233,14 @@ const ReportModal = ({
 										<textarea
 											placeholder='No detail provided'
 											id='detail'
+											onChange={onDetailChange}
 											className={
 												report.detail
 													? style.textarea
 													: style.textarea + ` italic`
 											}
-											disabled
-											value={report.detail}
+											readOnly={customClaims.admin ? false : true}
+											defaultValue={detail}
 											rows='6'
 										/>
 									</div>
@@ -285,19 +287,19 @@ const ReportModal = ({
 										{/* Topic/Tag */}
 										<div className='flex flex-row mb-3 items-center'>
 											<RiMessage2Fill size={20} />
-											<div className='font-semibold px-2 self-center pr-4'>
+											<div className='self-center px-2 pr-4 font-semibold'>
 												Tag
 											</div>
-											<div className='text-md font-light'>{report.topic}</div>
+											<div className='font-light text-md'>{report.topic}</div>
 										</div>
 										
 										{/* Sources/Media */}
 										<div className='flex flex-row mb-3 items-center'>
 											<BiEditAlt size={20} />
-											<div className='font-semibold px-2 self-center pr-4'>
+											<div className='self-center px-2 pr-4 font-semibold'>
 												Sources / Media
 											</div>
-											<div className='text-md font-light'>
+											<div className='font-light text-md'>
 												{report.hearFrom}
 											</div>
 										</div>
@@ -305,30 +307,30 @@ const ReportModal = ({
 										{/* Date/Time */}
 										<div className='flex flex-row mb-3 items-center'>
 											<AiOutlineFieldTime size={20} />
-											<div className='font-semibold px-2 self-center pr-4'>
+											<div className='self-center px-2 pr-4 font-semibold'>
 												Date / Time
 											</div>
-											<div className='text-md font-light'>{postedDate}</div>
+											<div className='font-light text-md'>{postedDate}</div>
 										</div>
 										
 										{/* Location */}
 										<div className='flex flex-row mb-3 items-center'>
 											<IoLocation size={20} />
-											<div className='font-semibold px-2 self-center pr-4'>
+											<div className='self-center px-2 pr-4 font-semibold'>
 												City, State
 											</div>
-											<div className='text-md font-light'>{reportLocation}</div>
+											<div className='font-light text-md'>{reportLocation}</div>
 										</div>
 										
 										{/* Agency (conditional display) */}
 										{report.agency && (
 											<>
-												<div className='flex flex-row mb-3 items-center'>
+												<div className='flex flex-row items-center mb-3'>
 													<IoBusinessOutline size={20} />
-													<div className='font-semibold px-2 self-center pr-4'>
+													<div className='self-center px-2 pr-4 font-semibold'>
 														Agency
 													</div>
-													<div className='text-md font-light'>
+													<div className='font-light text-md'>
 														{report.agency}
 													</div>
 												</div>
@@ -337,10 +339,10 @@ const ReportModal = ({
 										
 										{/* Report Submitter Information */}
 										{reportSubmitBy.contact && (
-										<div className="flex flex-row mb-3 items-center">
+										<div className="flex flex-row items-center mb-3">
 										<AiOutlineUser size={20} />
-											<div className="text-md font-light">
-												<span className="font-semibold px-2 self-center pr-4">Reported by</span>{" "}
+											<div className="font-light text-md">
+												<span className="self-center px-2 pr-4 font-semibold">Reported by</span>{" "}
 												{reportSubmitBy.name} (
 												<a
 													target="_blank"
@@ -354,10 +356,10 @@ const ReportModal = ({
 										</div>
 									)}
                   {/* {reportSubmitBy.contact && reportSubmitBy.phone && 
-										<div className="flex flex-row mb-3 items-center">
+										<div className="flex flex-row items-center mb-3">
 										<MdOutlineLocalPhone size={20} />
-											<div className="text-md font-light">
-												<span className="font-semibold px-2 self-center pr-4">Phone number</span>{" "}
+											<div className="font-light text-md">
+												<span className="self-center px-2 pr-4 font-semibold">Phone number</span>{" "}
 												<a href={`tel:${reportSubmitBy.phone}`}>{reportSubmitBy.phone}</a>
 											</div>
 										</div>
@@ -367,7 +369,7 @@ const ReportModal = ({
 									{/* Image Gallery */}
 									<div className='images mb-12'>
 										<div className={style.header}>Images</div>
-										<div className='grid grid-cols-4 gap-4 w-full overflow-y-auto'>
+										<div className='grid w-full grid-cols-4 gap-4 overflow-y-auto'>
 											{report.images ?
 												report.images.map((image, i) => {
 													return (
@@ -410,7 +412,7 @@ const ReportModal = ({
 									placeholder='No notes yet...'
 									className={note ? style.textarea : style.textarea + ` italic`}
 									rows='6'
-									readOnly={customClaims.admin ? true : false} // Admin users cannot edit notes
+									readOnly={customClaims.admin || customClaims.agency ? false : true}
 									defaultValue={note}></textarea>
 							</div>
 							
@@ -423,7 +425,7 @@ const ReportModal = ({
 										id='labels'
 										onChange={onLabelChange}
 										value={selectedLabel || ''}
-										className='text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none'>
+										className='inline-block px-8 py-1 text-sm bg-yellow-400 border-none shadow rounded-2xl hover:shadow-none'>
 										
 										{/* Default option representing no label */}
 										<option value=''>{selectedLabel === '' ? 'No Label' : 'Remove Label'}</option>
@@ -437,7 +439,7 @@ const ReportModal = ({
 									</select>
 									{/* Status change feedback */}
 									{changeStatus && (
-										<span className='ml-5 font-light text-sm italic'>
+										<span className='ml-5 text-sm italic font-light'>
 											{changeStatus}
 										</span>
 									)}
@@ -473,7 +475,7 @@ const ReportModal = ({
 									{/* Save Button */}
 									<div className='save-button w-full'>
 										<button
-											className='w-full bg-blue-600 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
+											className='w-full px-6 py-2 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:shadow-outline'
 											type='submit'>
 											Save
 										</button>
