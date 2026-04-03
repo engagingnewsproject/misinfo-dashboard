@@ -59,8 +59,16 @@ const ReportDetails = () => {
 
 	const getData = async () => {
     const infoRef = await getDoc(doc(db, "reports",  reportId))
-		setInfo(infoRef.data())
-    getDoc(doc(db, "mobileUsers", infoRef.data()['userID'])).then((mobileRef) => setReporterInfo(mobileRef.data()))
+		const reportData = infoRef.data() || {}
+		setInfo(reportData)
+		const submitterUid = reportData.userID
+		if (submitterUid) {
+			getDoc(doc(db, "mobileUsers", submitterUid)).then((mobileRef) => {
+				setReporterInfo(mobileRef.exists() ? mobileRef.data() : {})
+			})
+		} else {
+			setReporterInfo({})
+		}
 
 		const tagsRef = await getDoc(doc(db, "tags", userId))
     setActiveLabels(tagsRef.data()['Labels']['active'])
@@ -149,12 +157,17 @@ const ReportDetails = () => {
 						<h6 className={`${globalStyles.heading.h2.black} mb-2`}>Title</h6>
             <div className="text-sm bg-white rounded-xl p-4">{info['title'] || <span className="italic text-gray-400">No Title</span>}</div>
 						</div>
-          { reporterInfo &&
+          {reporterInfo?.name && reporterInfo?.email && (
 						<div className="text-md mb-4 font-light text-right">
 							<div>
               <span className="font-semibold">Reported by:</span> {reporterInfo['name']} (<a target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline" href={"mailto:" + reporterInfo['email']}>{reporterInfo['email']}</a>)
 							</div>
-          </div>}
+          </div>)}
+					{info?.source === 'truth-sleuth' && !(reporterInfo?.name && reporterInfo?.email) && (
+						<div className="text-md mb-4 font-light text-right">
+							<span className="font-semibold">Reported by:</span> Truth Sleuth pipeline (automated)
+						</div>
+					)}
 					<div className="mb-8">
 						<div className={globalStyles.heading.h2.black}>Label</div>
             <select id="labels" onChange={(e) => handleLabelChanged(e)} defaultValue={selectedLabel} className="text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none">

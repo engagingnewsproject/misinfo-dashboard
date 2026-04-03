@@ -336,7 +336,7 @@ const ReportModal = ({
 										)}
 										
 										{/* Report Submitter Information */}
-										{reportSubmitBy.contact && (
+										{reportSubmitBy?.contact && (
 										<div className="flex flex-row mb-3 items-center">
 										<AiOutlineUser size={20} />
 											<div className="text-md font-light">
@@ -353,6 +353,15 @@ const ReportModal = ({
 											</div>
 										</div>
 									)}
+										{report?.source === 'truth-sleuth' && !reportSubmitBy?.contact && (
+											<div className="flex flex-row mb-3 items-center">
+												<AiOutlineUser size={20} />
+												<div className="text-md font-light">
+													<span className="font-semibold px-2 self-center pr-4">Reported by</span>
+													Truth Sleuth pipeline (automated)
+												</div>
+											</div>
+										)}
                   {/* {reportSubmitBy.contact && reportSubmitBy.phone && 
 										<div className="flex flex-row mb-3 items-center">
 										<MdOutlineLocalPhone size={20} />

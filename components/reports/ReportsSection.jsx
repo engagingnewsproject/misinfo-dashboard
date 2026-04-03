@@ -390,12 +390,18 @@ const ReportsSection = ({
 			await handleChangeReadModal(reportId, true)
 		}
 
-		// Fetch submitter information from mobileUsers collection
-		const mUserRef = doc(db, 'mobileUsers', docRef.data().userID)
-		const docSnap = await getDoc(mUserRef)
-
-		if (docSnap.exists()) {
-			setReportSubmitBy(docSnap.data())
+		// Fetch submitter information from mobileUsers (skip if no userID, e.g. legacy rows)
+		const submitterUid = docRef.data()?.userID
+		if (submitterUid) {
+			const mUserRef = doc(db, 'mobileUsers', submitterUid)
+			const docSnap = await getDoc(mUserRef)
+			if (docSnap.exists()) {
+				setReportSubmitBy(docSnap.data())
+			} else {
+				setReportSubmitBy({})
+			}
+		} else {
+			setReportSubmitBy({})
 		}
 		setReportModalShow(true)
 	}

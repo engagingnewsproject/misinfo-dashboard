@@ -46,11 +46,16 @@ export default function SwitchRead({ setReportModalId }) {
 	const getData = async () => {
 		// Reference to the firebase data
 		const infoRef = await getDoc(doc(db, "reports", reportId))
-		setInfo(infoRef.data())
-		// Reference to the user on firebase
-		getDoc(doc(db, "mobileUsers", infoRef.data()["userID"])).then((mobileRef) =>
-			setReporterInfo(mobileRef.data())
-		)
+		const reportData = infoRef.data() || {}
+		setInfo(reportData)
+		const submitterUid = reportData.userID
+		if (submitterUid) {
+			getDoc(doc(db, "mobileUsers", submitterUid)).then((mobileRef) =>
+				setReporterInfo(mobileRef.exists() ? mobileRef.data() : {})
+			)
+		} else {
+			setReporterInfo({})
+		}
 	}
 
 	/**
