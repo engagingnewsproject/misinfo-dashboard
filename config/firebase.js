@@ -21,7 +21,11 @@
 import { initializeApp } from 'firebase/app'
 
 import { getAuth, connectAuthEmulator } from 'firebase/auth'
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
+import {
+	getFirestore,
+	initializeFirestore,
+	connectFirestoreEmulator,
+} from 'firebase/firestore'
 import { getStorage, connectStorageEmulator } from 'firebase/storage'
 import { getAnalytics } from 'firebase/analytics'
 import { getPerformance } from 'firebase/performance'
@@ -51,6 +55,47 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig)
 
+/** True when this build should wire the client SDK to local emulators. */
+const useEmulators =
+	process.env.NODE_ENV === 'development' &&
+	process.env.NEXT_PUBLIC_USE_EMULATORS === 'true'
+
+/**
+ * Creates the Firestore client for this JS realm.
+ * Uses long-polling auto-detect in the browser when not on emulators so `next dev` is less likely to hit flaky WebChannel streams to the real backend.
+ */
+function createFirestore() {
+	if (typeof window === 'undefined') {
+		return getFirestore(app)
+	}
+	if (useEmulators) {
+		return getFirestore(app)
+	}
+	try {
+		return initializeFirestore(app, {
+			experimentalAutoDetectLongPolling: true,
+		})
+	} catch {
+		return getFirestore(app)
+	}
+}
+
+// Auth + Firestore must exist (and emulators must be attached) before Analytics / App Check
+// so the Firestore client is not pre-configured with a production host.
+export const auth = getAuth(app)
+export const db = createFirestore()
+
+if (useEmulators && typeof globalThis !== 'undefined') {
+	if (!globalThis.__MISINFO_AUTH_FIRESTORE_EMULATOR__) {
+		globalThis.__MISINFO_AUTH_FIRESTORE_EMULATOR__ = true
+		console.log('Running Emulator')
+		connectAuthEmulator(auth, 'http://127.0.0.1:9099', {
+			disableWarnings: true,
+		})
+		connectFirestoreEmulator(db, '127.0.0.1', 8080)
+	}
+}
+
 // Initialize Analytics and Performance Monitoring if running in the browser
 let analytics = null // Initialize to null
 let perf = null
@@ -70,18 +115,29 @@ if (typeof window !== 'undefined') {
 	} catch (e) {
 		perf = null
 	}
+	// App Check on localhost + real Firebase: without a valid debug token, Firestore often returns
+	// “Missing or insufficient permissions” even when signed in. If NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN
+	// is unset, use `true` so Firebase logs a token once per load (development + not on emulators).
+	// Register it under Firebase Console → App Check → your web app → Manage debug tokens.
+	const liveLocalDev =
+		process.env.NODE_ENV === 'development' &&
+		process.env.NEXT_PUBLIC_USE_EMULATORS !== 'true'
+	if (process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN) {
+		self.FIREBASE_APPCHECK_DEBUG_TOKEN =
+			process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN
+	} else if (liveLocalDev) {
+		self.FIREBASE_APPCHECK_DEBUG_TOKEN = true
+	}
 	// Initialize App Check with ReCaptcha Enterprise
 	// Docs: https://firebase.google.com/docs/app-check/web/debug-provider?authuser=0
 	try {
-		self.FIREBASE_APPCHECK_DEBUG_TOKEN =
-			process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN
 		initializeAppCheck(app, {
 			provider: new ReCaptchaEnterpriseProvider(
 				process.env.NEXT_PUBLIC_FIREBASE_RECAPTCHA_ENTERPRISE_SITE_KEY,
 			),
-			isTokenAutoRefreshEnabled: true, // Set to true to allow auto-refresh.
+			isTokenAutoRefreshEnabled: true, // Set to true to allow token auto-refresh.
 		})
-		appCheck = true  // optional: signal success
+		appCheck = true // optional: signal success
 	} catch (e) {
 		appCheck = null
 	}
@@ -89,23 +145,26 @@ if (typeof window !== 'undefined') {
 
 export { app, analytics, perf, appCheck }
 
-export const db = getFirestore(app)
 // Storage: init only in browser when storageBucket is set; otherwise getStorage() throws "Service storage is not available"
 let storage = null
 if (typeof window !== 'undefined') {
 	if (firebaseConfig.storageBucket) {
 		try {
-			const bucketUrl = firebaseConfig.storageBucket.startsWith('gs://') ? firebaseConfig.storageBucket : `gs://${firebaseConfig.storageBucket}`
+			const bucketUrl = firebaseConfig.storageBucket.startsWith('gs://')
+				? firebaseConfig.storageBucket
+				: `gs://${firebaseConfig.storageBucket}`
 			storage = getStorage(app, bucketUrl)
 		} catch {
 			storage = null
 		}
 	} else {
-		console.warn('Firebase Storage skipped: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET is not set. Set it in .env to enable uploads.')
+		console.warn(
+			'Firebase Storage skipped: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET is not set. Set it in .env to enable uploads.',
+		)
 	}
 }
 export { storage }
-export const auth = getAuth(app)
+
 // Functions: init only in browser; try/catch so any SDK throw (build, SSR, edge) yields null instead of crash
 let functions = null
 if (typeof window !== 'undefined') {
@@ -117,12 +176,15 @@ if (typeof window !== 'undefined') {
 }
 export { functions }
 
-// Connect to Firebase emulators in development mode
-// Only connect if USE_EMULATORS environment variable is set to 'true'
-if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_EMULATORS === 'true') {
-	console.log('Running Emulator')
-	connectAuthEmulator(auth, 'http://127.0.0.1:9099')
-	connectFirestoreEmulator(db, 'localhost', 8080)
-	if (storage) connectStorageEmulator(storage, '127.0.0.1', 9199)
-	if (functions) connectFunctionsEmulator(functions, '127.0.0.1', 5001)
+// Storage / Functions emulators (after instances exist). Separate global flags so a null storage
+// on first SSR pass does not skip browser-only emulator wiring on the client.
+if (useEmulators && typeof globalThis !== 'undefined') {
+	if (storage && !globalThis.__MISINFO_STORAGE_EMULATOR__) {
+		globalThis.__MISINFO_STORAGE_EMULATOR__ = true
+		connectStorageEmulator(storage, '127.0.0.1', 9199)
+	}
+	if (functions && !globalThis.__MISINFO_FUNCTIONS_EMULATOR__) {
+		globalThis.__MISINFO_FUNCTIONS_EMULATOR__ = true
+		connectFunctionsEmulator(functions, '127.0.0.1', 5001)
+	}
 }
