@@ -32,7 +32,7 @@ npm
 npm run dev
 ```
 
-Visit http://localhost:3000 to view your application.
+Visit http://localhost:3000 to view your application. Use that URL only for the app UI during local development; the Firebase Hosting emulator may show another port, but that origin can be blocked by API key HTTP referrer restrictions and should not be used as your main browser entry point.
 
 ### Useful Development Tools
 

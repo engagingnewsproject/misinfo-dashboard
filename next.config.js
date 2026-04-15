@@ -2,6 +2,8 @@
 
 const { i18n } = require('./next-i18next.config.js');
 
+const useFirebaseEmulators = process.env.NEXT_PUBLIC_USE_EMULATORS === 'true';
+
 const nextConfig = {
   i18n,
   reactStrictMode: true,
@@ -44,10 +46,11 @@ const nextConfig = {
       {
         protocol: 'http',
         hostname: '127.0.0.1',
-      }
+      },
     ],
+    ...(useFirebaseEmulators ? { dangerouslyAllowLocalIP: true } : {}),
   },
-  
+
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve = {
