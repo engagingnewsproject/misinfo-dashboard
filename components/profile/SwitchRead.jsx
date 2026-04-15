@@ -19,7 +19,7 @@
  */
 import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
-import { getDoc, doc, updateDoc, collection, app } from "firebase/firestore"
+import { getDoc, doc, updateDoc, collection } from "firebase/firestore"
 import { db } from "../../config/firebase"
 import { Switch } from "@headlessui/react"
 import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"

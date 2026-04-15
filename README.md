@@ -59,7 +59,17 @@ To boot up the development server and Firebase Emulator run:
 npm run dev
 ```
 
-This command will boot up the [Firebase Emulator UI](https://firebase.google.com/docs/emulator-suite) and the NextJS server. Look over your terminal output and click the Emulator links (Emulator UI) and localhost link.
+This command starts the [Firebase Emulator UI](https://firebase.google.com/docs/emulator-suite) and the Next.js dev server. Use the Emulator UI link from the terminal when you need Auth/Firestore/etc. tools.
+
+**Open the app in your browser at [http://localhost:3000](http://localhost:3000).** `npm run dev` starts Auth, Firestore, Functions, Storage, and Extensions emulators **without** the Hosting emulator, so there is only one Next.js process (this one). That avoids duplicate dev servers and keeps your browser origin on `localhost:3000`, which matches typical Google Cloud API key HTTP referrer rules for the Firebase Web SDK.
+
+`npm run dev:turbo` is the same as `npm run dev` (Next.js already uses Turbopack for local dev here).
+
+`npm run dev:live` starts **only** Next.js (`next dev`), sets `NEXT_PUBLIC_USE_EMULATORS=false`, and **unsets** common `*_EMULATOR_HOST` variables for that process. If your shell profile exports `FIRESTORE_EMULATOR_HOST` (or similar) for other work, leaving it set can still point the SDK at a local port with no emulator running, which looks like “offline” Firestore. This script clears that mismatch. It also opts the browser into Firestore long-polling auto-detect when not using emulators, which avoids some flaky WebChannel errors under `next dev`.
+
+With `dev:live` you are talking to the **real** Firebase project, so **Firestore security rules** apply like production (sign in with a user that exists in **production** Auth, not the emulator-only test emails). A common blocker is **App Check**: Google’s “prove this browser is really your app” layer often rejects `localhost` until you register an **App Check debug token**. If you do not set `NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN` in `.env.local`, this app turns on Firebase’s debug flow automatically during **development when not using emulators**—check the browser console for a token string, then add it once in [Firebase Console → App Check → your web app → Manage debug tokens](https://firebase.google.com/docs/app-check/web/debug-provider). For day-to-day feature work, prefer **`npm run dev`** with emulators and the seeded test accounts below.
+
+If you ever need to exercise the **Hosting** emulator itself, run `firebase emulators:start --import=./emulator-data` in a separate terminal (without also running `npm run dev` in this repo’s usual way), and expect a second Next instance and a non-`:3000` URL—see [Firebase Hosting local dev](https://firebase.google.com/docs/emulator-suite/connect_hosting).
 
 #### Emulator Users
 
@@ -77,7 +87,7 @@ The emulator has 3 user accounts already set up. You can log in with any of them
 - email: admin@user.com
 - pass: devPassword
 
-You can also sign up with totally different info (email, name, city, state ect.). When you sign up a authorization link will print out in your terminal. You will need to click that link to verify. After you click the link you can close the window that open's (its only for verification) and return to your localhost window to log in.
+You can also sign up with totally different info (email, name, city, state ect.). When you sign up a authorization link will print out in your terminal. You will need to click that link to verify. After you click the link you can close the window that open's (its only for verification) and return to [http://localhost:3000](http://localhost:3000) to log in.
 
 ## Emulator Tips:
 

@@ -4,7 +4,8 @@
 	"private": true,
 	"scripts": {
 		"dev": "./start-dev.sh",
-		"dev:live": "next dev",
+		"dev:turbo": "npm run dev",
+		"dev:live": "sh -c 'unset FIRESTORE_EMULATOR_HOST FIREBASE_AUTH_EMULATOR_HOST FIREBASE_STORAGE_EMULATOR_HOST FIREBASE_DATABASE_EMULATOR_HOST FIREBASE_FUNCTIONS_EMULATOR_HOST; export NEXT_PUBLIC_USE_EMULATORS=false; exec next dev'",
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint"
