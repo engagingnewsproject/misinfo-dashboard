@@ -53,6 +53,7 @@ curl -sL firebase.tools | bash
 
 ### 5. Start dev server
 
+#### Emulator
 To boot up the development server and Firebase Emulator run:
 
 ```
@@ -64,6 +65,12 @@ This command starts the [Firebase Emulator UI](https://firebase.google.com/docs/
 **Open the app in your browser at [http://localhost:3000](http://localhost:3000).** `npm run dev` starts Auth, Firestore, Functions, Storage, and Extensions emulators **without** the Hosting emulator, so there is only one Next.js process (this one). That avoids duplicate dev servers and keeps your browser origin on `localhost:3000`, which matches typical Google Cloud API key HTTP referrer rules for the Firebase Web SDK.
 
 `npm run dev:turbo` is the same as `npm run dev` (Next.js already uses Turbopack for local dev here).
+
+#### Without Emulator
+
+```
+npm run dev:live
+```
 
 `npm run dev:live` starts **only** Next.js (`next dev`), sets `NEXT_PUBLIC_USE_EMULATORS=false`, and **unsets** common `*_EMULATOR_HOST` variables for that process. If your shell profile exports `FIRESTORE_EMULATOR_HOST` (or similar) for other work, leaving it set can still point the SDK at a local port with no emulator running, which looks like “offline” Firestore. This script clears that mismatch. It also opts the browser into Firestore long-polling auto-detect when not using emulators, which avoids some flaky WebChannel errors under `next dev`.
 
