@@ -74,7 +74,7 @@ const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayRepor
           data={yesterdayReports}
           options={options}
           width={"100%"}
-          height={"300px"}
+          height={"240px"}
           />
         }
       </div>
@@ -90,7 +90,7 @@ const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayRepor
           data={threeDayReports}
           options={options}
           width={"100%"}
-          height={"300px"}
+          height={"240px"}
         />}
       </div>
       <div className="col-span-1 bg-white rounded-xl mt-3 pr-2">
@@ -105,7 +105,7 @@ const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayRepor
             data={sevenDayReports}
             options={options}
             width={"100%"}
-            height={"300px"}
+            height={"240px"}
         />}
       </div>
     </div>
