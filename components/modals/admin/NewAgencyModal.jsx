@@ -61,21 +61,27 @@ const NewAgencyModal = ({
 								Enter an agency name
 								</p>
 								) : null}
-						<input // New agency emails
+						<input // New agency emails (text: comma-separated is invalid for type="email")
 							className={style.modal_form_input}
 							id="agencyUser"
-							type="email"
-							placeholder="Agency User Email"
+							type="text"
+							inputMode="email"
+							placeholder="Admin email(s), comma-separated"
 							value={newAgencyEmails}
 							onChange={onNewAgencyEmails}
-							autoComplete='email'
+							autoComplete="email"
 							/>
 							{errors.email ? (
 								<p className="error">
-								Email should be at least 15 characters long
+								Enter at least one valid email (comma-separated for multiple)
 								</p>
 								) : null}
 						<label className='text-blue-600'>Location</label>
+						{errors.location ? (
+							<p className="error text-red-600 text-sm mb-2">
+								Select a state and city
+							</p>
+						) : null}
 						<Select // Agency State
 							className={style.modal_form_select}
 							id="agencyState"
@@ -113,9 +119,11 @@ const NewAgencyModal = ({
 								onChange={onNewAgencyCity}
 								required
 							/>
-						{/* {errors.city && ('errors.city')} */}
-						{/* selectedSource === '' &&  (<span className="text-red-500">{errors.source}</span>)} */}
-						{/* {errors && <div className="text-red-500 text-sm font-normal pt-3">{errors}</div>} */}
+						{errors.submit ? (
+							<p className="error text-red-600 text-sm" role="alert">
+								{errors.submit}
+							</p>
+						) : null}
 						<button className={style.modal_form_button} type="submit" id="agencyNew">
 							Add Agency
 						</button>

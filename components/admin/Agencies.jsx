@@ -31,6 +31,8 @@ import {
 	getDoc, 
 	updateDoc,
 	deleteDoc,
+	addDoc,
+	setDoc,
 	arrayUnion,
 	query,
 	where
@@ -92,7 +94,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	// New agency creation state
 	const [newAgencySubmitted, setNewAgencySubmitted] = useState(0) // Submission counter
 	const [newAgencyName, setNewAgencyName] = useState('') // New agency name
-	const [newAgencyEmails, setNewAgencyEmails] = useState([]) // New agency admin emails
+	const [newAgencyEmails, setNewAgencyEmails] = useState('') // Comma-separated admin emails
 	const [data, setData] = useState({ country: 'US', state: null, city: null }) // Location data
 	const [emailSent, setEmailSent] = useState(false) // Email invitation status
 	
@@ -117,19 +119,18 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 * @returns {Promise<void>} Promise that resolves when agencies are fetched
 	 */
 	const getData = async () => {
-		const agencyCollection = collection(db, 'agency')
-		const reportsCollection = collection(db, 'reports')
-		const snapshot = await getDocs(agencyCollection, reportsCollection)
 		try {
-			var arr = []
-			snapshot.forEach((doc) => {
+			const agencyCollection = collection(db, 'agency')
+			const snapshot = await getDocs(agencyCollection)
+			const arr = []
+			snapshot.forEach((d) => {
 				arr.push({
-					[doc.id]: doc.data(), // Format: { docId: docData }
+					[d.id]: d.data(),
 				})
 			})
 			setAgencies(arr)
 		} catch (error) {
-			console.log(error)
+			console.error(error)
 		}
 	}
 
@@ -143,7 +144,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 */
 	const handleAddNewAgencyModal = (e) => {
 		e.preventDefault()
-		setData({ country: 'US', state: null, city: null }) // Reset location data
+		setData({ country: 'US', state: null, city: null })
+		setErrors({})
 		setNewAgencyModal(true)
 	}
 	
@@ -157,6 +159,12 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const handleNewAgencyName = (e) => {
 		e.preventDefault()
 		setNewAgencyName(e.target.value)
+		setErrors((prev) => {
+			if (!prev.submit) return prev
+			const next = { ...prev }
+			delete next.submit
+			return next
+		})
 	}
 	
 	/**
@@ -168,9 +176,13 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 */
 	const handleNewAgencyEmails = (e) => {
 		e.preventDefault()
-		let usersArr = e.target.value
-		usersArr = usersArr.split(',') // Split comma-separated emails
-		setNewAgencyEmails(usersArr)
+		setNewAgencyEmails(e.target.value)
+		setErrors((prev) => {
+			if (!prev.submit) return prev
+			const next = { ...prev }
+			delete next.submit
+			return next
+		})
 	}
 	
 	/**
@@ -250,7 +262,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 				return
 			}
 			if (images.length === 0) {
-				console.error('No images to upload.')
 				return
 			}
 
@@ -435,12 +446,75 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 * @returns {Promise<void>} Promise that resolves when agency is saved
 	 */
 	const saveAgency = (uploadedImageURLs) => {
-		console.log(uploadedImageURLs)
+		if (!agencyId) {
+			console.error('Cannot save agency: missing agency document ID.')
+			return
+		}
 		const agencyRef = doc(db, 'agency', agencyId)
 		updateDoc(agencyRef, {
 			logo: uploadedImageURLs,
 		}).then(() => {
-			handleAgencyUpdateSubmit() // Trigger parent updates
+			handleAgencyUpdateSubmit()
+		})
+	}
+
+	/**
+	 * Validates the form, sends Firebase email-link invites to each admin (must succeed),
+	 * then creates the agency and default tags documents.
+	 *
+	 * @returns {Promise<void>}
+	 */
+	const createNewAgency = async () => {
+		const name = newAgencyName.trim()
+		const validation = {}
+
+		if (!name) validation.newAgencyName = true
+		if (!data.state || !data.city) validation.location = true
+
+		const userEmails = newAgencyEmails
+			.split(',')
+			.map((email) => email.trim())
+			.filter(Boolean)
+		const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+		const invalidEmails = userEmails.filter((email) => !emailPattern.test(email))
+
+		if (userEmails.length === 0) validation.email = true
+		else if (invalidEmails.length > 0) validation.email = true
+
+		if (Object.keys(validation).length > 0) {
+			setErrors(validation)
+			throw new Error('Please fix the highlighted fields.')
+		}
+		setErrors({})
+
+		const normalizedEmails = userEmails.map((email) => email.toLowerCase())
+
+		// Send passwordless invite links first so failures surface and we do not
+		// create an agency row without a working invite path.
+		await Promise.all(normalizedEmails.map((email) => sendSignIn(email)))
+
+		const agencyPayload = {
+			name,
+			city: data.city.name,
+			state: data.state.name,
+			agencyUsers: normalizedEmails,
+			logo: [],
+		}
+
+		const agencyDocRef = await addDoc(collection(db, 'agency'), agencyPayload)
+
+		const tagsRef = doc(db, 'tags', agencyDocRef.id)
+		const defaultTopics = ['Health', 'Other', 'Politics', 'Weather']
+		const defaultSources = ['Newspaper', 'Other/Otro', 'Social', 'Website']
+		const defaultLabels = [
+			'To Investigate',
+			'Investigated: Flagged',
+			'Investigated: Benign',
+		]
+		await setDoc(tagsRef, {
+			Labels: { list: defaultLabels, active: defaultLabels },
+			Source: { list: defaultSources, active: defaultSources },
+			Topic: { list: defaultTopics, active: defaultTopics },
 		})
 	}
 
@@ -455,16 +529,29 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 */
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
-		setUpdate(!update)
-		
-		// Route based on form type
-		if (e.target.id == 'newAgencyModal') {
-			// Create new agency
-			saveAgency()
+		if (e.target.id !== 'newAgencyModal') {
+			return
+		}
+		try {
+			await createNewAgency()
 			setNewAgencyModal(false)
-		} else if (e.target.id == 'agencyModal') {
-			// Update existing agency
-			handleAgencyUpdate(e)
+			setNewAgencyName('')
+			setNewAgencyEmails('')
+			setData({ country: 'US', state: null, city: null })
+			setErrors({})
+			await getData()
+			handleAgencyUpdateSubmit?.()
+		} catch (error) {
+			if (error.message === 'Please fix the highlighted fields.') {
+				return
+			}
+			setErrors((prev) => ({
+				...prev,
+				submit:
+					error?.message ||
+					'Could not finish creating the agency. If invites failed, confirm Email link sign-in is enabled in Firebase Auth and the continue URL domain is authorized.',
+			}))
+			console.error('Error creating agency:', error)
 		}
 	}
 
