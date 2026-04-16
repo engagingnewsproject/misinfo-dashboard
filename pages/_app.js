@@ -35,7 +35,7 @@ import Head from 'next/head'
 import "../sentry.client.config.js"
 import "../sentry.server.config";
 
-const noAuthRequired = ["/login", "/signup", "/resetPassword", "/testPage"]
+const noAuthRequired = ["/login", "/signup", "/resetPassword", "/testPage", "/privacy-policy"]
 // for testing page add '/testPage' above
 /**
  * MyApp (Custom Next.js App)

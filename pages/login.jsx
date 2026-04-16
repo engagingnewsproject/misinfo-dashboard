@@ -7,7 +7,7 @@
  * - Email verification and resend logic
  * - Error handling and loading state
  * - Integration with next-i18next for translations
- * - Privacy policy modal and language switcher
+ * - Privacy policy link (public page) and language switcher
  *
  * Integrates with:
  * - AuthContext for authentication and role management
@@ -42,7 +42,6 @@ import {
 import { GiMagnifyingGlass } from "react-icons/gi";
 import Head from 'next/head';
 import { Typography } from '@material-tailwind/react'
-import PrivacyPolicyModal from '../components/modals/PrivacyPolicyModal'
 
 /**
  * Login Page
@@ -64,9 +63,6 @@ const Login = () => {
   const [error, setError] = useState(null)
   const [errorMessage, setErrorMessage] = useState()
   const [loading, setLoading] = useState(false)
-	const [showModal, setShowModal] = useState(false)
-	const openModal = () => setShowModal(true)
-	const closeModal = () => setShowModal(false)
 	// password show/hide
   const [password, setPassword] = useState("")
   const [type, setType] = useState('password')
@@ -260,12 +256,13 @@ const Login = () => {
 						<LanguageSwitcher />
 					</div>
 					<div className="privacy_policy flex justify-center items-center">
-						<a className="cursor-pointer text-blue-600" onClick={openModal}>
+						<Link
+							href="/privacy-policy"
+							className="text-blue-600 font-semibold hover:underline">
 							Privacy Policy
-						</a>
+						</Link>
 					</div>
 				</div>
-				<PrivacyPolicyModal showModal={showModal} closeModal={closeModal} />
 			</div>
 		</>
 	)

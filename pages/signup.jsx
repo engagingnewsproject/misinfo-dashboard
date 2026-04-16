@@ -10,7 +10,7 @@
  * - Role-based registration (User vs Agency)
  * - Location selection (State/City)
  * - Password validation and visibility toggle
- * - Privacy policy modal
+ * - Privacy policy link (public page)
  * - Internationalization support
  * 
  * @author Truth Sleuth Local Team
@@ -50,7 +50,6 @@ import { RiContactsBookLine } from 'react-icons/ri'
 import { Button, Typography } from '@material-tailwind/react'
 import { GiMagnifyingGlass } from "react-icons/gi";
 import Head from 'next/head'
-import PrivacyPolicyModal from "../components/modals/PrivacyPolicyModal"
 
 /**
  * SignUp component for user registration
@@ -92,10 +91,6 @@ const SignUp = () => {
 	const [type, setType] = useState('password')
 	const [icon, setIcon] = useState(false)
 	
-	// Privacy policy modal state
-	const [showModal, setShowModal] = useState(false)
-	const openModal = () => setShowModal(true)
-	const closeModal = () => setShowModal(false)
 	
 	// console.log(isAgency);
 	
@@ -556,10 +551,13 @@ const SignUp = () => {
 					
 					{/* Privacy policy link */}
 					<div className="privacy_policy flex justify-center items-center">
-						<a className='cursor-pointer text-blue-600' onClick={openModal}>Privacy Policy</a>
+						<Link
+							href="/privacy-policy"
+							className="text-blue-600 font-semibold hover:underline">
+							Privacy Policy
+						</Link>
 					</div>
 				</div>
-				<PrivacyPolicyModal showModal={showModal} closeModal={closeModal} />
 			</div>
 		</>
 	)
