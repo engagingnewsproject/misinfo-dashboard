@@ -20,7 +20,7 @@
  * @since 2024
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import Papa from 'papaparse'
 import firebaseHelper from '../../firebase/FirebaseHelper'
@@ -91,6 +91,18 @@ const readValues = [
 ]
 
 /**
+ * Detects a full email address so we can resolve the submitter via Auth / Firestore
+ * instead of substring-matching the literal string in report text fields.
+ *
+ * @param {string} value - Raw search input
+ * @returns {boolean} True when the term looks like user@domain.tld
+ */
+function isSubmitterEmailSearch(value) {
+	const trimmed = String(value || '').trim()
+	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)
+}
+
+/**
  * ReportsSection Component
  * 
  * Main component for managing and displaying misinformation reports with
@@ -128,8 +140,13 @@ const ReportsSection = ({
 	const [reportTitle, setReportTitle] = useState('') // Report title filter
 	const [agencyName, setAgencyName] = useState('') // Agency name for display
 	const [isAgency, setIsAgency] = useState(null) // User role flag
-	const { user, customClaims } = useAuth() // Authentication context
+	const { user, customClaims, getUserByEmail } = useAuth() // Authentication context
 	const [search, setSearch] = useState('') // Search term
+	/** When search is an email: loading + resolved Firebase UID (matches report.userID) */
+	const [emailSearchStatus, setEmailSearchStatus] = useState({
+		loading: false,
+		uid: null,
+	})
 	const [agencyFilter, setAgencyFilter] = useState('all') // Agency filter
 	const [typeFilter, setTypeFilter] = useState('all') // Type/source filter
 	const [agencies, setAgencies] = useState([]) // List of agencies for filter dropdown
@@ -140,8 +157,6 @@ const ReportsSection = ({
 	const [filteredReports, setFilteredReports] = useState([]) // Reports after filtering
 	const [loadedReports, setLoadedReports] = useState([]) // Reports for current page
 
-	// Calculate pagination values
-	const totalPages = Math.ceil(filteredReports.length / rowsPerPage)
 	const VISIBLE_PAGES = 5 // Number of page buttons to display
 
 	// Report modal state management
@@ -170,6 +185,44 @@ const ReportsSection = ({
 	const [refresh, setRefresh] = useState(false) // Refresh loading state
 	const [showCheckmark, setShowCheckmark] = useState(false) // Success indicator
 	const [open, setOpen] = useState(true) // Section open/close state
+
+	/** Reports after text search or full-email submitter filter; pagination slices from this. */
+	const reportsMatchingSearch = useMemo(() => {
+		const term = search.trim()
+		if (isSubmitterEmailSearch(term)) {
+			if (emailSearchStatus.loading) {
+				return []
+			}
+			if (!emailSearchStatus.uid) {
+				return []
+			}
+			return filteredReports.filter(
+				(r) => String(r.userID || '') === emailSearchStatus.uid,
+			)
+		}
+		if (!term) {
+			return filteredReports
+		}
+		const lowered = term.toLowerCase()
+		return filteredReports.filter((report) => {
+			const searchableText = [
+				report.title,
+				report.detail,
+				report.city,
+				report.state,
+				report.label,
+				report.topic,
+				report.email,
+				report.hearFrom,
+			]
+				.filter(Boolean)
+				.join(' ')
+				.toLowerCase()
+			return searchableText.includes(lowered)
+		})
+	}, [filteredReports, search, emailSearchStatus])
+
+	const totalPages = Math.ceil(reportsMatchingSearch.length / rowsPerPage) || 1
 
 	/**
 	 * Fetches reports data from Firestore based on user role and permissions
@@ -897,32 +950,59 @@ const ReportsSection = ({
 		}
 	}, [newReportSubmitted, isAgency])
 
-	// New Filtering Hooks
-	// Search
+	// Resolve Auth UID when the search box contains a full email (matches report.userID from ReportSystem)
 	useEffect(() => {
-		if (search === '') {
-			setLoadedReports(filteredReports.slice(0, ITEMS_PER_PAGE)) // No search term, use filteredReports
-		} else {
-			const searchFilteredReports = filteredReports.filter((report) => {
-				// Define searchable fields within each report
-				const searchableText = [
-					report.title,
-					report.detail,
-					report.city,
-					report.state,
-					report.label,
-					report.topic,
-				]
-					.filter(Boolean) // Remove undefined or null values
-					.join(' ') // Concatenate to create one searchable string
-					.toLowerCase()
-				return searchableText.includes(search.toLowerCase())
-			})
-
-			setLoadedReports(searchFilteredReports.slice(0, ITEMS_PER_PAGE))
+		const term = search.trim()
+		if (!isSubmitterEmailSearch(term)) {
+			setEmailSearchStatus({ loading: false, uid: null })
+			return
 		}
-		setCurrentPage(1) // Reset pagination on new search
-	}, [search, filteredReports])
+		let cancelled = false
+		setEmailSearchStatus({ loading: true, uid: null })
+
+		;(async () => {
+			try {
+				const res = await getUserByEmail({ email: term })
+				const uid = res?.data?.uid
+				if (!cancelled && uid) {
+					setEmailSearchStatus({ loading: false, uid })
+					return
+				}
+			} catch (err) {
+				console.warn('getUserByEmail failed, trying Firestore', err)
+			}
+			try {
+				const snap = await getDocs(
+					query(collection(db, 'mobileUsers'), where('email', '==', term)),
+				)
+				if (cancelled) return
+				if (!snap.empty) {
+					setEmailSearchStatus({ loading: false, uid: snap.docs[0].id })
+					return
+				}
+				const lower = term.toLowerCase()
+				const snap2 = await getDocs(
+					query(collection(db, 'mobileUsers'), where('email', '==', lower)),
+				)
+				if (cancelled) return
+				setEmailSearchStatus({
+					loading: false,
+					uid: snap2.empty ? null : snap2.docs[0].id,
+				})
+			} catch (err) {
+				console.error(err)
+				if (!cancelled) setEmailSearchStatus({ loading: false, uid: null })
+			}
+		})()
+
+		return () => {
+			cancelled = true
+		}
+	}, [search, getUserByEmail])
+
+	useEffect(() => {
+		setCurrentPage(1)
+	}, [search])
 
 	// Date Filtering
 	useEffect(() => {
@@ -932,42 +1012,6 @@ const ReportsSection = ({
 			setCurrentPage(1)
 		}
 	}, [reportWeek, reports, isDataFetched, agencyFilter, typeFilter])
-
-	// Read Filter - applies to already date-filtered reports
-	useEffect(() => {
-		const readFiltered = filteredReports.filter((report) => {
-			if (readFilter === 'all') return true // Show all if no read filter
-			return report.read === (readFilter === 'true') // Filter by read status
-		})
-
-		setLoadedReports(readFiltered.slice(0, ITEMS_PER_PAGE)) // Paginate the filtered data
-		setCurrentPage(1) // Reset to the first page
-	}, [readFilter, filteredReports])
-
-	// Pagination on filteredReports
-	useEffect(() => {
-		const paginated = filteredReports.slice(
-			(currentPage - 1) * ITEMS_PER_PAGE,
-			currentPage * ITEMS_PER_PAGE,
-		)
-		setLoadedReports(paginated)
-	}, [filteredReports, currentPage])
-
-	// Search Filter - applies on top of both date and read filters
-	useEffect(() => {
-		if (search === '') {
-			setLoadedReports(filteredReports.slice(0, ITEMS_PER_PAGE)) // Reset to paginated filtered reports
-		} else {
-			const searchFiltered = filteredReports.filter((report) => {
-				// Implement your existing search logic here
-				// Example for filtering based on a search term
-				return report.title.toLowerCase().includes(search.toLowerCase())
-			})
-
-			setLoadedReports(searchFiltered.slice(0, ITEMS_PER_PAGE)) // Paginate the search results
-		}
-		setCurrentPage(1) // Reset to the first page on new search
-	}, [search, filteredReports])
 
 	// Read Filter
 	useEffect(() => {
@@ -982,18 +1026,19 @@ const ReportsSection = ({
 			const combined = applyCombinedFilters(reports)
 			setFilteredReports(combined)
 			setSearch('')
+			setEmailSearchStatus({ loading: false, uid: null })
 			setCurrentPage(1) // Reset pagination on refresh
 		}
 	}, [refresh, reports, typeFilter, agencyFilter])
 
-	// Pagination logic, triggered only when currentPage, rowsPerPage, or filteredReports change
+	// Pagination: slice the list that already includes text or email-submitter search
 	useEffect(() => {
-		const paginatedReports = filteredReports.slice(
+		const paginatedReports = reportsMatchingSearch.slice(
 			(currentPage - 1) * rowsPerPage,
 			currentPage * rowsPerPage,
 		)
 		setLoadedReports(paginatedReports)
-	}, [filteredReports, currentPage, rowsPerPage])
+	}, [reportsMatchingSearch, currentPage, rowsPerPage])
 
 	/**
 	 * Navigates to the previous page in pagination
