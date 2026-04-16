@@ -22,6 +22,9 @@
     "incorrect": "The password is incorrect.",
     "not_found": "An account was not found with the provided email. Click the sign up link below.",
     "error": "An error occurred when logging in.",
+    "emulator_mode_banner": "Local Firebase emulators are on. Use the emulator test accounts from the README — not production passwords. For production sign-in, stop this server and run npm run dev:live.",
+    "login_network_emulator": "Cannot reach the Auth emulator (port 9099). Wait until npm run dev shows the emulator is ready, or use npm run dev:live for production Firebase.",
+    "login_network_live": "Could not reach Firebase (network). Check your connection, VPN, and App Check / debug token setup.",
     "phone": "Phone number (optional)",
     "contact": "I agree that my local newsroom can contact me to follow-up on the reports I share",
     "password_error": "Passwords don’t match."

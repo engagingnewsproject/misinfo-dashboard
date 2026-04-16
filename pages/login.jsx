@@ -130,6 +130,12 @@ const Login = () => {
         setError(t("not_found"))
       } else if (error.code === "auth/wrong-password") {
         setError(t("incorrect"))
+      } else if (error.code === "auth/network-request-failed") {
+        setError(
+          process.env.NEXT_PUBLIC_USE_EMULATORS === "true"
+            ? t("login_network_emulator")
+            : t("login_network_live"),
+        )
       } else {
         console.log(error)
         setError(t("error"))
@@ -164,6 +170,13 @@ const Login = () => {
 						</div>
 						<Typography variant="small" className='text-xs font-semibold text-blue-600'>Truth Sleuth Local</Typography>
 					</div>
+					{process.env.NEXT_PUBLIC_USE_EMULATORS === 'true' && (
+						<div
+							className="mx-8 mb-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs text-amber-950"
+							role="status">
+							{t('emulator_mode_banner')}
+						</div>
+					)}
 					<form className="px-8 pt-6 pb-4 mb-4" onSubmit={handleLogin}>
 						<div className="mb-4">
 							<input
