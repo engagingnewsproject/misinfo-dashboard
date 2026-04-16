@@ -22,6 +22,9 @@
     "incorrect":"La contraseña es incorrecta.",
     "not_found": "No se encontró una cuenta con el correo electrónico proporcionado. Haz clic en el enlace de registro abajo.",
     "error": "Se ha producido un error al iniciar sesión.",
+    "emulator_mode_banner": "Los emuladores locales de Firebase están activos. Use las cuentas de prueba del README, no contraseñas de producción. Para iniciar sesión en producción, detenga este servidor y ejecute npm run dev:live.",
+    "login_network_emulator": "No se puede acceder al emulador de Auth (puerto 9099). Espere a que npm run dev indique que el emulador está listo, o use npm run dev:live para Firebase de producción.",
+    "login_network_live": "No se pudo conectar con Firebase (red). Compruebe su conexión, VPN y la configuración de App Check / token de depuración.",
     "phone": "Numero de teléfono (opcional)",
     "contact": "Acepto que mi redacción local pueda contactarme para dar seguimiento a los informes que comparto.",
     "password_error": "Las contraseñas no coinciden."
