@@ -64,6 +64,7 @@ import { FaPlus } from 'react-icons/fa'
 import globalStyles from '../../styles/globalStyles'
 import { useUsersPagination } from '../../hooks/useUsersPagination'
 import { searchUsers } from '../../utils/firebase-helpers'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 const dateOptions = {
 	day: '2-digit',
@@ -1347,8 +1348,9 @@ const Users = () => {
 									agencyLoading ? (
 										<tr>
 											<td colSpan="100%" className="text-center">
-												<div className="flex justify-center items-center h-32">
-													Loading...
+												<div className="flex flex-col justify-center items-center gap-2 h-40">
+													<LoadingSpinner className="h-10 w-10 text-blue-600" />
+													<span className="text-sm text-gray-600">Loading users…</span>
 												</div>
 											</td>
 										</tr>
