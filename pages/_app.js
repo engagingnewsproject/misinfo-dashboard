@@ -30,6 +30,7 @@ import { appWithTranslation } from "next-i18next"
 import { ThemeProvider } from "@material-tailwind/react"
 import style from '../styles/style.js'
 import Head from 'next/head'
+import LoadingSpinner from "../components/ui/LoadingSpinner"
 
 // Import Sentry configuration
 import "../sentry.client.config.js"
@@ -51,8 +52,9 @@ const noAuthRequired = ["/login", "/signup", "/resetPassword", "/testPage", "/pr
 /** Fallback when Next.js passes undefined Component (e.g. during error or route resolve). */
 function FallbackPage() {
 	return (
-		<div className="w-screen h-screen flex justify-center items-center">
-			<p>Loading…</p>
+		<div className="w-screen h-screen flex flex-col justify-center items-center bg-sky-100 gap-3">
+			<LoadingSpinner className="h-12 w-12 text-blue-600" />
+			<p className="text-sm text-gray-600">Loading…</p>
 		</div>
 	)
 }

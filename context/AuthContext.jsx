@@ -33,6 +33,7 @@ import { httpsCallable } from 'firebase/functions'
 import { auth, app, db } from '../config/firebase'
 import { getDoc, doc, setDoc } from "firebase/firestore";
 import moment from 'moment'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 /**
  * Authentication Context for managing user state and authentication operations.
@@ -486,7 +487,12 @@ export const AuthContextProvider = ({children}) => {
             getUserRecord: callables.getUserRecord,
             authGetUserList: callables.authGetUserList,
         }}>
-            {loading ? null : children}
+            {loading ? (
+                <div className="min-h-screen w-full flex flex-col items-center justify-center bg-sky-100 gap-3">
+                    <LoadingSpinner className="h-12 w-12 text-blue-600" />
+                    <p className="text-sm text-gray-600">Loading…</p>
+                </div>
+            ) : children}
         </AuthContext.Provider>
     )
 }
