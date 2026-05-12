@@ -1,6 +1,5 @@
 {
   "reminder": "Aviso",
-  
   "description":
     "Este sistema es solamente para reportar información posiblemente errónea a nivel local o estatal.",
   "example": "Ejemplo:",
@@ -19,7 +18,6 @@
   "linkFirst": "Enlace",
   "links": "Enlaces",
   "image_text": "Imágenes",
-  "linkSecond":"Enlace",
   "image": "Subir imagen",
   "imageBtn": "Subir imagen(es)",
   "noLinks": "No se agregaron enlaces.",
@@ -71,7 +69,7 @@
   "upload": "Puedes subir capturas de pantalla o fotografías de la información potencialmente incorrecta.",
   "agency":"Agencia",
   "topic": "Tema",
-  "noAgencies":"There are no participating newsrooms in this area.",
+  "noAgencies":"No hay redacciones participantes en esta área.",
   "topics": {
     "Health": "Salud",
     "Weather": "Clima",
@@ -85,5 +83,4 @@
   "Other": "Otro"
   },
   "thanksText": "Investigamos tantas denuncias como sea posible, aunque no siempre podemos llegar a todas."
-
 }

@@ -353,12 +353,12 @@ const ReportModal = ({
 											</div>
 										</div>
 									)}
-										{report?.source === 'truth-sleuth' && !reportSubmitBy?.contact && (
+										{report?.origin === 'scrape' && !reportSubmitBy?.contact && (
 											<div className="flex flex-row mb-3 items-center">
 												<AiOutlineUser size={20} />
 												<div className="text-md font-light">
 													<span className="font-semibold px-2 self-center pr-4">Reported by</span>
-													Truth Sleuth pipeline (automated)
+													Scraped (automated)
 												</div>
 											</div>
 										)}

@@ -40,9 +40,9 @@ const globalStyles = {
     }
   },
   form: {
-    wrap: 'flex h-auto justify-center md:py-6 bg-white shadow-none rounded-xl bg-clip-border min-h-[220px] sm:min-w-72',
+    wrap: 'flex flex-col h-auto justify-center items-center bg-white shadow-none rounded-xl bg-clip-border min-h-[220px]',
     view: 'min-w-full bg-clip-border p-6',
-    element: 'relative max-w-screen-lg min-w-96 p-4 sm:w-96',
+    element: 'relative p-4 md:w-3/5 lg:w-2/5',
     viewWrapper: 'flex flex-col justify-center gap-2 sm:px-5',
     input_title:
       'block -mb-3 font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-blue-600',

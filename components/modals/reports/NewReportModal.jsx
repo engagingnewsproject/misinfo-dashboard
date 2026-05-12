@@ -121,6 +121,8 @@ const NewReportModal = ({
 			read: false,
 			topic: selectedTopic,
 			hearFrom: selectedSource,
+			// `origin` marks the submission channel; NewReportModal is the agency-side dashboard flow.
+			origin: 'agency',
 		}).then(() => {
 			handleNewReportSubmit() // Send a signal to ReportsSection so that it updates the list
 			addNewTag(selectedTopic, selectedSource, selectedAgencyId)

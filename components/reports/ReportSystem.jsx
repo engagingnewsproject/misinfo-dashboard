@@ -526,7 +526,10 @@ const ReportSystem = ({
 				email: user.email,
 				agency: selectedAgency,
 				topic: selectedTopic === "Other" ? otherTopic : selectedTopic,
-				source: selectedSource === "Other" ? otherSource : selectedSource,
+				// `hearFrom` matches the established schema: tags.{agency}.Source.active -> reports.hearFrom.
+				hearFrom: selectedSource === "Other" ? otherSource : selectedSource,
+				// `origin` marks the submission channel; ReportSystem is the public /report flow.
+				origin: 'public',
 				title: title,
 				link: link,
 				secondLink: secondLink,
@@ -691,10 +694,10 @@ const ReportSystem = ({
 
 			{/* Main Form Steps */}
 			{reportSystem >= 2 && reportSystem <= 6 && (
-				<div className={globalStyles.form.wrap}>
+				<div className={`report-form-wrap ${globalStyles.form.wrap} w-full`}>
 					<form
 						onChange={handleChange}
-						className={globalStyles.form.element}
+						className={`report-form ${globalStyles.form.element}`}
 						ref={formRef}
 						id={key}>
 						

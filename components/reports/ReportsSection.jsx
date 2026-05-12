@@ -326,7 +326,16 @@ const ReportsSection = ({
 
 		if (type && type !== 'all') {
 			filteredArr = filteredArr.filter((report) => {
-				return report.source === type
+				// Channel filter: prefer the explicit `origin` written by current code paths.
+				// Legacy docs predating `origin` are disambiguated by which user-source field is present:
+				// NewReportModal (agency) has always written `hearFrom`; ReportSystem (community) used to write `source`.
+				// Legacy scraped docs were deleted, so no `scrape` heuristic is needed.
+				const reportOrigin =
+					report.origin
+					?? (report.hearFrom != null ? 'agency'
+						: report.source != null ? 'public'
+						: 'public')
+				return reportOrigin === type
 			})
 		}
 
