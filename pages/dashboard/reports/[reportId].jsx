@@ -163,9 +163,9 @@ const ReportDetails = () => {
               <span className="font-semibold">Reported by:</span> {reporterInfo['name']} (<a target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline" href={"mailto:" + reporterInfo['email']}>{reporterInfo['email']}</a>)
 							</div>
           </div>)}
-					{info?.source === 'truth-sleuth' && !(reporterInfo?.name && reporterInfo?.email) && (
+					{info?.origin === 'scrape' && !(reporterInfo?.name && reporterInfo?.email) && (
 						<div className="text-md mb-4 font-light text-right">
-							<span className="font-semibold">Reported by:</span> Truth Sleuth pipeline (automated)
+							<span className="font-semibold">Reported by:</span> Scraped (automated)
 						</div>
 					)}
 					<div className="mb-8">

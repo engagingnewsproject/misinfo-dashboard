@@ -25,9 +25,9 @@ const rowsOptions = [
 
 const typeOptions = [
 	{ label: 'All types', value: 'all' },
-	{ label: 'Scraped', value: 'scrape' },
 	{ label: 'Community', value: 'public' },
-	{ label: 'Truth Sleuth', value: 'truth-sleuth' },
+	{ label: 'Agency', value: 'agency' },
+	{ label: 'Scraped', value: 'scrape' },
 ]
 
 export function TableDropdownMenu({ reportWeek, onChange, rowsPerPage, setRowsPerPage, setCurrentPage, onTypeChange }) {
