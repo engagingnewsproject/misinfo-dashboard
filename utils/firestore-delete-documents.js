@@ -1,6 +1,6 @@
 const admin = require('firebase-admin')
 const readline = require('readline')
-const serviceAccount = require('./misinfo-5d004-firebase-adminsdk-2ubvq-135d27238a.json') // Replace with your service account file path
+const serviceAccount = require('../misinfo-5d004-firebase-adminsdk-2ubvq-135d27238a.json') // Service account lives at the repo root (gitignored)
 
 // process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080' // Comment out for production
 

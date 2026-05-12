@@ -50,7 +50,7 @@ const ReviewStep = ({
     } else if (reportData.secondLink) {
       return <Typography>{reportData.secondLink}</Typography>
     } else {
-      return <Typography>No links provided</Typography>
+      return <Typography>{t("noLinks")}</Typography>
     }
   }
 
@@ -75,42 +75,42 @@ const ReviewStep = ({
         </div>
       )
     } else {
-      return <Typography>No images uploaded</Typography>
+      return <Typography>{t("noImages")}</Typography>
     }
   }
 
   return (
-    <div className={globalStyles.form.viewWrapper}>
+    <div className={`review-step ${globalStyles.form.viewWrapper}`}>
       <Typography variant='h5'>{t("review")}</Typography>
-      <Card className="p-6">
+      <div className="py-6">
         <div className="space-y-4">
           {/* Agency */}
           <div>
-            <Typography variant="h6" color="blue">Agency</Typography>
+            <Typography variant="h6" color="blue">{t("agency")}</Typography>
             <Typography>{reportData.selectedAgency}</Typography>
           </div>
           
           {/* Topic */}
           <div>
-            <Typography variant="h6" color="blue">Topic</Typography>
+            <Typography variant="h6" color="blue">{t("topic")}</Typography>
             <Typography>{reportData.selectedTopic}</Typography>
           </div>
           
           {/* Source */}
           <div>
-            <Typography variant="h6" color="blue">Source</Typography>
+            <Typography variant="h6" color="blue">{t("source_title")}</Typography>
             <Typography>{reportData.selectedSource}</Typography>
           </div>
           
           {/* Title */}
           <div>
-            <Typography variant="h6" color="blue">Title</Typography>
+            <Typography variant="h6" color="blue">{t("title_text")}</Typography>
             <Typography>{reportData.title}</Typography>
           </div>
           
           {/* Links */}
           <div>
-            <Typography variant="h6" color="blue">Links</Typography>
+            <Typography variant="h6" color="blue">{t("links")}</Typography>
             <div className="space-y-1">
               {renderLinks()}
             </div>
@@ -118,28 +118,25 @@ const ReviewStep = ({
           
           {/* Images */}
           <div>
-            <Typography variant="h6" color="blue">Images</Typography>
+            <Typography variant="h6" color="blue">{t("image_text")}</Typography>
             {renderImages()}
           </div>
           
           {/* Description */}
           <div>
-            <Typography variant="h6" color="blue">Description</Typography>
+            <Typography variant="h6" color="blue">{t("detailed")}</Typography>
             <Typography>
-              {reportData.detail || 'No description provided'}
+              {reportData.detail || t("noDescription")}
             </Typography>
           </div>
         </div>
         
-        <div className="flex justify-between mt-6">
-          <Button color="gray" onClick={onBack}>
-            {t("back")}
-          </Button>
-          <Button color="blue" onClick={onSubmit}>
+        <div className="flex justify-center mt-6">
+          <Button color="blue" className="w-full" onClick={onSubmit}>
             {t("submit")}
           </Button>
         </div>
-      </Card>
+      </div>
     </div>
   )
 }
