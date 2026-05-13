@@ -1102,7 +1102,7 @@ const ReportsSection = ({
 		<>
 			<Card className="w-full mt-4">
 				<CardHeader floated={false} shadow={false} className="rounded-none">
-					<div className="flex items-center justify-between gap-8 mb-8">
+					<div className="card-header--top flex items-center justify-between gap-8 mb-8">
 						<Typography variant="h5" color="blue" className="basis-1/3">
 							List of Reports
 						</Typography>
@@ -1170,7 +1170,7 @@ const ReportsSection = ({
 							</Tooltip>
 						</div>
 					</div>
-					<div className="flex items-center justify-between gap-8">
+					<div className="card-header--bottom flex items-center justify-between gap-8">
 						<TableFilterControls
 							readFilter={readFilter}
 							onReadFilterChange={setReadFilter}
@@ -1178,7 +1178,8 @@ const ReportsSection = ({
 							refresh={refresh}
 							showCheckmark={showCheckmark}
 						/>
-							<div className="flex items-center gap-2 md:gap-4">
+						{!isAgency && (
+							<div className="agency-filter flex items-center gap-2 md:gap-4">
 								<select
 									value={agencyFilter}
 									onChange={(e) => setAgencyFilter(e.target.value)}
@@ -1191,6 +1192,7 @@ const ReportsSection = ({
 									))}
 								</select>
 							</div>
+						)}
 						<div className="w-full md:w-72 basis-1/3">
 							<Input
 								label="Search"
