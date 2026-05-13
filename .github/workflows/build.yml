@@ -32,7 +32,7 @@ jobs:
       NEXT_PUBLIC_APP_URL: https://ci.example.com
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Upgrade npm to 11 (match Firebase App Hosting)
         run: npm install -g npm@11
