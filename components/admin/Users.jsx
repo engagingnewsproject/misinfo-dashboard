@@ -126,6 +126,17 @@ const getJoinedDate = (firestoreUser, authUser) => {
 	}
 }
 
+/** Stable id for a table row (Auth uid or Firestore mobileUsers doc id). */
+const getUserRowIdentifier = (row) => row?.uid || row?.mobileUserId || row?.id
+
+/** Returns a new list with the row matching `docId` shallow-merged with `partial`. */
+const patchUserRowInList = (prev, docId, partial) => {
+	if (!docId || !partial) return prev
+	return prev.map((row) =>
+		getUserRowIdentifier(row) === docId ? { ...row, ...partial } : row,
+	)
+}
+
 /**
  * Sorts an array of users by their join date in descending order.
  *
@@ -399,6 +410,7 @@ const Users = () => {
 		loadMore,
 		reset: resetPagination,
 		refresh: refreshUsers,
+		patchUser: patchPaginatedUser,
 	} = useUsersPagination({
 		pageSize: 50,
 		userRole: roleFilter !== 'all' ? roleFilter : null,
@@ -1206,6 +1218,24 @@ const Users = () => {
 					// Handle error if needed
 				}
 			}
+		}
+
+		const optimisticPatch = {
+			...serializedAdditionalFields,
+			name,
+			email,
+			isBanned: banned,
+			userRole,
+		}
+		if (customClaims.agency) {
+			setAgencyUsers((prev) => patchUserRowInList(prev, userId, optimisticPatch))
+		} else if (customClaims.admin) {
+			patchPaginatedUser(userId, optimisticPatch)
+			setEnhancedPaginatedUsers((prev) =>
+				prev.length === 0
+					? prev
+					: patchUserRowInList(prev, userId, optimisticPatch),
+			)
 		}
 
 		// Close modal and trigger data refresh

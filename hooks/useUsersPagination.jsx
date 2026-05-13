@@ -165,6 +165,19 @@ export function useUsersPagination({
     }
   }, [users.length, loading, reset]);
 
+  /**
+   * Merges partial fields into one loaded user row (Firestore doc id match).
+   * Used for optimistic UI after edits without resetting pagination.
+   */
+  const patchUser = useCallback((mobileUserDocId, partial) => {
+    if (!mobileUserDocId || !partial) return;
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === mobileUserDocId ? { ...u, ...partial } : u
+      )
+    );
+  }, []);
+
   // Auto-load first batch on mount if autoLoad is true
   useEffect(() => {
     if (autoLoad && users.length === 0) {
@@ -207,6 +220,7 @@ export function useUsersPagination({
     reset,
     refresh,
     loadInitial,
+    patchUser,
   };
 }
 
