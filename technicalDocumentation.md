@@ -95,22 +95,98 @@ Firebase authentication on pages and components.
 | `config/firebase.js` | Auth entry point |
 | `context/AuthContext.jsx` | defines user authorization |
 
-### Firebase App Hosting deployment (lock file)
+### Deployment pipeline
 
-When deploying via [Firebase App Hosting](https://firebase.google.com/docs/app-hosting) (Git-backed), the remote build runs `npm ci`, which requires `package-lock.json` to match the build environment (Node 20.20.0). If you change dependencies locally, the lock file can go out of sync and the build will fail.
+Deployment is automated end-to-end: open a pull request, the CI build runs, and merging to `main` triggers Firebase App Hosting to build and ship the new version. There is no manual deploy step.
 
-**Regenerate the lock file with Node 20.20.0 before pushing:**
+#### How it flows
 
-1. From the project root, run (requires [Docker](https://docs.docker.com/get-docker/)):
+1. Push your branch and open a PR into `main`.
+2. GitHub Actions runs the `build` workflow against your PR (~2 minutes).
+3. If `build` is green, the PR is mergeable. If it is red, the PR is blocked — branch protection on `main` requires this check.
+4. After merge to `main`, Firebase App Hosting picks up the new commit, runs its own build, and deploys to the live URL.
 
-   ```bash
-   docker run --rm -v "$(pwd):/workspace" -w /workspace node:20.20.0 \
-     bash -c "rm -rf node_modules package-lock.json && npm install"
-   ```
+Live URL: `https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app`
 
-2. Commit and push the new `package-lock.json`.
+```
+PR → CI build (npm ci + npm run build) → merge → App Hosting build → live
+```
 
-See [README – Deploy to Firebase Hosting → Firebase App Hosting](https://github.com/engagingnewsproject/misinfo-dashboard#deploy-to-firebase-hosting) for full deployment steps.
+The key promise: **if your PR's `build` check is green, App Hosting will be green too.** The two builds use the same toolchain, same install command, and same build script — so they cannot disagree in practice.
+
+#### Pinned toolchain
+
+App Hosting builds with **Node 20.20.0** and **npm 11**. The repo pins this for local dev so nobody can accidentally build with a different toolchain and produce a lock file that App Hosting can't install:
+
+| File | Purpose |
+| --- | --- |
+| `.nvmrc` | Pins Node to `20.20.0`. Run `nvm use` in the project root to switch. |
+| `.npmrc` | Sets `engine-strict=true` so `npm install` refuses to run on the wrong Node or npm version. |
+| `package.json` → `engines` | Declares `"node": "20.20.0"` and `"npm": ">=11.0.0"`. |
+
+If your local `npm install` is refused, upgrade:
+
+```bash
+nvm install 20.20.0 && nvm use 20.20.0
+npm install -g npm@11
+```
+
+#### CI workflow
+
+Defined in `.github/workflows/build.yml`. Runs on every pull request and every push to `main`. Steps mirror App Hosting exactly:
+
+```bash
+# inside a node:20.20.0 container
+npm install -g npm@11   # match App Hosting's npm major
+npm ci                  # fails fast if package-lock.json is out of sync
+npm run build           # full Next build (with --webpack and Sentry plugin)
+```
+
+Dummy `NEXT_PUBLIC_*` env values are set in the workflow so the build completes without coupling CI to real Firebase secrets. The real secrets live in `apphosting.yaml` and are injected by App Hosting at its own build/run time.
+
+#### Branch protection on `main`
+
+`main` requires the `build` check to pass before any PR can be merged. This is enforced by GitHub branch protection (configured via `gh api`). Effects:
+
+- You cannot merge a PR with a failing `build`.
+- You cannot push directly to `main`. All changes go through PRs.
+- `strict: true` means the PR's branch must also be up to date with `main` at merge time.
+
+#### Regenerating `package-lock.json` after dependency changes
+
+If you change a dependency (add/update/remove in `package.json`), regenerate the lock file under the same Node/npm versions App Hosting uses, otherwise `npm ci` will fail in CI (and on App Hosting) with `EUSAGE` "lock file out of sync" or "Missing: … from lock file" errors.
+
+**Option A — locally (if your local Node/npm match the pins):**
+
+```bash
+nvm use                                 # picks up .nvmrc -> 20.20.0
+npm install -g npm@11                   # one-time
+rm -rf node_modules package-lock.json
+npm install
+```
+
+**Option B — via Docker (always faithful to the build env):**
+
+```bash
+docker run --rm -v "$(pwd):/workspace" -w /workspace node:20.20.0 \
+  bash -c "npm install -g npm@11 && rm -rf node_modules package-lock.json && npm install"
+```
+
+Then commit and push `package-lock.json`. The PR's `build` check will catch any remaining mismatch before merge.
+
+#### Where things live
+
+| Thing | Where |
+| --- | --- |
+| CI workflow | `.github/workflows/build.yml` |
+| Node version pin | `.nvmrc` |
+| npm strictness | `.npmrc` |
+| Engines declaration | `package.json` → `engines` |
+| App Hosting config (secrets, env, region) | `apphosting.yaml` |
+| App Hosting backend list (CLI) | `firebase apphosting:backends:list --project misinfo-5d004` |
+| Manual rollout (no commit) | `firebase apphosting:rollouts:create truthsleuthlocal --project misinfo-5d004` |
+
+See also the [README – Deploy to Firebase Hosting](https://github.com/engagingnewsproject/misinfo-dashboard#deploy-to-firebase-hosting) section for the canonical setup steps.
 
 ## Dashboard
 
