@@ -222,6 +222,31 @@ The app can also be deployed via [Firebase App Hosting](https://firebase.google.
 
 Do this whenever you change dependencies and intend to deploy via App Hosting.
 
+#### Deploy environment / CI (build verification)
+
+The deploy environment is pinned so local builds match App Hosting:
+
+- **Node**: `20.20.0` (see `.nvmrc`)
+- **npm**: `>=11.0.0` (App Hosting uses npm 11; Node 20.20.0 ships with npm 10, upgrade with `npm install -g npm@11`)
+- `engine-strict=true` is set in `.npmrc`, so `npm install` will refuse to run on the wrong Node or npm version
+
+Every pull request and every push to `main` runs `.github/workflows/build.yml`, which executes the exact same steps App Hosting runs:
+
+```bash
+npm install -g npm@11   # match App Hosting
+npm ci                  # fails fast on lockfile drift
+npm run build           # full Next build with --webpack
+```
+
+Branch protection on `main` requires this `build` check to pass. If your PR is green, App Hosting will succeed too.
+
+**Local setup if `npm install` is blocked:**
+
+```bash
+nvm install 20.20.0 && nvm use 20.20.0
+npm install -g npm@11
+```
+
 ---
 
 ## Deploy to Netlify
