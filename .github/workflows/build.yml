@@ -1,0 +1,47 @@
+name: build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    container:
+      image: node:20.20.0
+
+    env:
+      # Dummy NEXT_PUBLIC_* values let Next bundle env at build time without
+      # coupling CI to real Firebase secrets. App Hosting injects the real
+      # values from apphosting.yaml at its own build/run time.
+      NEXT_PUBLIC_FIREBASE_API_KEY: ci-dummy-key
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ci.example.com
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ci-project
+      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ci.appspot.com
+      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "0"
+      NEXT_PUBLIC_FIREBASE_APP_ID: "1:0:web:ci"
+      NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: G-CI
+      NEXT_PUBLIC_FIREBASE_RECAPTCHA_ENTERPRISE_SITE_KEY: ci-dummy
+      NEXT_PUBLIC_SENTRY_DSN: ""
+      NEXT_PUBLIC_APP_URL: https://ci.example.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upgrade npm to 11 (match Firebase App Hosting)
+        run: npm install -g npm@11
+
+      - name: Print toolchain
+        run: node -v && npm -v
+
+      - name: Install dependencies (strict, matches App Hosting)
+        run: npm ci
+
+      - name: Build
+        run: npm run build
