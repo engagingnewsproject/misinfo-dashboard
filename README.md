@@ -4,9 +4,9 @@
 [![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Firebase](https://img.shields.io/badge/firebase-a08021?style=for-the-badge&logo=firebase&logoColor=ffcd34)](https://firebase.google.com/)
 [![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Netlify](https://img.shields.io/badge/netlify-%23000000.svg?style=for-the-badge&logo=netlify&logoColor=#00C7B7)](https://app.netlify.com/sites/misinfo-dashboard/deploys)
+[![Firebase App Hosting](https://img.shields.io/badge/Firebase_App_Hosting-039BE5?style=for-the-badge&logo=firebase&logoColor=white)](https://console.firebase.google.com/project/misinfo-5d004/apphosting)
 
-[Getting Started](https://github.com/engagingnewsproject/misinfo-dashboard/?tab=readme-ov-file#getting-started) | [Firebase Emulator](https://github.com/engagingnewsproject/misinfo-dashboard/?tab=readme-ov-file#4-install-and-run-firebase-emulator) | [Firebase](https://github.com/engagingnewsproject/misinfo-dashboard/?tab=readme-ov-file#firebase-functions) | [Push to Netlify](https://github.com/engagingnewsproject/misinfo-dashboard/?tab=readme-ov-file#project-lead-push-to-netlify-live-site)
+[Getting Started](https://github.com/engagingnewsproject/misinfo-dashboard/?tab=readme-ov-file#getting-started) | [Firebase Emulator](https://github.com/engagingnewsproject/misinfo-dashboard/?tab=readme-ov-file#4-install-and-run-firebase-emulator) | [Firebase](https://github.com/engagingnewsproject/misinfo-dashboard/?tab=readme-ov-file#firebase-functions) | [Deployment](https://github.com/engagingnewsproject/misinfo-dashboard/?tab=readme-ov-file#deployment)
 
 This project project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) of the [Next.js](https://nextjs.org/) framework. To learn more about Next.js features and API, take a look at [Next.js Documentation](https://nextjs.org/docs).
 
@@ -28,7 +28,7 @@ First step! Clone this repo into a local directory (ex. `~/username/sites/`) on 
 
 #### Node Version
 
-At this time of writing (April 26, 2024) the latest working update is at Node v20.12.2. Ensure this is the version by running `node -v`. If you are not on that Node version check out this article to set the correct Node version: [Easily switch between multiple Node versions without using nvm](https://dev.to/andreasbergstrom/easily-switch-between-multiple-node-versions-without-using-nvm-52k9).
+Production builds (GitHub Actions CI and [Firebase App Hosting](https://firebase.google.com/docs/app-hosting)) use **Node 20.20.0** and **npm 11**. The repo pins this in `.nvmrc` and `package.json` `engines`; with `engine-strict=true` in `.npmrc`, `npm install` refuses other versions. Use [nvm](https://github.com/nvm-sh/nvm): `nvm install` / `nvm use` in the project root (reads `.nvmrc`), then `npm install -g npm@11` once. See [Deployment](#deployment) for the full toolchain.
 
 #### npm
 From the root of the project install dependencies by running:
@@ -182,130 +182,74 @@ With proper permissions access Firebase Console or Firebase Cloud Console.
 
 Links: [Chrome React Developer Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi) || [VS Code React-Native snippets](https://marketplace.visualstudio.com/items?itemName=dsznajder.es7-react-js-snippets) || [VS Code Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
 
-## Deploy to Firebase Hosting
+## Deployment
 
-The app is configured for Firebase Hosting with the Next.js web frameworks integration. To deploy:
+Production is served by **[Firebase App Hosting](https://firebase.google.com/docs/app-hosting)** (Git-backed). When a pull request is merged into `main`, App Hosting builds from that commit and rolls out the new version. There is no separate Netlify or classic Firebase Hosting deploy step for this app.
 
-1. Ensure `firebase experiments:enable webframeworks` has been run (one-time).
-2. Set environment variables for the Hosting/Next.js runtime (Firebase Console → your project → Hosting or Functions). For auth email links, set `NEXT_PUBLIC_APP_URL` to your live URL (e.g. `https://misinfo-5d004.web.app`).
-3. From the project root run:
+**Live URL:** `https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app`
 
-   ```
-   firebase deploy
-   ```
+**Typical flow**
 
-   This deploys Hosting and the Next.js server (Cloud Functions). To deploy only hosting and the framework backend: `firebase deploy --only hosting`.
+1. Open a PR into `main` from your feature branch.
+2. Wait for the **`build`** GitHub Actions check (runs `npm ci` and `npm run build` in the same Node/npm toolchain as App Hosting).
+3. After review, merge to `main`. App Hosting picks up the merge and deploys automatically.
+4. Watch progress in [Firebase Console → App Hosting](https://console.firebase.google.com/project/misinfo-5d004/apphosting) (backend `truthsleuthlocal`).
 
-4. Open your Hosting URL (e.g. `https://misinfo-5d004.web.app`) to verify.
-
-#### Firebase App Hosting (Git-backed)
-
-The app can also be deployed via [Firebase App Hosting](https://firebase.google.com/docs/app-hosting), which builds and deploys from your Git repo (e.g. on push to `main`). Configuration is in `apphosting.yaml`; the live backend URL is typically `https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app`.
-
-**Important: keep `package-lock.json` in sync with the build.** The App Hosting build runs `npm ci`, which requires the lock file to match the build environment (Node 20.20.0). If you add or update dependencies (e.g. run `npm install <pkg>` or change `package.json`), regenerate the lock file with Node 20.20.0 before pushing, or the build will fail with "package.json and package-lock.json are in sync" / "Missing: … from lock file" errors.
-
-1. Install [Docker](https://docs.docker.com/get-docker/) if you don’t have it.
-2. From the project root, run:
-
-   ```bash
-   docker run --rm -v "$(pwd):/workspace" -w /workspace node:20.20.0 \
-     bash -c "rm -rf node_modules package-lock.json && npm install"
-   ```
-
-3. Commit and push the updated `package-lock.json`:
-
-   ```bash
-   git add package-lock.json
-   git commit -m "chore: regenerate package-lock.json with node 20.20.0 for App Hosting"
-   git push
-   ```
-
-Do this whenever you change dependencies and intend to deploy via App Hosting.
-
-#### Deploy environment / CI (build verification)
-
-The deploy environment is pinned so local builds match App Hosting:
-
-- **Node**: `20.20.0` (see `.nvmrc`)
-- **npm**: `>=11.0.0` (App Hosting uses npm 11; Node 20.20.0 ships with npm 10, upgrade with `npm install -g npm@11`)
-- `engine-strict=true` is set in `.npmrc`, so `npm install` will refuse to run on the wrong Node or npm version
-
-Every pull request and every push to `main` runs `.github/workflows/build.yml`, which executes the exact same steps App Hosting runs:
+To redeploy the latest `main` without a new commit:
 
 ```bash
-npm install -g npm@11   # match App Hosting
-npm ci                  # fails fast on lockfile drift
-npm run build           # full Next build with --webpack
+firebase apphosting:rollouts:create truthsleuthlocal --project misinfo-5d004
 ```
 
-Branch protection on `main` requires this `build` check to pass. If your PR is green, App Hosting will succeed too.
+### Configuration and env
 
-**Local setup if `npm install` is blocked:**
+- **`apphosting.yaml`** — build/runtime env vars, secrets references, and backend wiring for App Hosting.
+- **Secrets** — create values in Google Cloud Secret Manager, then grant the App Hosting backend access (see comments in `apphosting.yaml`). `NEXT_PUBLIC_APP_URL` in that file should match the live App Hosting URL (or your custom domain) so auth email links resolve correctly.
+
+For a deeper walkthrough (lockfile regeneration, CI details, branch protection), see **[Technical Documentation – Deployment pipeline](https://github.com/engagingnewsproject/misinfo-dashboard/blob/main/technicalDocumentation.md#deployment-pipeline)**.
+
+### Not used for this app’s frontend deploy
+
+- **Classic Firebase Hosting** (`firebase deploy`, `firebase experiments:enable webframeworks`) — not used for production here. This repo targets Next.js 16 on App Hosting; classic Hosting’s Next integration does not match that path.
+- **Netlify** — no longer the production path for this dashboard. Historical `dev` / `prod` Netlify flows are retired in favor of PRs + `main` + App Hosting.
+
+### Lockfile and dependency changes
+
+App Hosting runs **`npm ci`**, which requires `package-lock.json` to match `package.json` and the **Node 20.20.0 + npm 11** resolver. If you change dependencies, regenerate the lockfile with that toolchain or the remote build will fail (`EUSAGE`, “out of sync”, or “Missing: … from lock file”).
+
+**Docker (faithful to the build image):**
+
+```bash
+docker run --rm -v "$(pwd):/workspace" -w /workspace node:20.20.0 \
+  bash -c "npm install -g npm@11 && rm -rf node_modules package-lock.json && npm install"
+```
+
+Then commit and push `package-lock.json` (and `package.json` if you edited it).
+
+### CI and pinned toolchain
+
+- **Node** `20.20.0` — `.nvmrc` and `package.json` `engines`
+- **npm** `>=11.0.0` — upgrade globally after switching Node: `npm install -g npm@11`
+- **`.npmrc`** — `engine-strict=true` so the wrong toolchain fails fast locally
+
+Every PR and every push to `main` runs `.github/workflows/build.yml`:
+
+```bash
+npm install -g npm@11
+npm ci
+npm run build
+```
+
+Branch protection on `main` requires the **`build`** check to pass before merge. If CI is green, App Hosting should be green too.
+
+**If `npm install` is blocked locally:**
 
 ```bash
 nvm install 20.20.0 && nvm use 20.20.0
 npm install -g npm@11
 ```
 
----
-
-## Deploy to Netlify
-
-#### Deploy to dev
-Link: https://dev-truthsleuthlocal.netlify.app/
-
-To push all changes to the dev site on Netlify using the [Engaging News Project's misinfo-dashboard](https://github.com/engagingnewsproject/misinfo-dashboard) repo's `dev` branch.
-
-_The `dev` branch is the branch that contains the dev live site code._
-
-1.  Checkout the `dev` branch
-
-    `git checkout dev`
-
-2.  Merge changes from `main` to `dev`
-
-    `git merge main`
-
-3. Push the merge into `dev`
-
-    `git push origin dev`
-
-4.  Open the [Netlify UI for the dev site](https://app.netlify.com/projects/dev-truthsleuthlocal/deploys) and monitor the progress. Make sure the top bar has `dev-truthsleuthlocal` active. On the left sidebar navigate to the "Deploys" link. Your latest push will be listed at the top.
-
-#### Deploy to prod
-Link: https://misinfo-dashboard.netlify.app/
-
-To push all changes to the live site on Netlify using the [Engaging News Project's misinfo-dashboard](https://github.com/engagingnewsproject/misinfo-dashboard) repo's `dev` branch.
-
-_The `prod` branch is the branch that contains the live site code._
-
-1.  Checkout the `main` branch
-
-    `git checkout main`
-
-2.  Merge changes from `dev` into `main`
-
-    `git merge dev`
-
-3. Push the merge into `main`
-
-    `git push origin main`
-
-4.  Checkout the `prod` branch
-
-    `git checkout prod`
-
-5. Merge `main` into `prod`
-
-    `git merge main`
-
-6. Push the merge into `prod`
-
-    `git push origin prod`
-
-7.  Open the [Netlify UI for the prod site](https://app.netlify.com/sites/misinfo-dashboard/deploys) and monitor the progress. Make sure the top bar has `misinfo-dashboard` active. On the left sidebar navigate to the "Deploys" link. Your latest push will be listed at the top.
-
-#### Deploy issues
+### Git: large files and push errors
 
 If you get the below error you will need to install [Git Large File Storage](https://git-lfs.com/).
 
@@ -325,11 +269,11 @@ To install:
 
 `git lfs checkout` -  files can be repopulated with their full expected contents [lfs docs](https://github.com/git-lfs/git-lfs/blob/main/docs/man/git-lfs-migrate.adoc?utm_source=gitlfs_site&utm_medium=doc_man_migrate_link&utm_campaign=gitlfs#examples)
 
-Project Lead Links: [Firebase CLI Tools](https://firebase.google.com/docs/firestore/security/get-started#use_the_firebase_cli) || [Firebase Console](https://console.firebase.google.com/) || [Firebase Cloud Console](https://console.cloud.google.com/welcome?project=misinfo-5d004) || [Syncing a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line) || [Netlify dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview) || [ENP Prod Repo](https://github.com/engagingnewsproject/misinfo-dashboard-prod)
+Project Lead Links: [Firebase CLI Tools](https://firebase.google.com/docs/firestore/security/get-started#use_the_firebase_cli) || [Firebase Console](https://console.firebase.google.com/) || [Firebase App Hosting (misinfo-5d004)](https://console.firebase.google.com/project/misinfo-5d004/apphosting) || [Firebase Cloud Console](https://console.cloud.google.com/welcome?project=misinfo-5d004) || [Syncing a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line) || [ENP Prod Repo](https://github.com/engagingnewsproject/misinfo-dashboard-prod)
 
 ## Links
 
-#### [Netlify Dashboard](https://app.netlify.com/sites/misinfo-dashboard/overview)
+#### [Firebase App Hosting (misinfo-5d004)](https://console.firebase.google.com/project/misinfo-5d004/apphosting)
 
 #### [React Dev Docs](https://react.dev/)
 
