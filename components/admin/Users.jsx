@@ -1211,23 +1211,6 @@ const Users = () => {
 		// Close modal and trigger data refresh
 		setUserEditModal(false)
 		setUpdate(!update) // This will trigger getData() via useEffect, refreshing the user list
-		// Update the loadedMobileUsers state after successful update
-		setLoadedMobileUsers((prevUsers) =>
-			prevUsers.map((userObj) => {
-				const identifier = userObj?.uid || userObj?.mobileUserId || userObj?.id
-				if (identifier !== userId) {
-					return userObj
-				}
-				return {
-					...userObj,
-					...serializedAdditionalFields,
-					name: name,
-					email: email,
-					isBanned: banned,
-					userRole: userRole,
-				}
-			}),
-		)
 	}
 
 	/**
