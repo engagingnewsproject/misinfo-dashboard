@@ -16,7 +16,9 @@
  */
 
 require("dotenv").config();
-const functions = require("firebase-functions");
+// firebase-functions v7+ default export is v2; this codebase uses v1 APIs
+// (firestore.document, https.onCall, HttpsError).
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const {defineSecret} = require("firebase-functions/params");
 // All available logging functions
@@ -127,9 +129,10 @@ const postToSlack = async (
  * @example
  * // Triggered automatically when a new help request is created
  */
-exports.notifySlackOnNewHelpRequest = functions.firestore
-    .document("helpRequests/{requestId}")
-    .onCreate( async (snap) => {
+exports.notifySlackOnNewHelpRequest = functions
+    .runWith({secrets: [slackWebhook]})
+    .firestore.document("helpRequests/{requestId}")
+    .onCreate(async (snap) => {
       const newRequest = snap.data();
       const userID = newRequest.userID || "unknown user";
       let userName = "Unknown";
@@ -159,9 +162,9 @@ exports.notifySlackOnNewHelpRequest = functions.firestore
         newRequest.images[0] :
         "https://placehold.co/600x400";
 
-      // Access the secret and use it in the function
-      const slackHook = slackWebhook.value(); // Fetch the secret value
-      log(slackHook);
+      // Secret is mounted at runtime; runWith({ secrets }) grants the
+      // default compute SA secretAccessor on this secret during deploy.
+      const slackHook = slackWebhook.value();
       // Post the message to Slack using the Secret Webhook URL
       await postToSlack(
           userID,
