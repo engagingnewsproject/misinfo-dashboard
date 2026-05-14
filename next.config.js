@@ -42,6 +42,29 @@ const nextConfig = {
       },
     ];
   },
+  // App Hosting / some Cloud Run images may not expose `public/` at the site root; `beforeFiles`
+  // rewrites run before static lookup so manifest and favicons still resolve.
+  async rewrites() {
+    const rootPublicFiles = [
+      'manifest.json',
+      'favicon.ico',
+      'favicon-16x16.png',
+      'favicon-32x32.png',
+      'icon-192x192.png',
+      'icon-256x256.png',
+      'icon-384x384.png',
+      'icon-512x512.png',
+      'apple-touch-icon.png',
+      'safari-pinned-tab.svg',
+      'robots.txt',
+    ];
+    return {
+      beforeFiles: rootPublicFiles.map((file) => ({
+        source: `/${file}`,
+        destination: `/api/public-asset/${file}`,
+      })),
+    };
+  },
   images: {
     remotePatterns: [
       {
