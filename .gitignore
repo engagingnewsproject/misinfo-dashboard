@@ -50,6 +50,7 @@ public/worker-*.js.map
 **/public/sw.js
 public/sw.js.map
 **/public/fallback-*.js
+!/public/robots.txt
 
 # Local Netlify folder
 .netlify
