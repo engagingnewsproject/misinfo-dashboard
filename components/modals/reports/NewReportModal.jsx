@@ -30,6 +30,31 @@ import Select from 'react-select'
 import { useTranslation } from 'next-i18next'
 import { Typography } from '@material-tailwind/react'
 
+const TOPICS_KEY_PREFIX = 'topics.'
+const SOURCES_KEY_PREFIX = 'sources.'
+
+/**
+ * If a tag id was stored with an i18n key prefix by mistake, strip it so we resolve
+ * `topics.Sports` instead of `topics.topics.Sports`.
+ */
+function stripTopicsKeyPrefix(topicId) {
+	if (typeof topicId !== 'string') return topicId
+	return topicId.startsWith(TOPICS_KEY_PREFIX)
+		? topicId.slice(TOPICS_KEY_PREFIX.length)
+		: topicId
+}
+
+function stripSourcesKeyPrefix(sourceId) {
+	if (typeof sourceId !== 'string') return sourceId
+	return sourceId.startsWith(SOURCES_KEY_PREFIX)
+		? sourceId.slice(SOURCES_KEY_PREFIX.length)
+		: sourceId
+}
+
+function isOtherSourceValue(value) {
+	return value === 'Other' || value === 'Other/Otro'
+}
+
 const NewReportModal = ({
 	setNewReportModal,
 	handleNewReportSubmit,
@@ -408,7 +433,7 @@ const NewReportModal = ({
 	 */
 	const handleTopicChange = (e) => {
 		setSelectedTopic(e.value)
-		if (e.value === t('Other')) {
+		if (e.value === 'Other') {
 			setShowOtherTopic(true)
 		} else {
 			setShowOtherTopic(false)
@@ -430,7 +455,7 @@ const NewReportModal = ({
 	 */
 	const handleSourceChangeOther = (e) => {
 		setSelectedSource(e.value)
-		if (e.value === t('Other')) {
+		if (isOtherSourceValue(e.value)) {
 			setShowOtherSource(true)
 		} else {
 			setShowOtherSource(false)
@@ -694,7 +719,6 @@ const NewReportModal = ({
 			console.log('No source error')
 			allErrors.source = t('source')
 		}
-		// TODO: some topics show up in dropdown as "topics.News" or "topics.Social"
 		if (selectedTopic == '') {
 			console.log('No topic selected')
 			allErrors.topic = t('specify_topic')
@@ -877,6 +901,40 @@ const NewReportModal = ({
 		setNewReportModal(false)
 	}
 
+	const topicOptions = allTopicsArr.map((topic) => ({
+		label: t('topics.' + stripTopicsKeyPrefix(topic), topic),
+		value: topic,
+	}))
+
+	const topicSelectValue =
+		topicOptions.find((o) => o.value === selectedTopic) ??
+		(selectedTopic
+			? {
+					label: t(
+						'topics.' + stripTopicsKeyPrefix(selectedTopic),
+						selectedTopic,
+					),
+					value: selectedTopic,
+				}
+			: null)
+
+	const sourceOptions = allSourcesArr.map((source) => ({
+		label: t('sources.' + stripSourcesKeyPrefix(source), source),
+		value: source,
+	}))
+
+	const sourceSelectValue =
+		sourceOptions.find((o) => o.value === selectedSource) ??
+		(selectedSource
+			? {
+					label: t(
+						'sources.' + stripSourcesKeyPrefix(selectedSource),
+						selectedSource,
+					),
+					value: selectedSource,
+				}
+			: null)
+
 	return (
 		<div className="bk-white h-full w-full">
 			<div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-[9999]">
@@ -987,13 +1045,9 @@ const NewReportModal = ({
 									id="topic-selection"
 									type="text"
 									placeholder={t('topic')}
-									// TODO: fix label & values
-									options={allTopicsArr.map((topic) => ({
-										label: t('topics.' + topic),
-										value: t('topics.' + topic),
-									}))}
+									options={topicOptions}
 									onChange={handleTopicChange}
-									value={selectedTopic.topic}
+									value={topicSelectValue}
 								/>
 								{errors.topic && selectedTopic === '' && (
 									<span className="text-red-500">{errors.topic}</span>
@@ -1023,12 +1077,9 @@ const NewReportModal = ({
 									id="source-selection"
 									type="text"
 									placeholder="Source"
-									options={allSourcesArr.map((source) => ({
-										label: t('sources.' + source),
-										value: t('sources.' + source),
-									}))}
+									options={sourceOptions}
 									onChange={handleSourceChangeOther}
-									value={selectedSource.hearFrom}
+									value={sourceSelectValue}
 								/>
 
 								{errors.source && selectedSource === '' && (
@@ -1103,12 +1154,12 @@ const NewReportModal = ({
 									</label>
 									<div className="flex shrink-0 mt-2 space-x-2">
 										{imageURLs.map((url, i) => (
-											<div className="relative">
+											<div key={url} className="relative">
 												<Image
 													src={url}
-													key={url}
 													width={100}
 													height={100}
+													className="h-auto w-auto max-h-[100px] max-w-[100px] object-contain"
 													alt={`image-upload-${i}`}
 												/>
 												{/* TODO: delete file after upload */}
