@@ -55,6 +55,10 @@
 		"tailwindcss": "^3.4.3",
 		"webpack": "^5.106.2"
 	},
+	"optionalDependencies": {
+		"@rollup/rollup-darwin-arm64": "4.60.3",
+		"@rollup/rollup-darwin-x64": "4.60.3"
+	},
 	"engines": {
 		"node": "20.20.0",
 		"npm": ">=11.0.0"
