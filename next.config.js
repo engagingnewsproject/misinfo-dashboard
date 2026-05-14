@@ -30,6 +30,11 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: '/site.webmanifest',
+        destination: '/manifest.json',
+        permanent: true,
+      },
+      {
         source: '/:path*',
         has: [{ type: 'host', value: 'dev-misinfo-dashboard.netlify.app' }],
         destination: 'https://dev-truthsleuthlocal.netlify.app/:path*',
