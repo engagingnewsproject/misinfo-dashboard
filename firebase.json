@@ -15,7 +15,7 @@
         "firebase-debug.*.log"
       ],
       "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint"
+        "cd \"$RESOURCE_DIR\" && node ./node_modules/eslint/bin/eslint.js . --ext .js,.ts"
       ]
     }
   ],

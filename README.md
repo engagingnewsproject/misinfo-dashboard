@@ -30,6 +30,8 @@ First step! Clone this repo into a local directory (ex. `~/username/sites/`) on 
 
 Production builds (GitHub Actions CI and [Firebase App Hosting](https://firebase.google.com/docs/app-hosting)) use **Node 20.20.0** and **npm 11**. The repo pins this in `.nvmrc` and `package.json` `engines`; with `engine-strict=true` in `.npmrc`, `npm install` refuses other versions. Use [nvm](https://github.com/nvm-sh/nvm): `nvm install` / `nvm use` in the project root (reads `.nvmrc`), then `npm install -g npm@11` once. See [Deployment](#deployment) for the full toolchain.
 
+**Apple Silicon (M1 / M2 / M3):** install the **arm64** Node build, not the x64/Rosetta one. Check with `node -p process.arch` — it should print `arm64`. If you see `x64`, Rollup and Next may look for `@rollup/rollup-darwin-x64` / `@next/swc-darwin-x64` and you can hit missing native module errors. Reinstall Node for Apple Silicon (or turn off “Open using Rosetta” for Terminal) and run `rm -rf node_modules && npm ci` again. The repo also lists `@rollup/rollup-darwin-arm64` and `@rollup/rollup-darwin-x64` as **optionalDependencies** so npm still installs the right macOS binary even when nested optional deps mis-resolve.
+
 #### npm
 From the root of the project install dependencies by running:
 

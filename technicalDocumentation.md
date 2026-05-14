@@ -174,6 +174,10 @@ docker run --rm -v "$(pwd):/workspace" -w /workspace node:20.20.0 \
 
 Then commit and push `package-lock.json`. The PR's `build` check will catch any remaining mismatch before merge.
 
+#### macOS native modules (Rollup / Apple Silicon)
+
+`package.json` lists `@rollup/rollup-darwin-arm64` and `@rollup/rollup-darwin-x64` as **optionalDependencies** (pinned to the same major as the nested `rollup` used by `@sentry/nextjs`) so macOS installs get the correct native Rollup binary even when npm mishandles nested optional dependencies ([npm CLI issue #4828](https://github.com/npm/cli/issues/4828)). On Apple Silicon, use **arm64** Node (`node -p process.arch` should print `arm64`); if it prints `x64`, you are likely on Rosetta and builds may look for the wrong native packages.
+
 #### Where things live
 
 | Thing | Where |

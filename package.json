@@ -3,6 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
+		"postinstall": "node scripts/ensure-rollup-native.cjs",
 		"dev": "./start-dev.sh",
 		"dev:turbo": "npm run dev",
 		"dev:live": "sh -c 'unset FIRESTORE_EMULATOR_HOST FIREBASE_AUTH_EMULATOR_HOST FIREBASE_STORAGE_EMULATOR_HOST FIREBASE_DATABASE_EMULATOR_HOST FIREBASE_FUNCTIONS_EMULATOR_HOST; export NEXT_PUBLIC_USE_EMULATORS=false; exec next dev'",
@@ -54,6 +55,10 @@
 		"prettier": "^3.3.3",
 		"tailwindcss": "^3.4.3",
 		"webpack": "^5.106.2"
+	},
+	"optionalDependencies": {
+		"@rollup/rollup-darwin-arm64": "4.60.3",
+		"@rollup/rollup-darwin-x64": "4.60.3"
 	},
 	"engines": {
 		"node": "20.20.0",

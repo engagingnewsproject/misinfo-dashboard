@@ -6,7 +6,7 @@
  * - Enforce route protection for authenticated pages
  * - Set up theme and global styles
  * - Integrate next-i18next for translations
- * - Configure Sentry for error monitoring
+ * - Configure Sentry for error monitoring (client via instrumentation-client.js; server via instrumentation.js)
  * - Set up global meta tags and favicons
  *
  * Integrates with:
@@ -31,10 +31,6 @@ import { ThemeProvider } from "@material-tailwind/react"
 import style from '../styles/style.js'
 import Head from 'next/head'
 import LoadingSpinner from "../components/ui/LoadingSpinner"
-
-// Import Sentry configuration
-import "../sentry.client.config.js"
-import "../sentry.server.config";
 
 const noAuthRequired = ["/login", "/signup", "/resetPassword", "/testPage", "/privacy-policy"]
 // for testing page add '/testPage' above
