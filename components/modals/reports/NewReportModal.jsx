@@ -39,20 +39,33 @@ const SOURCES_KEY_PREFIX = 'sources.'
  */
 function stripTopicsKeyPrefix(topicId) {
 	if (typeof topicId !== 'string') return topicId
-	return topicId.startsWith(TOPICS_KEY_PREFIX)
-		? topicId.slice(TOPICS_KEY_PREFIX.length)
-		: topicId
+	let s = topicId
+	while (s.startsWith(TOPICS_KEY_PREFIX)) {
+		s = s.slice(TOPICS_KEY_PREFIX.length)
+	}
+	return s
 }
 
 function stripSourcesKeyPrefix(sourceId) {
 	if (typeof sourceId !== 'string') return sourceId
-	return sourceId.startsWith(SOURCES_KEY_PREFIX)
-		? sourceId.slice(SOURCES_KEY_PREFIX.length)
-		: sourceId
+	let s = sourceId
+	while (s.startsWith(SOURCES_KEY_PREFIX)) {
+		s = s.slice(SOURCES_KEY_PREFIX.length)
+	}
+	return s
 }
 
+/** True when this topic id is the “Other” row, including legacy `topics.Other` (or repeated prefix) in Firestore. */
+function isOtherTopicValue(value) {
+	if (typeof value !== 'string') return false
+	return stripTopicsKeyPrefix(value) === 'Other'
+}
+
+/** True when this source id is the “Other” row, including legacy `sources.Other` / `sources.Other/Otro`. */
 function isOtherSourceValue(value) {
-	return value === 'Other' || value === 'Other/Otro'
+	if (typeof value !== 'string') return false
+	const id = stripSourcesKeyPrefix(value)
+	return id === 'Other' || id === 'Other/Otro'
 }
 
 const NewReportModal = ({
@@ -426,14 +439,14 @@ const NewReportModal = ({
 	 * It performs the following tasks:
 	 *
 	 * 1. Updates the `selectedTopic` state with the value selected by the user.
-	 * 2. If the selected topic is 'Other', it sets `showOtherTopic` to true, otherwise, it hides it.
+	 * 2. If the selected topic is the agency “Other” topic (including legacy ids like `topics.Other`), it sets `showOtherTopic` to true, otherwise it hides it.
 	 * 3. Sets the report state to 5.
 	 *
 	 * @param {Event} e - The change event triggered when the user selects a topic.
 	 */
 	const handleTopicChange = (e) => {
 		setSelectedTopic(e.value)
-		if (e.value === 'Other') {
+		if (isOtherTopicValue(e.value)) {
 			setShowOtherTopic(true)
 		} else {
 			setShowOtherTopic(false)
@@ -448,7 +461,7 @@ const NewReportModal = ({
 	 * It performs the following tasks:
 	 *
 	 * 1. Updates the `selectedSource` state with the value selected by the user.
-	 * 2. If the selected source is 'Other', it sets `showOtherSource` to true, otherwise, it hides it.
+	 * 2. If the selected source is the agency “Other” source (including legacy ids like `sources.Other` or `sources.Other/Otro`), it sets `showOtherSource` to true, otherwise it hides it.
 	 * 3. Sets the report state to 6.
 	 *
 	 * @param {Event} e - The change event triggered when the user selects a source.
