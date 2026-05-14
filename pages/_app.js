@@ -32,8 +32,6 @@ import style from '../styles/style.js'
 import Head from 'next/head'
 import LoadingSpinner from "../components/ui/LoadingSpinner"
 
-import "../sentry.server.config";
-
 const noAuthRequired = ["/login", "/signup", "/resetPassword", "/testPage", "/privacy-policy"]
 // for testing page add '/testPage' above
 /**
