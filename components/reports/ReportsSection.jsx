@@ -1130,7 +1130,7 @@ const ReportsSection = ({
 										checked={includeArchived}
 										onChange={(e) => setIncludeArchived(e.target.checked)}
 									/>
-									Include archived (all waves)
+									Show archived
 								</label>
 							)}
 							<Tooltip content="New Report" placement="bottom-start">
@@ -1143,6 +1143,14 @@ const ReportsSection = ({
 									New Report
 								</Button>
 							</Tooltip>
+							<div className="w-full md:w-72 min-w-[200px]">
+								<Input
+									label="Search"
+									icon={<HiMagnifyingGlass className="w-5 h-5" />}
+									value={search}
+									onChange={(e) => setSearch(e.target.value)}
+								/>
+							</div>
 						</div>
 					</div>
 					<div className="card-header--bottom flex items-center justify-between gap-8">
@@ -1168,14 +1176,6 @@ const ReportsSection = ({
 								</select>
 							</div>
 						)}
-						<div className="w-full md:w-72 basis-1/3">
-							<Input
-								label="Search"
-								icon={<HiMagnifyingGlass className="w-5 h-5" />}
-								value={search}
-								onChange={(e) => setSearch(e.target.value)}
-							/>
-						</div>
 						<TableDropdownMenu
 							reportWeek={reportWeek}
 							onChange={(value) => setReportWeek(value)} // Update `reportWeek` based on selection
