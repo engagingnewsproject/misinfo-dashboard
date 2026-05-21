@@ -1133,51 +1133,6 @@ const ReportsSection = ({
 									Include archived (all waves)
 								</label>
 							)}
-							{!isAgency && (
-								<>
-									{/* Export Button */}
-									<Tooltip content="Export Reports" placement="bottom-start">
-										<Button
-											size="sm"
-											variant="outlined"
-											onClick={downloadCSV}
-											className="flex items-center gap-2"
-											ripple={true}>
-											<FaFileExport />
-											Export
-										</Button>
-									</Tooltip>
-
-									{/* Import Button */}
-									<Tooltip
-										content="Import Reports CSV"
-										placement="bottom-start">
-										<Button
-											size="sm"
-											variant="outlined"
-											ripple={true}
-											onClick={() =>
-												document.getElementById('csvImportInput').click()
-											}
-											className="flex items-center gap-2">
-											<FaFileImport />
-											Import
-										</Button>
-									</Tooltip>
-
-									{/* Hidden file input for CSV upload */}
-									<input
-										id="csvImportInput"
-										type="file"
-										accept=".csv"
-										style={{ display: 'none' }}
-										onChange={(e) => {
-											const file = e.target.files[0]
-											if (file) handleCSVImport(file)
-										}}
-									/>
-								</>
-							)}
 							<Tooltip content="New Report" placement="bottom-start">
 								<Button
 									ripple={true}
@@ -1335,6 +1290,44 @@ const ReportsSection = ({
 						Next
 					</Button>
 				</CardFooter>
+				{!isAgency && (
+					<div className="flex w-full justify-center gap-2 p-4 border-t border-blue-gray-50">
+						<Tooltip content="Export Reports" placement="top">
+							<Button
+								size="sm"
+								variant="outlined"
+								onClick={downloadCSV}
+								className="flex items-center gap-2"
+								ripple={true}>
+								<FaFileExport />
+								Export
+							</Button>
+						</Tooltip>
+						<Tooltip content="Import Reports CSV" placement="top">
+							<Button
+								size="sm"
+								variant="outlined"
+								ripple={true}
+								onClick={() =>
+									document.getElementById('csvImportInput').click()
+								}
+								className="flex items-center gap-2">
+								<FaFileImport />
+								Import
+							</Button>
+						</Tooltip>
+						<input
+							id="csvImportInput"
+							type="file"
+							accept=".csv"
+							style={{ display: 'none' }}
+							onChange={(e) => {
+								const file = e.target.files[0]
+								if (file) handleCSVImport(file)
+							}}
+						/>
+					</div>
+				)}
 			</Card>
 			{deleteModal && (
 				<ConfirmModal
