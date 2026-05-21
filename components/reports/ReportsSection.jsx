@@ -1113,7 +1113,7 @@ const ReportsSection = ({
 		<>
 			<Card className="w-full mt-4">
 				<CardHeader floated={false} shadow={false} className="rounded-none">
-					<div className="card-header--top flex items-center justify-between gap-8 mb-8">
+					<div className="card-header--top flex items-center justify-between gap-8 mb-4">
 						<Typography variant="h5" color="blue">
 							List of Reports
 							{customClaims.admin && activeExperimentId && (
