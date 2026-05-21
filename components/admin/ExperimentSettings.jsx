@@ -10,7 +10,11 @@ import {
 	fetchExperimentConfig,
 	getActiveExperimentId,
 } from '../../utils/reports-queries'
-import { DEFAULT_ARCHIVE_CUTOFF_ISO } from '../../utils/experiment-config'
+import {
+	DEFAULT_ARCHIVE_CUTOFF_ISO,
+	EXPERIMENT_ID_PATTERN,
+	slugifyExperimentId,
+} from '../../utils/experiment-config'
 import globalStyles from '../../styles/globalStyles'
 import { Button, Typography } from '@material-tailwind/react'
 
@@ -93,8 +97,9 @@ const ExperimentSettings = () => {
 		setStatus('')
 		try {
 			const { addExperiment } = getExperimentFunctions()
+			const id = slugifyExperimentId(newExperimentId).replace(/-+$/, '')
 			const result = await addExperiment({
-				id: newExperimentId.trim(),
+				id,
 				label: newExperimentLabel.trim(),
 				setActive: setNewAsActive,
 			})
@@ -254,8 +259,16 @@ const ExperimentSettings = () => {
 								className="border rounded px-2 py-1 font-mono text-sm"
 								placeholder="2027-main"
 								value={newExperimentId}
-								onChange={(e) => setNewExperimentId(e.target.value)}
+								onChange={(e) =>
+									setNewExperimentId(slugifyExperimentId(e.target.value))
+								}
+								autoComplete="off"
+								spellCheck={false}
 							/>
+							<span className="text-xs text-gray-500">
+								Lowercase letters, numbers, and hyphens only (e.g. 2027-main).
+								Spaces become hyphens as you type.
+							</span>
 						</label>
 						<label className="flex flex-col gap-1">
 							<span className="text-sm">Label</span>
@@ -280,7 +293,7 @@ const ExperimentSettings = () => {
 							variant="outlined"
 							disabled={
 								busy ||
-								!newExperimentId.trim() ||
+								!EXPERIMENT_ID_PATTERN.test(newExperimentId) ||
 								!newExperimentLabel.trim()
 							}
 							onClick={handleAddExperiment}>

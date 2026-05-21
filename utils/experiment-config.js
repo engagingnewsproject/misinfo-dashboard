@@ -34,6 +34,24 @@ export const DEFAULT_ARCHIVE_CUTOFF_ISO = '2026-01-01T00:00:00.000Z'
 /** @deprecated Use DEFAULT_ARCHIVE_CUTOFF_ISO */
 export const LEGACY_EXPERIMENT_CUTOFF_ISO = DEFAULT_ARCHIVE_CUTOFF_ISO
 
+/** Must match `EXPERIMENT_ID_PATTERN` in functions/experiment.js */
+export const EXPERIMENT_ID_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/
+
+/**
+ * Normalizes typed text to a valid experiment id (lowercase, numbers, hyphens).
+ *
+ * @param {string} raw
+ * @returns {string}
+ */
+export function slugifyExperimentId(raw) {
+	return raw
+		.toLowerCase()
+		.replace(/\s+/g, '-')
+		.replace(/[^a-z0-9-]+/g, '-')
+		.replace(/-+/g, '-')
+		.replace(/^-+/, '')
+}
+
 /**
  * @param {import('firebase/firestore').Timestamp | Date | undefined} createdDate
  * @param {string} activeExperimentId
