@@ -162,6 +162,23 @@ The Firebase emulator allows you to export data from your running emulator insta
 
 This command will export the running emulator instance's auth profiles, firestore data and storage files to the `/emulator-data` folder. **Recommended** to not commit the `/emulator-data` changed files as to not alter the baseline Emulator data.
 
+#### Seed emulator from production Firestore
+
+With emulators running (Firestore on port 8080) and a service account JSON at the repo root (same file used for admin scripts; gitignored), copy production `reports` into the emulator:
+
+```bash
+# Terminal 1
+npm run dev
+
+# Terminal 2 — default: 200 reports; also copy settings/experiment
+npm run seed:emulator -- --limit=500 --with-settings
+
+# Replace emulator reports entirely before import
+npm run seed:emulator -- --clear-reports --limit=0 --with-settings
+```
+
+`--limit=0` copies all reports (paginated). Use `--dry-run` to only read production and print counts. After import, use **Settings → Experiment & archive → Initialize experiment fields** if documents lack `experimentId` / `archived`, then test bulk archive safely on the emulator. To persist the snapshot for future `npm run dev` imports: `firebase emulators:export ./emulator-data`.
+
 ## Firebase Functions
 
 To deploy Firebase functions:
