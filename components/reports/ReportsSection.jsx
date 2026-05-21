@@ -1114,7 +1114,7 @@ const ReportsSection = ({
 			<Card className="w-full mt-4">
 				<CardHeader floated={false} shadow={false} className="rounded-none">
 					<div className="card-header--top flex items-center justify-between gap-8 mb-8">
-						<Typography variant="h5" color="blue" className="basis-1/3">
+						<Typography variant="h5" color="blue">
 							List of Reports
 							{customClaims.admin && activeExperimentId && (
 								<span className="block text-xs font-normal text-gray-500 mt-1">
@@ -1122,13 +1122,7 @@ const ReportsSection = ({
 								</span>
 							)}
 						</Typography>
-						<Typography
-							className="flex-initial text-center basis-1/3"
-							variant="small">
-							{loadedReports.length}{' '}
-							{loadedReports.length == 1 ? 'report' : 'reports'}
-						</Typography>
-						<div className="flex flex-row justify-end gap-1 basis-1/3 items-center">
+						<div className="flex flex-row justify-end gap-1 items-center">
 							{customClaims.admin && (
 								<label className="flex items-center gap-1 text-xs mr-2 whitespace-nowrap">
 									<input
@@ -1236,6 +1230,10 @@ const ReportsSection = ({
 							onTypeChange={(val) => setTypeFilter(val)}
 						/>
 					</div>
+					<Typography className="w-full text-center mt-4" variant="small">
+						{loadedReports.length}{' '}
+						{loadedReports.length == 1 ? 'report' : 'reports'}
+					</Typography>
 				</CardHeader>
 				<CardBody className="px-0 pt-0 overflow-scroll">
 					<table className="w-full min-w-full mt-4 text-left table-fixed">
