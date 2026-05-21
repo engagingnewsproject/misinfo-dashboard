@@ -5,6 +5,11 @@ import { useAuth } from '../../../context/AuthContext'
 import moment from 'moment'
 import Image from 'next/image'
 import { db } from '../../../config/firebase'
+import {
+	fetchExperimentConfig,
+	getActiveExperimentId,
+	newReportExperimentFields,
+} from '../../../utils/reports-queries'
 import { State, City } from 'country-state-city'
 import {
 	getDoc,
@@ -142,8 +147,10 @@ const NewReportModal = ({
 	 *
 	 * @param {Array} imageURLs - An array of URLs of the images uploaded by the user.
 	 */
-	const saveReport = (imageURLs) => {
-		addDoc(dbInstance, {
+	const saveReport = async (imageURLs) => {
+		const experimentConfig = await fetchExperimentConfig()
+		const experimentId = getActiveExperimentId(experimentConfig)
+		await addDoc(dbInstance, {
 			userID: user.accountId,
 			state: data.state.name,
 			city: data.city == null ? 'N/A' : data.city.name,
@@ -161,10 +168,10 @@ const NewReportModal = ({
 			hearFrom: selectedSource,
 			// `origin` marks the submission channel; NewReportModal is the agency-side dashboard flow.
 			origin: 'agency',
-		}).then(() => {
-			handleNewReportSubmit() // Send a signal to ReportsSection so that it updates the list
-			addNewTag(selectedTopic, selectedSource, selectedAgencyId)
+			...newReportExperimentFields(experimentId),
 		})
+		handleNewReportSubmit() // Send a signal to ReportsSection so that it updates the list
+		addNewTag(selectedTopic, selectedSource, selectedAgencyId)
 	}
 
 	/**

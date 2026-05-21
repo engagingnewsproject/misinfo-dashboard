@@ -37,6 +37,14 @@ import {
 	where,
 } from 'firebase/firestore'
 import { db } from '../../config/firebase'
+import {
+	buildActiveReportsQuery,
+	fetchAdminReportsList,
+	fetchExperimentConfig,
+	fetchReportsFromQuery,
+	getActiveExperimentId,
+	newReportExperimentFields,
+} from '../../utils/reports-queries'
 // Icons
 import {
 	Button,
@@ -185,6 +193,8 @@ const ReportsSection = ({
 	const [refresh, setRefresh] = useState(false) // Refresh loading state
 	const [showCheckmark, setShowCheckmark] = useState(false) // Success indicator
 	const [open, setOpen] = useState(true) // Section open/close state
+	const [includeArchived, setIncludeArchived] = useState(false)
+	const [activeExperimentId, setActiveExperimentId] = useState('2026-main')
 
 	/** Reports after text search or full-email submitter filter; pagination slices from this. */
 	const reportsMatchingSearch = useMemo(() => {
@@ -237,7 +247,11 @@ const ReportsSection = ({
 		let agencyName = ''
 		let agencyId = ''
 		let agencyTags = []
-		
+
+		const experimentConfig = await fetchExperimentConfig()
+		const experimentId = getActiveExperimentId(experimentConfig)
+		setActiveExperimentId(experimentId)
+
 		if (isAgency) {
 			// Agency user: fetch reports for their specific agency
 			const agencyQuery = query(
@@ -249,19 +263,15 @@ const ReportsSection = ({
 				agencyName = doc.data().name
 				agencyId = doc.id
 			})
-			
-			// Fetch reports for the agency
-			const reportsQuery = query(
-				collection(db, 'reports'),
-				where('agency', '==', agencyName),
+
+			reportArr = await fetchReportsFromQuery(
+				buildActiveReportsQuery({
+					agency: agencyName,
+					activeExperimentId: experimentId,
+					includeArchived: false,
+				}),
 			)
-			const reportSnapshot = await getDocs(reportsQuery)
-			reportSnapshot.forEach((doc) => {
-				const data = doc.data()
-				data.reportID = doc.id
-				reportArr.push(data)
-			})
-			
+
 			// Fetch agency-specific tags
 			const tagsDocRef = doc(db, 'tags', agencyId)
 			const tagsDoc = await getDoc(tagsDocRef)
@@ -270,13 +280,7 @@ const ReportsSection = ({
 			}
 			setActiveLabels(agencyTags.Labels.active)
 		} else {
-			// Admin user: fetch all reports
-			const reportSnapshot = await getDocs(collection(db, 'reports'))
-			reportSnapshot.forEach((doc) => {
-				const data = doc.data()
-				data.reportID = doc.id
-				reportArr.push(data)
-			})
+			reportArr = await fetchAdminReportsList({ includeArchived })
 		}
 		
 		// Update state with fetched data
@@ -793,7 +797,7 @@ const ReportsSection = ({
 	 * @function downloadCSV
 	 */
 	const downloadCSV = async () => {
-		const csvData = await convertToCSV(reports)
+		const csvData = await convertToCSV(reportsMatchingSearch)
 		const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
 		const url = URL.createObjectURL(blob)
 
@@ -874,6 +878,7 @@ const ReportsSection = ({
 						title: String(row.title || ''),
 						topic: String(row.topic || ''),
 						userID: user.uid, // Set userID to current user’s UID
+						...newReportExperimentFields(activeExperimentId),
 					}
 
 					try {
@@ -958,6 +963,12 @@ const ReportsSection = ({
 			getData()
 		}
 	}, [newReportSubmitted, isAgency])
+
+	useEffect(() => {
+		if (customClaims.admin && isAgency === false) {
+			getData()
+		}
+	}, [includeArchived])
 
 	// Resolve Auth UID when the search box contains a full email (matches report.userID from ReportSystem)
 	useEffect(() => {
@@ -1105,6 +1116,11 @@ const ReportsSection = ({
 					<div className="card-header--top flex items-center justify-between gap-8 mb-8">
 						<Typography variant="h5" color="blue" className="basis-1/3">
 							List of Reports
+							{customClaims.admin && activeExperimentId && (
+								<span className="block text-xs font-normal text-gray-500 mt-1">
+									Table: all study waves · graphs use {activeExperimentId}
+								</span>
+							)}
 						</Typography>
 						<Typography
 							className="flex-initial text-center basis-1/3"
@@ -1112,7 +1128,17 @@ const ReportsSection = ({
 							{loadedReports.length}{' '}
 							{loadedReports.length == 1 ? 'report' : 'reports'}
 						</Typography>
-						<div className="flex flex-row justify-end gap-1 basis-1/3">
+						<div className="flex flex-row justify-end gap-1 basis-1/3 items-center">
+							{customClaims.admin && (
+								<label className="flex items-center gap-1 text-xs mr-2 whitespace-nowrap">
+									<input
+										type="checkbox"
+										checked={includeArchived}
+										onChange={(e) => setIncludeArchived(e.target.checked)}
+									/>
+									Include archived (all waves)
+								</label>
+							)}
 							{!isAgency && (
 								<>
 									{/* Export Button */}

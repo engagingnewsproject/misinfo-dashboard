@@ -261,6 +261,60 @@ components/modals/NewReportModal.jsx - new report modal component. Set new repor
 | `read` | report viewed or toggled by user |
 | `topic` | report selected label |
 | `hearFrom` | Sources / Media |
+| `experimentId` | Cohort id (e.g. `2026-main`); set from `settings/experiment.activeExperimentId` on create |
+| `archived` | When `true`, excluded from operational list/graph/export queries |
+| `archivedAt` | Timestamp when bulk-archived (admin Cloud Function) |
+| `archivedBy` | Admin Auth UID who ran bulk archive |
+| `origin` | Submission channel: `agency`, `public`, or `scrape` (piped/scraped articles) |
+
+### Experiment cohorts and archive
+
+Config document: `settings/experiment`
+
+| Field | Purpose |
+| ----- | ------- |
+| `activeExperimentId` | Cohort used for new reports and default dashboard queries |
+| `experiments` | Array of `{ id, label, startDate?, endDate? }` |
+
+**Operational filter (dashboard, graphs, CSV export):**
+
+- `archived == false`
+- `experimentId == <activeExperimentId>` for **graphs and metrics**. **Admin reports table** loads all study waves (`allExperiments`); unchecked = non-archived only, checked = archived included too.
+
+**Admin tooling:** Settings tab → “Experiment & archive” (`components/admin/ExperimentSettings.jsx`).
+
+**Cloud Functions (region `us-central1`, admin claim required):**
+
+| Callable | Params | Returns |
+| -------- | ------ | ------- |
+| `setActiveExperiment` | `{ experimentId }` | `{ activeExperimentId }` |
+| `addExperiment` | `{ id, label, setActive? }` | `{ experiments, activeExperimentId, addedId }` — slug id e.g. `2027-main` |
+| `backfillReportExperimentFields` | `{}` | `{ updated }` — sets missing `archived` / `experimentId` |
+| `previewBulkArchive` | `{ cutoffISO }` | `{ count, cutoffISO }` |
+| `bulkArchiveReports` | `{ cutoffISO }` | `{ updated, cutoffISO }` — archives reports with `createdDate < cutoff` |
+| `getExperimentMetrics` | `{ experimentId?, includeArchived?, agency? }` | `{ submittedCount, scrapedCount, ... }` |
+
+**External / research queries (Admin SDK example):**
+
+```javascript
+const experimentId = '2026-main';
+const submitted = await db.collection('reports')
+  .where('archived', '==', false)
+  .where('experimentId', '==', experimentId)
+  .count().get();
+
+const scraped = await db.collection('reports')
+  .where('archived', '==', false)
+  .where('experimentId', '==', experimentId)
+  .where('origin', '==', 'scrape')
+  .count().get();
+```
+
+Or invoke `getExperimentMetrics` with a signed-in admin user for the same counts.
+
+**Client helper:** `utils/reports-queries.js` — `fetchExperimentConfig`, `buildActiveReportsQuery`, `newReportExperimentFields`.
+
+Deploy composite indexes from `firestore.indexes.json` before production use.
 
 ## Tagging System
 

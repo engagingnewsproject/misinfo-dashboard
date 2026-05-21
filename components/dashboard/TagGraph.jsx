@@ -24,6 +24,11 @@ import { useAuth } from "../../context/AuthContext"
 import FirebaseHelper from "../../firebase/FirebaseHelper"
 import { collection, query, where, getDocs, Timestamp, getDoc, doc } from "firebase/firestore";
 import { db } from '../../config/firebase'
+import {
+	buildActiveReportsQuery,
+	fetchExperimentConfig,
+	getActiveExperimentId,
+} from '../../utils/reports-queries'
 import Toggle from '../common/Toggle'
 import OverviewGraph from './OverviewGraph'
 import ComparisonGraphSetup from '../analytics/ComparisonGraphSetup'
@@ -146,7 +151,8 @@ const TagGraph = () => {
 	 */
 	async function getTopicReports() {
 		setLoading(true)
-		const reportsList = collection(db, "reports")
+		const experimentConfig = await fetchExperimentConfig()
+		const activeExperimentId = getActiveExperimentId(experimentConfig)
 		
 		// Fetch topics based on user privilege
 		let tempTopics = []
@@ -182,64 +188,34 @@ const TagGraph = () => {
 
 		// Process each topic for different time periods
 		for (let index = 0; index < tempTopics.length; index++) {
-			// Query for yesterday's reports
-			let queryYesterday
-			if (privilege === "Agency") {
-				queryYesterday = query(
-					reportsList, 
-					where("topic", "==", tempTopics[index]), 
-					where("createdDate", ">=", getStartOfDay(1)),
-					where("createdDate", "<", getEndOfDay()), 
-					where("agency", "==", agencyName)
-				)
-			} else {
-				queryYesterday = query(
-					reportsList, 
-					where("topic", "==", tempTopics[index]), 
-					where("createdDate", ">=", getStartOfDay(1)),
-					where("createdDate", "<", getEndOfDay())
-				)
-			}
+			const agencyFilter =
+				privilege === 'Agency' ? agencyName : undefined
+
+			const queryYesterday = buildActiveReportsQuery({
+				topic: tempTopics[index],
+				dateFrom: getStartOfDay(1),
+				dateTo: getEndOfDay(),
+				agency: agencyFilter,
+				activeExperimentId,
+			})
 			const dataYesterday = await getDocs(queryYesterday)
-			
-			// Query for past 3 days reports
-			let queryThreeDays
-			if (privilege === "Agency") {
-				queryThreeDays = query(
-					reportsList, 
-					where("topic", "==", tempTopics[index]), 
-					where("createdDate", ">=", getStartOfDay(3)),
-					where("createdDate", "<", getEndOfDay()), 
-					where("agency", "==", agencyName)
-				)
-			} else {
-				queryThreeDays = query(
-					reportsList, 
-					where("topic", "==", tempTopics[index]), 
-					where("createdDate", ">=", getStartOfDay(3)),
-					where("createdDate", "<", getEndOfDay())
-				)
-			}
+
+			const queryThreeDays = buildActiveReportsQuery({
+				topic: tempTopics[index],
+				dateFrom: getStartOfDay(3),
+				dateTo: getEndOfDay(),
+				agency: agencyFilter,
+				activeExperimentId,
+			})
 			const dataThreeDays = await getDocs(queryThreeDays)
 
-			// Query for past 7 days reports
-			let querySevenDays
-			if (privilege === "Agency") {
-				querySevenDays = query(
-					reportsList, 
-					where("topic", "==", tempTopics[index]), 
-					where("createdDate", ">=", getStartOfDay(7)),
-					where("createdDate", "<", getEndOfDay()), 
-					where("agency", "==", agencyName)
-				)
-			} else {
-				querySevenDays = query(
-					reportsList, 
-					where("topic", "==", tempTopics[index]), 
-					where("createdDate", ">=", getStartOfDay(7)),
-					where("createdDate", "<", getEndOfDay())
-				)
-			}
+			const querySevenDays = buildActiveReportsQuery({
+				topic: tempTopics[index],
+				dateFrom: getStartOfDay(7),
+				dateTo: getEndOfDay(),
+				agency: agencyFilter,
+				activeExperimentId,
+			})
 			const dataSevenDays = await getDocs(querySevenDays)
 
 			// Add topics with reports to respective arrays

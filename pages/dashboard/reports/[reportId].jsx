@@ -151,6 +151,11 @@ const ReportDetails = () => {
 					</Link>
 				</div>
 			</div>
+			{info?.archived === true && (
+				<div className="mb-4 px-4 py-2 rounded-lg bg-amber-100 text-amber-900 text-sm">
+					This report is archived and hidden from default dashboard views.
+				</div>
+			)}
 			<div className="grid grid-cols-2 gap-24">
 				<div className="left-side">
 					<div className="mb-2">

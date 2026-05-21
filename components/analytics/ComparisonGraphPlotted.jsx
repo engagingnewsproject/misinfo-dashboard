@@ -37,6 +37,11 @@ import {
 import { Line } from 'react-chartjs-2';
 import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
 import { db } from '../../config/firebase'
+import {
+  buildActiveReportsQuery,
+  fetchExperimentConfig,
+  getActiveExperimentId,
+} from '../../utils/reports-queries'
 import ComparisonGraphMenu from './ComparisonGraphMenu'
 
 import _ from "lodash";
@@ -162,8 +167,10 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     // Stores date labels used for the x-axis on the comparison chart
     setDateLabels (array[1])
 
-    const reportsList = collection(db, "reports");
-  
+    const experimentConfig = await fetchExperimentConfig()
+    const activeExperimentId = getActiveExperimentId(experimentConfig)
+    const agencyFilter = privilege === 'Agency' ? agencyName : undefined
+
     // Stores the number of times that the topic was reported for each day within timeline
     const topicArray = []
     
@@ -172,15 +179,13 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
       const numReports = []
       for (let index = 0; index < array[0].length - 1; index++) {
 
-        // Filters report collection so it only shows reports for the current topic on the day at current index in array
-        let queryDaily;
-        if (privilege === "Agency") {
-          queryDaily = query(reportsList, where("topic", "==", selectedTopics[topic].value), where("createdDate", ">=", array[0][index]),
-          where("createdDate", "<", array[0][index + 1]), where("agency", "==", agencyName))
-        } else {
-          queryDaily = query(reportsList, where("topic", "==", selectedTopics[topic].value), where("createdDate", ">=", array[0][index]),
-          where("createdDate", "<", array[0][index + 1]))
-        }
+        const queryDaily = buildActiveReportsQuery({
+          topic: selectedTopics[topic].value,
+          dateFrom: array[0][index],
+          dateTo: array[0][index + 1],
+          agency: agencyFilter,
+          activeExperimentId,
+        })
         const dailyReports = await getDocs(queryDaily);
 
 

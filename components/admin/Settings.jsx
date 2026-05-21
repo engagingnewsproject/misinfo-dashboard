@@ -21,6 +21,7 @@
  */
 import React, { useState, useEffect } from 'react'
 import TagSystem from '../analytics/TagSystem';
+import ExperimentSettings from './ExperimentSettings';
 import { useAuth } from '../../context/AuthContext'
 import globalStyles from '../../styles/globalStyles';
 import { collection, query, where, setDoc, getDoc, getDocs, doc } from "firebase/firestore"; 
@@ -186,6 +187,7 @@ const Settings = () => {
     <div>
       {tagSystem == 0 ?
       <div className="z-0 flex-col p-16">
+        {customClaims.admin && <ExperimentSettings />}
         <div className={globalStyles.heading.h1.blue}>Tagging Systems</div>
         {customClaims.admin && 
         <div>

@@ -29,6 +29,11 @@ import {
     onSnapshot,
 } from "firebase/firestore"
 import { db } from "../config/firebase"
+import {
+    buildActiveReportsQuery,
+    fetchExperimentConfig,
+    getActiveExperimentId,
+} from "../utils/reports-queries"
 
 /**
  * useReports Hook
@@ -42,9 +47,12 @@ export function useReports() {
     const [reports, setReports] = useState([])
 
     useEffect(() => {
-        const unsubscribe = onSnapshot(
-            collection(db, "reports"),
-            (querySnapshot) => {
+        let unsubscribe = () => {}
+
+        fetchExperimentConfig().then((config) => {
+            const activeExperimentId = getActiveExperimentId(config)
+            const reportsQuery = buildActiveReportsQuery({ activeExperimentId })
+            unsubscribe = onSnapshot(reportsQuery, (querySnapshot) => {
                 const reportArray = []
                 querySnapshot.forEach((doc) => {
                     const reportData = doc.data()
@@ -52,13 +60,13 @@ export function useReports() {
                     reportArray.push({ id, data: reportData, read: reportData.read })
                 })
                 setReports(reportArray)
-            }
-        )
+            })
+        })
 
         return () => {
             unsubscribe()
         }
-    })
+    }, [])
 
     return reports
 }
