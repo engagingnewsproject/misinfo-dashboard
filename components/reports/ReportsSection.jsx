@@ -1161,21 +1161,6 @@ const ReportsSection = ({
 							refresh={refresh}
 							showCheckmark={showCheckmark}
 						/>
-						{!isAgency && (
-							<div className="agency-filter flex items-center gap-2 md:gap-4">
-								<select
-									value={agencyFilter}
-									onChange={(e) => setAgencyFilter(e.target.value)}
-									className="px-2 py-1 text-sm border rounded md:text-base">
-									<option value="all">All agencies</option>
-									{agencies.map((a) => (
-										<option key={a} value={a}>
-											{a}
-										</option>
-									))}
-								</select>
-							</div>
-						)}
 						<TableDropdownMenu
 							reportWeek={reportWeek}
 							onChange={(value) => setReportWeek(value)} // Update `reportWeek` based on selection
@@ -1183,6 +1168,9 @@ const ReportsSection = ({
 							setRowsPerPage={(value) => setRowsPerPage(value)} // Update rows per page
 							setCurrentPage={(page) => setCurrentPage(page)} // Reset page to 1 when rows per page changes
 							onTypeChange={(val) => setTypeFilter(val)}
+							agencies={!isAgency ? agencies : undefined}
+							agencyFilter={agencyFilter}
+							onAgencyChange={!isAgency ? setAgencyFilter : undefined}
 						/>
 					</div>
 					<Typography className="w-full text-center mt-4" variant="small">

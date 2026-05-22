@@ -30,11 +30,34 @@ const typeOptions = [
 	{ label: 'Scraped', value: 'scrape' },
 ]
 
-export function TableDropdownMenu({ reportWeek, onChange, rowsPerPage, setRowsPerPage, setCurrentPage, onTypeChange }) {
+export function TableDropdownMenu({
+	reportWeek,
+	onChange,
+	rowsPerPage,
+	setRowsPerPage,
+	setCurrentPage,
+	onTypeChange,
+	agencies,
+	agencyFilter,
+	onAgencyChange,
+}) {
 	const [openMenu,setOpenMenu] = React.useState(false)
 	const [openRowsMenu, setOpenRowsMenu] = React.useState(false)
 	const [openTypesMenu, setOpenTypesMenu] = React.useState(false)
+	const [openAgencyMenu, setOpenAgencyMenu] = React.useState(false)
 	const [selectedType, setSelectedType] = React.useState(typeOptions[0])
+
+	const agencyOptions = React.useMemo(
+		() => [
+			{ value: 'all', label: 'All agencies' },
+			...(agencies ?? []).map((a) => ({ value: a, label: a })),
+		],
+		[agencies],
+	)
+
+	const selectedAgencyLabel =
+		agencyOptions.find((option) => option.value === agencyFilter)?.label ||
+		'All agencies'
 
 	const handleWeekSelect = (value) => {
 		onChange(value)
@@ -52,8 +75,41 @@ export function TableDropdownMenu({ reportWeek, onChange, rowsPerPage, setRowsPe
 		setOpenTypesMenu(false)
 		if (onTypeChange) onTypeChange(option.value)
 	}
+
+	const handleAgencySelect = (value) => {
+		if (onAgencyChange) onAgencyChange(value)
+		setOpenAgencyMenu(false)
+	}
+
 	return (
 		<div className='flex flex-row'>
+			{onAgencyChange && (
+				<Menu open={openAgencyMenu} handler={setOpenAgencyMenu} allowHover>
+					<MenuHandler>
+						<Button
+							variant="text"
+							size="sm"
+							color="gray"
+							className="flex items-center gap-1 text-sm capitalize border-b-2 border-l-2 border-r-2">
+							{selectedAgencyLabel}
+							<IoChevronDownOutline
+								strokeWidth={2.5}
+								className={`h-3.5 w-3.5 transition-transform ${openAgencyMenu ? 'rotate-180' : ''}`}
+							/>
+						</Button>
+					</MenuHandler>
+					<MenuList>
+						{agencyOptions.map((option) => (
+							<MenuItem
+								key={option.value}
+								onClick={() => handleAgencySelect(option.value)}>
+								{option.label}
+							</MenuItem>
+						))}
+					</MenuList>
+				</Menu>
+			)}
+
 			<Menu open={openTypesMenu} handler={setOpenTypesMenu} allowHover>
 				<MenuHandler>
 					<Button
