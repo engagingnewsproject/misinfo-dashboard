@@ -363,7 +363,7 @@ const ExperimentSettings = () => {
 						className="text-blue-600 underline"
 						target="_blank"
 						rel="noopener noreferrer">
-						docs/user/archiving.md
+						Archiving (wiki)
 					</a>{' '}
 					(user guide) or <code>technicalDocumentation.md</code> (developers).
 				</p>
