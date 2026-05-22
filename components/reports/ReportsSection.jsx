@@ -119,6 +119,28 @@ function getReportCreatedDate(report) {
 	return null
 }
 
+/**
+ * Normalizes a report field for table sorting. Dates use epoch ms; strings stay strings.
+ *
+ * @param {object} report
+ * @param {string} field - Column accessor from `columns`
+ * @returns {number|string|null}
+ */
+function getReportSortComparable(report, field) {
+	if (field === 'createdDate') {
+		const date = getReportCreatedDate(report)
+		return date ? date.getTime() : null
+	}
+	const value = report?.[field]
+	if (value == null) return null
+	if (typeof value === 'boolean') return value ? 1 : 0
+	if (typeof value === 'number') return value
+	if (value instanceof Date) return value.getTime()
+	if (typeof value.toDate === 'function') return value.toDate().getTime()
+	if (typeof value.seconds === 'number') return value.seconds * 1000
+	return String(value)
+}
+
 function toSearchableString(value) {
 	if (value == null) return ''
 	if (Array.isArray(value)) {
@@ -266,15 +288,20 @@ const ReportsSection = ({
 	const displayedReports = useMemo(() => {
 		const { field, order } = tableSort
 		if (!field) return reportsMatchingSearch
+		const direction = order === 'asc' ? 1 : -1
 		return [...reportsMatchingSearch].sort((a, b) => {
-			const aValue = a[field]
-			const bValue = b[field]
+			const aValue = getReportSortComparable(a, field)
+			const bValue = getReportSortComparable(b, field)
+			if (aValue == null && bValue == null) return 0
 			if (aValue == null) return 1
 			if (bValue == null) return -1
+			if (typeof aValue === 'number' && typeof bValue === 'number') {
+				return (aValue - bValue) * direction
+			}
 			return (
-				aValue.toString().localeCompare(bValue.toString(), 'en', {
+				String(aValue).localeCompare(String(bValue), 'en', {
 					numeric: true,
-				}) * (order === 'asc' ? 1 : -1)
+				}) * direction
 			)
 		})
 	}, [reportsMatchingSearch, tableSort])
