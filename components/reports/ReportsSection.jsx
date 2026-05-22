@@ -110,6 +110,46 @@ function isSubmitterEmailSearch(value) {
 	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)
 }
 
+/** Firestore Timestamp or legacy `{ seconds }` shape. */
+function getReportCreatedDate(report) {
+	const cd = report?.createdDate
+	if (!cd) return null
+	if (typeof cd.toDate === 'function') return cd.toDate()
+	if (typeof cd.seconds === 'number') return new Date(cd.seconds * 1000)
+	return null
+}
+
+function toSearchableString(value) {
+	if (value == null) return ''
+	if (Array.isArray(value)) {
+		return value.map(toSearchableString).filter(Boolean).join(' ')
+	}
+	if (typeof value === 'object') return ''
+	return String(value)
+}
+
+/** Lowercase blob of fields matched by the reports table search box. */
+function getReportSearchText(report) {
+	return [
+		report.title,
+		report.detail,
+		report.city,
+		report.state,
+		report.label,
+		report.topic,
+		report.email,
+		report.hearFrom,
+		report.source,
+		report.agency,
+		report.note,
+		report.reportID,
+	]
+		.map(toSearchableString)
+		.filter(Boolean)
+		.join(' ')
+		.toLowerCase()
+}
+
 /**
  * ReportsSection Component
  * 
@@ -166,6 +206,7 @@ const ReportsSection = ({
 	const [currentPage, setCurrentPage] = useState(1) // Current page number
 	const [filteredReports, setFilteredReports] = useState([]) // Reports after filtering
 	const [loadedReports, setLoadedReports] = useState([]) // Reports for current page
+	const [tableSort, setTableSort] = useState({ field: null, order: 'asc' })
 
 	const VISIBLE_PAGES = 5 // Number of page buttons to display
 
@@ -215,26 +256,30 @@ const ReportsSection = ({
 		if (!term) {
 			return filteredReports
 		}
-		const lowered = term.toLowerCase()
+		const tokens = term.toLowerCase().split(/\s+/).filter(Boolean)
 		return filteredReports.filter((report) => {
-			const searchableText = [
-				report.title,
-				report.detail,
-				report.city,
-				report.state,
-				report.label,
-				report.topic,
-				report.email,
-				report.hearFrom,
-			]
-				.filter(Boolean)
-				.join(' ')
-				.toLowerCase()
-			return searchableText.includes(lowered)
+			const searchableText = getReportSearchText(report)
+			return tokens.every((token) => searchableText.includes(token))
 		})
 	}, [filteredReports, search, emailSearchStatus])
 
-	const totalPages = Math.ceil(reportsMatchingSearch.length / rowsPerPage) || 1
+	const displayedReports = useMemo(() => {
+		const { field, order } = tableSort
+		if (!field) return reportsMatchingSearch
+		return [...reportsMatchingSearch].sort((a, b) => {
+			const aValue = a[field]
+			const bValue = b[field]
+			if (aValue == null) return 1
+			if (bValue == null) return -1
+			return (
+				aValue.toString().localeCompare(bValue.toString(), 'en', {
+					numeric: true,
+				}) * (order === 'asc' ? 1 : -1)
+			)
+		})
+	}, [reportsMatchingSearch, tableSort])
+
+	const totalPages = Math.ceil(displayedReports.length / rowsPerPage) || 1
 
 	/**
 	 * Fetches reports data from Firestore based on user role and permissions
@@ -288,8 +333,7 @@ const ReportsSection = ({
 		// Update state with fetched data
 		setReports(reportArr)
 		setIsDataFetched(true)
-		setLoadedReports(reportArr.slice(0, endIndex))
-		setEndIndex(endIndex)
+		setFilteredReports(applyCombinedFilters(reportArr))
 		
 		// Initialize read states for all reports
 		setReportsReadState(
@@ -322,8 +366,8 @@ const ReportsSection = ({
 				if (start) start.setHours(0, 0, 0, 0)
 				if (end) end.setHours(23, 59, 59, 999)
 				filteredArr = filteredArr.filter((report) => {
-					if (!report.createdDate) return false
-					const reportDate = report.createdDate.toDate()
+					const reportDate = getReportCreatedDate(report)
+					if (!reportDate) return false
 					if (start && reportDate < start) return false
 					if (end && reportDate > end) return false
 					return true
@@ -333,8 +377,8 @@ const ReportsSection = ({
 			const filterDate = new Date()
 			filterDate.setDate(filterDate.getDate() - week * 7)
 			filteredArr = filteredArr.filter((report) => {
-				if (!report.createdDate) return false
-				const reportDate = report.createdDate.toDate()
+				const reportDate = getReportCreatedDate(report)
+				if (!reportDate) return false
 				return reportDate >= filterDate
 			})
 		}
@@ -402,7 +446,8 @@ const ReportsSection = ({
 			filterDate.setDate(filterDate.getDate() - selectedWeek * 7)
 
 			filteredArr = reports.filter((report) => {
-				const reportDate = report.createdDate.toDate()
+				const reportDate = getReportCreatedDate(report)
+				if (!reportDate) return false
 				return reportDate >= filterDate
 			})
 		}
@@ -659,23 +704,8 @@ const ReportsSection = ({
 	 * @param {string} sortOrder - Sort order ('asc' or 'desc')
 	 */
 	const handleSorting = (sortField, sortOrder) => {
-		const sortedReports = [...filteredReports].sort((a, b) => {
-			const aValue = a[sortField]
-			const bValue = b[sortField]
-
-			// Handle null/undefined values
-			if (aValue === null || aValue === undefined) return 1
-			if (bValue === null || bValue === undefined) return -1
-			if (aValue === null && bValue === null) return 0
-
-			return (
-				aValue.toString().localeCompare(bValue.toString(), 'en', {
-					numeric: true,
-				}) * (sortOrder === 'asc' ? 1 : -1)
-			)
-		})
-
-		setLoadedReports(sortedReports)
+		setTableSort({ field: sortField, order: sortOrder })
+		setCurrentPage(1)
 	}
 
 	/**
@@ -1085,12 +1115,12 @@ const ReportsSection = ({
 
 	// Pagination: slice the list that already includes text or email-submitter search
 	useEffect(() => {
-		const paginatedReports = reportsMatchingSearch.slice(
+		const paginatedReports = displayedReports.slice(
 			(currentPage - 1) * rowsPerPage,
 			currentPage * rowsPerPage,
 		)
 		setLoadedReports(paginatedReports)
-	}, [reportsMatchingSearch, currentPage, rowsPerPage])
+	}, [displayedReports, currentPage, rowsPerPage])
 
 	/**
 	 * Navigates to the previous page in pagination
