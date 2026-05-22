@@ -2,7 +2,15 @@ import React from 'react'
 import { Tabs, TabsHeader, Tab, Tooltip, IconButton, Spinner } from '@material-tailwind/react'
 import { IoMdRefresh } from 'react-icons/io'
 
-const TableFilterControls = ({ readFilter, onReadFilterChange, onRefresh, refresh, showCheckmark }) => {
+const TableFilterControls = ({
+	readFilter,
+	onReadFilterChange,
+	onRefresh,
+	refresh,
+	showCheckmark,
+	includeArchived,
+	onIncludeArchivedChange,
+}) => {
   return (
     <div className="flex items-center gap-4">
       <Tabs value={readFilter} className="w-full md:w-max">
@@ -21,6 +29,16 @@ const TableFilterControls = ({ readFilter, onReadFilterChange, onRefresh, refres
           {!refresh && showCheckmark && <IoMdRefresh size={20} color="green" />}
         </IconButton>
       </Tooltip>
+      {onIncludeArchivedChange && (
+        <label className="flex items-center gap-1 text-xs whitespace-nowrap">
+          <input
+            type="checkbox"
+            checked={includeArchived}
+            onChange={(e) => onIncludeArchivedChange(e.target.checked)}
+          />
+          Show archived
+        </label>
+      )}
     </div>
   )
 }

@@ -1123,26 +1123,6 @@ const ReportsSection = ({
 							)}
 						</Typography>
 						<div className="flex flex-row justify-end gap-1 items-center">
-							{customClaims.admin && (
-								<label className="flex items-center gap-1 text-xs mr-2 whitespace-nowrap">
-									<input
-										type="checkbox"
-										checked={includeArchived}
-										onChange={(e) => setIncludeArchived(e.target.checked)}
-									/>
-									Show archived
-								</label>
-							)}
-							<Tooltip content="New Report" placement="bottom-start">
-								<Button
-									ripple={true}
-									size="sm"
-									onClick={(e) => handleNewReportClick(e)}
-									className="flex items-center gap-2">
-									<IoAdd />
-									New Report
-								</Button>
-							</Tooltip>
 							<div className="w-full md:w-72 min-w-[200px]">
 								<Input
 									label="Search"
@@ -1160,18 +1140,34 @@ const ReportsSection = ({
 							onRefresh={handleRefresh}
 							refresh={refresh}
 							showCheckmark={showCheckmark}
+							includeArchived={includeArchived}
+							onIncludeArchivedChange={
+								customClaims.admin ? setIncludeArchived : undefined
+							}
 						/>
-						<TableDropdownMenu
-							reportWeek={reportWeek}
-							onChange={(value) => setReportWeek(value)} // Update `reportWeek` based on selection
-							rowsPerPage={rowsPerPage}
-							setRowsPerPage={(value) => setRowsPerPage(value)} // Update rows per page
-							setCurrentPage={(page) => setCurrentPage(page)} // Reset page to 1 when rows per page changes
-							onTypeChange={(val) => setTypeFilter(val)}
-							agencies={!isAgency ? agencies : undefined}
-							agencyFilter={agencyFilter}
-							onAgencyChange={!isAgency ? setAgencyFilter : undefined}
-						/>
+						<div className="flex flex-row items-center gap-1">
+							<TableDropdownMenu
+								reportWeek={reportWeek}
+								onChange={(value) => setReportWeek(value)} // Update `reportWeek` based on selection
+								rowsPerPage={rowsPerPage}
+								setRowsPerPage={(value) => setRowsPerPage(value)} // Update rows per page
+								setCurrentPage={(page) => setCurrentPage(page)} // Reset page to 1 when rows per page changes
+								onTypeChange={(val) => setTypeFilter(val)}
+								agencies={!isAgency ? agencies : undefined}
+								agencyFilter={agencyFilter}
+								onAgencyChange={!isAgency ? setAgencyFilter : undefined}
+							/>
+							<Tooltip content="New Report" placement="bottom-start">
+								<Button
+									ripple={true}
+									size="sm"
+									onClick={(e) => handleNewReportClick(e)}
+									className="flex items-center gap-2">
+									<IoAdd />
+									New Report
+								</Button>
+							</Tooltip>
+						</div>
 					</div>
 					<Typography className="w-full text-center mt-4" variant="small">
 						{loadedReports.length}{' '}
