@@ -12,6 +12,8 @@ This project project bootstrapped with [`create-next-app`](https://github.com/ve
 
 **See [Technical Documentation](https://github.com/engagingnewsproject/misinfo-dashboard/blob/main/technicalDocumentation.md)** for Project Structure, Firebase, Components and Git Usage docs.
 
+**Admins:** [Archiving and study waves](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/Archiving) — how to run bulk archive, set the active experiment, and use **Show archived** on the reports list.
+
 ## Getting Started
 
 ### 1. Clone repo

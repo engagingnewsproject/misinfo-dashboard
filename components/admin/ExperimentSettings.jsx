@@ -358,7 +358,14 @@ const ExperimentSettings = () => {
 					<code>archived == false</code> and{' '}
 					<code>experimentId == &quot;{selectedExperimentId}&quot;</code>, or
 					call the <code>getExperimentMetrics</code> Cloud Function. See{' '}
-					<code>technicalDocumentation.md</code>.
+					<a
+						href="https://github.com/engagingnewsproject/misinfo-dashboard/wiki/Archiving"
+						className="text-blue-600 underline"
+						target="_blank"
+						rel="noopener noreferrer">
+						docs/user/archiving.md
+					</a>{' '}
+					(user guide) or <code>technicalDocumentation.md</code> (developers).
 				</p>
 			</div>
 		</div>

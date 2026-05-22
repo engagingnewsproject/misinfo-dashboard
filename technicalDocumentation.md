@@ -289,6 +289,8 @@ Config document: `settings/experiment`
 
 **Admin tooling:** Settings tab → “Experiment & archive” (`components/admin/ExperimentSettings.jsx`).
 
+**Admin user guide:** [Archiving](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/Archiving) — step-by-step archiving and study-wave workflow (non-technical).
+
 **Cloud Functions (region `us-central1`, admin claim required):**
 
 | Callable | Params | Returns |
