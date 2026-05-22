@@ -1234,7 +1234,7 @@ const ReportsSection = ({
 								customClaims.admin ? setIncludeArchived : undefined
 							}
 						/>
-						<div className="flex flex-row items-center gap-1">
+						<div className="flex flex-row items-center gap-2">
 							<TableDropdownMenu
 								reportWeek={reportWeek}
 								onChange={(value) => setReportWeek(value)} // Update `reportWeek` based on selection
