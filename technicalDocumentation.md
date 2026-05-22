@@ -116,19 +116,20 @@ The key promise: **if your PR's `build` check is green, App Hosting will be gree
 
 #### Pinned toolchain
 
-App Hosting builds with **Node 20.20.0** and **npm 11**. The repo pins this for local dev so nobody can accidentally build with a different toolchain and produce a lock file that App Hosting can't install:
+App Hosting builds with **Node 20.20.0** and **npm 11.15.0**. The repo pins this for local dev so nobody can accidentally build with a different toolchain and produce a lock file that App Hosting can't install:
 
 | File | Purpose |
 | --- | --- |
 | `.nvmrc` | Pins Node to `20.20.0`. Run `nvm use` in the project root to switch. |
 | `.npmrc` | Sets `engine-strict=true` so `npm install` refuses to run on the wrong Node or npm version. |
-| `package.json` → `engines` | Declares `"node": "20.20.0"` and `"npm": ">=11.0.0"`. |
+| `package.json` → `engines` | Declares `"node": "20.20.0"` and `"npm": "11.15.0"`. |
+| `scripts/lockfile-ci.sh` | Regenerate or verify `package-lock.json` on Linux via Docker (`npm run lockfile:*`). |
 
 If your local `npm install` is refused, upgrade:
 
 ```bash
 nvm install 20.20.0 && nvm use 20.20.0
-npm install -g npm@11
+npm install -g npm@11.15.0
 ```
 
 #### CI workflow
@@ -137,7 +138,7 @@ Defined in `.github/workflows/build.yml`. Runs on every pull request and every p
 
 ```bash
 # inside a node:20.20.0 container
-npm install -g npm@11   # match App Hosting's npm major
+npm install -g npm@11.15.0
 npm ci                  # fails fast if package-lock.json is out of sync
 npm run build           # full Next build (with --webpack and Sentry plugin)
 ```
@@ -154,25 +155,29 @@ Dummy `NEXT_PUBLIC_*` env values are set in the workflow so the build completes 
 
 #### Regenerating `package-lock.json` after dependency changes
 
-If you change a dependency (add/update/remove in `package.json`), regenerate the lock file under the same Node/npm versions App Hosting uses, otherwise `npm ci` will fail in CI (and on App Hosting) with `EUSAGE` "lock file out of sync" or "Missing: … from lock file" errors.
+If you change a dependency (add/update/remove in `package.json`), regenerate the lock file on **Linux** with the pinned Node/npm versions. Otherwise `npm ci` fails in CI and App Hosting with `EUSAGE` ("lock file out of sync") or "Missing: … from lock file".
 
-**Option A — locally (if your local Node/npm match the pins):**
+**Why macOS-only regen fails:** npm can write a lockfile on Darwin that omits nested dependency entries (for example `ajv@6` under `@eslint/eslintrc`) that Linux `npm ci` still requires. Local `npm install` may report "up to date" while GitHub Actions rejects the commit.
 
-```bash
-nvm use                                 # picks up .nvmrc -> 20.20.0
-npm install -g npm@11                   # one-time
-rm -rf node_modules package-lock.json
-npm install
-```
-
-**Option B — via Docker (always faithful to the build env):**
+**Required on macOS (and recommended everywhere):**
 
 ```bash
-docker run --rm -v "$(pwd):/workspace" -w /workspace node:20.20.0 \
-  bash -c "npm install -g npm@11 && rm -rf node_modules package-lock.json && npm install"
+npm run lockfile:regen      # npm install inside node:20.20.0 on Linux
+npm run lockfile:ci         # npm ci in Linux — run before committing the lockfile
 ```
 
-Then commit and push `package-lock.json`. The PR's `build` check will catch any remaining mismatch before merge.
+Full regen (deletes existing lockfile first):
+
+```bash
+npm run lockfile:regen:fresh
+npm run lockfile:ci
+```
+
+Scripts live in `scripts/lockfile-ci.sh` (Docker required). Do not hand-edit `package-lock.json`; resolve merge conflicts by re-running `lockfile:regen` after fixing `package.json`.
+
+**Linux-native developers** may use the same npm versions without Docker if `node -v` / `npm -v` match the pins and `npm ci` succeeds—but `npm run lockfile:ci` remains the parity check before push.
+
+Then commit and push `package-lock.json`. The PR's `build` check must pass before merge.
 
 #### macOS native modules (Rollup / Apple Silicon)
 
@@ -186,6 +191,7 @@ Then commit and push `package-lock.json`. The PR's `build` check will catch any 
 | Node version pin | `.nvmrc` |
 | npm strictness | `.npmrc` |
 | Engines declaration | `package.json` → `engines` |
+| Lockfile verify/regen (Linux via Docker) | `scripts/lockfile-ci.sh`, `npm run lockfile:ci` |
 | App Hosting config (secrets, env, region) | `apphosting.yaml` |
 | App Hosting backend list (CLI) | `firebase apphosting:backends:list --project misinfo-5d004` |
 | Manual rollout (no commit) | `firebase apphosting:rollouts:create truthsleuthlocal --project misinfo-5d004` |

@@ -10,7 +10,10 @@
 		"seed:emulator": "node scripts/seed-emulator-from-prod.js",
 		"build": "next build --webpack",
 		"start": "next start",
-		"lint": "next lint"
+		"lint": "next lint",
+		"lockfile:ci": "./scripts/lockfile-ci.sh ci",
+		"lockfile:regen": "./scripts/lockfile-ci.sh regen",
+		"lockfile:regen:fresh": "./scripts/lockfile-ci.sh regen:fresh"
 	},
 	"dependencies": {
 		"@google-cloud/storage": "^7.10.1",
@@ -66,6 +69,6 @@
 	},
 	"engines": {
 		"node": "20.20.0",
-		"npm": ">=11.0.0"
+		"npm": "11.15.0"
 	}
 }

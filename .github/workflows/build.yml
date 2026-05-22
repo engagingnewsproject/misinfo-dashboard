@@ -40,6 +40,7 @@ jobs:
       - name: Print toolchain
         run: node -v && npm -v
 
+      # Lockfile must be regenerated on Linux — see npm run lockfile:regen / lockfile:ci
       - name: Install dependencies (strict, matches App Hosting)
         run: npm ci
 
