@@ -10,7 +10,7 @@
 
 This project project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) of the [Next.js](https://nextjs.org/) framework. To learn more about Next.js features and API, take a look at [Next.js Documentation](https://nextjs.org/docs).
 
-**See [Technical Documentation](https://github.com/engagingnewsproject/misinfo-dashboard/blob/main/technicalDocumentation.md)** for Project Structure, Firebase, Components and Git Usage docs.
+**See [Technical Documentation](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/technicalDocumentation)** for Project Structure, Firebase, Components and Git Usage docs.
 
 **Admins:** [Archiving and study waves](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/Archiving) — how to run bulk archive, set the active experiment, and use **Show archived** on the reports list.
 
@@ -227,7 +227,7 @@ firebase apphosting:rollouts:create truthsleuthlocal --project misinfo-5d004
 - **`apphosting.yaml`** — build/runtime env vars, secrets references, and backend wiring for App Hosting.
 - **Secrets** — create values in Google Cloud Secret Manager, then grant the App Hosting backend access (see comments in `apphosting.yaml`). `NEXT_PUBLIC_APP_URL` in that file should match the live App Hosting URL (or your custom domain) so auth email links resolve correctly.
 
-For a deeper walkthrough (lockfile regeneration, CI details, branch protection), see **[Technical Documentation – Deployment pipeline](https://github.com/engagingnewsproject/misinfo-dashboard/blob/main/technicalDocumentation.md#deployment-pipeline)**.
+For a deeper walkthrough (lockfile regeneration, CI details, branch protection), see **[Technical Documentation – Deployment pipeline](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/technicalDocumentation#deployment-pipeline)**.
 
 ### Not used for this app’s frontend deploy
 
