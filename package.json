@@ -49,12 +49,15 @@
 	},
 	"devDependencies": {
 		"@tailwindcss/forms": "^0.5.7",
+		"@types/react": "^19.2.15",
+		"@types/react-dom": "^19.2.3",
 		"autoprefixer": "^10.4.19",
 		"eslint": "^8.56.0",
 		"eslint-config-next": "^14.2.3",
 		"postcss": "^8.4.38",
 		"prettier": "^3.3.3",
 		"tailwindcss": "^3.4.3",
+		"typescript": "^6.0.3",
 		"webpack": "^5.106.2"
 	},
 	"optionalDependencies": {
