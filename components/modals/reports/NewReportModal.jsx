@@ -687,7 +687,7 @@ const NewReportModal = ({
 	 *
 	 * @param {Event} e - The submit event triggered when the user submits the form.
 	 */
-	const handleSubmitClick = (e) => {
+	const handleSubmitClick = async (e) => {
 		e.preventDefault()
 		if (!title) {
 			alert(t('titleRequired'))
@@ -697,8 +697,13 @@ const NewReportModal = ({
 			if (images.length > 0) {
 				setUpdate(!update)
 			}
-			saveReport(imageURLs)
-			setNewReportModal(false)
+			try {
+				await saveReport(imageURLs)
+				setNewReportModal(false)
+			} catch (err) {
+				console.error('Failed to save report:', err)
+				alert('Failed to save report. Please try again.')
+			}
 		}
 	}
 
@@ -750,7 +755,7 @@ const NewReportModal = ({
 		console.log(allErrors.length + 'Error array length')
 
 		if (Object.keys(allErrors).length == 0) {
-			handleSubmitClick(e)
+			await handleSubmitClick(e)
 		}
 	}
 
