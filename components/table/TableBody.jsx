@@ -29,6 +29,7 @@ const TableBody = ({
         loadedReports.map((report) => {
           const details = trimToWordCount(report.detail || '',25)
           const title = report.title
+          const isArchived = report.archived === true
           const formattedDate = new Date(report['createdDate'].seconds * 1000).toLocaleString(
             'en-US',
             {
@@ -83,7 +84,14 @@ const TableBody = ({
                   // Apply the tooltip specifically to the detail column
                   tData = (
                     <Tooltip content={<MemoizedTooltipContent details={details} />} placement="bottom-end">
-                      <Typography>{title}</Typography>
+                      <Typography className="flex items-center gap-2">
+                        {title}
+                        {isArchived && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-gray-200 text-gray-700">
+                            Archived
+                          </span>
+                        )}
+                      </Typography>
                     </Tooltip>
                   )
                 } else {

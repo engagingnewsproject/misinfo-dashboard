@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Upgrade npm to 11 (match Firebase App Hosting)
-        run: npm install -g npm@11
+        run: npm install -g npm@11.15.0
 
       - name: Print toolchain
         run: node -v && npm -v

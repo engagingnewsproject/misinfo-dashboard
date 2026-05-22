@@ -1,10 +1,41 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Allow only authenticated users to read and write
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    function archiveFieldsChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(['archived', 'archivedAt', 'archivedBy']);
+    }
+
+    match /settings/experiment {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /reports/{reportId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && request.resource.data.archived == false
+        && request.resource.data.experimentId is string
+        && request.resource.data.experimentId.size() > 0;
+
+      allow update: if isSignedIn()
+        && (!archiveFieldsChanged() || isAdmin());
+
+      allow delete: if isSignedIn();
+    }
+
     match /{document=**} {
-    	allow read, write: if request.auth != null;
+      allow read, write: if isSignedIn();
     }
   }
 }

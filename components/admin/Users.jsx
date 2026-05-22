@@ -64,6 +64,11 @@ import { FaPlus } from 'react-icons/fa'
 import globalStyles from '../../styles/globalStyles'
 import { useUsersPagination } from '../../hooks/useUsersPagination'
 import { searchUsers } from '../../utils/firebase-helpers'
+import {
+	buildActiveReportsQuery,
+	fetchExperimentConfig,
+	getActiveExperimentId,
+} from '../../utils/reports-queries'
 import LoadingSpinner from '../ui/LoadingSpinner'
 
 const dateOptions = {
@@ -472,10 +477,12 @@ const Users = () => {
 	 * @returns {Promise<string[]>} A promise that resolves to an array of user IDs associated with the specified agency.
 	 */
 	const getAgencyUserIds = async (agencyName) => {
-		const reportQuery = query(
-			collection(db, 'reports'),
-			where('agency', '==', agencyName),
-		)
+		const experimentConfig = await fetchExperimentConfig()
+		const activeExperimentId = getActiveExperimentId(experimentConfig)
+		const reportQuery = buildActiveReportsQuery({
+			agency: agencyName,
+			activeExperimentId,
+		})
 		const reportSnapshot = await getDocs(reportQuery)
 		const userIds = reportSnapshot.docs.map((doc) => doc.data().userID)
 		// console.log("User IDs from reports:", userIds); // Verify the IDs being captured

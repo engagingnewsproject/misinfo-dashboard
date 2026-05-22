@@ -29,6 +29,11 @@ import {
 	where
 } from "firebase/firestore"
 import { db } from "../../config/firebase"
+import {
+  buildActiveReportsQuery,
+  fetchExperimentConfig,
+  getActiveExperimentId,
+} from "../../utils/reports-queries"
 import { useTranslation } from "next-i18next"
 
 /**
@@ -67,9 +72,12 @@ const ReportList = ({reportView, setReportView}) => {
    * @returns {Promise<void>}
    */
   const getData = async () => {
-    const reportsRef = collection(db, "reports")
-    // Get only reports belonging to the user's accountId
-    const q = query(reportsRef, where('userID', "==", user.accountId));
+    const experimentConfig = await fetchExperimentConfig()
+    const activeExperimentId = getActiveExperimentId(experimentConfig)
+    const q = buildActiveReportsQuery({
+      activeExperimentId,
+      userID: user.accountId,
+    })
     const snapshot = await getDocs(q)
     try {
       var arr = []

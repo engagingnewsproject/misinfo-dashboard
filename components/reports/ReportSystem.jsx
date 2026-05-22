@@ -39,6 +39,11 @@ import {
 } from "firebase/storage"
 import { useAuth } from "../../context/AuthContext"
 import { db } from "../../config/firebase"
+import {
+	fetchExperimentConfig,
+	getActiveExperimentId,
+	newReportExperimentFields,
+} from "../../utils/reports-queries"
 import { State, City } from "country-state-city"
 import Link from "next/link"
 import moment from "moment"
@@ -521,6 +526,8 @@ const ReportSystem = ({
 	 */
 	const saveReport = async () => {
 		try {
+			const experimentConfig = await fetchExperimentConfig()
+			const experimentId = getActiveExperimentId(experimentConfig)
 			const reportData = {
 				userID: user.accountId,
 				email: user.email,
@@ -537,7 +544,8 @@ const ReportSystem = ({
 				images: imageURLs,
 				createdDate: moment().toDate(),
 				read: false,
-				label: "To Investigate"
+				label: "To Investigate",
+				...newReportExperimentFields(experimentId),
 			}
 
 			const docRef = await addDoc(collection(db, "reports"), reportData)

@@ -463,6 +463,16 @@ exports.getUserRecord = functions.https.onCall(async (data, context) => {
   }
 });
 
+const experimentFunctions = require("./experiment");
+
+exports.setActiveExperiment = experimentFunctions.setActiveExperiment;
+exports.addExperiment = experimentFunctions.addExperiment;
+exports.backfillReportExperimentFields =
+  experimentFunctions.backfillReportExperimentFields;
+exports.previewBulkArchive = experimentFunctions.previewBulkArchive;
+exports.bulkArchiveReports = experimentFunctions.bulkArchiveReports;
+exports.getExperimentMetrics = experimentFunctions.getExperimentMetrics;
+
 exports.authGetUserList = functions.https.onCall(async (data, context) => {
   // Ensure that the user is authenticated
   if (!context.auth) {

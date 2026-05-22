@@ -37,6 +37,14 @@ import {
 	where,
 } from 'firebase/firestore'
 import { db } from '../../config/firebase'
+import {
+	buildActiveReportsQuery,
+	fetchAdminReportsList,
+	fetchExperimentConfig,
+	fetchReportsFromQuery,
+	getActiveExperimentId,
+	newReportExperimentFields,
+} from '../../utils/reports-queries'
 // Icons
 import {
 	Button,
@@ -102,6 +110,68 @@ function isSubmitterEmailSearch(value) {
 	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)
 }
 
+/** Firestore Timestamp or legacy `{ seconds }` shape. */
+function getReportCreatedDate(report) {
+	const cd = report?.createdDate
+	if (!cd) return null
+	if (typeof cd.toDate === 'function') return cd.toDate()
+	if (typeof cd.seconds === 'number') return new Date(cd.seconds * 1000)
+	return null
+}
+
+/**
+ * Normalizes a report field for table sorting. Dates use epoch ms; strings stay strings.
+ *
+ * @param {object} report
+ * @param {string} field - Column accessor from `columns`
+ * @returns {number|string|null}
+ */
+function getReportSortComparable(report, field) {
+	if (field === 'createdDate') {
+		const date = getReportCreatedDate(report)
+		return date ? date.getTime() : null
+	}
+	const value = report?.[field]
+	if (value == null) return null
+	if (typeof value === 'boolean') return value ? 1 : 0
+	if (typeof value === 'number') return value
+	if (value instanceof Date) return value.getTime()
+	if (typeof value.toDate === 'function') return value.toDate().getTime()
+	if (typeof value.seconds === 'number') return value.seconds * 1000
+	return String(value)
+}
+
+function toSearchableString(value) {
+	if (value == null) return ''
+	if (Array.isArray(value)) {
+		return value.map(toSearchableString).filter(Boolean).join(' ')
+	}
+	if (typeof value === 'object') return ''
+	return String(value)
+}
+
+/** Lowercase blob of fields matched by the reports table search box. */
+function getReportSearchText(report) {
+	return [
+		report.title,
+		report.detail,
+		report.city,
+		report.state,
+		report.label,
+		report.topic,
+		report.email,
+		report.hearFrom,
+		report.source,
+		report.agency,
+		report.note,
+		report.reportID,
+	]
+		.map(toSearchableString)
+		.filter(Boolean)
+		.join(' ')
+		.toLowerCase()
+}
+
 /**
  * ReportsSection Component
  * 
@@ -136,6 +206,8 @@ const ReportsSection = ({
 	
 	// Filtering state
 	const [reportWeek, setReportWeek] = useState('4') // Week filter (4 weeks by default)
+	const [customDateStart, setCustomDateStart] = useState('')
+	const [customDateEnd, setCustomDateEnd] = useState('')
 	const [readFilter, setReadFilter] = useState('all') // Read status filter
 	const [reportTitle, setReportTitle] = useState('') // Report title filter
 	const [agencyName, setAgencyName] = useState('') // Agency name for display
@@ -156,6 +228,7 @@ const ReportsSection = ({
 	const [currentPage, setCurrentPage] = useState(1) // Current page number
 	const [filteredReports, setFilteredReports] = useState([]) // Reports after filtering
 	const [loadedReports, setLoadedReports] = useState([]) // Reports for current page
+	const [tableSort, setTableSort] = useState({ field: null, order: 'asc' })
 
 	const VISIBLE_PAGES = 5 // Number of page buttons to display
 
@@ -185,6 +258,8 @@ const ReportsSection = ({
 	const [refresh, setRefresh] = useState(false) // Refresh loading state
 	const [showCheckmark, setShowCheckmark] = useState(false) // Success indicator
 	const [open, setOpen] = useState(true) // Section open/close state
+	const [includeArchived, setIncludeArchived] = useState(false)
+	const [activeExperimentId, setActiveExperimentId] = useState('2026-main')
 
 	/** Reports after text search or full-email submitter filter; pagination slices from this. */
 	const reportsMatchingSearch = useMemo(() => {
@@ -203,26 +278,35 @@ const ReportsSection = ({
 		if (!term) {
 			return filteredReports
 		}
-		const lowered = term.toLowerCase()
+		const tokens = term.toLowerCase().split(/\s+/).filter(Boolean)
 		return filteredReports.filter((report) => {
-			const searchableText = [
-				report.title,
-				report.detail,
-				report.city,
-				report.state,
-				report.label,
-				report.topic,
-				report.email,
-				report.hearFrom,
-			]
-				.filter(Boolean)
-				.join(' ')
-				.toLowerCase()
-			return searchableText.includes(lowered)
+			const searchableText = getReportSearchText(report)
+			return tokens.every((token) => searchableText.includes(token))
 		})
 	}, [filteredReports, search, emailSearchStatus])
 
-	const totalPages = Math.ceil(reportsMatchingSearch.length / rowsPerPage) || 1
+	const displayedReports = useMemo(() => {
+		const { field, order } = tableSort
+		if (!field) return reportsMatchingSearch
+		const direction = order === 'asc' ? 1 : -1
+		return [...reportsMatchingSearch].sort((a, b) => {
+			const aValue = getReportSortComparable(a, field)
+			const bValue = getReportSortComparable(b, field)
+			if (aValue == null && bValue == null) return 0
+			if (aValue == null) return 1
+			if (bValue == null) return -1
+			if (typeof aValue === 'number' && typeof bValue === 'number') {
+				return (aValue - bValue) * direction
+			}
+			return (
+				String(aValue).localeCompare(String(bValue), 'en', {
+					numeric: true,
+				}) * direction
+			)
+		})
+	}, [reportsMatchingSearch, tableSort])
+
+	const totalPages = Math.ceil(displayedReports.length / rowsPerPage) || 1
 
 	/**
 	 * Fetches reports data from Firestore based on user role and permissions
@@ -237,7 +321,11 @@ const ReportsSection = ({
 		let agencyName = ''
 		let agencyId = ''
 		let agencyTags = []
-		
+
+		const experimentConfig = await fetchExperimentConfig()
+		const experimentId = getActiveExperimentId(experimentConfig)
+		setActiveExperimentId(experimentId)
+
 		if (isAgency) {
 			// Agency user: fetch reports for their specific agency
 			const agencyQuery = query(
@@ -249,19 +337,15 @@ const ReportsSection = ({
 				agencyName = doc.data().name
 				agencyId = doc.id
 			})
-			
-			// Fetch reports for the agency
-			const reportsQuery = query(
-				collection(db, 'reports'),
-				where('agency', '==', agencyName),
+
+			reportArr = await fetchReportsFromQuery(
+				buildActiveReportsQuery({
+					agency: agencyName,
+					activeExperimentId: experimentId,
+					includeArchived: false,
+				}),
 			)
-			const reportSnapshot = await getDocs(reportsQuery)
-			reportSnapshot.forEach((doc) => {
-				const data = doc.data()
-				data.reportID = doc.id
-				reportArr.push(data)
-			})
-			
+
 			// Fetch agency-specific tags
 			const tagsDocRef = doc(db, 'tags', agencyId)
 			const tagsDoc = await getDoc(tagsDocRef)
@@ -270,20 +354,13 @@ const ReportsSection = ({
 			}
 			setActiveLabels(agencyTags.Labels.active)
 		} else {
-			// Admin user: fetch all reports
-			const reportSnapshot = await getDocs(collection(db, 'reports'))
-			reportSnapshot.forEach((doc) => {
-				const data = doc.data()
-				data.reportID = doc.id
-				reportArr.push(data)
-			})
+			reportArr = await fetchAdminReportsList({ includeArchived })
 		}
 		
 		// Update state with fetched data
 		setReports(reportArr)
 		setIsDataFetched(true)
-		setLoadedReports(reportArr.slice(0, endIndex))
-		setEndIndex(endIndex)
+		setFilteredReports(applyCombinedFilters(reportArr))
 		
 		// Initialize read states for all reports
 		setReportsReadState(
@@ -309,12 +386,26 @@ const ReportsSection = ({
 			filteredArr = filteredArr.filter((r) => (r.agency ? r.agency : '') === agency)
 		}
 
-		if (week !== '100') {
+		if (week === 'custom') {
+			if (customDateStart || customDateEnd) {
+				const start = customDateStart ? new Date(customDateStart) : null
+				const end = customDateEnd ? new Date(customDateEnd) : null
+				if (start) start.setHours(0, 0, 0, 0)
+				if (end) end.setHours(23, 59, 59, 999)
+				filteredArr = filteredArr.filter((report) => {
+					const reportDate = getReportCreatedDate(report)
+					if (!reportDate) return false
+					if (start && reportDate < start) return false
+					if (end && reportDate > end) return false
+					return true
+				})
+			}
+		} else if (week !== '100') {
 			const filterDate = new Date()
 			filterDate.setDate(filterDate.getDate() - week * 7)
 			filteredArr = filteredArr.filter((report) => {
-				if (!report.createdDate) return false
-				const reportDate = report.createdDate.toDate()
+				const reportDate = getReportCreatedDate(report)
+				if (!reportDate) return false
 				return reportDate >= filterDate
 			})
 		}
@@ -382,7 +473,8 @@ const ReportsSection = ({
 			filterDate.setDate(filterDate.getDate() - selectedWeek * 7)
 
 			filteredArr = reports.filter((report) => {
-				const reportDate = report.createdDate.toDate()
+				const reportDate = getReportCreatedDate(report)
+				if (!reportDate) return false
 				return reportDate >= filterDate
 			})
 		}
@@ -639,23 +731,8 @@ const ReportsSection = ({
 	 * @param {string} sortOrder - Sort order ('asc' or 'desc')
 	 */
 	const handleSorting = (sortField, sortOrder) => {
-		const sortedReports = [...filteredReports].sort((a, b) => {
-			const aValue = a[sortField]
-			const bValue = b[sortField]
-
-			// Handle null/undefined values
-			if (aValue === null || aValue === undefined) return 1
-			if (bValue === null || bValue === undefined) return -1
-			if (aValue === null && bValue === null) return 0
-
-			return (
-				aValue.toString().localeCompare(bValue.toString(), 'en', {
-					numeric: true,
-				}) * (sortOrder === 'asc' ? 1 : -1)
-			)
-		})
-
-		setLoadedReports(sortedReports)
+		setTableSort({ field: sortField, order: sortOrder })
+		setCurrentPage(1)
 	}
 
 	/**
@@ -793,7 +870,7 @@ const ReportsSection = ({
 	 * @function downloadCSV
 	 */
 	const downloadCSV = async () => {
-		const csvData = await convertToCSV(reports)
+		const csvData = await convertToCSV(reportsMatchingSearch)
 		const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
 		const url = URL.createObjectURL(blob)
 
@@ -874,6 +951,7 @@ const ReportsSection = ({
 						title: String(row.title || ''),
 						topic: String(row.topic || ''),
 						userID: user.uid, // Set userID to current user’s UID
+						...newReportExperimentFields(activeExperimentId),
 					}
 
 					try {
@@ -959,6 +1037,12 @@ const ReportsSection = ({
 		}
 	}, [newReportSubmitted, isAgency])
 
+	useEffect(() => {
+		if (customClaims.admin && isAgency === false) {
+			getData()
+		}
+	}, [includeArchived])
+
 	// Resolve Auth UID when the search box contains a full email (matches report.userID from ReportSystem)
 	useEffect(() => {
 		const term = search.trim()
@@ -1020,14 +1104,30 @@ const ReportsSection = ({
 			setFilteredReports(combined)
 			setCurrentPage(1)
 		}
-	}, [reportWeek, reports, isDataFetched, agencyFilter, typeFilter])
+	}, [
+		reportWeek,
+		customDateStart,
+		customDateEnd,
+		reports,
+		isDataFetched,
+		agencyFilter,
+		typeFilter,
+	])
 
 	// Read Filter
 	useEffect(() => {
 		const combined = applyCombinedFilters(reports, { read: readFilter, week: reportWeek })
 		setFilteredReports(combined)
 		setCurrentPage(1)
-	}, [readFilter, reports, reportWeek, agencyFilter, typeFilter])
+	}, [
+		readFilter,
+		reports,
+		reportWeek,
+		customDateStart,
+		customDateEnd,
+		agencyFilter,
+		typeFilter,
+	])
 
 	// Reset loadedReports on refresh
 	useEffect(() => {
@@ -1042,12 +1142,12 @@ const ReportsSection = ({
 
 	// Pagination: slice the list that already includes text or email-submitter search
 	useEffect(() => {
-		const paginatedReports = reportsMatchingSearch.slice(
+		const paginatedReports = displayedReports.slice(
 			(currentPage - 1) * rowsPerPage,
 			currentPage * rowsPerPage,
 		)
 		setLoadedReports(paginatedReports)
-	}, [reportsMatchingSearch, currentPage, rowsPerPage])
+	}, [displayedReports, currentPage, rowsPerPage])
 
 	/**
 	 * Navigates to the previous page in pagination
@@ -1102,62 +1202,54 @@ const ReportsSection = ({
 		<>
 			<Card className="w-full mt-4">
 				<CardHeader floated={false} shadow={false} className="rounded-none">
-					<div className="card-header--top flex items-center justify-between gap-8 mb-8">
-						<Typography variant="h5" color="blue" className="basis-1/3">
+					<div className="card-header--top flex items-center justify-between gap-8 mb-4">
+						<Typography variant="h5" color="blue">
 							List of Reports
-						</Typography>
-						<Typography
-							className="flex-initial text-center basis-1/3"
-							variant="small">
-							{loadedReports.length}{' '}
-							{loadedReports.length == 1 ? 'report' : 'reports'}
-						</Typography>
-						<div className="flex flex-row justify-end gap-1 basis-1/3">
-							{!isAgency && (
-								<>
-									{/* Export Button */}
-									<Tooltip content="Export Reports" placement="bottom-start">
-										<Button
-											size="sm"
-											variant="outlined"
-											onClick={downloadCSV}
-											className="flex items-center gap-2"
-											ripple={true}>
-											<FaFileExport />
-											Export
-										</Button>
-									</Tooltip>
-
-									{/* Import Button */}
-									<Tooltip
-										content="Import Reports CSV"
-										placement="bottom-start">
-										<Button
-											size="sm"
-											variant="outlined"
-											ripple={true}
-											onClick={() =>
-												document.getElementById('csvImportInput').click()
-											}
-											className="flex items-center gap-2">
-											<FaFileImport />
-											Import
-										</Button>
-									</Tooltip>
-
-									{/* Hidden file input for CSV upload */}
-									<input
-										id="csvImportInput"
-										type="file"
-										accept=".csv"
-										style={{ display: 'none' }}
-										onChange={(e) => {
-											const file = e.target.files[0]
-											if (file) handleCSVImport(file)
-										}}
-									/>
-								</>
+							{customClaims.admin && activeExperimentId && (
+								<span className="block text-xs font-normal text-gray-500 mt-1">
+									Table: all study waves · graphs use {activeExperimentId}
+								</span>
 							)}
+						</Typography>
+						<div className="flex flex-row justify-end gap-1 items-center">
+							<div className="w-full md:w-72 min-w-[200px]">
+								<Input
+									label="Search"
+									icon={<HiMagnifyingGlass className="w-5 h-5" />}
+									value={search}
+									onChange={(e) => setSearch(e.target.value)}
+								/>
+							</div>
+						</div>
+					</div>
+					<div className="card-header--bottom flex items-center justify-between gap-8">
+						<TableFilterControls
+							readFilter={readFilter}
+							onReadFilterChange={setReadFilter}
+							onRefresh={handleRefresh}
+							refresh={refresh}
+							showCheckmark={showCheckmark}
+							includeArchived={includeArchived}
+							onIncludeArchivedChange={
+								customClaims.admin ? setIncludeArchived : undefined
+							}
+						/>
+						<div className="flex flex-row items-center gap-1">
+							<TableDropdownMenu
+								reportWeek={reportWeek}
+								onChange={(value) => setReportWeek(value)} // Update `reportWeek` based on selection
+								customDateStart={customDateStart}
+								customDateEnd={customDateEnd}
+								onCustomDateStartChange={setCustomDateStart}
+								onCustomDateEndChange={setCustomDateEnd}
+								rowsPerPage={rowsPerPage}
+								setRowsPerPage={(value) => setRowsPerPage(value)} // Update rows per page
+								setCurrentPage={(page) => setCurrentPage(page)} // Reset page to 1 when rows per page changes
+								onTypeChange={(val) => setTypeFilter(val)}
+								agencies={!isAgency ? agencies : undefined}
+								agencyFilter={agencyFilter}
+								onAgencyChange={!isAgency ? setAgencyFilter : undefined}
+							/>
 							<Tooltip content="New Report" placement="bottom-start">
 								<Button
 									ripple={true}
@@ -1170,46 +1262,10 @@ const ReportsSection = ({
 							</Tooltip>
 						</div>
 					</div>
-					<div className="card-header--bottom flex items-center justify-between gap-8">
-						<TableFilterControls
-							readFilter={readFilter}
-							onReadFilterChange={setReadFilter}
-							onRefresh={handleRefresh}
-							refresh={refresh}
-							showCheckmark={showCheckmark}
-						/>
-						{!isAgency && (
-							<div className="agency-filter flex items-center gap-2 md:gap-4">
-								<select
-									value={agencyFilter}
-									onChange={(e) => setAgencyFilter(e.target.value)}
-									className="px-2 py-1 text-sm border rounded md:text-base">
-									<option value="all">All agencies</option>
-									{agencies.map((a) => (
-										<option key={a} value={a}>
-											{a}
-										</option>
-									))}
-								</select>
-							</div>
-						)}
-						<div className="w-full md:w-72 basis-1/3">
-							<Input
-								label="Search"
-								icon={<HiMagnifyingGlass className="w-5 h-5" />}
-								value={search}
-								onChange={(e) => setSearch(e.target.value)}
-							/>
-						</div>
-						<TableDropdownMenu
-							reportWeek={reportWeek}
-							onChange={(value) => setReportWeek(value)} // Update `reportWeek` based on selection
-							rowsPerPage={rowsPerPage}
-							setRowsPerPage={(value) => setRowsPerPage(value)} // Update rows per page
-							setCurrentPage={(page) => setCurrentPage(page)} // Reset page to 1 when rows per page changes
-							onTypeChange={(val) => setTypeFilter(val)}
-						/>
-					</div>
+					<Typography className="w-full text-center mt-4" variant="small">
+						{loadedReports.length}{' '}
+						{loadedReports.length == 1 ? 'report' : 'reports'}
+					</Typography>
 				</CardHeader>
 				<CardBody className="px-0 pt-0 overflow-scroll">
 					<table className="w-full min-w-full mt-4 text-left table-fixed">
@@ -1311,6 +1367,44 @@ const ReportsSection = ({
 						Next
 					</Button>
 				</CardFooter>
+				{!isAgency && (
+					<div className="flex w-full justify-center gap-2 p-4 border-t border-blue-gray-50">
+						<Tooltip content="Export Reports" placement="top">
+							<Button
+								size="sm"
+								variant="outlined"
+								onClick={downloadCSV}
+								className="flex items-center gap-2"
+								ripple={true}>
+								<FaFileExport />
+								Export
+							</Button>
+						</Tooltip>
+						<Tooltip content="Import Reports CSV" placement="top">
+							<Button
+								size="sm"
+								variant="outlined"
+								ripple={true}
+								onClick={() =>
+									document.getElementById('csvImportInput').click()
+								}
+								className="flex items-center gap-2">
+								<FaFileImport />
+								Import
+							</Button>
+						</Tooltip>
+						<input
+							id="csvImportInput"
+							type="file"
+							accept=".csv"
+							style={{ display: 'none' }}
+							onChange={(e) => {
+								const file = e.target.files[0]
+								if (file) handleCSVImport(file)
+							}}
+						/>
+					</div>
+				)}
 			</Card>
 			{deleteModal && (
 				<ConfirmModal
