@@ -144,6 +144,8 @@ const ReportsSection = ({
 	
 	// Filtering state
 	const [reportWeek, setReportWeek] = useState('4') // Week filter (4 weeks by default)
+	const [customDateStart, setCustomDateStart] = useState('')
+	const [customDateEnd, setCustomDateEnd] = useState('')
 	const [readFilter, setReadFilter] = useState('all') // Read status filter
 	const [reportTitle, setReportTitle] = useState('') // Report title filter
 	const [agencyName, setAgencyName] = useState('') // Agency name for display
@@ -313,7 +315,21 @@ const ReportsSection = ({
 			filteredArr = filteredArr.filter((r) => (r.agency ? r.agency : '') === agency)
 		}
 
-		if (week !== '100') {
+		if (week === 'custom') {
+			if (customDateStart || customDateEnd) {
+				const start = customDateStart ? new Date(customDateStart) : null
+				const end = customDateEnd ? new Date(customDateEnd) : null
+				if (start) start.setHours(0, 0, 0, 0)
+				if (end) end.setHours(23, 59, 59, 999)
+				filteredArr = filteredArr.filter((report) => {
+					if (!report.createdDate) return false
+					const reportDate = report.createdDate.toDate()
+					if (start && reportDate < start) return false
+					if (end && reportDate > end) return false
+					return true
+				})
+			}
+		} else if (week !== '100') {
 			const filterDate = new Date()
 			filterDate.setDate(filterDate.getDate() - week * 7)
 			filteredArr = filteredArr.filter((report) => {
@@ -1031,14 +1047,30 @@ const ReportsSection = ({
 			setFilteredReports(combined)
 			setCurrentPage(1)
 		}
-	}, [reportWeek, reports, isDataFetched, agencyFilter, typeFilter])
+	}, [
+		reportWeek,
+		customDateStart,
+		customDateEnd,
+		reports,
+		isDataFetched,
+		agencyFilter,
+		typeFilter,
+	])
 
 	// Read Filter
 	useEffect(() => {
 		const combined = applyCombinedFilters(reports, { read: readFilter, week: reportWeek })
 		setFilteredReports(combined)
 		setCurrentPage(1)
-	}, [readFilter, reports, reportWeek, agencyFilter, typeFilter])
+	}, [
+		readFilter,
+		reports,
+		reportWeek,
+		customDateStart,
+		customDateEnd,
+		agencyFilter,
+		typeFilter,
+	])
 
 	// Reset loadedReports on refresh
 	useEffect(() => {
@@ -1149,6 +1181,10 @@ const ReportsSection = ({
 							<TableDropdownMenu
 								reportWeek={reportWeek}
 								onChange={(value) => setReportWeek(value)} // Update `reportWeek` based on selection
+								customDateStart={customDateStart}
+								customDateEnd={customDateEnd}
+								onCustomDateStartChange={setCustomDateStart}
+								onCustomDateEndChange={setCustomDateEnd}
 								rowsPerPage={rowsPerPage}
 								setRowsPerPage={(value) => setRowsPerPage(value)} // Update rows per page
 								setCurrentPage={(page) => setCurrentPage(page)} // Reset page to 1 when rows per page changes
