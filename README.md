@@ -28,7 +28,7 @@ First step! Clone this repo into a local directory (ex. `~/username/sites/`) on 
 
 #### Node Version
 
-Production builds (GitHub Actions CI and [Firebase App Hosting](https://firebase.google.com/docs/app-hosting)) use **Node 20.20.0** and **npm 11**. The repo pins this in `.nvmrc` and `package.json` `engines`; with `engine-strict=true` in `.npmrc`, `npm install` refuses other versions. Use [nvm](https://github.com/nvm-sh/nvm): `nvm install` / `nvm use` in the project root (reads `.nvmrc`), then `npm install -g npm@11` once. See [Deployment](#deployment) for the full toolchain.
+Production builds (GitHub Actions CI and [Firebase App Hosting](https://firebase.google.com/docs/app-hosting)) use **Node 20.20.0** and **npm 11.15.0**. The repo pins this in `.nvmrc` and `package.json` `engines`; with `engine-strict=true` in `.npmrc`, `npm install` refuses other versions. Use [nvm](https://github.com/nvm-sh/nvm): `nvm install` / `nvm use` in the project root (reads `.nvmrc`), then `npm install -g npm@11.15.0` once. See [Deployment](#deployment) for the full toolchain.
 
 **Apple Silicon (M1 / M2 / M3):** install the **arm64** Node build, not the x64/Rosetta one. Check with `node -p process.arch` — it should print `arm64`. If you see `x64`, Rollup and Next may look for `@rollup/rollup-darwin-x64` / `@next/swc-darwin-x64` and you can hit missing native module errors. Reinstall Node for Apple Silicon (or turn off “Open using Rosetta” for Terminal) and run `rm -rf node_modules && npm ci` again. The repo also lists `@rollup/rollup-darwin-arm64` and `@rollup/rollup-darwin-x64` as **optionalDependencies** so npm still installs the right macOS binary even when nested optional deps mis-resolve.
 
@@ -234,38 +234,46 @@ For a deeper walkthrough (lockfile regeneration, CI details, branch protection),
 
 ### Lockfile and dependency changes
 
-App Hosting runs **`npm ci`**, which requires `package-lock.json` to match `package.json` and the **Node 20.20.0 + npm 11** resolver. If you change dependencies, regenerate the lockfile with that toolchain or the remote build will fail (`EUSAGE`, “out of sync”, or “Missing: … from lock file”).
+App Hosting and CI run **`npm ci` on Linux**. The lockfile must match `package.json` for **Node 20.20.0 + npm 11.15.0** on that OS. If you only run `npm install` on macOS, the PR can still fail with `EUSAGE`, “out of sync”, or “Missing: … from lock file” (often nested packages like `ajv` under ESLint).
 
-**Docker (faithful to the build image):**
+**On macOS, always use the Linux lockfile scripts** (requires [Docker](https://www.docker.com/products/docker-desktop/)):
 
 ```bash
-docker run --rm -v "$(pwd):/workspace" -w /workspace node:20.20.0 \
-  bash -c "npm install -g npm@11 && rm -rf node_modules package-lock.json && npm install"
+# After editing package.json (or fixing a lockfile merge conflict)
+npm run lockfile:regen        # updates package-lock.json in Linux
+npm run lockfile:ci           # same as CI: npm ci in Linux — run before you commit
+
+# Nuclear option: delete lock and rebuild
+npm run lockfile:regen:fresh
+npm run lockfile:ci
 ```
 
-Then commit and push `package-lock.json` (and `package.json` if you edited it).
+Then commit `package-lock.json` (and `package.json` if you changed it). Do **not** hand-edit `package-lock.json`. Mac-only `npm ci` passing is **not** enough to skip `npm run lockfile:ci`.
+
+**Workflow checklist:** change deps → `lockfile:regen` → `lockfile:ci` → commit → PR → green **`build`** → merge.
 
 ### CI and pinned toolchain
 
 - **Node** `20.20.0` — `.nvmrc` and `package.json` `engines`
-- **npm** `>=11.0.0` — upgrade globally after switching Node: `npm install -g npm@11`
+- **npm** `11.15.0` — `npm install -g npm@11.15.0` after `nvm use`
 - **`.npmrc`** — `engine-strict=true` so the wrong toolchain fails fast locally
+- **Lockfile scripts** — `scripts/lockfile-ci.sh` via `npm run lockfile:*`
 
-Every PR and every push to `main` runs `.github/workflows/build.yml`:
+Every PR and every push to `main` runs `.github/workflows/build.yml` (same steps as App Hosting install):
 
 ```bash
-npm install -g npm@11
+npm install -g npm@11.15.0
 npm ci
 npm run build
 ```
 
 Branch protection on `main` requires the **`build`** check to pass before merge. If CI is green, App Hosting should be green too.
 
-**If `npm install` is blocked locally:**
+**If `npm install` is blocked locally (wrong Node/npm):**
 
 ```bash
 nvm install 20.20.0 && nvm use 20.20.0
-npm install -g npm@11
+npm install -g npm@11.15.0
 ```
 
 ### Git: large files and push errors
