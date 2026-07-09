@@ -44,9 +44,9 @@ import { useTranslation } from 'next-i18next';
 import {
 	CUSTOM_LABEL_MAX_LENGTH,
 	DEFAULT_REPORT_LABEL,
-	getLabelBadgeStyle,
 	OTHER_LABEL,
 } from '../../../config/labels'
+import LabelSelectMenu from '../../reports/LabelSelectMenu'
 
 /**
  * ReportModal Component
@@ -147,8 +147,6 @@ const ReportModal = ({
 		icon: "flex p-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
 	}
 	
-	const labelSelectStyle = getLabelBadgeStyle(selectedLabel, agencyLabelColors)
-
 	// Internationalization hook
 	const {t} = useTranslation("ShareReport")
 	
@@ -441,18 +439,13 @@ const ReportModal = ({
 								{/* Label Assignment */}
 								<div className='mb-4'>
 									<div className={style.header}>Label</div>
-									<select
-										id='labels'
-										onChange={onLabelChange}
-										value={selectedLabel || DEFAULT_REPORT_LABEL}
-										style={labelSelectStyle}
-										className='text-sm inline-block px-8 border-none py-1 rounded-2xl shadow hover:shadow-none'>
-										{labelOptions.map((label, i) => (
-											<option value={label} key={i}>
-												{label}
-											</option>
-										))}
-									</select>
+									<LabelSelectMenu
+										id="labels"
+										labelOptions={labelOptions}
+										selectedLabel={selectedLabel || DEFAULT_REPORT_LABEL}
+										agencyLabelColors={agencyLabelColors}
+										onLabelChange={onLabelChange}
+									/>
 									{selectedLabel === OTHER_LABEL && (
 										<div className='mt-3'>
 											<FormInput
