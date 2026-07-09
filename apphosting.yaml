@@ -69,12 +69,6 @@ env:
       - BUILD
       - RUNTIME
 
-  - variable: NEXT_PUBLIC_SENTRY_DSN
-    value: "https://845c7860c580e1b6c2fa9ce325d1257c@o204741.ingest.us.sentry.io/4507670446931968"
-    availability:
-      - BUILD
-      - RUNTIME
-
   # Set to your App Hosting URL (or custom domain) after first deploy; used for auth email links
   - variable: NEXT_PUBLIC_APP_URL
     value: "https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app"
@@ -87,10 +81,6 @@ env:
   # 2. firebase apphosting:secrets:grantaccess SENDGRID_API_KEY --backend YOUR_BACKEND_ID --project misinfo-5d004
   - variable: SENDGRID_API_KEY
     secret: SENDGRID_API_KEY
-
-  # Same for SENTRY_AUTH_TOKEN: create in Secret Manager, then grantaccess.
-  - variable: SENTRY_AUTH_TOKEN
-    secret: SENTRY_AUTH_TOKEN
 
   # Slack webhook: server-only secret (use in API routes, not client). Grant access:
   # firebase apphosting:secrets:grantaccess SLACK_WEBHOOK_URL --backend truthsleuthlocal --project misinfo-5d004

@@ -28,7 +28,6 @@ jobs:
       NEXT_PUBLIC_FIREBASE_APP_ID: "1:0:web:ci"
       NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: G-CI
       NEXT_PUBLIC_FIREBASE_RECAPTCHA_ENTERPRISE_SITE_KEY: ci-dummy
-      NEXT_PUBLIC_SENTRY_DSN: ""
       NEXT_PUBLIC_APP_URL: https://ci.example.com
 
     steps:

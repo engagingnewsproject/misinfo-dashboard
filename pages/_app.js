@@ -6,7 +6,6 @@
  * - Enforce route protection for authenticated pages
  * - Set up theme and global styles
  * - Integrate next-i18next for translations
- * - Configure Sentry for error monitoring (client via instrumentation-client.js; server via instrumentation.js)
  * - Set up global meta tags and favicons
  *
  * Integrates with:
@@ -14,7 +13,6 @@
  * - ProtectedRoute for route guarding
  * - ThemeProvider for Material Tailwind theme
  * - next-i18next for i18n
- * - Sentry for error monitoring
  * - Next.js Head for meta tags and icons
  *
  * @author Misinformation Dashboard Team

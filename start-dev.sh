@@ -50,7 +50,7 @@ echo "Starting Next.js development server..."
 echo ""
 echo ">>> Open the app at http://localhost:3000 (not the Hosting emulator URL)."
 echo ""
-npx next dev
+npx next dev --webpack
 
 # Wait for the Next.js server to exit before continuing
 wait $EMULATOR_PID
