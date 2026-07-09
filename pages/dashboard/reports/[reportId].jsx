@@ -27,12 +27,14 @@ import {
 	buildLabelOptions,
 	CUSTOM_LABEL_MAX_LENGTH,
 	DEFAULT_REPORT_LABEL,
+	getLabelBadgeStyle,
 	OTHER_LABEL,
 	validateCustomLabel,
 } from '../../../config/labels'
 import {
 	addAgencyCustomLabel,
 	fetchAgencyActiveLabels,
+	fetchAgencyLabelColors,
 	resolveAgencyIdByName,
 } from '../../../utils/label-tags'
 import { RiMessage2Fill } from 'react-icons/ri'
@@ -65,6 +67,7 @@ const ReportDetails = () => {
 	const [update, setUpdate] = useState('')
 	const [modalAgencyLabels, setModalAgencyLabels] = useState([])
 	const [modalAgencyId, setModalAgencyId] = useState('')
+	const [agencyLabelColors, setAgencyLabelColors] = useState({})
 	const [otherLabelDraft, setOtherLabelDraft] = useState('')
 	const [otherLabelError, setOtherLabelError] = useState('')
 
@@ -75,6 +78,8 @@ const ReportDetails = () => {
 		const currentLabel = info?.label || DEFAULT_REPORT_LABEL
 		return buildLabelOptions(modalAgencyLabels, currentLabel)
 	}, [modalAgencyLabels, info?.label])
+
+	const labelSelectStyle = getLabelBadgeStyle(selectedLabel, agencyLabelColors)
 
 	const getData = async () => {
 		const infoRef = await getDoc(doc(db, 'reports', reportId))
@@ -99,8 +104,11 @@ const ReportDetails = () => {
 		if (resolvedAgencyId) {
 			const labels = await fetchAgencyActiveLabels(resolvedAgencyId)
 			setModalAgencyLabels(labels)
+			const colors = await fetchAgencyLabelColors(resolvedAgencyId)
+			setAgencyLabelColors(colors)
 		} else {
 			setModalAgencyLabels([])
+			setAgencyLabelColors({})
 		}
 	}
 
@@ -283,7 +291,8 @@ const ReportDetails = () => {
 							id="labels"
 							onChange={handleLabelChange}
 							value={selectedLabel || DEFAULT_REPORT_LABEL}
-							className="text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none">
+							style={labelSelectStyle}
+							className="text-sm inline-block px-8 border-none py-1 rounded-2xl shadow hover:shadow-none">
 							{labelOptions.map((label, i) => (
 								<option value={label} key={i}>
 									{label}
