@@ -38,13 +38,22 @@ import {
 
 const maxTags = [0, 7, 10, 7]
 
+const DEFAULT_TOPICS = ['Health', 'Other', 'Politics', 'Weather']
+const DEFAULT_SOURCES = ['Newspaper', 'Other', 'Social', 'Website']
+
+const buildDefaultTagsDoc = () => ({
+	Topic: { list: DEFAULT_TOPICS, active: DEFAULT_TOPICS },
+	Labels: { list: DEFAULT_AGENCY_LABELS, active: DEFAULT_AGENCY_LABELS },
+	Source: { list: DEFAULT_SOURCES, active: DEFAULT_SOURCES },
+})
+
 const setData = async (tagSystem, list, active, agency) => {
 	const docRef = doc(db, 'tags', agency)
 	const docSnap = await getDoc(docRef)
+	const key = tagSystems[tagSystem]
 
 	if (docSnap.exists()) {
 		const existing = docSnap.data()
-		const key = tagSystems[tagSystem]
 		const existingSlice = existing[key] || {}
 
 		await setDoc(doc(db, 'tags', agency), {
@@ -55,6 +64,10 @@ const setData = async (tagSystem, list, active, agency) => {
 				active,
 			},
 		})
+	} else {
+		await setDoc(doc(db, 'tags', agency), {
+			[key]: { list, active },
+		})
 	}
 }
 
@@ -63,9 +76,6 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 	const [active, setActive] = useState([])
 	const [labelColors, setLabelColors] = useState({})
 	const [agencyName, setAgencyName] = useState('')
-
-	const defaultTopics = ['Health', 'Other', 'Politics', 'Weather']
-	const defaultSources = ['Newspaper', 'Other', 'Social', 'Website']
 
 	const [selected, setSelected] = useState('')
 	const [search, setSearch] = useState('')
@@ -109,6 +119,20 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 		return customLabels.filter((label) => label.toLowerCase().includes(term))
 	}, [customLabels, search])
 
+	const applyTagsToState = (tagsData) => {
+		setList(tagsData?.list || [])
+		const activeList = [...(tagsData?.active || [])]
+		activeList.sort((a, b) => {
+			if (a === 'Other') return 1
+			if (b === 'Other') return -1
+			return a.localeCompare(b)
+		})
+		setActive(activeList)
+		if (isLabelsMode) {
+			setLabelColors(tagsData?.colors || {})
+		}
+	}
+
 	const getData = async (id) => {
 		if (!id) return
 
@@ -119,22 +143,11 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 		const docSnap = await getDoc(docRef)
 
 		if (docSnap.exists()) {
-			const tagsData = docSnap.get(tags[tagSystem - 1])
-			setList(tagsData?.list || [])
-			const activeList = [...(tagsData?.active || [])]
-			activeList.sort((a, b) => {
-				if (a === 'Other') return 1
-				if (b === 'Other') return -1
-				return a.localeCompare(b)
-			})
-			setActive(activeList)
-			if (isLabelsMode) {
-				setLabelColors(tagsData?.colors || {})
-			}
+			applyTagsToState(docSnap.get(tags[tagSystem - 1]))
 		} else {
-			await setData(1, defaultTopics, defaultTopics, id)
-			await setData(3, DEFAULT_AGENCY_LABELS, DEFAULT_AGENCY_LABELS, id)
-			await setData(2, defaultSources, defaultSources, id)
+			const defaults = buildDefaultTagsDoc()
+			await setDoc(docRef, defaults)
+			applyTagsToState(defaults[tags[tagSystem - 1]])
 		}
 	}
 
