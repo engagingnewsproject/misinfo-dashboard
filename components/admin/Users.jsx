@@ -1388,13 +1388,13 @@ const Users = () => {
 										</tr>
 									) : (
 										// Render user rows with role-based conditional rendering
-										loadedMobileUsers.map((userObj) => {
+										loadedMobileUsers.map((userObj, index) => {
 											// Extract user ID for operations
 											let userId = userObj.mobileUserId ?? userObj.id ?? userObj.uid
 											return (
 												<tr
 													className={`border-b transition duration-300 ease-in-out dark:border-indigo-100 ${!customClaims.agency && !userObj.hasFirestoreDoc && 'bg-red-50'} ${userObj.disabled && 'bg-yellow-100'}`}
-													key={userId ?? userObj.email}
+													key={userId ?? userObj.email ?? `unknown-${index}`}
 													onClick={
 														customClaims.admin
 															? () => handleEditUser(userObj, userId)
