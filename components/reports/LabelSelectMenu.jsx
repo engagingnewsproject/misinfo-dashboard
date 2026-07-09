@@ -11,8 +11,8 @@ import {
 	DEFAULT_REPORT_LABEL,
 	displayLabel,
 	getLabelBadgeStyle,
-	getLabelColor,
 } from '../../config/labels'
+import LabelOptionWithDot from './LabelOptionWithDot'
 
 /**
  * Label picker using Material Tailwind Menu. The trigger shows the current
@@ -65,7 +65,6 @@ const LabelSelectMenu = ({
 			</MenuHandler>
 			<MenuList className="z-[10000] max-h-72">
 				{labelOptions.map((label) => {
-					const dotColor = getLabelColor(label, agencyLabelColors)
 					const isSelected = label === resolvedLabel
 
 					return (
@@ -73,12 +72,10 @@ const LabelSelectMenu = ({
 							key={label}
 							className={`flex items-center gap-2 ${isSelected ? 'bg-blue-gray-50 font-medium' : ''}`}
 							onClick={() => handleSelect(label)}>
-							<span
-								className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
-								style={{ backgroundColor: dotColor }}
-								aria-hidden="true"
+							<LabelOptionWithDot
+								label={label}
+								agencyLabelColors={agencyLabelColors}
 							/>
-							{label}
 						</MenuItem>
 					)
 				})}
