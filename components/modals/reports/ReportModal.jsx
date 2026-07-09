@@ -44,6 +44,7 @@ import { useTranslation } from 'next-i18next';
 import {
 	CUSTOM_LABEL_MAX_LENGTH,
 	DEFAULT_REPORT_LABEL,
+	getLabelBadgeStyle,
 	OTHER_LABEL,
 } from '../../../config/labels'
 
@@ -59,6 +60,7 @@ import {
  * @param {Function} props.setReportModalShow - Function to close modal
  * @param {Object} props.report - Report data object containing all report fields
  * @param {Array<string>} props.labelOptions - Merged label options for the dropdown
+ * @param {Record<string, string>} [props.agencyLabelColors] - Custom label colors for the report's agency
  * @param {string} props.selectedLabel - Currently selected label
  * @param {Function} props.onLabelChange - Label change handler
  * @param {string} props.otherLabelDraft - Draft text when Other is selected
@@ -103,6 +105,7 @@ const ReportModal = ({
 	setReportModalShow,
 	report, // should hold all report fields
 	labelOptions,
+	agencyLabelColors = {},
 	selectedLabel,
 	onLabelChange,
 	otherLabelDraft,
@@ -144,12 +147,8 @@ const ReportModal = ({
 		icon: "flex p-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
 	}
 	
-	// Label styling classes
-	const label = {
-		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
-		special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl",
-	}
-	
+	const labelSelectStyle = getLabelBadgeStyle(selectedLabel, agencyLabelColors)
+
 	// Internationalization hook
 	const {t} = useTranslation("ShareReport")
 	
@@ -433,7 +432,6 @@ const ReportModal = ({
 									onChange={onNoteChange}
 									className={note ? style.textarea : style.textarea + ` italic`}
 									rows={6}
-									readOnly={customClaims.admin ? true : false}
 									value={note || ''}
 								/>
 							</div>
@@ -447,7 +445,8 @@ const ReportModal = ({
 										id='labels'
 										onChange={onLabelChange}
 										value={selectedLabel || DEFAULT_REPORT_LABEL}
-										className='text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none'>
+										style={labelSelectStyle}
+										className='text-sm inline-block px-8 border-none py-1 rounded-2xl shadow hover:shadow-none'>
 										{labelOptions.map((label, i) => (
 											<option value={label} key={i}>
 												{label}

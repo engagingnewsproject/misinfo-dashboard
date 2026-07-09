@@ -333,6 +333,13 @@ const ReportsSection = ({
 		return buildLabelOptions(modalAgencyLabels, currentLabel)
 	}, [reportModalShow, modalAgencyLabels, report?.label])
 
+	const modalLabelColors = useMemo(() => {
+		if (agencyLabelColors && Object.keys(agencyLabelColors).length > 0) {
+			return agencyLabelColors
+		}
+		return agencyLabelColorsByAgency[report?.agency] || {}
+	}, [agencyLabelColors, agencyLabelColorsByAgency, report?.agency])
+
 	/**
 	 * Fetches reports data from Firestore based on user role and permissions
 	 * Handles both agency-specific and admin data fetching patterns
@@ -714,12 +721,13 @@ const ReportsSection = ({
 	 * @param {Event} e - Input change event
 	 */
 	const handleNoteChange = async (e) => {
-		e.preventDefault()
+		const newNote = e.target.value
+		setNote(newNote)
 		let reportId = reportModalId
-		if (e.target.value !== report['note']) {
+		if (newNote !== report['note']) {
 			const docRef = doc(db, 'reports', reportId)
-			await updateDoc(docRef, { note: e.target.value })
-			setUpdate(e.target.value)
+			await updateDoc(docRef, { note: newNote })
+			setUpdate(newNote)
 		} else {
 			setUpdate('')
 		}
@@ -1421,6 +1429,7 @@ const ReportsSection = ({
 							onLabelChange={handleLabelChange}
 							selectedLabel={selectedLabel}
 							labelOptions={labelOptions}
+							agencyLabelColors={modalLabelColors}
 							otherLabelDraft={otherLabelDraft}
 							onOtherLabelChange={handleOtherLabelChange}
 							onOtherLabelCommit={handleOtherLabelCommit}
