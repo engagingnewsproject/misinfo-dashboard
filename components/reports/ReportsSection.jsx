@@ -54,6 +54,7 @@ import {
 import {
 	addAgencyCustomLabel,
 	fetchAgencyActiveLabels,
+	fetchAgencyLabelColors,
 	resolveAgencyIdByName,
 } from '../../utils/label-tags'
 // Icons
@@ -264,6 +265,8 @@ const ReportsSection = ({
 	const [otherLabelDraft, setOtherLabelDraft] = useState('')
 	const [otherLabelError, setOtherLabelError] = useState('')
 	const [changeStatus, setChangeStatus] = useState('') // Status change tracking
+	const [agencyLabelColors, setAgencyLabelColors] = useState({})
+	const [agencyLabelColorsByAgency, setAgencyLabelColorsByAgency] = useState({})
 	const [postedDate, setPostedDate] = useState('') // Formatted posted date
 	const [reportLocation, setReportLocation] = useState('') // Report location
 	const [update, setUpdate] = useState(false) // Update trigger
@@ -375,9 +378,27 @@ const ReportsSection = ({
 				agencyTags = tagsDoc.data()
 			}
 			setActiveLabels(agencyTags?.Labels?.active || [])
+			setAgencyLabelColors(agencyTags?.Labels?.colors || {})
 			setAgencyId(agencyId)
 		} else {
 			reportArr = await fetchAdminReportsList({ includeArchived })
+		}
+
+		if (!isAgency) {
+			const uniqueAgencies = [
+				...new Set(reportArr.map((report) => report.agency).filter(Boolean)),
+			]
+			const colorsByAgency = {}
+			await Promise.all(
+				uniqueAgencies.map(async (name) => {
+					const resolvedId = await resolveAgencyIdByName(name)
+					if (resolvedId) {
+						colorsByAgency[name] = await fetchAgencyLabelColors(resolvedId)
+					}
+				}),
+			)
+			setAgencyLabelColorsByAgency(colorsByAgency)
+			setAgencyLabelColors({})
 		}
 		
 		// Update state with fetched data
@@ -1377,6 +1398,8 @@ const ReportsSection = ({
 							onRowChangeRead={handleRowChangeRead}
 							onReportDelete={handleReportDelete}
 							reportsReadState={reportsReadState}
+							agencyLabelColors={agencyLabelColors}
+							agencyLabelColorsByAgency={agencyLabelColorsByAgency}
 						/>
 					</table>
 
