@@ -10,7 +10,15 @@ import {
 	getActiveExperimentId,
 	newReportExperimentFields,
 } from '../../../utils/reports-queries'
-import { DEFAULT_AGENCY_LABELS, DEFAULT_REPORT_LABEL } from '../../../config/labels'
+import {
+	buildLabelOptions,
+	CUSTOM_LABEL_MAX_LENGTH,
+	DEFAULT_AGENCY_LABELS,
+	DEFAULT_REPORT_LABEL,
+	OTHER_LABEL,
+	validateCustomLabel,
+} from '../../../config/labels'
+import { addAgencyCustomLabel } from '../../../utils/label-tags'
 import { State, City } from 'country-state-city'
 import {
 	getDoc,
@@ -112,6 +120,10 @@ const NewReportModal = ({
 	const [activeSources, setActiveSources] = useState([])
 	const [allSourcesArr, setSources] = useState([])
 	const [selectedSource, setSelectedSource] = useState('')
+	const [activeLabels, setActiveLabels] = useState([])
+	const [selectedLabel, setSelectedLabel] = useState(DEFAULT_REPORT_LABEL)
+	const [otherLabelDraft, setOtherLabelDraft] = useState('')
+	const [otherLabelError, setOtherLabelError] = useState('')
 	const [reportState, setReportState] = useState(0)
 	const [errors, setErrors] = useState({})
 
@@ -148,9 +160,17 @@ const NewReportModal = ({
 	 *
 	 * @param {Array} imageURLs - An array of URLs of the images uploaded by the user.
 	 */
+	const resolveReportLabel = () => {
+		if (selectedLabel === OTHER_LABEL) {
+			return otherLabelDraft.trim() || DEFAULT_REPORT_LABEL
+		}
+		return selectedLabel || DEFAULT_REPORT_LABEL
+	}
+
 	const saveReport = async (imageURLs) => {
 		const experimentConfig = await fetchExperimentConfig()
 		const experimentId = getActiveExperimentId(experimentConfig)
+		const resolvedLabel = resolveReportLabel()
 		await addDoc(dbInstance, {
 			userID: user.accountId,
 			state: data.state.name,
@@ -163,7 +183,7 @@ const NewReportModal = ({
 			detail: detail,
 			createdDate: moment().toDate(),
 			isApproved: false,
-			label: DEFAULT_REPORT_LABEL,
+			label: resolvedLabel,
 			read: false,
 			topic: selectedTopic,
 			hearFrom: selectedSource,
@@ -171,6 +191,13 @@ const NewReportModal = ({
 			origin: 'agency',
 			...newReportExperimentFields(experimentId),
 		})
+		if (
+			selectedLabel === OTHER_LABEL &&
+			otherLabelDraft.trim() &&
+			selectedAgencyId
+		) {
+			await addAgencyCustomLabel(selectedAgencyId, otherLabelDraft.trim())
+		}
 		handleNewReportSubmit() // Send a signal to ReportsSection so that it updates the list
 		addNewTag(selectedTopic, selectedSource, selectedAgencyId)
 	}
@@ -670,6 +697,23 @@ const NewReportModal = ({
 		setSelectedSource(e.target.value)
 	}
 
+	const handleLabelChange = (e) => {
+		setSelectedLabel(e.value)
+		if (e.value === OTHER_LABEL) {
+			setOtherLabelDraft('')
+			setOtherLabelError('')
+		} else {
+			setOtherLabelError('')
+		}
+	}
+
+	const handleOtherLabelChange = (e) => {
+		setOtherLabelDraft(e.target.value)
+		if (otherLabelError) {
+			setOtherLabelError('')
+		}
+	}
+
 	/**
 	 * handleSubmitClick
 	 *
@@ -743,6 +787,12 @@ const NewReportModal = ({
 		if (selectedTopic == '') {
 			console.log('No topic selected')
 			allErrors.topic = t('specify_topic')
+		}
+		if (selectedLabel === OTHER_LABEL) {
+			const labelError = validateCustomLabel(otherLabelDraft)
+			if (labelError) {
+				allErrors.label = labelError
+			}
 		}
 		if (images == '') {
 			console.log('no images')
@@ -894,14 +944,19 @@ const NewReportModal = ({
 		if (selectedAgency === '') {
 			setTopics([])
 			setSources([])
+			setActiveLabels([])
 		} else {
 			const docRef = doc(db, 'tags', selectedAgencyId)
 			const docSnap = await getDoc(docRef)
 			if (docSnap.exists()) {
 				const topicData = docSnap.get('Topic')['active']
 				const sourceData = docSnap.get('Source')['active']
+				const labelData = docSnap.get('Labels')?.active || []
 				setTopics(topicData)
 				setSources(sourceData)
+				setActiveLabels(labelData)
+			} else {
+				setActiveLabels(DEFAULT_AGENCY_LABELS)
 			}
 		}
 	}
@@ -955,6 +1010,15 @@ const NewReportModal = ({
 					value: selectedSource,
 				}
 			: null)
+
+	const labelOptions = buildLabelOptions(activeLabels).map((label) => ({
+		label,
+		value: label,
+	}))
+
+	const labelSelectValue =
+		labelOptions.find((o) => o.value === selectedLabel) ??
+		(selectedLabel ? { label: selectedLabel, value: selectedLabel } : null)
 
 	return (
 		<div className="bk-white h-full w-full">
@@ -1124,6 +1188,37 @@ const NewReportModal = ({
 										</div>
 									)}
 								</div>
+							</div>
+							<div className="mt-4 mb-0.5">
+								<Select
+									className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									id="label-selection"
+									type="text"
+									placeholder={t('label_optional')}
+									options={labelOptions}
+									onChange={handleLabelChange}
+									value={labelSelectValue}
+								/>
+								{selectedLabel === OTHER_LABEL && (
+									<div className="mt-4 mb-0.5">
+										<input
+											id="label-other"
+											className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline py-2 px-3"
+											type="text"
+											placeholder={t('custom_label', {
+												max: CUSTOM_LABEL_MAX_LENGTH,
+											})}
+											onChange={handleOtherLabelChange}
+											value={otherLabelDraft}
+											maxLength={CUSTOM_LABEL_MAX_LENGTH}
+										/>
+										{(otherLabelError || errors.label) && (
+											<span className="text-red-500">
+												{otherLabelError || errors.label}
+											</span>
+										)}
+									</div>
+								)}
 							</div>
 							<>
 								<div className="mt-4 mb-0.5">{t('detailed')}</div>
