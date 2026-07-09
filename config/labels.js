@@ -3,7 +3,7 @@
  * App-wide defaults are fixed; agencies may add custom labels via the Other flow.
  */
 
-export const APP_WIDE_LABELS = [
+const APP_WIDE_LABELS = [
 	'To Investigate',
 	'Misinfo',
 	'Not Misinfo',
@@ -15,7 +15,7 @@ export const OTHER_LABEL = 'Other'
 export const CUSTOM_LABEL_MAX_LENGTH = 40
 
 /** Legacy labels kept for display on existing reports. */
-export const LEGACY_LABELS = [
+const LEGACY_LABELS = [
 	'Investigated: Flagged',
 	'Investigated: Benign',
 ]
