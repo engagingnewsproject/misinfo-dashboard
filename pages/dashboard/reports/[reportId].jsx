@@ -44,6 +44,8 @@ import SwitchRead from "../../../components/profile/SwitchRead"
 import Link from "next/link"
 import Image from 'next/image';
 import globalStyles from '../../../styles/globalStyles';
+import FormInput from '../../../components/ui/FormInput'
+import FormTextarea from '../../../components/ui/FormTextarea'
 
 /**
  * ReportDetails Page
@@ -290,9 +292,10 @@ const ReportDetails = () => {
 						</select>
 						{selectedLabel === OTHER_LABEL && (
 							<div className="mt-3">
-								<input
+								<FormInput
 									type="text"
 									id="other-label"
+									label={`Specify label (max ${CUSTOM_LABEL_MAX_LENGTH} characters)`}
 									value={otherLabelDraft}
 									onChange={handleOtherLabelChange}
 									onBlur={handleOtherLabelCommit}
@@ -303,8 +306,7 @@ const ReportDetails = () => {
 										}
 									}}
 									maxLength={CUSTOM_LABEL_MAX_LENGTH}
-									placeholder={`Specify label (max ${CUSTOM_LABEL_MAX_LENGTH} characters)`}
-									className="border transition ease-in-out w-full text-sm font-light bg-white rounded-xl p-3 border-none focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none"
+									className="bg-white"
 								/>
 								{otherLabelError && (
 									<p className="mt-1 text-sm text-red-600">{otherLabelError}</p>
@@ -351,16 +353,14 @@ const ReportDetails = () => {
 				<div className="right-side">
 					<div>
 						<div className={`${globalStyles.heading.h2.black} mb-2`}>Newsroom's Notes</div>
-						<textarea
+						<FormTextarea
 							id="notes"
+							label="Newsroom's Notes"
 							onChange={handleNotesChange}
-							placeholder="No notes yet..."
-							className="border transition ease-in-out w-full text-md font-light bg-white rounded-xl p-4 border-none
-              focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none mb-12"
-							rows="4"
-              defaultValue={info['note']}
-              >
-            </textarea>
+							className="bg-white mb-12"
+							rows={4}
+							defaultValue={info['note']}
+						/>
             {update &&
 							<div className="-mt-8 flex float-right mb-6">
               <button onClick={revertBack}

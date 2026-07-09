@@ -40,7 +40,9 @@ import {
 	deleteObject,
 	uploadBytesResumable,
 } from 'firebase/storage'
-import Select from 'react-select'
+import FormInput from '../../ui/FormInput'
+import FormTextarea from '../../ui/FormTextarea'
+import FormSelect from '../../ui/FormSelect'
 import { useTranslation } from 'next-i18next'
 import { Typography } from '@material-tailwind/react'
 
@@ -1044,21 +1046,14 @@ const NewReportModal = ({
 						</div>
 						<form onChange={handleChange} onSubmit={handleNewReport}>
 							<div className="mt-4 mb-0.5">
-								<Select
-									className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								<FormSelect
 									id="state"
-									type="text"
 									required
-									placeholder={t('state_text')}
+									label={t('state_text')}
 									value={data.state}
 									options={State.getStatesOfCountry(data.country)}
-									getOptionLabel={(options) => {
-										return options['name']
-									}}
-									getOptionValue={(options) => {
-										return options['name']
-									}}
-									label="state"
+									getOptionLabel={(options) => options['name']}
+									getOptionValue={(options) => options['name']}
 									onChange={handleStateChange}
 								/>
 								{errors.state && data.state === null && (
@@ -1067,22 +1062,16 @@ const NewReportModal = ({
 							</div>
 
 							<div className="mt-4 mb-0.5">
-								<Select
-									className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								<FormSelect
 									id="city"
-									type="text"
-									placeholder={t('city_text')}
+									label={t('city_text')}
 									value={data.city}
 									options={City.getCitiesOfState(
 										data.state?.countryCode,
 										data.state?.isoCode,
 									)}
-									getOptionLabel={(options) => {
-										return options['name']
-									}}
-									getOptionValue={(options) => {
-										return options['name']
-									}}
+									getOptionLabel={(options) => options['name']}
+									getOptionValue={(options) => options['name']}
 									onChange={handleCityChange}
 								/>
 								{errors.city && data.city === null && (
@@ -1113,11 +1102,10 @@ const NewReportModal = ({
 							</div>
 
 							<div className="mt-4 mb-0.5">
-								<input
-									className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								<FormInput
 									id="title"
 									type="text"
-									placeholder={t('add_title')}
+									label={t('add_title')}
 									required
 									onChange={handleTitleChange}
 									value={title}
@@ -1125,11 +1113,9 @@ const NewReportModal = ({
 							</div>
 
 							<div className="mt-4 mb-0.5">
-								<Select
-									className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								<FormSelect
 									id="topic-selection"
-									type="text"
-									placeholder={t('topic')}
+									label={t('topic')}
 									options={topicOptions}
 									onChange={handleTopicChange}
 									value={topicSelectValue}
@@ -1143,25 +1129,22 @@ const NewReportModal = ({
 											<div className="mt-4 mb-0.5 text-zinc-500 pr-3">
 												{t('custom_topic')}
 											</div>
-											<input
+											<FormInput
 												id="topic-other"
-												className="rounded shadow-md border-zinc-400 w-60"
+												className="w-60"
 												type="text"
-												placeholder={t('specify_topic')}
+												label={t('specify_topic')}
 												onChange={handleOtherTopicChange}
 												value={otherTopic}
-												style={{ fontSize: '14px' }}
 											/>
 										</div>
 									)}
 								</div>
 							</div>
 							<div className="mt-4 mb-0.5">
-								<Select
-									className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								<FormSelect
 									id="source-selection"
-									type="text"
-									placeholder="Source"
+									label="Source"
 									options={sourceOptions}
 									onChange={handleSourceChangeOther}
 									value={sourceSelectValue}
@@ -1176,36 +1159,32 @@ const NewReportModal = ({
 											<div className="mt-4 mb-0.5 text-zinc-500 pr-3">
 												{t('custom_source')}
 											</div>
-											<input
+											<FormInput
 												id="source-other"
-												className="rounded shadow-md border-zinc-400 w-60"
+												className="w-60"
 												type="text"
-												placeholder={t('source')}
+												label={t('source')}
 												onChange={handleOtherSourceChange}
 												value={otherSource}
-												style={{ fontSize: '14px' }}
 											/>
 										</div>
 									)}
 								</div>
 							</div>
 							<div className="mt-4 mb-0.5">
-								<Select
-									className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								<FormSelect
 									id="label-selection"
-									type="text"
-									placeholder={t('label_optional')}
+									label={t('label_optional')}
 									options={labelOptions}
 									onChange={handleLabelChange}
 									value={labelSelectValue}
 								/>
 								{selectedLabel === OTHER_LABEL && (
 									<div className="mt-4 mb-0.5">
-										<input
+										<FormInput
 											id="label-other"
-											className="border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline py-2 px-3"
 											type="text"
-											placeholder={t('custom_label', {
+											label={t('custom_label', {
 												max: CUSTOM_LABEL_MAX_LENGTH,
 											})}
 											onChange={handleOtherLabelChange}
@@ -1223,34 +1202,31 @@ const NewReportModal = ({
 							<>
 								<div className="mt-4 mb-0.5">{t('detailed')}</div>
 								<div className="mt-4 mb-0.5">
-									<input
-										className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									<FormInput
 										id="link"
 										type="text"
-										placeholder={t('link')}
+										label={t('link')}
 										onChange={(e) => setLink(e.target.value)}
 										value={link}
 									/>
 								</div>
 								<div className="mt-4 mb-0.5">
-									<input
-										className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									<FormInput
 										id="secondLink"
 										type="text"
-										placeholder={t('second_link')}
+										label={t('second_link')}
 										onChange={(e) => setSecondLink(e.target.value)}
 										value={secondLink}
 									/>
 								</div>
 								<div className="mt-4 mb-0.5">
-									<textarea
-										className="border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									<FormTextarea
 										id="detail"
-										type="text"
-										placeholder={t('detailed')}
+										label={t('detailed')}
 										onChange={(e) => setDetail(e.target.value)}
 										value={detail}
-										rows="5"></textarea>
+										rows={5}
+									/>
 								</div>
 								<div className="mt-4 mb-0.5">
 									<label className="block">

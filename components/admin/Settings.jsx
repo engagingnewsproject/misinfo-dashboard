@@ -28,7 +28,7 @@ import globalStyles from '../../styles/globalStyles';
 import { collection, query, where, setDoc, getDoc, getDocs, doc } from "firebase/firestore"; 
 import { db, auth } from "../../config/firebase"
 import {List,ListItem} from "@material-tailwind/react"
-import Select from 'react-select';
+import FormSelect from '../ui/FormSelect';
 import { Country, State, City } from 'country-state-city';
 
 /**
@@ -190,37 +190,23 @@ const Settings = () => {
         <div>
             <div className={globalStyles.heading.h2.blue}>Agency Location</div>
 
-            <Select
-            className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            <FormSelect
             id="state"
-            type="text"
             required
-            placeholder="State"
-
+            label="State"
             value={stateSelected.state }
             options={State.getStatesOfCountry('US')}
-            getOptionLabel={(options) => {
-              return options['name'];
-            }}
-            getOptionValue={(options) => {
-              return options['name'];
-            }}
-            label="state"
+            getOptionLabel={(options) => options['name']}
+            getOptionValue={(options) => options['name']}
             onChange={handleStateChange}
           />
           <div className={globalStyles.heading.h2.blue}>Agencies</div>
 
-          <Select
-            className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          <FormSelect
             options={agencies}
-            placeholder="Agency Name"
-
-            getOptionLabel={(options) => {
-              return options['name']
-            }}
-            getOptionValue={(options) => {
-              return options['name'];
-            }}
+            label="Agency Name"
+            getOptionLabel={(options) => options['name']}
+            getOptionValue={(options) => options['name']}
             onChange={handleAgencyChange}/>
           {customClaims.admin && <div className={globalStyles.heading.h2.blue}>Tags</div>}
           {agencyID == null &&        
