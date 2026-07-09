@@ -25,6 +25,7 @@ import Link from 'next/link'
 import Image from "next/image"
 import { useAuth } from '../context/AuthContext'
 import Head from 'next/head'
+import FormInput from '../components/ui/FormInput'
 
 /**
  * ResetPassword Page
@@ -99,11 +100,10 @@ const ResetPassword = () => {
 						onSubmit={handleReset}>
 						{!emailSent && (
 							<div className="mb-4">
-								<input
-									className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								<FormInput
 									id="email"
-									type="text"
-									placeholder="Email"
+									type="email"
+									label="Email"
 									required
 									value={email}
 									onChange={handleChange}

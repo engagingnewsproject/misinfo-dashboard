@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { RiDeleteBin2Fill } from "react-icons/ri"
 import { useTranslation } from "next-i18next"
+import FormInput from "../../ui/FormInput"
 
 const ShareReportModal = ({
 	func,
@@ -47,15 +48,12 @@ const ShareReportModal = ({
 						<div className='mt-6 flex flex-col justify-between'>
 							<div>
 								{/* Email */}
-								<label htmlFor='email' className={style.modal_form_label}>
-									Email
-								</label>
-								<input
-									className={style.modal_form_input}
+								<FormInput
 									id='email'
-									type='text'
-									onChange={onEmailChange}
+									type='email'
+									label='Email'
 									placeholder='email@email.com'
+									onChange={onEmailChange}
 								/>
 							</div>
 							<button

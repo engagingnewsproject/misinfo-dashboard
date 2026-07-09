@@ -12,7 +12,8 @@
  */
 
 import React from 'react'
-import { Typography, Card, List, ListItem, Input } from '@material-tailwind/react'
+import { Typography, Card, List, ListItem } from '@material-tailwind/react'
+import FormInput from '../../ui/FormInput'
 import { IoIosInformationCircle } from "react-icons/io"
 import { useTranslation } from 'next-i18next'
 import globalStyles from '../../../styles/globalStyles'
@@ -74,7 +75,7 @@ const SourceSelectionStep = ({
       )}
       {showOtherSource && (
         <div className='w-full'>
-          <Input
+          <FormInput
             label={t("custom_source")}
             value={otherSource}
             onChange={handleOtherSourceChange}

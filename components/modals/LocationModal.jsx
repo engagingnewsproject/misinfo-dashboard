@@ -13,7 +13,7 @@ import {
 } from "firebase/firestore"
 import { useTranslation } from 'next-i18next';
 import { State, City } from "country-state-city"
-import Select from "react-select"
+import FormSelect from "../ui/FormSelect"
 
 const LocationModal = ({ setLocationModal }) => {
     const {t} = useTranslation("Profile")
@@ -92,43 +92,30 @@ const LocationModal = ({ setLocationModal }) => {
               </div>
               <form  onSubmit={handleUserLocationChange}>
                   <div className="mb-4">
-                    <Select
-                    className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    <FormSelect
                     id="state"
                     name='state'
-                    type="text"
                     required
-                    placeholder={t("NewReport:state_text")}
+                    label={t("NewReport:state_text")}
                     value={userLocation?.state}
                     options={State.getStatesOfCountry("US")}
-                    getOptionLabel={(options) => {
-                    return options["name"];
-                    }}
-                    getOptionValue={(options) => {
-                    return options["name"];
-                    }}                                
-                    label="state"
+                    getOptionLabel={(options) => options["name"]}
+                    getOptionValue={(options) => options["name"]}
                     onChange={handleStateChange}
                     />
                   </div>
                   <div className="mb-0.5">
-                    <Select
-                      className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    <FormSelect
                       id="city"
-                      type="text"
                       name='city'
-                      placeholder={t("NewReport:city_text")}
+                      label={t("NewReport:city_text")}
                       value={userLocation?.city}
                       options={City.getCitiesOfState(
                       userLocation?.state?.countryCode,
                       userLocation?.state?.isoCode
                       )}
-                      getOptionLabel={(options) => {
-                      return options["name"];
-                      }}
-                      getOptionValue={(options) => {
-                      return options["name"];
-                      }}                                 
+                      getOptionLabel={(options) => options["name"]}
+                      getOptionValue={(options) => options["name"]}
                       onChange={handleCityChange}
                       />
                   </div>

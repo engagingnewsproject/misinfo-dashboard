@@ -4,6 +4,7 @@ import {
 	CUSTOM_LABEL_MAX_LENGTH,
 	validateCustomLabel,
 } from '../../../config/labels'
+import FormInput from '../../ui/FormInput'
 
 /**
  * Modal for creating a new custom agency label from Tagging Systems.
@@ -47,11 +48,10 @@ const NewLabelModal = ({ existingLabels, onClose, onAdd }) => {
 					</div>
 					<form onSubmit={handleSubmit}>
 						<div className="mb-2">
-							<input
-								className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+							<FormInput
 								id="newLabel"
 								type="text"
-								placeholder="New label"
+								label="New label"
 								value={label}
 								maxLength={CUSTOM_LABEL_MAX_LENGTH}
 								required

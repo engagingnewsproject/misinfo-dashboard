@@ -3,7 +3,8 @@ import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../../context/AuthContext'
 import { useTranslation } from 'next-i18next';
 import { auth } from '../../../config/firebase'
-import { MdOutlineRemoveRedEye } from "react-icons/md"; // <MdOutlineRemoveRedEye />
+import { MdOutlineRemoveRedEye } from "react-icons/md";
+import FormInput from '../../ui/FormInput'
 
 const UpdatePwModal = ({ setOpenModal }) => {
     const {t} = useTranslation("Profile")
@@ -67,38 +68,41 @@ const UpdatePwModal = ({ setOpenModal }) => {
                     </div>
                     <form onChange={handleChange} onSubmit={handleUpdatePW}>
                         <div className="flex flex-col mb-4">
-                            <label className='text-xs text-gray-400'>{t('email')}</label>
-                            <input
-                                className="border-none rounded-md w-full py-3 px-3 text-sm text-gray-400 leading-tight"
+                            <FormInput
+                                label={t('email')}
                                 value={user.email}
                                 disabled
                                 id="username"
                                 autoComplete='username'/>
                         </div>
-                        <div className={`flex ${incorrectPassword ? 'mb-0' : 'mb-4'}`}>
-                            <input
-                                className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        <div className={incorrectPassword ? 'mb-0' : 'mb-4'}>
+                            <FormInput
                                 id="currentPassword"
                                 type={type}
                                 name='current password'
-                                placeholder={t('currentPassword')}
+                                label={t('currentPassword')}
                                 required
                                 value={data.currentPassword}
                                 onChange={handleChange}
                                 autoComplete='current-password'
+                                icon={
+                                    <button
+                                        type="button"
+                                        className="cursor-pointer"
+                                        onClick={handleTogglePass}
+                                        aria-label="Toggle password visibility">
+                                        <MdOutlineRemoveRedEye />
+                                    </button>
+                                }
                                 />
-                                <span className="flex justify-around items-center" onClick={handleTogglePass}>
-                                    <MdOutlineRemoveRedEye className='absolute mr-10' />
-                                </span>
                         </div>
                         {incorrectPassword && <span className="text-red-500 text-sm font-light">Incorrect password</span>}
-                        <div className="mb-0.5 flex">
-                            <input
-                                className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        <div className="mb-0.5">
+                            <FormInput
                                 id="newPassword"
                                 type={type}
                                 name='new password'
-                                placeholder={t('newPassword')}
+                                label={t('newPassword')}
                                 required
                                 value={data.newPassword}
                                 onChange={handleChange}
@@ -107,12 +111,11 @@ const UpdatePwModal = ({ setOpenModal }) => {
                         </div>
                         {data.newPassword.length > 0 && data.newPassword.length < 8 && <span className="text-red-500 text-sm font-light">New password must be atleast 8 characters</span>}
                         <div className="mt-4 mb-0.5">
-                            <input
-                                className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            <FormInput
                                 id="confirmNewPW"
                                 type={type}
                                 name="confirm password"
-                                placeholder={t('confirmPassword')}
+                                label={t('confirmPassword')}
                                 required
                                 value={data.confirmNewPW}
                                 onChange={handleChange}

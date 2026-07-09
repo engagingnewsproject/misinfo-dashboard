@@ -23,6 +23,8 @@
 
 import React, { useEffect, useState } from "react"
 import { Switch } from "@material-tailwind/react";
+import FormInput from '../../ui/FormInput'
+import FormTextarea from '../../ui/FormTextarea'
 import ButtonEmailSend from "../../partials/ButtonEmailSend"
 import ShareReportModal from "../../partials/modals/ShareReportModal"
 import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"
@@ -241,9 +243,8 @@ const ReportModal = ({
 
 									{/* Report Description/Detail */}
 									<div className='mb-5'>
-										<div className={style.header}>Description</div>
-										<textarea
-											placeholder='No detail provided'
+										<FormTextarea
+											label='Description'
 											id='detail'
 											className={
 												report.detail
@@ -251,8 +252,8 @@ const ReportModal = ({
 													: style.textarea + ` italic`
 											}
 											disabled
-											value={report.detail}
-											rows='6'
+											value={report.detail || ''}
+											rows={6}
 										/>
 									</div>
 
@@ -426,14 +427,15 @@ const ReportModal = ({
 							{/* Notes Section */}
 							<div>
 								<div className={style.header}>Newsroom's Notes</div>
-								<textarea
+								<FormTextarea
 									id='note'
+									label="Newsroom's Notes"
 									onChange={onNoteChange}
-									placeholder='No notes yet...'
 									className={note ? style.textarea : style.textarea + ` italic`}
-									rows='6'
-									readOnly={customClaims.admin ? true : false} // Admin users cannot edit notes
-									defaultValue={note}></textarea>
+									rows={6}
+									readOnly={customClaims.admin ? true : false}
+									value={note || ''}
+								/>
 							</div>
 							
 							{/* Actions Section */}
@@ -454,9 +456,10 @@ const ReportModal = ({
 									</select>
 									{selectedLabel === OTHER_LABEL && (
 										<div className='mt-3'>
-											<input
+											<FormInput
 												type='text'
 												id='other-label'
+												label={`Specify label (max ${CUSTOM_LABEL_MAX_LENGTH} characters)`}
 												value={otherLabelDraft}
 												onChange={onOtherLabelChange}
 												onBlur={onOtherLabelCommit}
@@ -467,8 +470,7 @@ const ReportModal = ({
 													}
 												}}
 												maxLength={CUSTOM_LABEL_MAX_LENGTH}
-												placeholder={`Specify label (max ${CUSTOM_LABEL_MAX_LENGTH} characters)`}
-												className='border transition ease-in-out w-full text-sm font-light bg-white rounded-xl p-3 border-none focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none'
+												className='bg-white'
 											/>
 											{otherLabelError && (
 												<p className='mt-1 text-sm text-red-600'>{otherLabelError}</p>

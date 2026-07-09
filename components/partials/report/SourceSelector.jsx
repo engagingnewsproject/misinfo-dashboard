@@ -1,5 +1,6 @@
 import React from 'react';
-import { List, ListItem, Input, Typography } from '@material-tailwind/react';
+import { List, ListItem, Typography } from '@material-tailwind/react';
+import FormInput from '../../ui/FormInput';
 import { IoIosInformationCircle } from "react-icons/io";
 import { useTranslation } from 'next-i18next'; // Import the useTranslation hook
 
@@ -19,7 +20,7 @@ const SourceSelector = ({ sources, selectedSource, handleSourceChange, showOther
             ))}
             {showOtherSource && (
                 <div className='w-full'>
-                    <Input
+                    <FormInput
                         type='text'
                         label={t("custom_source")}
                         value={otherSource}

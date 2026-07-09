@@ -17,6 +17,7 @@ import {
 } from '../../utils/experiment-config'
 import globalStyles from '../../styles/globalStyles'
 import { Button, Typography } from '@material-tailwind/react'
+import FormInput from '../ui/FormInput'
 
 /** @param {unknown} err */
 function formatCallableError(err, fallback) {
@@ -252,34 +253,29 @@ const ExperimentSettings = () => {
 						active when they are created.
 					</p>
 					<div className="flex flex-col gap-2">
-						<label className="flex flex-col gap-1">
-							<span className="text-sm">Experiment id</span>
-							<input
-								type="text"
-								className="border rounded px-2 py-1 font-mono text-sm"
-								placeholder="2027-main"
-								value={newExperimentId}
-								onChange={(e) =>
-									setNewExperimentId(slugifyExperimentId(e.target.value))
-								}
-								autoComplete="off"
-								spellCheck={false}
-							/>
-							<span className="text-xs text-gray-500">
-								Lowercase letters, numbers, and hyphens only (e.g. 2027-main).
-								Spaces become hyphens as you type.
-							</span>
-						</label>
-						<label className="flex flex-col gap-1">
-							<span className="text-sm">Label</span>
-							<input
-								type="text"
-								className="border rounded px-2 py-1"
-								placeholder="2027 study"
-								value={newExperimentLabel}
-								onChange={(e) => setNewExperimentLabel(e.target.value)}
-							/>
-						</label>
+						<FormInput
+							type="text"
+							className="font-mono"
+							label="Experiment id"
+							placeholder="2027-main"
+							value={newExperimentId}
+							onChange={(e) =>
+								setNewExperimentId(slugifyExperimentId(e.target.value))
+							}
+							autoComplete="off"
+							spellCheck={false}
+						/>
+						<span className="text-xs text-gray-500">
+							Lowercase letters, numbers, and hyphens only (e.g. 2027-main).
+							Spaces become hyphens as you type.
+						</span>
+						<FormInput
+							type="text"
+							label="Label"
+							placeholder="2027 study"
+							value={newExperimentLabel}
+							onChange={(e) => setNewExperimentLabel(e.target.value)}
+						/>
 						<label className="flex items-center gap-2 text-sm">
 							<input
 								type="checkbox"

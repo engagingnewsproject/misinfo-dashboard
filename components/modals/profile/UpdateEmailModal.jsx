@@ -3,6 +3,7 @@ import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../../context/AuthContext'
 import { useTranslation } from 'next-i18next';
 import { auth } from '../../../config/firebase'
+import FormInput from '../../ui/FormInput'
 
 const UpdateEmailModal = ({ setEmailModal }) => {
     const {t} = useTranslation("Profile")
@@ -52,11 +53,10 @@ const UpdateEmailModal = ({ setEmailModal }) => {
                     </div>
                     <form onChange={handleChange} onSubmit={handleUpdateEmail}>
                         <div className="mb-4">
-                            <input
-                                className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            <FormInput
                                 id="currentEmail"
                                 type="email"
-                                placeholder={t('currentEmail')}
+                                label={t('currentEmail')}
                                 required
                                 value={data.currentEmail}
                                 onChange={handleChange}
@@ -64,11 +64,10 @@ const UpdateEmailModal = ({ setEmailModal }) => {
                                 />
                         </div>
                         <div className={incorrectPassword ? 'mb-0' : 'mb-4'}>
-                            <input
-                                className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            <FormInput
                                 id="currentPassword"
                                 type="password"
-                                placeholder="Verify password"
+                                label="Verify password"
                                 required
                                 value={data.currentPassword}
                                 onChange={handleChange}
@@ -77,11 +76,10 @@ const UpdateEmailModal = ({ setEmailModal }) => {
                         </div>
                         {incorrectPassword && <span className="text-red-500 text-sm font-light">Incorrect password</span>}
                         <div className="mb-0.5">
-                            <input
-                                className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            <FormInput
                                 id="newEmail"
                                 type="email"
-                                placeholder={t('newEmail')}
+                                label={t('newEmail')}
                                 required
                                 value={data.newEmail}
                                 onChange={handleChange}

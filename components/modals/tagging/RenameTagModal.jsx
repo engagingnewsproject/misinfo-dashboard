@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { IoClose } from "react-icons/io5"
-import * as Sentry from '@sentry/react'
+import FormInput from '../../ui/FormInput'
 
 const RenameTagModal = ({ replaceTag, selected, list, setRenameTagModal, addNewTag }) => {
     const lower = []
@@ -37,7 +37,6 @@ const RenameTagModal = ({ replaceTag, selected, list, setRenameTagModal, addNewT
                 setRenameTagModal(false)
             }
         } catch (error) {
-            Sentry.captureException(error)
             console.error("Error in handleReplaceTag:", error)
         }
     }
@@ -56,11 +55,10 @@ const RenameTagModal = ({ replaceTag, selected, list, setRenameTagModal, addNewT
                     </div>
                     <form onChange={handleChange} onSubmit={handleAddNewTag}>
                         <div className="mb-2">
-                            <input
-                                className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            <FormInput
                                 id="newTag"
                                 type="text"
-                                placeholder={selected}
+                                label={selected}
                                 value={tag}
                                 required
                                 onChange={handleChange}

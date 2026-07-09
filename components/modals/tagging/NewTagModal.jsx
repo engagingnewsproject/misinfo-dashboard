@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { IoClose } from "react-icons/io5"
+import FormInput from '../../ui/FormInput'
 
 const NewTagModal = ({ tagSystems, tagSystem, list, setNewTagModal, addNewTag }) => {
     const lower = []
@@ -38,11 +39,10 @@ const NewTagModal = ({ tagSystems, tagSystem, list, setNewTagModal, addNewTag })
                     </div>
                     <form onChange={handleChange} onSubmit={handleAddNewTag}>
                         <div className="mb-2">
-                            <input
-                                className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            <FormInput
                                 id="newTag"
                                 type="text"
-                                placeholder="New Tag"
+                                label="New Tag"
                                 value={tag}
                                 required
                                 onChange={handleChange}

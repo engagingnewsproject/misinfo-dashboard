@@ -1,7 +1,8 @@
 import React, { Fragment, useEffect, useMemo, useState } from "react"
 import { IoClose } from "react-icons/io5"
 import { Switch } from "@headlessui/react"
-import Select from "react-select"
+import FormInput from '../../ui/FormInput'
+import FormSelect from '../../ui/FormSelect'
 import { State, City } from "country-state-city"
 
 const EditUserModal = ({
@@ -667,13 +668,14 @@ const EditUserModal = ({
 			})()
 			return (
 				<div className='flex flex-col gap-1'>
-					<input
+					<FormInput
 						{...commonInputProps}
 						type='text'
+						label='Timestamp (ISO or Firestore JSON)'
+						placeholder='2024-10-31T12:00:00Z or {"seconds": 1698676800, "nanoseconds": 0}'
 						value={draftValue}
 						onChange={(event) => handleTimestampDraftChange(fieldKey, event.target.value)}
 						onBlur={() => handleTimestampCommit(fieldKey)}
-						placeholder='2024-10-31T12:00:00Z or {"seconds": 1698676800, "nanoseconds": 0}'
 					/>
 					{previewDate && (
 						<div className='text-xs text-slate-600'>Readable date: {previewDate}</div>
@@ -690,23 +692,27 @@ const EditUserModal = ({
 			return (
 				<div className='flex flex-col gap-1'>
 					<div className='grid grid-cols-2 gap-2'>
-						<input
-							{...commonInputProps}
+						<FormInput
 							type='number'
 							step='any'
+							label='Latitude'
+							className={commonInputProps.className}
+							disabled={commonInputProps.disabled}
+							id={`${inputId}-latitude`}
 							value={draft.latitude}
 							onChange={(event) => handleGeoPointDraftChange(fieldKey, 'latitude', event.target.value)}
 							onBlur={() => handleGeoPointCommit(fieldKey)}
-							placeholder='Latitude'
 						/>
-						<input
-							{...commonInputProps}
+						<FormInput
 							type='number'
 							step='any'
+							label='Longitude'
+							className={commonInputProps.className}
+							disabled={commonInputProps.disabled}
+							id={`${inputId}-longitude`}
 							value={draft.longitude}
 							onChange={(event) => handleGeoPointDraftChange(fieldKey, 'longitude', event.target.value)}
 							onBlur={() => handleGeoPointCommit(fieldKey)}
-							placeholder='Longitude'
 						/>
 					</div>
 					{geoPointErrors[fieldKey] && (
@@ -817,12 +823,10 @@ const EditUserModal = ({
 									</div>
 								)}
 
-								<label htmlFor='state' className={style.modal_form_label}>State</label>
 								<div className='col-span-2'>
-									<Select
-										inputId='state'
-										className='text-sm'
-										classNamePrefix='location-select'
+									<FormSelect
+										id='state'
+										label='State'
 										isDisabled={!isAdmin || !isEditingLocation}
 										value={selectedStateOption}
 										onChange={(option) => {
@@ -836,16 +840,15 @@ const EditUserModal = ({
 										options={stateOptions}
 										getOptionLabel={(option) => option.name}
 										getOptionValue={(option) => option.isoCode}
-										placeholder='Select a state'
 									/>
 								</div>
 
-								<label htmlFor='city' className={style.modal_form_label}>City</label>
 								<div className='col-span-2'>
-									<Select
-										inputId='city'
-										className='text-sm'
-										classNamePrefix='location-select'
+									<FormSelect
+										id='city'
+										label={
+											selectedStateOption ? 'City' : 'Select a state first'
+										}
 										isDisabled={
 											!isAdmin || !isEditingLocation || !selectedStateOption
 										}
@@ -860,9 +863,6 @@ const EditUserModal = ({
 										getOptionLabel={(option) => option.name}
 										getOptionValue={(option) =>
 											`${option.name}-${option.stateCode}-${option.latitude}-${option.longitude}`
-										}
-										placeholder={
-											selectedStateOption ? 'Select a city' : 'Select a state first'
 										}
 									/>
 								</div>
