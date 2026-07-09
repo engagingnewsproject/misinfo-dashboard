@@ -19,6 +19,7 @@ import {
 	validateCustomLabel,
 } from '../../../config/labels'
 import { addAgencyCustomLabel } from '../../../utils/label-tags'
+import LabelOptionWithDot from '../../reports/LabelOptionWithDot'
 import { State, City } from 'country-state-city'
 import {
 	getDoc,
@@ -123,6 +124,7 @@ const NewReportModal = ({
 	const [allSourcesArr, setSources] = useState([])
 	const [selectedSource, setSelectedSource] = useState('')
 	const [activeLabels, setActiveLabels] = useState([])
+	const [agencyLabelColors, setAgencyLabelColors] = useState({})
 	const [selectedLabel, setSelectedLabel] = useState(DEFAULT_REPORT_LABEL)
 	const [otherLabelDraft, setOtherLabelDraft] = useState('')
 	const [otherLabelError, setOtherLabelError] = useState('')
@@ -947,6 +949,7 @@ const NewReportModal = ({
 			setTopics([])
 			setSources([])
 			setActiveLabels([])
+			setAgencyLabelColors({})
 		} else {
 			const docRef = doc(db, 'tags', selectedAgencyId)
 			const docSnap = await getDoc(docRef)
@@ -957,8 +960,10 @@ const NewReportModal = ({
 				setTopics(topicData)
 				setSources(sourceData)
 				setActiveLabels(labelData)
+				setAgencyLabelColors(docSnap.get('Labels')?.colors || {})
 			} else {
 				setActiveLabels(DEFAULT_AGENCY_LABELS)
+				setAgencyLabelColors({})
 			}
 		}
 	}
@@ -1034,9 +1039,9 @@ const NewReportModal = ({
 							e.stopPropagation()
 						}}
 						className={`flex-col justify-center items-center bg-white w-full h-full py-10 px-10 z-50 md:w-8/12 md:h-auto lg:w-6/12 rounded-2xl`}>
-						<div className="flex justify-between w-full mb-5">
+						<div className="flex justify-between items-start w-full mb-5">
 							<div className="text-md font-bold text-blue-600 tracking-wide">
-								{t('add_report')}
+								<Typography variant='h5'>{t('add_report')}</Typography>
 							</div>
 							<button
 								onClick={handleNewReportModalClose}
@@ -1077,28 +1082,6 @@ const NewReportModal = ({
 								{errors.city && data.city === null && (
 									<span className="text-red-500">{errors.city}</span>
 								)}
-							</div>
-
-							<div className="mt-4 mb-0.5">
-								{/* 1) function: handleAgencyChange
-                  <Select
-                    className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    id="agency-selection"
-                    type="text"
-                    placeholder={t('agency')}
-                    options={agencies.map((agency) => ({
-                      label: agency, // The agency name displayed
-                      value: agency, // The agency name used as the value
-                    }))}
-                    onChange={handleAgencyChange}
-                    value={selectedAgency} // Ensure this is a string
-                  />
-                  {errors.agency && !selectedAgency && (
-                    <span className="text-red-500">{errors.agency}</span>
-                  )}
-                */}
-								{/* 2) function: getAgencyForUser */}
-								<Typography>Agency: {selectedAgency}</Typography>
 							</div>
 
 							<div className="mt-4 mb-0.5">
@@ -1156,9 +1139,9 @@ const NewReportModal = ({
 								<div className="mt-4 mb-0.5">
 									{showOtherSource && (
 										<div className="flex">
-											<div className="mt-4 mb-0.5 text-zinc-500 pr-3">
+											{/* <div className="mt-4 mb-0.5 text-zinc-500 pr-3">
 												{t('custom_source')}
-											</div>
+											</div> */}
 											<FormInput
 												id="source-other"
 												className="w-60"
@@ -1178,6 +1161,12 @@ const NewReportModal = ({
 									options={labelOptions}
 									onChange={handleLabelChange}
 									value={labelSelectValue}
+									formatOptionLabel={(option) => (
+										<LabelOptionWithDot
+											label={option.label}
+											agencyLabelColors={agencyLabelColors}
+										/>
+									)}
 								/>
 								{selectedLabel === OTHER_LABEL && (
 									<div className="mt-4 mb-0.5">
@@ -1268,6 +1257,12 @@ const NewReportModal = ({
 									type="submit">
 									{t('createReport')}
 								</button>
+								<div className='flex items-center justify-center gap-2 pt-4'>
+									<Typography className='uppercase text-xs font-bold' color='gray'>Agency:</Typography>
+									<Typography className='uppercase text-xs font-medium' color='gray'>
+										{selectedAgency}
+									</Typography>
+								</div>
 							</div>
 						</form>
 					</div>
