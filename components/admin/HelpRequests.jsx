@@ -34,27 +34,18 @@ import { IoTrash, IoClose } from 'react-icons/io5'
 import { Tooltip } from 'react-tooltip'
 import HelpRequestsModal from '../modals/HelpRequestsModal'
 import Link from 'next/link'
+import adminSectionStyles from '../../styles/adminSectionStyles'
+import AdminDataTable from './AdminDataTable'
 
-// Styles
-const style = {
-	section_container:
-		'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
-	section_wrapper: 'flex flex-col h-full',
-	section_header: 'flex justify-between ml-10 md:mx-0 py-5',
-	section_title: 'text-xl font-extrabold text-blue-600 tracking-wider',
-	section_filters: '',
-	section_filtersWrap: 'p-0 px-4 md:p-4 md:py-0 md:px-4 flex items-center',
-	table_main: 'min-w-full bg-white rounded-xl p-1',
-	table_thead: 'border-b dark:border-indigo-100 bg-slate-100',
-	table_th: 'px-3 p-3 text-sm font-semibold text-left tracking-wide',
-	table_tr:
-		'border-b transition duration-300 ease-in-out hover:bg-indigo-50 dark:border-indigo-100 dark:hover:bg-indigo-100',
-	table_td: 'whitespace-normal text-sm px-3 p-2 cursor-pointer',
-	table_button: 'hover:fill-cyan-700',
-	table_icon: 'ml-4 fill-gray-400 hover:fill-red-600',
-	button:
-		'flex items-center shadow ml-auto bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
-}
+const style = adminSectionStyles
+
+const HELP_REQUEST_COLUMNS = [
+	'Subject',
+	'Message',
+	'Email',
+	'Created Date',
+	{ label: 'Delete Request', center: true },
+]
 
 /**
  * HelpRequests Component
@@ -234,19 +225,7 @@ const HelpRequests = () => {
 							help requests
 						</div>
 					)}
-					<table className={style.table_main}>
-						<thead className={style.table_thead}>
-							<tr>
-								<th className={style.table_th}>Subject</th>
-								<th className={style.table_th}>Message</th>
-								<th className={style.table_th}>Email</th>
-								<th className={style.table_th}>Created Date</th>
-								<th className={`${style.table_th} text-center`}>
-									Delete Request
-								</th>
-							</tr>
-						</thead>
-						<tbody>
+					<AdminDataTable columns={HELP_REQUEST_COLUMNS}>
 							{loading && (
 								<tr>
 									<td colSpan="5" className={`${style.table_td} text-center`}>
@@ -299,10 +278,10 @@ const HelpRequests = () => {
 													onClick={async () => {
 														await handleDeleteRequest(request.id)
 													}}
-													className={`${style.icon} tooltip-delete-user`}>
+													className={`${style.table_button} tooltip-delete-user`}>
 													<IoTrash
 														size={20}
-														className="fill-gray-400 hover:fill-red-600"
+														className={style.table_icon}
 													/>
 													<Tooltip
 														anchorSelect=".tooltip-delete-user"
@@ -314,8 +293,7 @@ const HelpRequests = () => {
 											</td>
 										</tr>
 									))}
-						</tbody>
-					</table>
+					</AdminDataTable>
 				</div>
 			</div>
 
