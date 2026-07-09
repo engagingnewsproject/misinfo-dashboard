@@ -22,7 +22,7 @@
  */
 
 import React, { useState, useEffect } from 'react'
-import { tagSystems } from '../admin/Settings'
+import { tagSystems } from '../../config/tagSystems'
 import { DEFAULT_AGENCY_LABELS } from '../../config/labels'
 import NewTagModal from '../modals/NewTagModal'
 import RenameTagModal from '../modals/RenameTagModal'

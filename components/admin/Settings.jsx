@@ -31,8 +31,6 @@ import {List,ListItem} from "@material-tailwind/react"
 import Select from 'react-select';
 import { Country, State, City } from 'country-state-city';
 
-export const tagSystems = ['default', 'Topic', 'Source', 'Labels'];
-
 /**
  * Settings Component
  *
