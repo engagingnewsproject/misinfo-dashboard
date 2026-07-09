@@ -39,6 +39,11 @@ import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
 
 import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
 import { useTranslation } from 'next-i18next';
+import {
+	CUSTOM_LABEL_MAX_LENGTH,
+	DEFAULT_REPORT_LABEL,
+	OTHER_LABEL,
+} from '../../../config/labels'
 
 /**
  * ReportModal Component
@@ -51,9 +56,13 @@ import { useTranslation } from 'next-i18next';
  * @param {Object} props.customClaims - User role claims (admin, agency)
  * @param {Function} props.setReportModalShow - Function to close modal
  * @param {Object} props.report - Report data object containing all report fields
- * @param {Array<string>} props.activeLabels - Available labels for assignment
+ * @param {Array<string>} props.labelOptions - Merged label options for the dropdown
  * @param {string} props.selectedLabel - Currently selected label
  * @param {Function} props.onLabelChange - Label change handler
+ * @param {string} props.otherLabelDraft - Draft text when Other is selected
+ * @param {Function} props.onOtherLabelChange - Other label draft change handler
+ * @param {Function} props.onOtherLabelCommit - Other label commit handler (blur/Enter)
+ * @param {string} props.otherLabelError - Validation error for Other label text
  * @param {Object} props.reportSubmitBy - Report submitter information
  * @param {Function} props.onFormSubmit - Form submission handler
  * @param {boolean} props.enabled - Read/unread toggle state (legacy)
@@ -91,9 +100,13 @@ const ReportModal = ({
 	customClaims,
 	setReportModalShow,
 	report, // should hold all report fields
-	activeLabels,
+	labelOptions,
 	selectedLabel,
 	onLabelChange,
+	otherLabelDraft,
+	onOtherLabelChange,
+	onOtherLabelCommit,
+	otherLabelError,
 	reportSubmitBy,
 	onFormSubmit,
 	// read/unread
@@ -185,11 +198,11 @@ const ReportModal = ({
 	
 	return (
 		<div
-			className='fixed z-[9998] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto' // {style.overlay}
+			className='report-modal-overlay fixed z-[9998] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto' // {style.overlay}
 			onClick={() => setReportModalShow(false)}>
 			<div className='absolute flex justify-center items-center z-[9999] top-4 left-0 right-0 sm:overflow-y-scroll'>
 				<div
-					className='flex-col justify-center items-center rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible md:w-10/12 lg:w-10/12' // {style.wrap}
+					className='report-modal-wrap flex-col justify-center items-center rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible md:w-10/12 lg:w-10/12' // {style.wrap}
 					onClick={(e) => {
 						e.stopPropagation() // Prevent modal close when clicking inside
 					}}>
@@ -431,19 +444,37 @@ const ReportModal = ({
 									<select
 										id='labels'
 										onChange={onLabelChange}
-										value={selectedLabel || ''}
+										value={selectedLabel || DEFAULT_REPORT_LABEL}
 										className='text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none'>
-										
-										{/* Default option representing no label */}
-										<option value=''>{selectedLabel === '' ? 'No Label' : 'Remove Label'}</option>
-										
-										{/* Available labels from props */}
-										{activeLabels.map((label, i) => (
+										{labelOptions.map((label, i) => (
 											<option value={label} key={i}>
 												{label}
 											</option>
 										))}
 									</select>
+									{selectedLabel === OTHER_LABEL && (
+										<div className='mt-3'>
+											<input
+												type='text'
+												id='other-label'
+												value={otherLabelDraft}
+												onChange={onOtherLabelChange}
+												onBlur={onOtherLabelCommit}
+												onKeyDown={(e) => {
+													if (e.key === 'Enter') {
+														e.preventDefault()
+														onOtherLabelCommit()
+													}
+												}}
+												maxLength={CUSTOM_LABEL_MAX_LENGTH}
+												placeholder={`Specify label (max ${CUSTOM_LABEL_MAX_LENGTH} characters)`}
+												className='border transition ease-in-out w-full text-sm font-light bg-white rounded-xl p-3 border-none focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none'
+											/>
+											{otherLabelError && (
+												<p className='mt-1 text-sm text-red-600'>{otherLabelError}</p>
+											)}
+										</div>
+									)}
 									{/* Status change feedback */}
 									{changeStatus && (
 										<span className='ml-5 font-light text-sm italic'>

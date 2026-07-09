@@ -45,6 +45,17 @@ import {
 	getActiveExperimentId,
 	newReportExperimentFields,
 } from '../../utils/reports-queries'
+import {
+	buildLabelOptions,
+	DEFAULT_REPORT_LABEL,
+	OTHER_LABEL,
+	validateCustomLabel,
+} from '../../config/labels'
+import {
+	addAgencyCustomLabel,
+	fetchAgencyActiveLabels,
+	resolveAgencyIdByName,
+} from '../../utils/label-tags'
 // Icons
 import {
 	Button,
@@ -211,6 +222,7 @@ const ReportsSection = ({
 	const [readFilter, setReadFilter] = useState('all') // Read status filter
 	const [reportTitle, setReportTitle] = useState('') // Report title filter
 	const [agencyName, setAgencyName] = useState('') // Agency name for display
+	const [agencyId, setAgencyId] = useState('') // Agency Firestore ID
 	const [isAgency, setIsAgency] = useState(null) // User role flag
 	const { user, customClaims, getUserByEmail } = useAuth() // Authentication context
 	const [search, setSearch] = useState('') // Search term
@@ -247,6 +259,10 @@ const ReportsSection = ({
 	const [info, setInfo] = useState({}) // Additional report info
 	const [selectedLabel, setSelectedLabel] = useState('') // Selected label
 	const [activeLabels, setActiveLabels] = useState([]) // Available labels
+	const [modalAgencyLabels, setModalAgencyLabels] = useState([]) // Labels for modal's agency
+	const [modalAgencyId, setModalAgencyId] = useState('') // Agency ID for open modal
+	const [otherLabelDraft, setOtherLabelDraft] = useState('')
+	const [otherLabelError, setOtherLabelError] = useState('')
 	const [changeStatus, setChangeStatus] = useState('') // Status change tracking
 	const [postedDate, setPostedDate] = useState('') // Formatted posted date
 	const [reportLocation, setReportLocation] = useState('') // Report location
@@ -308,6 +324,12 @@ const ReportsSection = ({
 
 	const totalPages = Math.ceil(displayedReports.length / rowsPerPage) || 1
 
+	const labelOptions = useMemo(() => {
+		if (!reportModalShow) return []
+		const currentLabel = report?.label || DEFAULT_REPORT_LABEL
+		return buildLabelOptions(modalAgencyLabels, currentLabel)
+	}, [reportModalShow, modalAgencyLabels, report?.label])
+
 	/**
 	 * Fetches reports data from Firestore based on user role and permissions
 	 * Handles both agency-specific and admin data fetching patterns
@@ -352,7 +374,8 @@ const ReportsSection = ({
 			if (tagsDoc.exists()) {
 				agencyTags = tagsDoc.data()
 			}
-			setActiveLabels(agencyTags.Labels.active)
+			setActiveLabels(agencyTags?.Labels?.active || [])
+			setAgencyId(agencyId)
 		} else {
 			reportArr = await fetchAdminReportsList({ includeArchived })
 		}
@@ -530,13 +553,33 @@ const ReportsSection = ({
 		// Fetch report document from Firestore
 		const docRef = await getDoc(doc(db, 'reports', reportId))
 		const reportData = docRef.data()
+		const reportLabel = reportData.label || DEFAULT_REPORT_LABEL
 		setReport({ id: reportId, ...reportData })
 		setNote(docRef.data().note)
 		setReportTitle(docRef.data().title)
 		setDetail(docRef.data().detail)
-		setSelectedLabel(docRef.data().selectedLabel)
+		setSelectedLabel(reportLabel)
+		setOtherLabelDraft('')
+		setOtherLabelError('')
+		setChangeStatus('')
 		setInfo(docRef.data())
 		setReportModalId(reportId)
+
+		let resolvedAgencyId = agencyId
+		if (!resolvedAgencyId && reportData.agency) {
+			resolvedAgencyId = await resolveAgencyIdByName(reportData.agency)
+		}
+		setModalAgencyId(resolvedAgencyId || '')
+
+		if (resolvedAgencyId) {
+			const labels = await fetchAgencyActiveLabels(resolvedAgencyId)
+			setModalAgencyLabels(labels)
+			if (isAgency) {
+				setActiveLabels(labels)
+			}
+		} else {
+			setModalAgencyLabels([])
+		}
 		
 		// Only set report as read if an agency user clicks
 		// Admin users should not be changing the read status
@@ -673,19 +716,75 @@ const ReportsSection = ({
 		const newLabel = e.target.value
 		const reportId = reportModalId
 
-		// Check if the label has actually changed
-		if (newLabel !== report['label']) {
-			try {
-				const docRef = doc(db, 'reports', reportId)
-				// Update the label in the Firestore document
-				await updateDoc(docRef, { label: newLabel })
-				setSelectedLabel(newLabel) // Update the selectedLabel state
-				setUpdate(newLabel) // Trigger any necessary updates
-			} catch (error) {
-				console.error('Error updating label:', error)
+		if (newLabel === OTHER_LABEL) {
+			setSelectedLabel(OTHER_LABEL)
+			setOtherLabelDraft('')
+			setOtherLabelError('')
+			return
+		}
+
+		const currentLabel = report['label'] || DEFAULT_REPORT_LABEL
+		if (newLabel === currentLabel) {
+			setUpdate('')
+			setOtherLabelDraft('')
+			setOtherLabelError('')
+			return
+		}
+
+		try {
+			const docRef = doc(db, 'reports', reportId)
+			await updateDoc(docRef, { label: newLabel })
+			setSelectedLabel(newLabel)
+			setReport((prev) => ({ ...prev, label: newLabel }))
+			setOtherLabelDraft('')
+			setOtherLabelError('')
+			setChangeStatus('Label saved')
+			setUpdate(newLabel)
+		} catch (error) {
+			console.error('Error updating label:', error)
+		}
+	}
+
+	const handleOtherLabelChange = (e) => {
+		setOtherLabelDraft(e.target.value)
+		if (otherLabelError) {
+			setOtherLabelError('')
+		}
+	}
+
+	const handleOtherLabelCommit = async () => {
+		const error = validateCustomLabel(otherLabelDraft)
+		if (error) {
+			setOtherLabelError(error)
+			return
+		}
+
+		const customText = otherLabelDraft.trim()
+		const reportId = reportModalId
+		const resolvedAgencyId = modalAgencyId || agencyId
+
+		try {
+			const docRef = doc(db, 'reports', reportId)
+			await updateDoc(docRef, { label: customText })
+
+			if (resolvedAgencyId) {
+				await addAgencyCustomLabel(resolvedAgencyId, customText)
+				const refreshed = await fetchAgencyActiveLabels(resolvedAgencyId)
+				setModalAgencyLabels(refreshed)
+				if (isAgency) {
+					setActiveLabels(refreshed)
+				}
 			}
-		} else {
-			setUpdate('') // Reset the update state if the label didn't change
+
+			setSelectedLabel(customText)
+			setReport((prev) => ({ ...prev, label: customText }))
+			setOtherLabelDraft('')
+			setOtherLabelError('')
+			setChangeStatus('Label saved')
+			setUpdate(customText)
+		} catch (err) {
+			console.error('Error saving custom label:', err)
+			setOtherLabelError('Could not save label. Please try again.')
 		}
 	}
 	/**
@@ -943,7 +1042,7 @@ const ReportsSection = ({
 								? row.images.split(',')
 								: [],
 						isApproved: row.isApproved === 'true' || row.isApproved === true,
-						label: String(row.label || ''),
+						label: String(row.label || DEFAULT_REPORT_LABEL),
 						link: String(row.link || ''),
 						read: row.read === 'true' || row.read === true,
 						secondLink: String(row.secondLink || ''),
@@ -1020,7 +1119,7 @@ const ReportsSection = ({
 						.replace('at', ''),
 				)
 			}
-			setSelectedLabel(report['label'] || '')
+			setSelectedLabel(report['label'] || DEFAULT_REPORT_LABEL)
 
 			const location = [report['city'], report['state']]
 				.filter(Boolean)
@@ -1298,7 +1397,11 @@ const ReportsSection = ({
 							onNoteChange={handleNoteChange}
 							onLabelChange={handleLabelChange}
 							selectedLabel={selectedLabel}
-							activeLabels={activeLabels}
+							labelOptions={labelOptions}
+							otherLabelDraft={otherLabelDraft}
+							onOtherLabelChange={handleOtherLabelChange}
+							onOtherLabelCommit={handleOtherLabelCommit}
+							otherLabelError={otherLabelError}
 							changeStatus={changeStatus}
 							onFormSubmit={handleFormSubmit}
 							onReportDelete={handleReportDelete}

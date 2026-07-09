@@ -48,6 +48,7 @@ import { Tooltip } from 'react-tooltip'
 import { IoTrash } from "react-icons/io5"
 import { FaPlus } from 'react-icons/fa'
 import { Button } from '@material-tailwind/react'
+import { DEFAULT_AGENCY_LABELS } from '../../config/labels'
 
 /**
  * Agencies Component - Comprehensive agency management interface
@@ -506,13 +507,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		const tagsRef = doc(db, 'tags', agencyDocRef.id)
 		const defaultTopics = ['Health', 'Other', 'Politics', 'Weather']
 		const defaultSources = ['Newspaper', 'Other/Otro', 'Social', 'Website']
-		const defaultLabels = [
-			'To Investigate',
-			'Investigated: Flagged',
-			'Investigated: Benign',
-		]
 		await setDoc(tagsRef, {
-			Labels: { list: defaultLabels, active: defaultLabels },
+			Labels: { list: DEFAULT_AGENCY_LABELS, active: DEFAULT_AGENCY_LABELS },
 			Source: { list: defaultSources, active: defaultSources },
 			Topic: { list: defaultTopics, active: defaultTopics },
 		})

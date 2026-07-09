@@ -23,6 +23,7 @@ import React, { useState, useEffect } from 'react'
 import TagSystem from '../analytics/TagSystem';
 import ExperimentSettings from './ExperimentSettings';
 import { useAuth } from '../../context/AuthContext'
+import { DEFAULT_AGENCY_LABELS } from '../../config/labels'
 import globalStyles from '../../styles/globalStyles';
 import { collection, query, where, setDoc, getDoc, getDocs, doc } from "firebase/firestore"; 
 import { db, auth } from "../../config/firebase"
@@ -67,13 +68,11 @@ const Settings = () => {
   const setData = async (agencyID) => {
     const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
     const defaultSources = ["Newspaper", "Other/Otro","Social","Website"] // tag system 2
-    const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"] // tag system 3
-
     // create topics collection for the new agency
     setDoc(doc(db, "tags", agencyID), {
         Labels: {
-          list: defaultLabels,
-          active: defaultLabels
+          list: DEFAULT_AGENCY_LABELS,
+          active: DEFAULT_AGENCY_LABELS
         },
         Source: {
           list: defaultSources,

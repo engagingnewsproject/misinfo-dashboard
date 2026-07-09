@@ -23,6 +23,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { tagSystems } from '../admin/Settings'
+import { DEFAULT_AGENCY_LABELS } from '../../config/labels'
 import NewTagModal from '../modals/NewTagModal'
 import RenameTagModal from '../modals/RenameTagModal'
 import ConfirmModal from '../modals/common/ConfirmModal'
@@ -98,8 +99,6 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
     // --- Tag system defaults ---
     const defaultTopics = ["Health","Other","Politics","Weather"] // Default topics
     const defaultSources = ["Newspaper", "Other","Social","Website"] // Default sources
-    const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"] // Default labels
-
     // --- UI and selection state ---
     const [selected, setSelected] = useState("") // Currently selected tag
     const [search, setSearch] = useState("") // Search input value
@@ -153,7 +152,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID}) => {
             // docSnap.data() will be undefined in this case
             console.log("No such document!");
             setData(tagSystem, defaultTopics, defaultTopics, agencyID)
-            setData(tagSystem, defaultLabels, defaultLabels, agencyID)
+            setData(tagSystem, DEFAULT_AGENCY_LABELS, DEFAULT_AGENCY_LABELS, agencyID)
             setData(tagSystem, defaultSources, defaultSources, agencyID)
 
             console.log("tag system not correctly configured")

@@ -19,10 +19,22 @@
  * @version 1.0.0
  * @since 2024
  */
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
-import { getDoc, getDocs, doc, setDoc, collection, updateDoc } from "firebase/firestore";
+import { getDoc, doc, updateDoc } from 'firebase/firestore'
 import { db } from '../../../config/firebase'
+import {
+	buildLabelOptions,
+	CUSTOM_LABEL_MAX_LENGTH,
+	DEFAULT_REPORT_LABEL,
+	OTHER_LABEL,
+	validateCustomLabel,
+} from '../../../config/labels'
+import {
+	addAgencyCustomLabel,
+	fetchAgencyActiveLabels,
+	resolveAgencyIdByName,
+} from '../../../utils/label-tags'
 import { RiMessage2Fill } from 'react-icons/ri'
 import { BiEditAlt } from 'react-icons/bi'
 import { IoReturnUpBackSharp } from 'react-icons/io5'
@@ -42,36 +54,52 @@ import globalStyles from '../../../styles/globalStyles';
  * @returns {JSX.Element} The rendered report details page
  */
 const ReportDetails = () => {
-	const userId = localStorage.getItem("userId")
 	const router = useRouter()
 	const [info, setInfo] = useState({})
 	const [reporterInfo, setReporterInfo] = useState({})
 	const [postedDate, setPostedDate] = useState("")
-	const [selectedLabel, setSelectedLabel] = useState("")
-	const [changeStatus, setChangeStatus] = useState("")
-	const [update, setUpdate] = useState("")
-	const [activeLabels, setActiveLabels] = useState([])
+	const [selectedLabel, setSelectedLabel] = useState(DEFAULT_REPORT_LABEL)
+	const [changeStatus, setChangeStatus] = useState('')
+	const [update, setUpdate] = useState('')
+	const [modalAgencyLabels, setModalAgencyLabels] = useState([])
+	const [modalAgencyId, setModalAgencyId] = useState('')
+	const [otherLabelDraft, setOtherLabelDraft] = useState('')
+	const [otherLabelError, setOtherLabelError] = useState('')
 
 	const { reportId } = router.query
-	const linkStyle = "font-light mb-1 text-sm underline underline-offset-1"
+	const linkStyle = 'font-light mb-1 text-sm underline underline-offset-1'
 
-  // console.log('current URL 👉️', window.location.href);
+	const labelOptions = useMemo(() => {
+		const currentLabel = info?.label || DEFAULT_REPORT_LABEL
+		return buildLabelOptions(modalAgencyLabels, currentLabel)
+	}, [modalAgencyLabels, info?.label])
 
 	const getData = async () => {
-    const infoRef = await getDoc(doc(db, "reports",  reportId))
+		const infoRef = await getDoc(doc(db, 'reports', reportId))
 		const reportData = infoRef.data() || {}
 		setInfo(reportData)
+		const reportLabel = reportData.label || DEFAULT_REPORT_LABEL
+		setSelectedLabel(reportLabel)
+		setOtherLabelDraft('')
+		setOtherLabelError('')
+
 		const submitterUid = reportData.userID
 		if (submitterUid) {
-			getDoc(doc(db, "mobileUsers", submitterUid)).then((mobileRef) => {
+			getDoc(doc(db, 'mobileUsers', submitterUid)).then((mobileRef) => {
 				setReporterInfo(mobileRef.exists() ? mobileRef.data() : {})
 			})
 		} else {
 			setReporterInfo({})
 		}
 
-		const tagsRef = await getDoc(doc(db, "tags", userId))
-    setActiveLabels(tagsRef.data()['Labels']['active'])
+		const resolvedAgencyId = await resolveAgencyIdByName(reportData.agency)
+		setModalAgencyId(resolvedAgencyId || '')
+		if (resolvedAgencyId) {
+			const labels = await fetchAgencyActiveLabels(resolvedAgencyId)
+			setModalAgencyLabels(labels)
+		} else {
+			setModalAgencyLabels([])
+		}
 	}
 
 	const handleNotesChange = (e) => {
@@ -98,29 +126,103 @@ const ReportDetails = () => {
 		setUpdate("")
 	}
 
-	const handleLabelChanged = async (e) => {
-		setChangeStatus("Saving changes...")
+	const handleLabelChange = async (e) => {
 		e.preventDefault()
-    const docRef = doc(db, 'reports', reportId)
-		await updateDoc(docRef, { label: e.target.value })
-		setChangeStatus("Label changes saved successfully")
+		const newLabel = e.target.value
+
+		if (newLabel === OTHER_LABEL) {
+			setSelectedLabel(OTHER_LABEL)
+			setOtherLabelDraft('')
+			setOtherLabelError('')
+			return
+		}
+
+		const currentLabel = info.label || DEFAULT_REPORT_LABEL
+		if (newLabel === currentLabel) {
+			setOtherLabelDraft('')
+			setOtherLabelError('')
+			return
+		}
+
+		setChangeStatus('Saving changes...')
+		try {
+			const docRef = doc(db, 'reports', reportId)
+			await updateDoc(docRef, { label: newLabel })
+			setSelectedLabel(newLabel)
+			setInfo((prev) => ({ ...prev, label: newLabel }))
+			setOtherLabelDraft('')
+			setOtherLabelError('')
+			setChangeStatus('Label changes saved successfully')
+		} catch (error) {
+			console.error('Error updating label:', error)
+			setChangeStatus('')
+		}
+	}
+
+	const handleOtherLabelChange = (e) => {
+		setOtherLabelDraft(e.target.value)
+		if (otherLabelError) {
+			setOtherLabelError('')
+		}
+	}
+
+	const handleOtherLabelCommit = async () => {
+		const error = validateCustomLabel(otherLabelDraft)
+		if (error) {
+			setOtherLabelError(error)
+			return
+		}
+
+		const customText = otherLabelDraft.trim()
+		setChangeStatus('Saving changes...')
+
+		try {
+			const docRef = doc(db, 'reports', reportId)
+			await updateDoc(docRef, { label: customText })
+
+			if (modalAgencyId) {
+				await addAgencyCustomLabel(modalAgencyId, customText)
+				const refreshed = await fetchAgencyActiveLabels(modalAgencyId)
+				setModalAgencyLabels(refreshed)
+			}
+
+			setSelectedLabel(customText)
+			setInfo((prev) => ({ ...prev, label: customText }))
+			setOtherLabelDraft('')
+			setOtherLabelError('')
+			setChangeStatus('Label changes saved successfully')
+		} catch (err) {
+			console.error('Error saving custom label:', err)
+			setOtherLabelError('Could not save label. Please try again.')
+			setChangeStatus('')
+		}
 	}
 
 	useEffect(() => {
-		getData()
-    if (info['createdDate']) {
-      const options = { day: '2-digit', year: 'numeric', month: 'short', hour: 'numeric', minute: 'numeric' }
-      setPostedDate(info["createdDate"].toDate().toLocaleString('en-US', options).replace(/,/g,"").replace('at', ''))
+		if (reportId) {
+			getData()
 		}
-	}, [])
+	}, [reportId])
 
 	useEffect(() => {
-    if (info['createdDate']) {
-      const options = { day: '2-digit', year: 'numeric', month: 'short', hour: 'numeric', minute: 'numeric' }
-      setPostedDate(info["createdDate"].toDate().toLocaleString('en-US', options).replace(/,/g,"").replace('at', ''))
+		if (info?.createdDate) {
+			const options = {
+				day: '2-digit',
+				year: 'numeric',
+				month: 'short',
+				hour: 'numeric',
+				minute: 'numeric',
 			}
-    if (info['label']) {
-      setSelectedLabel(info['label'])
+			setPostedDate(
+				info.createdDate
+					.toDate()
+					.toLocaleString('en-US', options)
+					.replace(/,/g, '')
+					.replace('at', ''),
+			)
+		}
+		if (info && Object.keys(info).length > 0) {
+			setSelectedLabel(info.label || DEFAULT_REPORT_LABEL)
 		}
 	}, [info])
 
@@ -175,14 +277,43 @@ const ReportDetails = () => {
 					)}
 					<div className="mb-8">
 						<div className={globalStyles.heading.h2.black}>Label</div>
-            <select id="labels" onChange={(e) => handleLabelChanged(e)} defaultValue={selectedLabel} className="text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none">
-              <option value={selectedLabel ? selectedLabel : "none"}>{selectedLabel ? selectedLabel : 'Choose a label'}</option>
-              {activeLabels.filter(label => label != selectedLabel).map((label, i) => {
-                return (<option value={label} key={i}>{label}</option>)
-                })
-              }
+						<select
+							id="labels"
+							onChange={handleLabelChange}
+							value={selectedLabel || DEFAULT_REPORT_LABEL}
+							className="text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none">
+							{labelOptions.map((label, i) => (
+								<option value={label} key={i}>
+									{label}
+								</option>
+							))}
 						</select>
-            {changeStatus && <span className="ml-5 font-light text-sm italic">{changeStatus}</span>}
+						{selectedLabel === OTHER_LABEL && (
+							<div className="mt-3">
+								<input
+									type="text"
+									id="other-label"
+									value={otherLabelDraft}
+									onChange={handleOtherLabelChange}
+									onBlur={handleOtherLabelCommit}
+									onKeyDown={(e) => {
+										if (e.key === 'Enter') {
+											e.preventDefault()
+											handleOtherLabelCommit()
+										}
+									}}
+									maxLength={CUSTOM_LABEL_MAX_LENGTH}
+									placeholder={`Specify label (max ${CUSTOM_LABEL_MAX_LENGTH} characters)`}
+									className="border transition ease-in-out w-full text-sm font-light bg-white rounded-xl p-3 border-none focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none"
+								/>
+								{otherLabelError && (
+									<p className="mt-1 text-sm text-red-600">{otherLabelError}</p>
+								)}
+							</div>
+						)}
+						{changeStatus && (
+							<span className="ml-5 font-light text-sm italic">{changeStatus}</span>
+						)}
 					</div>
 					<div className="flex flex-col mb-5">
 						<div className="flex flex-row mb-3 items-center">

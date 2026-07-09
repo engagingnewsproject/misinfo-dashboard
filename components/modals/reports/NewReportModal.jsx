@@ -10,6 +10,7 @@ import {
 	getActiveExperimentId,
 	newReportExperimentFields,
 } from '../../../utils/reports-queries'
+import { DEFAULT_AGENCY_LABELS, DEFAULT_REPORT_LABEL } from '../../../config/labels'
 import { State, City } from 'country-state-city'
 import {
 	getDoc,
@@ -162,7 +163,7 @@ const NewReportModal = ({
 			detail: detail,
 			createdDate: moment().toDate(),
 			isApproved: false,
-			label: '',
+			label: DEFAULT_REPORT_LABEL,
 			read: false,
 			topic: selectedTopic,
 			hearFrom: selectedSource,
@@ -358,10 +359,8 @@ const NewReportModal = ({
           // Create default tags if they don't exist
           const defaultTopics = ['Health', 'Other', 'Politics', 'Weather']
           const defaultSources = ['Newspaper', 'Other/Otro', 'Social', 'Website']
-          const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"]
-
           await setDoc(docRef, {
-            Labels: { list: defaultLabels, active: defaultLabels },
+            Labels: { list: DEFAULT_AGENCY_LABELS, active: DEFAULT_AGENCY_LABELS },
             Source: { list: defaultSources, active: defaultSources },
             Topic: { list: defaultTopics, active: defaultTopics },
           })
@@ -535,18 +534,15 @@ const NewReportModal = ({
 				console.log('Need to create tag collection for agency. ')
 				const defaultTopics = ['Health', 'Other', 'Politics', 'Weather'] // tag system 1
 				const defaultSources = ['Newspaper', 'Other/Otro', 'Social', 'Website'] // tag system 2
-				const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"] // tag system 3
 
-				// reference to tags collection
 				const myDocRef = doc(db, 'tags', selectedAgencyId)
 				setTopics(defaultTopics)
 				setActive(defaultTopics['active'])
 
-				// create topics document for the new agency
 				await setDoc(myDocRef, {
 					Labels: {
-						list: defaultLabels,
-						active: defaultLabels,
+						list: DEFAULT_AGENCY_LABELS,
+						active: DEFAULT_AGENCY_LABELS,
 					},
 					Source: {
 						list: defaultSources,

@@ -3,6 +3,7 @@ import globalStyles from '../../styles/globalStyles'
 import { Tooltip, Typography, Switch } from '@material-tailwind/react'
 import { IoTrash } from 'react-icons/io5'
 import MemoizedTooltipContent from './MemoizedTooltipContent'
+import { displayLabel, getLabelBadgeClass } from '../../config/labels'
 
 const TableBody = ({
   loadedReports,
@@ -54,12 +55,10 @@ const TableBody = ({
                 } else if (accessor === 'label') {
                   tData = (
                     <Typography
-                      className={`${globalStyles.label.default} ${
-                        report.label === 'Flagged' && 'bg-orange-200'
-                      } ${report.label === 'Important' && 'bg-yellow-400'}`}
+                      className={`${globalStyles.label.default} ${getLabelBadgeClass(report.label)}`}
                       data-tip="Change label"
                       data-for="labelTooltip">
-                      {report[accessor] || 'None'}
+                      {displayLabel(report.label)}
                     </Typography>
                   )
                 } else if (accessor === 'read') {
