@@ -1126,9 +1126,9 @@ const NewReportModal = ({
 								<div className="mt-4 mb-0.5">
 									{showOtherTopic && (
 										<div className="flex">
-											<div className="mt-4 mb-0.5 text-zinc-500 pr-3">
+											{/* <div className="mt-4 mb-0.5 text-zinc-500 pr-3">
 												{t('custom_topic')}
-											</div>
+											</div> */}
 											<FormInput
 												id="topic-other"
 												className="w-60"

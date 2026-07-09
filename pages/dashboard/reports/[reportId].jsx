@@ -27,7 +27,6 @@ import {
 	buildLabelOptions,
 	CUSTOM_LABEL_MAX_LENGTH,
 	DEFAULT_REPORT_LABEL,
-	getLabelBadgeStyle,
 	OTHER_LABEL,
 	validateCustomLabel,
 } from '../../../config/labels'
@@ -48,6 +47,7 @@ import Image from 'next/image';
 import globalStyles from '../../../styles/globalStyles';
 import FormInput from '../../../components/ui/FormInput'
 import FormTextarea from '../../../components/ui/FormTextarea'
+import LabelSelectMenu from '../../../components/reports/LabelSelectMenu'
 
 /**
  * ReportDetails Page
@@ -78,8 +78,6 @@ const ReportDetails = () => {
 		const currentLabel = info?.label || DEFAULT_REPORT_LABEL
 		return buildLabelOptions(modalAgencyLabels, currentLabel)
 	}, [modalAgencyLabels, info?.label])
-
-	const labelSelectStyle = getLabelBadgeStyle(selectedLabel, agencyLabelColors)
 
 	const getData = async () => {
 		const infoRef = await getDoc(doc(db, 'reports', reportId))
@@ -287,18 +285,13 @@ const ReportDetails = () => {
 					)}
 					<div className="mb-8">
 						<div className={globalStyles.heading.h2.black}>Label</div>
-						<select
+						<LabelSelectMenu
 							id="labels"
-							onChange={handleLabelChange}
-							value={selectedLabel || DEFAULT_REPORT_LABEL}
-							style={labelSelectStyle}
-							className="text-sm inline-block px-8 border-none py-1 rounded-2xl shadow hover:shadow-none">
-							{labelOptions.map((label, i) => (
-								<option value={label} key={i}>
-									{label}
-								</option>
-							))}
-						</select>
+							labelOptions={labelOptions}
+							selectedLabel={selectedLabel || DEFAULT_REPORT_LABEL}
+							agencyLabelColors={agencyLabelColors}
+							onLabelChange={handleLabelChange}
+						/>
 						{selectedLabel === OTHER_LABEL && (
 							<div className="mt-3">
 								<FormInput
