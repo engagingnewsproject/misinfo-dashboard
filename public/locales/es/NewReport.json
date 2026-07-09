@@ -69,6 +69,9 @@
   "upload": "Puedes subir capturas de pantalla o fotografías de la información potencialmente incorrecta.",
   "agency":"Agencia",
   "topic": "Tema",
+  "label": "Etiqueta",
+  "label_optional": "Etiqueta (opcional)",
+  "custom_label": "Especifique la etiqueta (máx. {{max}} caracteres)",
   "noAgencies":"No hay redacciones participantes en esta área.",
   "topics": {
     "Health": "Salud",
