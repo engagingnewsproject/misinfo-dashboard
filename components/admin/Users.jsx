@@ -428,6 +428,8 @@ const Users = () => {
 	const [enhancedPaginatedUsers, setEnhancedPaginatedUsers] = useState([])
 	const paginatedUsersRef = useRef(paginatedUsers)
 	paginatedUsersRef.current = paginatedUsers
+	// Skip update-effect on mount; mount effect already loads data
+	const skipUpdateRefreshOnMount = useRef(true)
 
 	// Processed users: combines pagination data with auth details and applies search
 	const loadedMobileUsers = useMemo(() => {
@@ -604,10 +606,8 @@ const Users = () => {
 				setAgencyUsers(sortByJoinedDate(filteredUsers) || [])
 				setAgencyLoading(false)
 			} else {
-				// Admin user - use pagination hook
-				// The pagination hook will handle the initial load
-				// We just need to trigger it
-				loadMore()
+				// Admin: replace list (do not append — avoids duplicate rows on refresh)
+				await resetPagination()
 			}
 		} catch (error) {
 			console.error('Failed to fetch or process user data:', error)
@@ -1259,6 +1259,10 @@ const Users = () => {
 	 * @dependency {boolean} update - The state that triggers the data fetching when it changes.
 	 */
 	useEffect(() => {
+		if (skipUpdateRefreshOnMount.current) {
+			skipUpdateRefreshOnMount.current = false
+			return
+		}
 		getData()
 	}, [update])
 
@@ -1384,13 +1388,13 @@ const Users = () => {
 										</tr>
 									) : (
 										// Render user rows with role-based conditional rendering
-										loadedMobileUsers.map((userObj, key) => {
+										loadedMobileUsers.map((userObj, index) => {
 											// Extract user ID for operations
 											let userId = userObj.mobileUserId ?? userObj.id ?? userObj.uid
 											return (
 												<tr
 													className={`border-b transition duration-300 ease-in-out dark:border-indigo-100 ${!customClaims.agency && !userObj.hasFirestoreDoc && 'bg-red-50'} ${userObj.disabled && 'bg-yellow-100'}`}
-													key={`${userId ?? 'unknown'}-${key}`}
+													key={userId ?? userObj.email ?? `unknown-${index}`}
 													onClick={
 														customClaims.admin
 															? () => handleEditUser(userObj, userId)

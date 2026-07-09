@@ -1,6 +1,14 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { fetchUsersBatch, fetchUserDetailsBatch } from '../utils/firebase-helpers';
 
+/** @param {Array<{ id?: string }>} prev @param {Array<{ id?: string }>} incoming */
+function appendUsersWithoutDuplicates(prev, incoming) {
+  if (!incoming.length) return prev;
+  const seen = new Set(prev.map((u) => u.id).filter(Boolean));
+  const unique = incoming.filter((u) => u.id && !seen.has(u.id));
+  return unique.length ? [...prev, ...unique] : prev;
+}
+
 /**
  * Custom hook for paginated user fetching with infinite scroll support
  *
@@ -39,16 +47,17 @@ export function useUsersPagination({
     orderField,
     orderDirection,
   });
+  const loadingRef = useRef(false);
 
   /**
    * Loads the next batch of users
    */
   const loadMore = useCallback(async () => {
-    // Prevent loading if already loading or no more data
-    if (loading || !hasMore) {
+    if (loadingRef.current || !hasMore) {
       return;
     }
 
+    loadingRef.current = true;
     try {
       setLoading(true);
       setError(null);
@@ -63,19 +72,18 @@ export function useUsersPagination({
         orderDirection,
       });
 
-      // Append new users to existing list
-      setUsers((prev) => [...prev, ...result.users]);
+      setUsers((prev) => appendUsersWithoutDuplicates(prev, result.users));
       setLastDoc(result.lastDoc);
       setHasMore(result.hasMore);
     } catch (err) {
       console.error('Error loading more users:', err);
       setError(err.message || 'Failed to load users');
     } finally {
+      loadingRef.current = false;
       setLoading(false);
       setInitialLoading(false);
     }
   }, [
-    loading,
     hasMore,
     pageSize,
     lastDoc,
@@ -91,6 +99,11 @@ export function useUsersPagination({
    * Useful when filters/search changes
    */
   const reset = useCallback(async () => {
+    if (loadingRef.current) {
+      return;
+    }
+
+    loadingRef.current = true;
     setUsers([]);
     setLastDoc(null);
     setHasMore(true);
@@ -117,6 +130,7 @@ export function useUsersPagination({
       console.error('Error resetting pagination:', err);
       setError(err.message || 'Failed to load users');
     } finally {
+      loadingRef.current = false;
       setLoading(false);
       setInitialLoading(false);
     }
@@ -160,10 +174,10 @@ export function useUsersPagination({
    * Manually loads first batch (for when autoLoad is false)
    */
   const loadInitial = useCallback(() => {
-    if (users.length === 0 && !loading) {
+    if (users.length === 0 && !loadingRef.current) {
       reset();
     }
-  }, [users.length, loading, reset]);
+  }, [users.length, reset]);
 
   /**
    * Merges partial fields into one loaded user row (Firestore doc id match).
