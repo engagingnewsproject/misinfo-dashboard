@@ -45,7 +45,6 @@ import {
 	newReportExperimentFields,
 } from "../../utils/reports-queries"
 import { State, City } from "country-state-city"
-import Link from "next/link"
 import moment from "moment"
 import Image from "next/image"
 import { useTranslation } from "next-i18next"
@@ -74,6 +73,7 @@ import {
 	DetailsStep,
 	ReviewStep
 } from "./ReportSteps"
+import ViewReport from "../partials/report/ViewReport"
 
 /**
  * ReportSystem Component - Multi-step form orchestrator
@@ -829,70 +829,15 @@ const ReportSystem = ({
 						</div>
 					)}
 					
-					{/* View Report */}
-					{reportSystem === 7 && (
-					<div className={globalStyles.form.view}>
-							{/* Title */}
-							<div className='mb-6 p-0'>
-								<Typography variant='h6' color='blue'>
-									{t("title_text")}
-								</Typography>
-								<Typography>{title}</Typography>
-							</div>
-							{/* Links */}
-							<div className='mb-6 p-0'>
-								<Typography variant='h6' color='blue'>
-									{t("links")}
-								</Typography>
-								<Typography>
-									{link || secondLink !== "" ? (
-										<>
-											{link}
-											<br></br>
-											{secondLink}
-										</>
-									) : (
-										t("noLinks")
-									)}
-								</Typography>
-							</div>
-							{/* Image upload */}
-							<div className='mb-6 p-0'>
-								<Typography variant='h6' color='blue'>
-									{t("image")}
-								</Typography>
-								<div className='flex w-full overflow-y-auto'>
-									{imageURLs.map((image, i = self.crypto.randomUUID()) => {
-										return (
-											<div className='flex mr-2' key={i}>
-												<Link href={image} target='_blank'>
-													<Image
-														src={image}
-														width={100}
-														height={100}
-														alt='image'
-														className='object-cover w-auto'
-													/>
-												</Link>
-											</div>
-										)
-									})}
-								</div>
-							</div>
-							{/* Details */}
-							<div className='mb-6 p-0'>
-								<Typography variant='h6' color='blue'>
-									{t("detailed")}
-								</Typography>
-								<Typography>
-									{detail ? detail : `No description provided.`}
-								</Typography>
-							</div>
-							<Button color='blue' onClick={() => setReportSystem(0)}>
-								{t("backReports")}
-							</Button>
-					</div>
-					)}
+					<ViewReport
+						title={title}
+						link={link}
+						secondLink={secondLink}
+						imageURLs={imageURLs}
+						detail={detail}
+						reportSystem={reportSystem}
+						setReportSystem={setReportSystem}
+					/>
 				</div>
 			)}
 
