@@ -23,7 +23,7 @@ import React, { useState, useEffect } from 'react'
 import TagSystem from '../analytics/TagSystem';
 import ExperimentSettings from './ExperimentSettings';
 import { useAuth } from '../../context/AuthContext'
-import { DEFAULT_AGENCY_LABELS } from '../../config/labels'
+import { DEFAULT_AGENCY_LABELS, canManageAgencyLabels } from '../../config/labels'
 import globalStyles from '../../styles/globalStyles';
 import { collection, query, where, setDoc, getDoc, getDocs, doc } from "firebase/firestore"; 
 import { db, auth } from "../../config/firebase"
@@ -247,7 +247,7 @@ const Settings = () => {
                 Edit Sources
             </button>
         </div>
-        {customClaims.admin &&
+        {canManageAgencyLabels(customClaims) &&
           <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">Labels</div>
             <button

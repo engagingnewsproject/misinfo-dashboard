@@ -3,7 +3,7 @@ import globalStyles from '../../styles/globalStyles'
 import { Tooltip, Typography, Switch } from '@material-tailwind/react'
 import { IoTrash } from 'react-icons/io5'
 import MemoizedTooltipContent from './MemoizedTooltipContent'
-import { displayLabel, getLabelBadgeClass } from '../../config/labels'
+import { displayLabel, getLabelBadgeStyle } from '../../config/labels'
 
 const TableBody = ({
   loadedReports,
@@ -11,11 +11,20 @@ const TableBody = ({
   onReportModalShow,
   onRowChangeRead,
   onReportDelete,
-  reportsReadState
+  reportsReadState,
+  agencyLabelColors = {},
+  agencyLabelColorsByAgency = {},
 }) => {
   function trimToWordCount(str, wordCount) {
     const words = str.split(' ')
     return words.length <= wordCount ? str : words.slice(0, wordCount).join(' ') + '...'
+  }
+
+  const getColorsForReport = (report) => {
+    if (agencyLabelColors && Object.keys(agencyLabelColors).length > 0) {
+      return agencyLabelColors
+    }
+    return agencyLabelColorsByAgency[report.agency] || {}
   }
 
   return (
@@ -53,9 +62,14 @@ const TableBody = ({
                 if (accessor === 'createdDate') {
                   tData = <Typography>{formattedDate}</Typography>
                 } else if (accessor === 'label') {
+                  const badgeStyle = getLabelBadgeStyle(
+                    report.label,
+                    getColorsForReport(report),
+                  )
                   tData = (
                     <Typography
-                      className={`${globalStyles.label.default} ${getLabelBadgeClass(report.label)}`}
+                      className={`${globalStyles.label.default} px-5 py-1 rounded-2xl`}
+                      style={badgeStyle}
                       data-tip="Change label"
                       data-for="labelTooltip">
                       {displayLabel(report.label)}
