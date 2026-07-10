@@ -1,6 +1,7 @@
 import React from 'react'
-import { Card, Link, Button, Typography } from '@material-tailwind/react'
-import { useTranslation } from 'next-i18next' // Import the useTranslation hook
+import Link from 'next/link'
+import { Card, Button, Typography } from '@material-tailwind/react'
+import { useTranslation } from 'next-i18next'
 import globalStyles from '../../../styles/globalStyles'
 import Image from 'next/image'
 
@@ -49,21 +50,22 @@ const ViewReport = ({
 						{t('image')}
 					</Typography>
 					<div className="flex w-full overflow-y-auto">
-						{imageURLs.map((image, i = self.crypto.randomUUID()) => {
-							return (
-								<div className="flex mr-2" key={i}>
-									<Link href={image} target="_blank">
-										<Image
-											src={image}
-											width={100}
-											height={100}
-											alt="image"
-											className="object-cover w-auto"
-										/>
-									</Link>
-								</div>
-							)
-						})}
+						{imageURLs.map((image, index) => (
+							<div className="flex mr-2" key={index}>
+								<Link
+									href={image}
+									target="_blank"
+									rel="noopener noreferrer">
+									<Image
+										src={image}
+										width={100}
+										height={100}
+										alt="image"
+										className="object-cover w-auto"
+									/>
+								</Link>
+							</div>
+						))}
 					</div>
 				</div>
 				{/* Details */}
