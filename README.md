@@ -12,6 +12,8 @@ This project project bootstrapped with [`create-next-app`](https://github.com/ve
 
 **See [Technical Documentation](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/technicalDocumentation)** for Project Structure, Firebase, Components and Git Usage docs.
 
+**Code quality:** [Fallow triage guide](docs/fallow-triage.md) — what to fix vs ignore when Fallow flags duplication, cycles, or dead code.
+
 **Admins:** [Archiving and study waves](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/Archiving) — how to run bulk archive, set the active experiment, and use **Show archived** on the reports list.
 
 ## Getting Started
@@ -32,7 +34,7 @@ First step! Clone this repo into a local directory (ex. `~/username/sites/`) on 
 
 Production builds (GitHub Actions CI and [Firebase App Hosting](https://firebase.google.com/docs/app-hosting)) use **Node 20.20.0** and **npm 11.15.0**. The repo pins this in `.nvmrc` and `package.json` `engines`; with `engine-strict=true` in `.npmrc`, `npm install` refuses other versions. Use [nvm](https://github.com/nvm-sh/nvm): `nvm install` / `nvm use` in the project root (reads `.nvmrc`), then `npm install -g npm@11.15.0` once. See [Deployment](#deployment) for the full toolchain.
 
-**Apple Silicon (M1 / M2 / M3):** install the **arm64** Node build, not the x64/Rosetta one. Check with `node -p process.arch` — it should print `arm64`. If you see `x64`, Rollup and Next may look for `@rollup/rollup-darwin-x64` / `@next/swc-darwin-x64` and you can hit missing native module errors. Reinstall Node for Apple Silicon (or turn off “Open using Rosetta” for Terminal) and run `rm -rf node_modules && npm ci` again. The repo also lists `@rollup/rollup-darwin-arm64` and `@rollup/rollup-darwin-x64` as **optionalDependencies** so npm still installs the right macOS binary even when nested optional deps mis-resolve.
+**Apple Silicon (M1 / M2 / M3):** install the **arm64** Node build, not the x64/Rosetta one. Check with `node -p process.arch` — it should print `arm64`. If you see `x64`, Next may look for `@next/swc-darwin-x64` and you can hit missing native module errors. Reinstall Node for Apple Silicon (or turn off “Open using Rosetta” for Terminal) and run `rm -rf node_modules && npm ci` again.
 
 #### npm
 From the root of the project install dependencies by running:

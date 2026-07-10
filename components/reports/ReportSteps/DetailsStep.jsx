@@ -11,7 +11,9 @@
  */
 
 import React from 'react'
-import { Typography, Input, Textarea } from '@material-tailwind/react'
+import FormInput from '../../ui/FormInput'
+import FormTextarea from '../../ui/FormTextarea'
+import { Typography } from '@material-tailwind/react'
 import { useTranslation } from 'next-i18next'
 import { IoIosInformationCircle } from 'react-icons/io'
 import globalStyles from '../../../styles/globalStyles'
@@ -100,7 +102,7 @@ const DetailsStep = ({
       {/* TITLE */}
       <div className='block'>
         <Typography>{t("detailDescription")}</Typography>
-        <Input
+        <FormInput
           variant='outlined'
           color='gray'
           id='title'
@@ -124,7 +126,7 @@ const DetailsStep = ({
       
       {/* LINKS */}
       <div className='block'>
-        <Input
+        <FormInput
           variant='outlined'
           color='gray'
           label={t("linkFirst")}
@@ -146,7 +148,7 @@ const DetailsStep = ({
         {link && (
           <>
             <div className='mt-2'>
-              <Input
+              <FormInput
                 variant='outlined'
                 color='gray'
                 label={t("linkFirst")}
@@ -169,7 +171,7 @@ const DetailsStep = ({
       
       {/* IMAGE UPLOAD */}
       <div className='block'>
-        <Input
+        <FormInput
           variant='static'
           id='multiple_files'
           multiple
@@ -212,7 +214,7 @@ const DetailsStep = ({
       
       {/* DESCRIBE IN DETAIL */}
       <div className='block'>
-        <Textarea
+        <FormTextarea
           type="textarea"
           id='detail'
           onChange={(e) => setDetail(e.target.value)}

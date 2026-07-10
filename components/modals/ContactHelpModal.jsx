@@ -23,6 +23,8 @@ import {
 	uploadBytesResumable,
 } from "firebase/storage"
 import { useTranslation } from "react-i18next"
+import FormInput from "../ui/FormInput"
+import FormTextarea from "../ui/FormTextarea"
 
 const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
 	const { t } = useTranslation("Navbar")
@@ -174,11 +176,10 @@ const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
 					</div>
 					<form onChange={handleChange} onSubmit={handleContactHelp}>
 						<div className='mt-4 mb-0.5'>
-							<input
-								className='border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
+							<FormInput
 								id='subject'
 								type='text'
-								placeholder={t("Navbar:chfModalSubject")}
+								label={t("Navbar:chfModalSubject")}
 								required
 								onChange={handleSubjectChange}
 								value={subject}
@@ -186,14 +187,14 @@ const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
 						</div>
 
 						<div className='mt-4 mb-0.5'>
-							<textarea
-								className='peer h-full min-h-[200px] resize-none border-gray-300 rounded-md w-full text-sm text-gray-700 leading-tight px-3 py-2.5 focus:outline-none focus:shadow-outline transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 disabled:resize-none disabled:border-0 disabled:bg-blue-gray-50'
+							<FormTextarea
 								id='message'
-								type='text'
-								placeholder={t("Navbar:chfModalMessage")}
+								label={t("Navbar:chfModalMessage")}
 								required
 								onChange={handleMessageChange}
-								value={message}></textarea>
+								value={message}
+								rows={8}
+							/>
 						</div>
 						<div className='text-sm font-bold text-blue-600 tracking-wide mt-4'>
 							{t("Navbar:chfModalScreenshots")}

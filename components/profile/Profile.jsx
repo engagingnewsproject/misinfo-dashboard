@@ -46,7 +46,8 @@ import {
 } from 'firebase/storage'
 import { db, auth, storage } from '../../config/firebase'
 import { State, City } from 'country-state-city'
-import Select from 'react-select'
+import FormInput from '../ui/FormInput'
+import FormSelect from '../ui/FormSelect'
 import Image from 'next/image'
 import { useTranslation } from 'next-i18next'
 import globalStyles from '../../styles/globalStyles'
@@ -439,14 +440,14 @@ const Profile = ({ customClaims }) => {
             <div className="grid grid-cols-4 items-center">
               <div className="col-span-1">Agency Name</div>
               <div className="col-span-3">
-                <input
+                <FormInput
                   id="agency_name"
                   onChange={(e) => {
                     handleAgencyNameChange(e)
                   }}
-                  placeholder="Agency name"
+                  label="Agency name"
                   type="text"
-                  className={style.input}
+                  className="bg-white"
                   value={agencyName}
                 />
                 {errors.name && (
@@ -468,22 +469,19 @@ const Profile = ({ customClaims }) => {
                     agencyState || ''
                   }`}</div>
                 </div>
-                <Select
-                  className={` col-start-1 row-start-1 col-span-3 ${
-                    (style.inputSelect,
+                <FormSelect
+                  className={`col-start-1 row-start-1 col-span-3 ${
                     agencyLocationEdit === true
                       ? ' visible relative'
-                      : ' hidden absolute ')
+                      : ' hidden absolute'
                   }`}
                   id="state"
-                  type="text"
-                  placeholder="State"
+                  label="State"
                   isSearchable={isSearchable}
                   value={data.state}
                   options={State.getStatesOfCountry(data.country)}
                   getOptionLabel={(options) => options['name']}
                   getOptionValue={(options) => options['name']}
-                  label="state"
                   onChange={(state) => {
                     handleAgencyStateChange(state)
                   }}
@@ -493,16 +491,14 @@ const Profile = ({ customClaims }) => {
                     {errors.state}
                   </span>
                 )}
-                <Select
-                  className={`${
-                    (style.inputSelect,
+                <FormSelect
+                  className={`ml-4 p-3 col-start-4 col-span-3 row-start-1 ${
                     agencyLocationEdit === true
                       ? ' visible relative'
-                      : ' hidden absolute')
-                  } ml-4 p-3 col-start-4 col-span-3 row-start-1`}
+                      : ' hidden absolute'
+                  }`}
                   id="city"
-                  type="text"
-                  placeholder="City"
+                  label="City"
                   value={data.city}
                   options={City.getCitiesOfState(
                     data.state?.countryCode,

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Input, Typography } from '@material-tailwind/react';
+import { Typography } from '@material-tailwind/react';
+import FormInput from '../../ui/FormInput';
 import { IoIosInformationCircle } from "react-icons/io";
 import { useTranslation } from 'next-i18next';
 import globalStyles from '../../../styles/globalStyles';
@@ -9,7 +10,7 @@ const ImageUploader = ({ handleImageChange, imgPicker, imageDescription, detailE
 
   return (
     <div className='block'>
-      <Input
+      <FormInput
         variant='static'
         id='multiple_files'
         multiple

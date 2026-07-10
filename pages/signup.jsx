@@ -37,7 +37,8 @@ import {
 	arrayUnion,
 } from 'firebase/firestore'
 import { db, auth } from '../config/firebase'
-import Select from 'react-select'
+import FormInput from '../components/ui/FormInput'
+import FormSelect from '../components/ui/FormSelect'
 // import PhoneInput from 'react-phone-input-2'
 import LanguageSwitcher from '../components/layout/LanguageSwitcher'
 import { useTranslation } from 'next-i18next'
@@ -360,15 +361,14 @@ const SignUp = () => {
 						{/* Name input (hidden for agency users) */}
 						<div className="mb-4">
 							{!isAgency && (
-								<input
-									className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								<FormInput
 									id="name"
 									type="text"
-									placeholder={t('name')}
+									label={t('name')}
 									required
 									value={data.name}
 									onChange={handleChange}
-									autoComplete=""
+									autoComplete="name"
 								/>
 							)}
 						</div>
@@ -384,21 +384,14 @@ const SignUp = () => {
 						
 						{/* State selection dropdown */}
 						<div className="mb-4">
-							<Select
-								className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+							<FormSelect
 								id="state"
-								type="text"
 								required
-								placeholder={t('NewReport:state_text')}
+								label={t('NewReport:state_text')}
 								value={data.state}
 								options={State.getStatesOfCountry('US')}
-								getOptionLabel={(options) => {
-									return options['name']
-								}}
-								getOptionValue={(options) => {
-									return options['name']
-								}}
-								label="state"
+								getOptionLabel={(options) => options['name']}
+								getOptionValue={(options) => options['name']}
 								onChange={handleStateChange}
 							/>
 							{errors.state && data.state === null && (
@@ -408,33 +401,27 @@ const SignUp = () => {
 
 						{/* City selection dropdown */}
 						<div className="mb-4">
-							<Select
-								className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+							<FormSelect
 								id="city"
-								type="text"
-								placeholder={t('NewReport:city_text')}
+								label={t('NewReport:city_text')}
 								value={data.city}
 								options={City.getCitiesOfState(
 									data.state?.countryCode,
 									data.state?.isoCode,
 								)}
-								getOptionLabel={(options) => {
-									return options['name']
-								}}
-								getOptionValue={(options) => {
-									return options['name']
-								}}
+								getOptionLabel={(options) => options['name']}
+								getOptionValue={(options) => options['name']}
 								onChange={handleCityChange}
 							/>
 						</div>
 						
 						{/* Email input */}
 						<div className="mb-4">
-							<input
-								className={`${isAgency && 'mb-1 '}shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
+							<FormInput
+								className={isAgency ? 'mb-1' : ''}
 								id="email"
-								type="text"
-								placeholder={t('email')}
+								type="email"
+								label={t('email')}
 								required
 								value={data.email}
 								onChange={handleChange}
@@ -454,22 +441,26 @@ const SignUp = () => {
 									Create a secure password for your account.
 								</div>
 							)}
-							<div className="mb-1 flex">
-								<input
-									className={`${isAgency && 'mb-1 '}shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
+							<div className="mb-1">
+								<FormInput
+									className={isAgency ? 'mb-1' : ''}
 									id="password"
 									type={type}
-									placeholder={t('password')}
+									label={t('password')}
 									required
 									value={data.password}
 									onChange={handleChange}
 									autoComplete="new-password"
+									icon={
+										<button
+											type="button"
+											className="cursor-pointer"
+											onClick={handleTogglePass}
+											aria-label="Toggle password visibility">
+											<MdOutlineRemoveRedEye />
+										</button>
+									}
 								/>
-								<span
-									className="flex justify-around items-center"
-									onClick={handleTogglePass}>
-									<MdOutlineRemoveRedEye className="absolute mr-10" />
-								</span>
 							</div>
 						</>
 						
@@ -482,11 +473,10 @@ const SignUp = () => {
 						
 						{/* Confirm password input */}
 						<div className="mt-4 mb-1">
-							<input
-								className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+							<FormInput
 								id="confirmPW"
 								type={type}
-								placeholder={t('confirmPassword')}
+								label={t('confirmPassword')}
 								required
 								value={data.confirmPW}
 								onChange={handleChange}

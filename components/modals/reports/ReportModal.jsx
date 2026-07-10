@@ -23,6 +23,8 @@
 
 import React, { useEffect, useState } from "react"
 import { Switch } from "@material-tailwind/react";
+import FormInput from '../../ui/FormInput'
+import FormTextarea from '../../ui/FormTextarea'
 import ButtonEmailSend from "../../partials/ButtonEmailSend"
 import ShareReportModal from "../../partials/modals/ShareReportModal"
 import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"
@@ -39,6 +41,12 @@ import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
 
 import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
 import { useTranslation } from 'next-i18next';
+import {
+	CUSTOM_LABEL_MAX_LENGTH,
+	DEFAULT_REPORT_LABEL,
+	OTHER_LABEL,
+} from '../../../config/labels'
+import LabelSelectMenu from '../../reports/LabelSelectMenu'
 
 /**
  * ReportModal Component
@@ -51,9 +59,14 @@ import { useTranslation } from 'next-i18next';
  * @param {Object} props.customClaims - User role claims (admin, agency)
  * @param {Function} props.setReportModalShow - Function to close modal
  * @param {Object} props.report - Report data object containing all report fields
- * @param {Array<string>} props.activeLabels - Available labels for assignment
+ * @param {Array<string>} props.labelOptions - Merged label options for the dropdown
+ * @param {Record<string, string>} [props.agencyLabelColors] - Custom label colors for the report's agency
  * @param {string} props.selectedLabel - Currently selected label
  * @param {Function} props.onLabelChange - Label change handler
+ * @param {string} props.otherLabelDraft - Draft text when Other is selected
+ * @param {Function} props.onOtherLabelChange - Other label draft change handler
+ * @param {Function} props.onOtherLabelCommit - Other label commit handler (blur/Enter)
+ * @param {string} props.otherLabelError - Validation error for Other label text
  * @param {Object} props.reportSubmitBy - Report submitter information
  * @param {Function} props.onFormSubmit - Form submission handler
  * @param {boolean} props.enabled - Read/unread toggle state (legacy)
@@ -91,9 +104,14 @@ const ReportModal = ({
 	customClaims,
 	setReportModalShow,
 	report, // should hold all report fields
-	activeLabels,
+	labelOptions,
+	agencyLabelColors = {},
 	selectedLabel,
 	onLabelChange,
+	otherLabelDraft,
+	onOtherLabelChange,
+	onOtherLabelCommit,
+	otherLabelError,
 	reportSubmitBy,
 	onFormSubmit,
 	// read/unread
@@ -127,12 +145,6 @@ const ReportModal = ({
 		textarea:
 			"border transition ease-in-out w-full text-md font-light bg-white rounded-xl p-4 border-none focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none",
 		icon: "flex p-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
-	}
-	
-	// Label styling classes
-	const label = {
-		default: "overflow-hidden inline-block px-5 bg-gray-200 py-1 rounded-2xl",
-		special: "overflow-hidden inline-block px-5 bg-yellow-400 py-1 rounded-2xl",
 	}
 	
 	// Internationalization hook
@@ -185,11 +197,11 @@ const ReportModal = ({
 	
 	return (
 		<div
-			className='fixed z-[9998] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto' // {style.overlay}
+			className='report-modal-overlay fixed z-[9998] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto' // {style.overlay}
 			onClick={() => setReportModalShow(false)}>
 			<div className='absolute flex justify-center items-center z-[9999] top-4 left-0 right-0 sm:overflow-y-scroll'>
 				<div
-					className='flex-col justify-center items-center rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible md:w-10/12 lg:w-10/12' // {style.wrap}
+					className='report-modal-wrap flex-col justify-center items-center rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible md:w-10/12 lg:w-10/12' // {style.wrap}
 					onClick={(e) => {
 						e.stopPropagation() // Prevent modal close when clicking inside
 					}}>
@@ -228,9 +240,8 @@ const ReportModal = ({
 
 									{/* Report Description/Detail */}
 									<div className='mb-5'>
-										<div className={style.header}>Description</div>
-										<textarea
-											placeholder='No detail provided'
+										<FormTextarea
+											label='Description'
 											id='detail'
 											className={
 												report.detail
@@ -238,8 +249,8 @@ const ReportModal = ({
 													: style.textarea + ` italic`
 											}
 											disabled
-											value={report.detail}
-											rows='6'
+											value={report.detail || ''}
+											rows={6}
 										/>
 									</div>
 
@@ -413,14 +424,14 @@ const ReportModal = ({
 							{/* Notes Section */}
 							<div>
 								<div className={style.header}>Newsroom's Notes</div>
-								<textarea
+								<FormTextarea
 									id='note'
+									label="Newsroom's Notes"
 									onChange={onNoteChange}
-									placeholder='No notes yet...'
 									className={note ? style.textarea : style.textarea + ` italic`}
-									rows='6'
-									readOnly={customClaims.admin ? true : false} // Admin users cannot edit notes
-									defaultValue={note}></textarea>
+									rows={6}
+									value={note || ''}
+								/>
 							</div>
 							
 							{/* Actions Section */}
@@ -428,22 +439,36 @@ const ReportModal = ({
 								{/* Label Assignment */}
 								<div className='mb-4'>
 									<div className={style.header}>Label</div>
-									<select
-										id='labels'
-										onChange={onLabelChange}
-										value={selectedLabel || ''}
-										className='text-sm inline-block px-8 border-none bg-yellow-400 py-1 rounded-2xl shadow hover:shadow-none'>
-										
-										{/* Default option representing no label */}
-										<option value=''>{selectedLabel === '' ? 'No Label' : 'Remove Label'}</option>
-										
-										{/* Available labels from props */}
-										{activeLabels.map((label, i) => (
-											<option value={label} key={i}>
-												{label}
-											</option>
-										))}
-									</select>
+									<LabelSelectMenu
+										id="labels"
+										labelOptions={labelOptions}
+										selectedLabel={selectedLabel || DEFAULT_REPORT_LABEL}
+										agencyLabelColors={agencyLabelColors}
+										onLabelChange={onLabelChange}
+									/>
+									{selectedLabel === OTHER_LABEL && (
+										<div className='mt-3'>
+											<FormInput
+												type='text'
+												id='other-label'
+												label={`Specify label (max ${CUSTOM_LABEL_MAX_LENGTH} characters)`}
+												value={otherLabelDraft}
+												onChange={onOtherLabelChange}
+												onBlur={onOtherLabelCommit}
+												onKeyDown={(e) => {
+													if (e.key === 'Enter') {
+														e.preventDefault()
+														onOtherLabelCommit()
+													}
+												}}
+												maxLength={CUSTOM_LABEL_MAX_LENGTH}
+												className='bg-white'
+											/>
+											{otherLabelError && (
+												<p className='mt-1 text-sm text-red-600'>{otherLabelError}</p>
+											)}
+										</div>
+									)}
 									{/* Status change feedback */}
 									{changeStatus && (
 										<span className='ml-5 font-light text-sm italic'>

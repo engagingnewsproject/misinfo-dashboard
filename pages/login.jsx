@@ -42,6 +42,7 @@ import {
 import { GiMagnifyingGlass } from "react-icons/gi";
 import Head from 'next/head';
 import { Typography } from '@material-tailwind/react'
+import FormInput from '../components/ui/FormInput'
 
 /**
  * Login Page
@@ -179,34 +180,36 @@ const Login = () => {
 					)}
 					<form className="px-8 pt-6 pb-4 mb-4" onSubmit={handleLogin}>
 						<div className="mb-4">
-							<input
-								className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+							<FormInput
 								id="email"
 								type="text"
-								placeholder={t('email')}
+								label={t('email')}
 								required
 								value={data.email}
 								onChange={handleChange}
 								autoComplete="username"
 							/>
 						</div>
-						<div className="mb-1 flex">
-							<input
-								className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 mb-1 leading-tight focus:outline-none focus:shadow-outline"
+						<div className="mb-1">
+							<FormInput
 								id="password"
 								type={type}
 								name="password"
-								placeholder={t('password')}
+								label={t('password')}
 								required
 								value={data.password}
 								onChange={handleChange}
 								autoComplete="current-password"
+								icon={
+									<button
+										type="button"
+										className="cursor-pointer"
+										onClick={handleTogglePass}
+										aria-label="Toggle password visibility">
+										<MdOutlineRemoveRedEye />
+									</button>
+								}
 							/>
-							<span
-								className="flex justify-around items-center"
-								onClick={handleTogglePass}>
-								<MdOutlineRemoveRedEye className="absolute mr-10" />
-							</span>
 						</div>
 						{error && (
 							<span className="text-red-500 text-sm font-light">{error}</span>

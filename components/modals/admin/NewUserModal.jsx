@@ -1,4 +1,4 @@
-import { Input } from '@material-tailwind/react'
+import FormInput from '../../ui/FormInput'
 import React from 'react'
 import { IoClose } from 'react-icons/io5'
 
@@ -39,12 +39,11 @@ const NewUserModal = ({
 						</div>
 					</div>
 					<form onSubmit={onFormSubmit} id="newUserModal" className={style.modal_form}>
-						<Input // New agency emails
+						<FormInput
 							className="bg-white"
 							id="userEmail"
 							type="email"
 							label="Agency user email"
-							placeholder="Email"
 							value={newUserEmail}
 							onChange={onNewUserEmail}
 							autoComplete='email'

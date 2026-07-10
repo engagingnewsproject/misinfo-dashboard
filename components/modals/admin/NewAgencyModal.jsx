@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { IoClose } from 'react-icons/io5'
 import { useAuth } from '../../../context/AuthContext'
-import Select from "react-select";
+import FormInput from '../../ui/FormInput'
+import FormSelect from '../../ui/FormSelect'
 import { Country, State, City }  from 'country-state-city';
 
 const NewAgencyModal = ({ 
@@ -47,11 +48,11 @@ const NewAgencyModal = ({
 						</div>
 					</div>
 					<form onSubmit={onFormSubmit} id="newAgencyModal" className={style.modal_form}>
-						<input // Agency Name
-							className={style.modal_form_input}
+						<FormInput
+							className="bg-white"
 							id="agencyName"
 							type="text"
-							placeholder="Agency Name"
+							label="Agency Name"
 							value={newAgencyName}
 							onChange={onNewAgencyName}
 							autoComplete="nope"
@@ -61,12 +62,12 @@ const NewAgencyModal = ({
 								Enter an agency name
 								</p>
 								) : null}
-						<input // New agency emails (text: comma-separated is invalid for type="email")
-							className={style.modal_form_input}
+						<FormInput
+							className="bg-white"
 							id="agencyUser"
 							type="text"
 							inputMode="email"
-							placeholder="Admin email(s), comma-separated"
+							label="Admin email(s), comma-separated"
 							value={newAgencyEmails}
 							onChange={onNewAgencyEmails}
 							autoComplete="email"
@@ -82,43 +83,29 @@ const NewAgencyModal = ({
 								Select a state and city
 							</p>
 						) : null}
-						<Select // Agency State
-							className={style.modal_form_select}
+						<FormSelect
 							id="agencyState"
-							type="text"
-							placeholder="Select State"
+							label="Select State"
 							value={data.state}
 							options={State.getStatesOfCountry(data.country)}
-							getOptionLabel={(options) => {
-								return options["name"];
-							}}
-							getOptionValue={(options) => {
-								return options["name"];
-							}}                                
-							label="state"
+							getOptionLabel={(options) => options["name"]}
+							getOptionValue={(options) => options["name"]}
 							onChange={onNewAgencyState}
 							required
 						/>
-						<Select // Agency City
-							className={style.modal_form_select}
+						<FormSelect
 							id="agencyCity"
-							type="text"
-							placeholder="Select City"
+							label="Select City"
 							value={data.city}
 							options={City.getCitiesOfState(
 								data.state?.countryCode,
 								data.state?.isoCode
 								)}
-								getOptionLabel={(options) => {
-									return options["name"];
-								}}
-								getOptionValue={(options) => {
-									return options["name"];
-								}}                                
-								label="state"
-								onChange={onNewAgencyCity}
-								required
-							/>
+							getOptionLabel={(options) => options["name"]}
+							getOptionValue={(options) => options["name"]}
+							onChange={onNewAgencyCity}
+							required
+						/>
 						{errors.submit ? (
 							<p className="error text-red-600 text-sm" role="alert">
 								{errors.submit}

@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { IoClose } from "react-icons/io5"
 import Image from "next/image"
 import ConfirmModal from "../common/ConfirmModal"
+import FormInput from '../../ui/FormInput'
 import { useAuth } from '../../../context/AuthContext'
 
 const AgencyModal = ({
@@ -107,11 +108,11 @@ const AgencyModal = ({
                 Add agency user
               </div>
               <div className={style.modal_form_add_agency}>
-								<input // New agency emails
-									className="rounded-xl"
+								<FormInput
+									className="bg-white"
 									id="agencyUser"
-									type="text"
-									placeholder="Agency User Email"
+									type="email"
+									label="Agency User Email"
 									value={addAgencyUsers}
 									onChange={(e) => setAddAgencyUsers(e.target.value)}
 									autoComplete='nope'

@@ -70,6 +70,7 @@ import {
 	getActiveExperimentId,
 } from '../../utils/reports-queries'
 import LoadingSpinner from '../ui/LoadingSpinner'
+import adminSectionStyles from '../../styles/adminSectionStyles'
 
 const dateOptions = {
 	day: '2-digit',
@@ -86,18 +87,7 @@ const column = {
 	data_center:
 		'whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 text-center',
 }
-const style = {
-	icon: 'hover:fill-cyan-700',
-	section_container:
-		'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
-	section_wrapper: 'flex flex-col h-full',
-	section_header: 'flex justify-between ml-10 md:mx-0 py-5',
-	section_title: 'text-xl font-extrabold text-blue-600 tracking-wider',
-	section_filtersWrap: 'p-0 px-4 md:p-4 md:py-0 md:px-4 flex items-center',
-	table_main: 'min-w-full bg-white rounded-xl p-1',
-	button:
-		'flex items-center shadow ml-auto bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
-}
+const style = adminSectionStyles
 
 /**
  * Retrieves the user's join date based on available data.
@@ -1439,7 +1429,7 @@ const Users = () => {
 															onClick={(e) => e.stopPropagation()}>
 															<button
 																onClick={() => handleMobileUserDelete(userId)}
-																className={`${style.icon} tooltip-delete-user`}>
+																className={`${style.table_button} tooltip-delete-user`}>
 																<IoTrash
 																	size={20}
 																	className="ml-4 fill-gray-400 hover:fill-red-600"

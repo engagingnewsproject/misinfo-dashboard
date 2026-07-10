@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../config/firebase';
 import { useTranslation } from 'next-i18next';
-import Select from 'react-select';
+import FormSelect from '../../ui/FormSelect';
 import { State, City } from 'country-state-city';
 import { Button } from '@material-tailwind/react';
 
@@ -153,38 +153,27 @@ const LocationUpdate = ({ user, userData, setUserData }) => {
           {/* Need to wrap any form elements in a form tag */}
           <div className="flex flex-col sm:flex-row lg:flex-auto lg:justify-end">
             {/* These could be changed to the tailwindcss material design select elements */}
-            <Select
-              className="mb-2 sm:mb-0 lg:max-w-52 border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            <FormSelect
+              className="mb-2 sm:mb-0 lg:max-w-52"
               id="state"
-              type="text"
-              placeholder={t('NewReport:state_text')}
+              label={t('NewReport:state_text')}
               value={userLocation?.state}
               options={State.getStatesOfCountry('US')}
-              getOptionLabel={(options) => {
-                return options['name'];
-              }}
-              getOptionValue={(options) => {
-                return options['name'];
-              }}
-              label="state"
+              getOptionLabel={(options) => options['name']}
+              getOptionValue={(options) => options['name']}
               onChange={handleUserStateChange}
             />
-            <Select
-              className="sm:pl-2 lg:max-w-52 border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            <FormSelect
+              className="sm:pl-2 lg:max-w-52"
               id="city"
-              type="text"
-              placeholder={t('NewReport:city_text')}
+              label={t('NewReport:city_text')}
               value={userLocation?.city}
               options={City.getCitiesOfState(
                 userLocation?.state?.countryCode,
                 userLocation?.state?.isoCode
               )}
-              getOptionLabel={(options) => {
-                return options['name'];
-              }}
-              getOptionValue={(options) => {
-                return options['name'];
-              }}
+              getOptionLabel={(options) => options['name']}
+              getOptionValue={(options) => options['name']}
               onChange={handleUserCityChange}
             />
           </div>

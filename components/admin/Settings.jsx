@@ -23,14 +23,13 @@ import React, { useState, useEffect } from 'react'
 import TagSystem from '../analytics/TagSystem';
 import ExperimentSettings from './ExperimentSettings';
 import { useAuth } from '../../context/AuthContext'
+import { DEFAULT_AGENCY_LABELS, canManageAgencyLabels } from '../../config/labels'
 import globalStyles from '../../styles/globalStyles';
 import { collection, query, where, setDoc, getDoc, getDocs, doc } from "firebase/firestore"; 
 import { db, auth } from "../../config/firebase"
 import {List,ListItem} from "@material-tailwind/react"
-import Select from 'react-select';
+import FormSelect from '../ui/FormSelect';
 import { Country, State, City } from 'country-state-city';
-
-export const tagSystems = ['default', 'Topic', 'Source', 'Labels'];
 
 /**
  * Settings Component
@@ -67,13 +66,11 @@ const Settings = () => {
   const setData = async (agencyID) => {
     const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
     const defaultSources = ["Newspaper", "Other/Otro","Social","Website"] // tag system 2
-    const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"] // tag system 3
-
     // create topics collection for the new agency
     setDoc(doc(db, "tags", agencyID), {
         Labels: {
-          list: defaultLabels,
-          active: defaultLabels
+          list: DEFAULT_AGENCY_LABELS,
+          active: DEFAULT_AGENCY_LABELS
         },
         Source: {
           list: defaultSources,
@@ -193,37 +190,23 @@ const Settings = () => {
         <div>
             <div className={globalStyles.heading.h2.blue}>Agency Location</div>
 
-            <Select
-            className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            <FormSelect
             id="state"
-            type="text"
             required
-            placeholder="State"
-
+            label="State"
             value={stateSelected.state }
             options={State.getStatesOfCountry('US')}
-            getOptionLabel={(options) => {
-              return options['name'];
-            }}
-            getOptionValue={(options) => {
-              return options['name'];
-            }}
-            label="state"
+            getOptionLabel={(options) => options['name']}
+            getOptionValue={(options) => options['name']}
             onChange={handleStateChange}
           />
           <div className={globalStyles.heading.h2.blue}>Agencies</div>
 
-          <Select
-            className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          <FormSelect
             options={agencies}
-            placeholder="Agency Name"
-
-            getOptionLabel={(options) => {
-              return options['name']
-            }}
-            getOptionValue={(options) => {
-              return options['name'];
-            }}
+            label="Agency Name"
+            getOptionLabel={(options) => options['name']}
+            getOptionValue={(options) => options['name']}
             onChange={handleAgencyChange}/>
           {customClaims.admin && <div className={globalStyles.heading.h2.blue}>Tags</div>}
           {agencyID == null &&        
@@ -250,7 +233,7 @@ const Settings = () => {
                 Edit Sources
             </button>
         </div>
-        {customClaims.admin &&
+        {canManageAgencyLabels(customClaims) &&
           <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
             <div className="font-light">Labels</div>
             <button
