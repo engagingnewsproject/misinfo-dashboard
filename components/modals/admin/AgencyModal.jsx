@@ -3,7 +3,7 @@ import { IoClose } from "react-icons/io5"
 import Image from "next/image"
 import ConfirmModal from "../common/ConfirmModal"
 import FormInput from '../../ui/FormInput'
-import { useAuth } from '../../../context/AuthContext'
+import MediaUploadField from "../../ui/MediaUploadField"
 
 const AgencyModal = ({
   setAgencyModal,
@@ -17,8 +17,10 @@ const AgencyModal = ({
 	setAddAgencyUsers,
 	addAgencyUsers, // handle the input value for new agency emails
   setSendEmail,
+	images,
 	imgPicker,
 	uploadedImageURLs,
+	handleRemoveImage,
 	errors }) => {
 
   // delete modal
@@ -50,7 +52,6 @@ const AgencyModal = ({
 		modal_form_label: 'text-black tracking-wider mb-4',
 		modal_form_data: 'col-span-2 text-sm bg-white rounded-xl p-4 mb-5',
     modal_form_add_agency: 'col-span-2 text-sm rounded-xl p-1 mb-5',
-		modal_form_upload_image: 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
 		modal_form_button: 'bg-blue-600 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold ml-1 py-2 px-6 rounded-md focus:outline-none focus:shadow-outline',
     modal_form_button_sent: "bg-green-500 col-start-3 self-end hover:bg-green-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
     modal_notification_text: "text-green-700",
@@ -132,36 +133,36 @@ const AgencyModal = ({
               </div>
 							<div>
 								{/* Display the existing logo if it exists */}
-								{uploadedImageURLs[0] ? (
-                  <Image
-                    src={uploadedImageURLs[0]}
-                    width={100}
-                    height={100}
-                    alt="Agency logo preview"
-                    onLoad={() => URL.revokeObjectURL(uploadedImageURLs[0])}
-                  />
-                )
-								: 
-									agencyInfo.logo?.[0] ? (
-										<Image
-											src={agencyInfo.logo[0]}
-											width={100}
-											height={100}
-											alt="Agency logo"
-										/>
-									) : null
-								}
-								<label className="block">
-									<span className="sr-only">Choose files</span>
-									<input
-										className={style.modal_form_upload_image} 
-										id="agency_logo_file" 
-										type="file" 
-										accept="image/*" 
-										onChange={handleImageChange}
-										ref={imgPicker}
-									/>
-								</label>
+								{images.length === 0 && (
+									<>
+										{uploadedImageURLs[0] ? (
+											<Image
+												src={uploadedImageURLs[0]}
+												width={100}
+												height={100}
+												alt="Agency logo preview"
+												onLoad={() => URL.revokeObjectURL(uploadedImageURLs[0])}
+											/>
+										) : agencyInfo.logo?.[0] ? (
+											<Image
+												src={agencyInfo.logo[0]}
+												width={100}
+												height={100}
+												alt="Agency logo"
+											/>
+										) : null}
+									</>
+								)}
+								<MediaUploadField
+									id="agency_logo_file"
+									inputRef={imgPicker}
+									onChange={handleImageChange}
+									onRemoveFile={handleRemoveImage}
+									files={images}
+									multiple={false}
+									label="Agency logo"
+									actionText="Choose image"
+								/>
 							</div>
 						<button 
 							className={style.modal_form_button}

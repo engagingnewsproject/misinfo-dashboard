@@ -1,54 +1,42 @@
 import React, { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/router"
 import { IoClose } from "react-icons/io5"
 import { useAuth } from "../../context/AuthContext"
 import moment from "moment"
-import Image from "next/image"
 import { db } from "../../config/firebase"
 import {
-	getDoc,
-	getDocs,
-	doc,
-	setDoc,
 	collection,
-	updateDoc,
 	addDoc,
 } from "firebase/firestore"
 import {
 	getStorage,
 	ref,
 	getDownloadURL,
-	uploadBytes,
-	deleteObject,
 	uploadBytesResumable,
 } from "firebase/storage"
 import { useTranslation } from "react-i18next"
 import FormInput from "../ui/FormInput"
 import FormTextarea from "../ui/FormTextarea"
+import MediaUploadField from "../ui/MediaUploadField"
 
-const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
+const ContactHelpModal = ({ setContactHelpModal }) => {
 	const { t } = useTranslation("Navbar")
 	const dbInstance = collection(db, "helpRequests")
-	const router = useRouter()
 	const { user } = useAuth()
 	const storage = getStorage()
-	//image upload
 	const imgPicker = useRef(null)
 
-	//set form fields
 	const [subject, setSubject] = useState("")
 	const [message, setMessage] = useState("")
 	const [update, setUpdate] = useState(false)
-	const [contactHelpState, setContactHelpState] = useState(0)
-	const [errors, setErrors] = useState({})
 	const [images, setImages] = useState([])
 	const [imageURLs, setImageURLs] = useState([])
+
 	const saveContactHelp = async () => {
 		try {
-			const email = user.email // Fetch the user's email from the user object
+			const email = user.email
 			const data = {
 				userID: user.accountId,
-				email: email, // Include the user's email in the data
+				email: email,
 				createdDate: moment().toDate(),
 				subject: subject,
 				message: message,
@@ -70,7 +58,6 @@ const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
 	}
 
 	const handleImageChange = (e) => {
-		// console.log("handle image change run")
 		for (let i = 0; i < e.target.files.length; i++) {
 			const newImage = e.target.files[i]
 			setImages((prevState) => [...prevState, newImage])
@@ -78,7 +65,11 @@ const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
 		}
 	}
 
-	// Image upload to firebase
+	const handleRemoveImage = (index) => {
+		setImages((prev) => prev.filter((_, i) => i !== index))
+		if (imgPicker.current) imgPicker.current.value = ''
+	}
+
 	const handleUpload = () => {
 		const promises = []
 		images.map((image) => {
@@ -90,15 +81,12 @@ const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
 			promises.push(uploadTask)
 			uploadTask.on(
 				"state_changed",
-				(snapshot) => {
-					// console.log(snapshot)
-				},
+				() => {},
 				(error) => {
 					console.log(error)
 				},
 				() => {
 					getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-						console.log("File available at", downloadURL)
 						setImageURLs((prev) => [...prev, downloadURL])
 					})
 				}
@@ -111,13 +99,11 @@ const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
 	const handleSubjectChange = (e) => {
 		e.preventDefault()
 		setSubject(e.target.value)
-		//setContactHelpState(1)
 	}
 
 	const handleMessageChange = (e) => {
 		e.preventDefault()
 		setMessage(e.target.value)
-		//setReportState(2)
 	}
 
 	const handleContactHelpClose = async (e) => {
@@ -131,7 +117,7 @@ const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
 			alert("Subject is required")
 		} else if (!message) {
 			alert("Message is required")
-		} else if (images == "") {
+		} else if (images.length === 0) {
 			alert("We need at least one screenshot.")
 		} else {
 			if (images.length > 0) {
@@ -145,9 +131,6 @@ const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
 	const handleContactHelp = async (e) => {
 		e.preventDefault()
 		handleSubmitButton(e)
-	}
-	const handleChange = (e) => {
-		// console.log('Report value changed.');
 	}
 
 	useEffect(() => {
@@ -174,7 +157,7 @@ const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
 							<IoClose size={25} />
 						</button>
 					</div>
-					<form onChange={handleChange} onSubmit={handleContactHelp}>
+					<form onSubmit={handleContactHelp}>
 						<div className='mt-4 mb-0.5'>
 							<FormInput
 								id='subject'
@@ -196,38 +179,16 @@ const ContactHelpModal = ({ setContactHelpModal, handleContactHelpSubmit }) => {
 								rows={8}
 							/>
 						</div>
-						<div className='text-sm font-bold text-blue-600 tracking-wide mt-4'>
-							{t("Navbar:chfModalScreenshots")}
-						</div>
 						<div className='mt-4 mb-0.5'>
-							<label className='block'>
-								<span className='sr-only'>
-									{t("Navbar:chfModalChooseFiles")}
-								</span>
-								<input
-									className='block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer'
-									id='multiple_files'
-									type='file'
-									multiple
-									accept='image/*'
-									onChange={(e) => {
-										handleImageChange(e)
-									}}
-									ref={imgPicker}
-								/>
-							</label>
-							<div className='flex shrink-0 mt-2 space-x-2'>
-								{imageURLs.map((url, i = self.crypto.randomUUID()) => (
-									<div className='relative' key={i}>
-										<Image
-											src={url}
-											width={100}
-											height={100}
-											alt={`image-upload-${i}`}
-										/>
-									</div>
-								))}
-							</div>
+							<MediaUploadField
+								id='multiple_files'
+								inputRef={imgPicker}
+								onChange={handleImageChange}
+								onRemoveFile={handleRemoveImage}
+								files={images}
+								label={t("Navbar:chfModalScreenshots")}
+								actionText={t("Navbar:chfModalChooseFiles")}
+							/>
 						</div>
 
 						<div className='mt-3 sm:mt-6'>

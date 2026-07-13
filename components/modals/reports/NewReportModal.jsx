@@ -404,6 +404,15 @@ const NewReportModal = ({
 		clearFieldError('content')
 	}
 
+	/**
+	 * handleRemoveImage
+	 *
+	 * This function handles the removal of an image from the `images` state array.
+	 * It performs the following tasks:
+	 *
+	 * 1. Removes the image from the `images` state array using the `setImages` function.
+	 * 2. Resets the `imgPicker` input value to an empty string.
+	 */
 	const handleRemoveImage = (index) => {
 		setImages((prevState) => prevState.filter((_, i) => i !== index))
 		if (imgPicker.current) imgPicker.current.value = ''
@@ -1238,6 +1247,7 @@ const NewReportModal = ({
 								<Typography variant='h6' className="mb-2">
 									{t('detailed')}
 								</Typography>
+								{/* Link 1 */}
 								<div className="mb-4">
 									<FormInput
 										id="link"
@@ -1252,6 +1262,7 @@ const NewReportModal = ({
 									/>
 									<FieldError message={errors.link} />
 								</div>
+								{/* Link 2 */}
 								<div className="mb-4">
 									<FormInput
 										id="secondLink"
@@ -1265,6 +1276,7 @@ const NewReportModal = ({
 									/>
 									<FieldError message={errors.secondLink} />
 								</div>
+								{/* Detailed */}
 								<div className="mb-4">
 									<FormTextarea
 										id="detail"
@@ -1279,6 +1291,7 @@ const NewReportModal = ({
 									/>
 								</div>
 								<FieldError message={errors.content} />
+								{/* Media Upload */}
 								<MediaUploadField
 									id="multiple_files"
 									inputRef={imgPicker}

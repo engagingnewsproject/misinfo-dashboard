@@ -13,6 +13,7 @@
 import React from 'react'
 import FormInput from '../../ui/FormInput'
 import FormTextarea from '../../ui/FormTextarea'
+import MediaUploadField from '../../ui/MediaUploadField'
 import { Typography } from '@material-tailwind/react'
 import { useTranslation } from 'next-i18next'
 import { IoIosInformationCircle } from 'react-icons/io'
@@ -36,6 +37,7 @@ import globalStyles from '../../../styles/globalStyles'
  * @param {Function} props.setDetail - Function to update description
  * @param {boolean} props.detailError - Description validation error state
  * @param {Function} props.handleImageChange - Function to handle image selection
+ * @param {Function} [props.handleRemoveImage] - Function to remove a selected image
  * @param {React.RefObject} props.imgPicker - Reference to file input
  * @param {Function} props.handleSubmitClick - Function to handle form submission
  * @param {File[]} props.selectedImages - Array of currently selected image files
@@ -53,38 +55,12 @@ const DetailsStep = ({
   setDetail,
   detailError,
   handleImageChange,
+  handleRemoveImage,
   imgPicker,
   handleSubmitClick,
   selectedImages = []
 }) => {
   const { t } = useTranslation('NewReport')
-
-  // State for image preview
-  const [imagePreview, setImagePreview] = React.useState([])
-
-  // Restore image previews when selectedImages prop changes (e.g., when going back)
-  React.useEffect(() => {
-    if (selectedImages && selectedImages.length > 0) {
-      const previews = selectedImages.map(file => URL.createObjectURL(file))
-      setImagePreview(previews)
-    } else {
-      setImagePreview([])
-    }
-  }, [selectedImages])
-
-  // Handle image selection with preview
-  const handleImageSelection = (e) => {
-    const files = Array.from(e.target.files)
-    setImagePreview(files.map(file => URL.createObjectURL(file)))
-    handleImageChange(e)
-  }
-
-  // Clean up preview URLs on unmount
-  React.useEffect(() => {
-    return () => {
-      imagePreview.forEach(url => URL.revokeObjectURL(url))
-    }
-  }, [imagePreview])
 
   return (
     <div className='flex flex-col gap-6 mb-1'>
@@ -171,45 +147,16 @@ const DetailsStep = ({
       
       {/* IMAGE UPLOAD */}
       <div className='block'>
-        <FormInput
-          variant='static'
+        <MediaUploadField
           id='multiple_files'
-          multiple
-          className={globalStyles.inputImage}
-          accept='image/*'
-          onChange={handleImageSelection}
-          ref={imgPicker}
-          type='file'
+          inputRef={imgPicker}
+          onChange={handleImageChange}
+          onRemoveFile={handleRemoveImage}
+          files={selectedImages}
           label={t("image")}
+          actionText={t("choose_files")}
+          helperText={t("imageDescription")}
         />
-        <Typography
-          variant='small'
-          color='gray'
-          className='mt-2 flex items-start gap-1'>
-          <IoIosInformationCircle size="12" className='mt-1' />
-          {t("imageDescription")}
-        </Typography>
-        
-        {/* Image Preview */}
-        {imagePreview.length > 0 && (
-          <div className="mt-4">
-            <Typography variant="small" color="gray" className="mb-2">
-              Selected Images ({imagePreview.length}):
-            </Typography>
-            <div className="flex gap-2 overflow-x-auto">
-              {imagePreview.map((url, index) => (
-                <div key={index} className="flex-shrink-0">
-                  {/* Plain <img> — next/image requires explicit width/height and can't size blob: URLs */}
-                  <img
-                    src={url}
-                    alt={`Preview ${index + 1}`}
-                    className="w-20 h-20 object-cover rounded border"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
       
       {/* DESCRIBE IN DETAIL */}

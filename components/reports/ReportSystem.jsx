@@ -429,12 +429,16 @@ const ReportSystem = ({
 	 * Handles image file selection
 	 */
 	const handleImageChange = (e) => {
-		const selectedImages = []
 		for (let i = 0; i < e.target.files.length; i++) {
-			selectedImages.push(e.target.files[i])
+			const newImage = e.target.files[i]
+			setImages((prevState) => [...prevState, newImage])
 		}
-		setImages(selectedImages)
 		// Don't trigger upload immediately - wait for Review button
+	}
+
+	const handleRemoveImage = (index) => {
+		setImages((prev) => prev.filter((_, i) => i !== index))
+		if (imgPicker.current) imgPicker.current.value = ''
 	}
 
 	/**
@@ -761,6 +765,7 @@ const ReportSystem = ({
 								setDetail={setDetail}
 								detailError={detailError}
 								handleImageChange={handleImageChange}
+								handleRemoveImage={handleRemoveImage}
 								imgPicker={imgPicker}
 								handleSubmitClick={handleReviewStep}
 								selectedImages={images}
