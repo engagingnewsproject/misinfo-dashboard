@@ -68,7 +68,7 @@ const UserSettingsForm = ({
               {t('cancel')}
             </Button>
             <Button type="button" color="blue" onClick={handleDone}>
-              Done
+              {t('done')}
             </Button>
           </div>
         ) : (
