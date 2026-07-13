@@ -41,7 +41,7 @@ import { BiEditAlt } from 'react-icons/bi'
 import { IoReturnUpBackSharp } from 'react-icons/io5'
 import { BsShareFill } from 'react-icons/bs'
 import { AiOutlineFieldTime } from 'react-icons/ai'
-import SwitchRead from "../../../components/profile/SwitchRead"
+import SwitchRead from "../../../components/reports/SwitchRead"
 import Link from "next/link"
 import Image from 'next/image';
 import globalStyles from '../../../styles/globalStyles';
