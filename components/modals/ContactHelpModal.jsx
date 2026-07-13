@@ -1,17 +1,14 @@
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useRef } from "react"
 import { IoClose } from "react-icons/io5"
 import { useAuth } from "../../context/AuthContext"
 import moment from "moment"
 import { db } from "../../config/firebase"
-import {
-	collection,
-	addDoc,
-} from "firebase/firestore"
+import { collection, addDoc } from "firebase/firestore"
 import {
 	getStorage,
 	ref,
 	getDownloadURL,
-	uploadBytesResumable,
+	uploadBytes,
 } from "firebase/storage"
 import { useTranslation } from "react-i18next"
 import FormInput from "../ui/FormInput"
@@ -27,73 +24,70 @@ const ContactHelpModal = ({ setContactHelpModal }) => {
 
 	const [subject, setSubject] = useState("")
 	const [message, setMessage] = useState("")
-	const [update, setUpdate] = useState(false)
 	const [images, setImages] = useState([])
-	const [imageURLs, setImageURLs] = useState([])
-
-	const saveContactHelp = async () => {
-		try {
-			const email = user.email
-			const data = {
-				userID: user.accountId,
-				email: email,
-				createdDate: moment().toDate(),
-				subject: subject,
-				message: message,
-				images: imageURLs,
-			}
-			await addDoc(dbInstance, data)
-			setContactHelpModal(false)
-			clearForm()
-		} catch (error) {
-			console.error("Error saving contact help:", error)
-		}
-	}
+	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	const clearForm = () => {
 		setSubject("")
 		setMessage("")
 		setImages([])
-		setImageURLs([])
+		if (imgPicker.current) imgPicker.current.value = ""
+	}
+
+	/**
+	 * Uploads selected screenshot files to Storage and returns their download URLs.
+	 * Called on submit so help request docs are not written before uploads finish.
+	 *
+	 * @param {File[]} files
+	 * @returns {Promise<string[]>}
+	 */
+	const uploadImages = async (files) => {
+		if (!files.length) return []
+
+		return Promise.all(
+			files.map(async (image, index) => {
+				const safeName =
+					image.name.replace(/[^a-zA-Z0-9._-]/g, "_") || "image"
+				const storageRef = ref(
+					storage,
+					`help_${Date.now()}_${index}_${safeName}`,
+				)
+				const snapshot = await uploadBytes(storageRef, image)
+				return getDownloadURL(snapshot.ref)
+			}),
+		)
+	}
+
+	/**
+	 * Writes the help request to Firestore with the given image URLs.
+	 *
+	 * @param {string[]} uploadedImageURLs
+	 */
+	const saveContactHelp = async (uploadedImageURLs) => {
+		const email = user.email
+		const data = {
+			userID: user.accountId,
+			email: email,
+			createdDate: moment().toDate(),
+			subject: subject,
+			message: message,
+			images: uploadedImageURLs,
+		}
+		await addDoc(dbInstance, data)
+		setContactHelpModal(false)
+		clearForm()
 	}
 
 	const handleImageChange = (e) => {
 		for (let i = 0; i < e.target.files.length; i++) {
 			const newImage = e.target.files[i]
 			setImages((prevState) => [...prevState, newImage])
-			setUpdate(!update)
 		}
 	}
 
 	const handleRemoveImage = (index) => {
 		setImages((prev) => prev.filter((_, i) => i !== index))
-		if (imgPicker.current) imgPicker.current.value = ''
-	}
-
-	const handleUpload = () => {
-		const promises = []
-		images.map((image) => {
-			const storageRef = ref(
-				storage,
-				`report_${new Date().getTime().toString()}.png`
-			)
-			const uploadTask = uploadBytesResumable(storageRef, image)
-			promises.push(uploadTask)
-			uploadTask.on(
-				"state_changed",
-				() => {},
-				(error) => {
-					console.log(error)
-				},
-				() => {
-					getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-						setImageURLs((prev) => [...prev, downloadURL])
-					})
-				}
-			)
-		})
-
-		Promise.all(promises).catch((err) => console.log(err))
+		if (imgPicker.current) imgPicker.current.value = ""
 	}
 
 	const handleSubjectChange = (e) => {
@@ -106,38 +100,37 @@ const ContactHelpModal = ({ setContactHelpModal }) => {
 		setMessage(e.target.value)
 	}
 
-	const handleContactHelpClose = async (e) => {
+	const handleContactHelpClose = (e) => {
 		e.preventDefault()
 		setContactHelpModal(false)
 	}
 
-	const handleSubmitButton = (e) => {
+	const handleSubmitButton = async (e) => {
 		e.preventDefault()
 		if (!subject) {
 			alert("Subject is required")
-		} else if (!message) {
+			return
+		}
+		if (!message) {
 			alert("Message is required")
-		} else if (images.length === 0) {
+			return
+		}
+		if (images.length === 0) {
 			alert("We need at least one screenshot.")
-		} else {
-			if (images.length > 0) {
-				setUpdate(!update)
-			}
-			saveContactHelp(imageURLs)
-			setContactHelpModal(false)
+			return
+		}
+
+		setIsSubmitting(true)
+		try {
+			const uploadedImageURLs = await uploadImages(images)
+			await saveContactHelp(uploadedImageURLs)
+		} catch (error) {
+			console.error("Error saving contact help:", error)
+			alert("Failed to submit help request. Please try again.")
+		} finally {
+			setIsSubmitting(false)
 		}
 	}
-
-	const handleContactHelp = async (e) => {
-		e.preventDefault()
-		handleSubmitButton(e)
-	}
-
-	useEffect(() => {
-		if (update) {
-			handleUpload()
-		}
-	}, [update])
 
 	return (
 		<div className='fixed z-[9998] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto'>
@@ -157,7 +150,7 @@ const ContactHelpModal = ({ setContactHelpModal }) => {
 							<IoClose size={25} />
 						</button>
 					</div>
-					<form onSubmit={handleContactHelp}>
+					<form onSubmit={handleSubmitButton}>
 						<div className='mt-4 mb-0.5'>
 							<FormInput
 								id='subject'
@@ -193,10 +186,12 @@ const ContactHelpModal = ({ setContactHelpModal }) => {
 
 						<div className='mt-3 sm:mt-6'>
 							<button
-								className='w-full bg-blue-600 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
-								onClick={handleSubmitButton}
-								type='submit'>
-								{t('Navbar:chfModalSubmit')}
+								className='w-full bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline'
+								type='submit'
+								disabled={isSubmitting}>
+								{isSubmitting
+									? `${t("Navbar:chfModalSubmit")}…`
+									: t("Navbar:chfModalSubmit")}
 							</button>
 						</div>
 					</form>
