@@ -78,7 +78,7 @@ const UserSettingsForm = ({
             color="blue"
             className="shrink-0"
             onClick={() => setIsEditing(true)}>
-            Edit
+            {t('edit')}
           </Button>
         )}
       </div>
