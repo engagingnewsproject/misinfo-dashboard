@@ -59,7 +59,6 @@ import { useTranslation } from 'next-i18next'
  * @param {number} props.tab - Currently active tab index
  * @param {Function} props.setTab - Function to change the active tab
  * @param {Function} props.handleNewReportSubmit - Handler for new report submission
- * @param {Function} props.handleContactHelpSubmit - Handler for contact help submission
  * @param {Function} props.handleNewReportClick - Handler for new report button click
  * @param {Function} props.onReportTabClick - Handler for report tab click
  * @param {boolean} props.isOpen - Whether the navbar is open (legacy prop)
@@ -69,7 +68,6 @@ import { useTranslation } from 'next-i18next'
  *   tab={0}
  *   setTab={setActiveTab}
  *   handleNewReportSubmit={handleSubmit}
- *   handleContactHelpSubmit={handleContact}
  *   handleNewReportClick={handleNewReport}
  *   onReportTabClick={handleReportTab}
  *   isOpen={false}
@@ -79,7 +77,6 @@ const Navbar = ({
 	tab,
 	setTab,
 	handleNewReportSubmit,
-	handleContactHelpSubmit,
 	handleNewReportClick,
 	onReportTabClick,
 	isOpen,
@@ -395,7 +392,6 @@ const Navbar = ({
 			{contactHelpModal && (
 				<ContactHelpModal
 					setContactHelpModal={setContactHelpModal}
-					handleContactHelpSubmit={handleContactHelpSubmit}
 				/>
 			)}
 		</>

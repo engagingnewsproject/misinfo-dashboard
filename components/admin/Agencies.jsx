@@ -301,6 +301,11 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			console.error('Error uploading images:', error)
 		}
 	}
+	
+	const handleRemoveImage = (index) => {
+		setImages((prevState) => prevState.filter((_, i) => i !== index))
+		if (imgPicker.current) imgPicker.current.value = ''
+	}
 
 	/**
 	 * Adds new admin users to an agency with email validation and invitation
@@ -728,11 +733,11 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 											agency['logo'].map((image, i) => {
 												return (
 													<Image
-														src={`${image}`}
+														src={image}
 														width={50}
 														height={50}
-														className="w-auto"
-														alt="image"
+														className="h-[50px] w-[50px] object-contain"
+														alt={`${agency.name} logo`}
 														key={i}
 													/>
 												)
@@ -776,7 +781,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			{agencyModal && (
 				<AgencyModal
 					handleImageChange={handleImageChange}
-					handleUpload={handleUpload}
 					handleAddAgencyUsers={handleAddAgencyUsers}
 					addAgencyUsers={addAgencyUsers}
 					setAddAgencyUsers={setAddAgencyUsers}
@@ -797,6 +801,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 					setSendEmail={setSendEmail}
 					setResendEmail={setResendEmail}
 					imgPicker={imgPicker}
+					handleRemoveImage={handleRemoveImage}
 					errors={errors}
 				/>
 			)}

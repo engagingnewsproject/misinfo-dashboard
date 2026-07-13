@@ -495,7 +495,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 							{filteredCustomLabels.length === 0 ? (
 								<div className="col-span-full py-3 text-sm text-center text-gray-500">
 									No custom labels yet. Create one from a report using the Other
-									label option.
+									label option. Or the New Label button above.
 								</div>
 							) : (
 								filteredCustomLabels.map((item) => {
