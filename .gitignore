@@ -77,3 +77,4 @@ netlify.toml
 # Local docs folder (organizational only — not part of this repo)
 # Wiki clone lives at docs/misinfo-dashboard.wiki/; use that repo's git remote to push wiki changes.
 /docs/
+firepit-log.txt
