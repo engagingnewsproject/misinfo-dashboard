@@ -15,9 +15,6 @@ export const OTHER_LABEL = 'Other'
 export const CUSTOM_LABEL_MAX_LENGTH = 40
 export const MAX_CUSTOM_LABELS = 6
 
-/** Flip to 'admin' if project lead requests admin-only label management. */
-export const LABEL_MANAGER_ROLE = 'agency'
-
 export const DEFAULT_LABEL_COLORS = {
 	'To Investigate': '#facc15',
 	Misinfo: '#ef4444',
@@ -47,9 +44,7 @@ export const DEFAULT_AGENCY_LABELS = [...APP_WIDE_LABELS]
  * @returns {boolean}
  */
 export function canManageAgencyLabels(customClaims) {
-	return LABEL_MANAGER_ROLE === 'admin'
-		? Boolean(customClaims?.admin)
-		: Boolean(customClaims?.agency)
+  return Boolean(customClaims?.agency || customClaims?.admin)
 }
 
 /**

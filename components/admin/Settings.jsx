@@ -184,83 +184,82 @@ const Settings = () => {
     <div>
       {tagSystem == 0 ?
       <div className="z-0 flex-col p-16">
-        {customClaims.admin && <ExperimentSettings />}
-        <div className={globalStyles.heading.h1.blue}>Tagging Systems</div>
-        {customClaims.admin && 
-        <div>
-            <div className={globalStyles.heading.h2.blue}>Agency Location</div>
+        <div className="mb-8 p-4 bg-white rounded-lg border border-blue-gray-100">
+          <div className={globalStyles.heading.h1.blue}>Tagging Systems</div>
+          {customClaims.admin && 
+          <div>
+              <div className={globalStyles.heading.h2.blue}>Agency Location</div>
+
+              <FormSelect
+              id="state"
+              required
+              label="State"
+              value={stateSelected.state }
+              options={State.getStatesOfCountry('US')}
+              getOptionLabel={(options) => options['name']}
+              getOptionValue={(options) => options['name']}
+              onChange={handleStateChange}
+            />
+            <div className={globalStyles.heading.h2.blue}>Agencies</div>
 
             <FormSelect
-            id="state"
-            required
-            label="State"
-            value={stateSelected.state }
-            options={State.getStatesOfCountry('US')}
-            getOptionLabel={(options) => options['name']}
-            getOptionValue={(options) => options['name']}
-            onChange={handleStateChange}
-          />
-          <div className={globalStyles.heading.h2.blue}>Agencies</div>
-
-          <FormSelect
-            options={agencies}
-            label="Agency Name"
-            getOptionLabel={(options) => options['name']}
-            getOptionValue={(options) => options['name']}
-            onChange={handleAgencyChange}/>
-          {customClaims.admin && <div className={globalStyles.heading.h2.blue}>Tags</div>}
-          {agencyID == null &&        
-            <div>
-                Select an agency to view and edit their tags.
-            </div> }
-        </div>
-        }
-        {agencyID && 
-      <div>
-        <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
-            <div className="font-light">Topic Tags</div>
-            <button
-                onClick={() => setTagSystem(1)}
-                className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                Edit Topics
-            </button>
-        </div>
-        <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
-            <div className="font-light">Source Tags</div>
-            <button
-                onClick={() => setTagSystem(2)}
-                className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                Edit Sources
-            </button>
-        </div>
-        {canManageAgencyLabels(customClaims) &&
-          <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
-            <div className="font-light">Labels</div>
-            <button
-                onClick={() => setTagSystem(3)}
-                className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                Edit Labels
-            </button>
+              options={agencies}
+              label="Agency Name"
+              getOptionLabel={(options) => options['name']}
+              getOptionValue={(options) => options['name']}
+              onChange={handleAgencyChange}/>
+            {customClaims.admin && <div className={globalStyles.heading.h2.blue}>Tags</div>}
+            {agencyID == null &&        
+              <div>
+                  Select an agency to view and edit their tags.
+              </div> }
           </div>
-        }
-        {/* <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
-            <div className="font-light">Customized Labels</div>
-            <button
-                onClick={() => setTagSystem(3)}
-                className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                Edit Labels
-            </button>
-        </div> */}
-      </div> 
-      }
+          }
+          {agencyID && 
+            <div>
+              <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
+                  <div className="font-light">Topic Tags</div>
+                  <button
+                      onClick={() => setTagSystem(1)}
+                      className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                      Edit Topics
+                  </button>
+              </div>
+              <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
+                  <div className="font-light">Source Tags</div>
+                  <button
+                      onClick={() => setTagSystem(2)}
+                      className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                      Edit Sources
+                  </button>
+              </div>
+              {canManageAgencyLabels(customClaims) &&
+                <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
+                  <div className="font-light">Labels</div>
+                  <button
+                      onClick={() => setTagSystem(3)}
+                      className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                      Edit Labels
+                  </button>
+                </div>
+              }
+              {/* <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
+                  <div className="font-light">Customized Labels</div>
+                  <button
+                      onClick={() => setTagSystem(3)}
+                      className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                      Edit Labels
+                  </button>
+              </div> */}
+            </div> 
+          }
+        </div>
+        {customClaims.admin && <ExperimentSettings />}
       </div>
-      
-    
     :
-        <TagSystem tagSystem={tagSystem} setTagSystem={setTagSystem} agencyID={agencyID} stateSelected={stateSelected} agency={agency} />}
+      <TagSystem tagSystem={tagSystem} setTagSystem={setTagSystem} agencyID={agencyID} stateSelected={stateSelected} agency={agency} />}
       {/* TODO: add "custom tags section for approval" */}
     </div>
-
   )
 }
 

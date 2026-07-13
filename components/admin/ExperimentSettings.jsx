@@ -211,7 +211,7 @@ const ExperimentSettings = () => {
 	}
 
 	return (
-		<div className="mb-8 p-4 bg-white rounded-lg border border-blue-gray-100">
+		<div className="experiment-settings mb-8 p-4 bg-white rounded-lg border border-blue-gray-100">
 			<Typography variant="h5" color="blue" className="mb-4">
 				Experiment &amp; archive
 			</Typography>
