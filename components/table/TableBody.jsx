@@ -3,7 +3,11 @@ import globalStyles from '../../styles/globalStyles'
 import { Tooltip, Typography, Switch } from '@material-tailwind/react'
 import { IoTrash } from 'react-icons/io5'
 import MemoizedTooltipContent from './MemoizedTooltipContent'
-import { displayLabel, getLabelBadgeStyle } from '../../config/labels'
+import {
+  displayLabel,
+  getLabelBadgeStyle,
+  isInvestigationPending,
+} from '../../config/labels'
 
 const TableBody = ({
   loadedReports,
@@ -40,6 +44,7 @@ const TableBody = ({
           const details = trimToWordCount(report.detail || '',25)
           const title = report.title
           const isArchived = report.archived === true
+          const needsInvestigation = isInvestigationPending(report.label)
           const formattedDate = new Date(report['createdDate'].seconds * 1000).toLocaleString(
             'en-US',
             {
@@ -56,7 +61,11 @@ const TableBody = ({
             <tr
               key={report.reportID}
               onClick={() => onReportModalShow(report.reportID)}
-              className={`${globalStyles.table.tr} cursor-pointer`}>
+              className={`p-4 border-b border-blue-gray-50 cursor-pointer ${
+                needsInvestigation
+                  ? 'bg-yellow-50 hover:bg-yellow-100'
+                  : 'hover:bg-gray-100'
+              }`}>
               {columns.map(({ accessor }) => {
                 let tData
                 if (accessor === 'createdDate') {
