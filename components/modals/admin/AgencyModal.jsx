@@ -28,7 +28,11 @@ const AgencyModal = ({
 	const [selectedUserToDelete, setSelectedUserToDelete] = useState('')
 
   // Handler: Show delete confirmation modal
-  const handleDeleteClick = (user) => {
+  const handleDeleteClick = (user, e) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
     setSelectedUserToDelete(user)
     setDeleteModal(true)
   }
@@ -85,7 +89,8 @@ const AgencyModal = ({
                   <div className="grid grid-cols-2 py-1" key={i}>
                     <div className="flex">
                       <button
-                        onClick={() => handleDeleteClick(txt)} // Call the handler to show delete modal
+                        type="button"
+                        onClick={(e) => handleDeleteClick(txt, e)} // Call the handler to show delete modal
                         className={style.modal_delete}
                       >
                         <IoClose size={16} />
