@@ -40,13 +40,13 @@ import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
 // import { MdOutlineLocalPhone } from "react-icons/md";
 
 import { IoClose, IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
-import { useTranslation } from 'next-i18next';
 import {
 	CUSTOM_LABEL_MAX_LENGTH,
 	DEFAULT_REPORT_LABEL,
 	OTHER_LABEL,
 } from '../../../config/labels'
 import LabelSelectMenu from '../../reports/LabelSelectMenu'
+import { formatReportLocation } from '../../../utils/format-location'
 
 /**
  * ReportModal Component
@@ -77,11 +77,9 @@ import LabelSelectMenu from '../../reports/LabelSelectMenu'
  * @param {Function} props.onReadChange - Read status change handler
  * @param {any} props.update - Update trigger (legacy)
  * @param {string} props.postedDate - Formatted posted date
- * @param {string} props.reportLocation - Formatted location string
  * @param {Function} props.onNoteChange - Note change handler
  * @param {Function} props.onReportDelete - Report deletion handler
  * @param {string} props.changeStatus - Status change message
- * @param {Function} props.onButtonEmailSendClick - Email send handler
  * @param {string} props.reportModalId - Report ID for operations
  * @returns {JSX.Element} The rendered report modal component
  * 
@@ -126,12 +124,9 @@ const ReportModal = ({
 	update,
 	// read status END
 	postedDate,
-	reportLocation,
 	onNoteChange,
 	onReportDelete,
 	changeStatus,
-	// send email
-	onButtonEmailSendClick,
 	reportModalId,
 }) => {
 	// CSS styles object for consistent styling across the modal
@@ -147,48 +142,15 @@ const ReportModal = ({
 		icon: "flex p-2 justify-center text-gray-500 hover:bg-indigo-100 rounded-lg"
 	}
 	
-	// Internationalization hook
-	const {t} = useTranslation("ShareReport")
+	// Prefer report city/state; fall back to submitter profile location
+	const reportLocation = formatReportLocation(report, reportSubmitBy)
 	
-	// Generate report URI for external links
+	// Generate report URI for external links (matches dashboard route)
 	const reportURI = "/reports/" + reportModalId
 	
 	// Local state management
 	const [images,setImages] = useState([]) // Image gallery state
 	const [shareReportModal, setShareReportModal] = useState(false) // Share modal visibility
-	const [email,setEmail] = useState() // Email for sharing
-	
-	/**
-	 * Opens the share report modal
-	 * 
-	 * @function handleShareModal
-	 */
-	const handleShareModal = () => {
-		setShareReportModal(true)
-	}
-	
-	/**
-	 * Handles email input change for report sharing
-	 * 
-	 * @function handleEmailShareReport
-	 * @param {Event} e - Input change event
-	 */
-	const handleEmailShareReport = (e) => {
-		e.preventDefault()
-		setEmail(e.target.value)
-	}
-	
-	/**
-	 * Opens default email client with pre-filled report information
-	 * 
-	 * @function handleShareReport
-	 * @param {Event} e - Form submission event
-	 */
-	const handleShareReport = (e) => {
-		e.preventDefault()
-    const uri = `mailto:${email}`;
-    window.open(uri);
-	}
 	
 	// useEffect(() => {
 	// 	console.log(customClaims);
@@ -328,7 +290,11 @@ const ReportModal = ({
 											<div className='font-semibold px-2 self-center pr-4'>
 												City, State
 											</div>
-											<div className='text-md font-light'>{reportLocation}</div>
+											<div className='text-md font-light'>
+												{reportLocation || (
+													<span className='italic text-gray-400'>Not provided</span>
+												)}
+											</div>
 										</div>
 										
 										{/* Agency (conditional display) */}
@@ -538,13 +504,9 @@ const ReportModal = ({
 			{/* Share Report Modal */}
 			{shareReportModal && (
 				<ShareReportModal
-					func={handleShareModal}
-					title={t("shareReport")}
-					subtitle='Subtitle example text'
-					CTA={t("share")}
+					reportId={reportModalId}
+					reportTitle={report?.title || ''}
 					closeModal={setShareReportModal}
-					onEmailChange={handleEmailShareReport}
-					onSubmit={handleShareReport}
 				/>
 			)}
 		</div>

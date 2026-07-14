@@ -45,9 +45,13 @@ import FormSelect from '../../ui/FormSelect'
 import MediaUploadField from '../../ui/MediaUploadField'
 import { useTranslation } from 'next-i18next'
 import { Typography } from '@material-tailwind/react'
+import { maxActiveTags } from '../../../config/tagSystems'
+import { seedAgencyTagsDoc } from '../../../utils/tag-defaults'
 
 const TOPICS_KEY_PREFIX = 'topics.'
 const SOURCES_KEY_PREFIX = 'sources.'
+const MAX_ACTIVE_TOPICS = maxActiveTags[1]
+const MAX_ACTIVE_SOURCES = maxActiveTags[2]
 
 /**
  * If a tag id was stored with an i18n key prefix by mistake, strip it so we resolve
@@ -537,15 +541,7 @@ const NewReportModal = ({
 
         if (!docSnap.exists()) {
           console.log('Creating default tags for agency')
-          // Create default tags if they don't exist
-          const defaultTopics = ['Health', 'Other', 'Politics', 'Weather']
-          const defaultSources = ['Newspaper', 'Other/Otro', 'Social', 'Website']
-          await setDoc(docRef, {
-            Labels: { list: DEFAULT_AGENCY_LABELS, active: DEFAULT_AGENCY_LABELS },
-            Source: { list: defaultSources, active: defaultSources },
-            Topic: { list: defaultTopics, active: defaultTopics },
-          })
-
+          await seedAgencyTagsDoc(agencyId)
           console.log('Created default tags for the agency.')
         } else {
           console.log('Tags collection for this agency exists.')
@@ -667,32 +663,42 @@ const NewReportModal = ({
 	}
 
 	/**
-	 * addNewTag
+	 * Adds topic/source values from an agency report into the agency tag catalog.
+	 * New tags are added to `list` and turned on in `active` immediately when under
+	 * the live-tag limit (same behavior as TagSystem "+ New Topic/Source").
 	 *
-	 * This function adds a new tag and source to the existing lists.
-	 * It performs the following tasks:
-	 *
-	 * 1. Checks if the tag and source already exist in their respective arrays.
-	 * 2. If the tag or source is new, it adds them to the corresponding array.
-	 * 3. Updates the `list` and `sourceList` states with the updated arrays.
-	 * 4. Calls `updateTopicTags` to save the updated tag and source lists.
-	 *
-	 * @param {string} tag - The new tag to add.
-	 * @param {string} source - The new source to add.
-	 * @param {string} agencyId - The ID of the agency for which to update the tags.
+	 * @param {string} tag - Resolved topic value from the report form.
+	 * @param {string} source - Resolved source value from the report form.
+	 * @param {string} agencyId - Agency whose `tags` document to update.
 	 */
 	const addNewTag = (tag, source, agencyId) => {
-		let topicArr = list
-		let sourceArr = sourceList
-		if (!topicArr.includes(tag)) {
-			topicArr.push(tag)
-		}
-		if (!sourceArr.includes(source)) {
-			sourceArr.push(source)
-		}
+		if (!agencyId) return
+
+		const topicArr = list.includes(tag) ? [...list] : [...list, tag]
+		const sourceArr = sourceList.includes(source)
+			? [...sourceList]
+			: [...sourceList, source]
+
+		let nextActive = [...active]
+		let nextActiveSources = [...activeSources]
+
+		const activateTopic =
+			Boolean(tag) &&
+			!nextActive.includes(tag) &&
+			nextActive.length < MAX_ACTIVE_TOPICS
+		const activateSource =
+			Boolean(source) &&
+			!nextActiveSources.includes(source) &&
+			nextActiveSources.length < MAX_ACTIVE_SOURCES
+
+		if (activateTopic) nextActive = [...nextActive, tag]
+		if (activateSource) nextActiveSources = [...nextActiveSources, source]
+
 		setList(topicArr)
 		setSourceList(sourceArr)
-		updateTopicTags(list, agencyId, sourceList)
+		setActive(nextActive)
+		setActiveSources(nextActiveSources)
+		updateTopicTags(tag, source, agencyId, activateTopic, activateSource)
 	}
 
 	/**
@@ -716,34 +722,20 @@ const NewReportModal = ({
 			// create tags collection if current agency does not have one
 			if (!docRef.exists()) {
 				console.log('Need to create tag collection for agency. ')
-				const defaultTopics = ['Health', 'Other', 'Politics', 'Weather'] // tag system 1
-				const defaultSources = ['Newspaper', 'Other/Otro', 'Social', 'Website'] // tag system 2
-
-				const myDocRef = doc(db, 'tags', selectedAgencyId)
-				setTopics(defaultTopics)
-				setActive(defaultTopics['active'])
-
-				await setDoc(myDocRef, {
-					Labels: {
-						list: DEFAULT_AGENCY_LABELS,
-						active: DEFAULT_AGENCY_LABELS,
-					},
-					Source: {
-						list: defaultSources,
-						active: defaultSources,
-					},
-					Topic: {
-						list: defaultTopics,
-						active: defaultTopics,
-					},
-				})
-				// retrieve list of topics again after creating document of tags for agency
+				// One fetch/write — reuse returned payload so UI matches the saved doc
+				const payload = await seedAgencyTagsDoc(selectedAgencyId)
+				if (payload) {
+					setTopics(payload.Topic.list)
+					setList(payload.Topic.list)
+					setActive(payload.Topic.active)
+				}
 				console.log('in if statement')
 
 				// Otherwise, tag collection already exists.
 			} else {
 				const tagsData = docRef.data()['Topic']
 				setTopics(docRef.data()['Topic']['list'])
+				setList(docRef.data()['Topic']['list'] || [])
 				tagsData['active'].sort((a, b) => {
 					if (a === t('Other')) return 1 // Move "Other" to the end
 					if (b === t('Other')) return -1 // Move "Other" to the end
@@ -793,31 +785,39 @@ const NewReportModal = ({
 	}
 
 	/**
-	 * updateTopicTags
+	 * Writes topic/source values into the agency tags document.
+	 * Always unions into `list`; unions into `active` only when the caller asks
+	 * to auto-activate (under the live-tag max).
 	 *
-	 * This asynchronous function updates the topic and source tags for the selected agency.
-	 * It performs the following tasks:
-	 *
-	 * 1. Retrieves the 'tags' document for the specified agency.
-	 * 2. Updates the 'list' and 'active' arrays for both 'Topic' and 'Source' fields.
-	 * 3. Logs success or any errors that occur during the update process.
-	 *
-	 * @param {Array} topicList - The list of topics to update.
-	 * @param {string} agencyId - The ID of the agency whose tags are being updated.
-	 * @param {Array} sourceList - The list of sources to update.
+	 * @param {string} tag - Topic to add.
+	 * @param {string} source - Source to add.
+	 * @param {string} agencyId - Agency tags document id.
+	 * @param {boolean} activateTopic - Whether to also activate `tag`.
+	 * @param {boolean} activateSource - Whether to also activate `source`.
 	 */
-	const updateTopicTags = async (topicList, agencyId, sourceList) => {
+	const updateTopicTags = async (
+		tag,
+		source,
+		agencyId,
+		activateTopic,
+		activateSource,
+	) => {
 		try {
 			const docRef = doc(db, 'tags', agencyId)
+			const updates = {}
 
-			// Update the 'list' and 'active' arrays for both 'Topic' and 'Source' fields
-			await updateDoc(docRef, {
-				'Topic.list': arrayUnion(...topicList), // Add new topics to the 'list' array
-				'Topic.active': arrayUnion(...active), // Add new topics to the 'active' array
-				'Source.list': arrayUnion(...sourceList), // Add new sources to the 'list' array
-				'Source.active': arrayUnion(...activeSources), // Add new sources to the 'active' array
-			})
+			if (tag) {
+				updates['Topic.list'] = arrayUnion(tag)
+				if (activateTopic) updates['Topic.active'] = arrayUnion(tag)
+			}
+			if (source) {
+				updates['Source.list'] = arrayUnion(source)
+				if (activateSource) updates['Source.active'] = arrayUnion(source)
+			}
 
+			if (Object.keys(updates).length === 0) return
+
+			await updateDoc(docRef, updates)
 			console.log('Tags updated successfully')
 		} catch (error) {
 			console.error('Error updating tags:', error.message)

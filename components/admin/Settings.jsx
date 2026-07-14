@@ -22,10 +22,12 @@
 import React, { useState, useEffect } from 'react'
 import TagSystem from '../analytics/TagSystem';
 import ExperimentSettings from './ExperimentSettings';
+import TagDefaultsSettings from './TagDefaultsSettings';
 import { useAuth } from '../../context/AuthContext'
-import { DEFAULT_AGENCY_LABELS, canManageAgencyLabels } from '../../config/labels'
+import { canManageAgencyLabels } from '../../config/labels'
+import { seedAgencyTagsDoc } from '../../utils/tag-defaults'
 import globalStyles from '../../styles/globalStyles';
-import { collection, query, where, setDoc, getDoc, getDocs, doc } from "firebase/firestore"; 
+import { collection, query, where, getDoc, getDocs, doc } from "firebase/firestore"; 
 import { db, auth } from "../../config/firebase"
 import {List,ListItem} from "@material-tailwind/react"
 import FormSelect from '../ui/FormSelect';
@@ -58,31 +60,12 @@ const Settings = () => {
 
 
   /**
-   * Initializes default tag documents for a new agency in Firestore.
-   * Creates default Topics, Sources, and Labels lists for the agency.
+   * Initializes tag documents for a new agency from global Topic/Source defaults.
    * @param {string} agencyID - The Firestore document ID of the agency
    * @returns {Promise<void>}
    */
   const setData = async (agencyID) => {
-    const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
-    const defaultSources = ["Newspaper", "Other/Otro","Social","Website"] // tag system 2
-    // create topics collection for the new agency
-    setDoc(doc(db, "tags", agencyID), {
-        Labels: {
-          list: DEFAULT_AGENCY_LABELS,
-          active: DEFAULT_AGENCY_LABELS
-        },
-        Source: {
-          list: defaultSources,
-          active: defaultSources
-        },
-        Topic: {
-          list: defaultTopics,
-          active: defaultTopics
-        }
-        
-    })
-     
+    await seedAgencyTagsDoc(agencyID)
   }
 
   /**
@@ -184,6 +167,7 @@ const Settings = () => {
     <div>
       {tagSystem == 0 ?
       <div className="z-0 flex-col p-16">
+        {customClaims.admin && <TagDefaultsSettings />}
         <div className="mb-8 p-4 bg-white rounded-lg border border-blue-gray-100">
           <div className={globalStyles.heading.h1.blue}>Tagging Systems</div>
           {customClaims.admin && 

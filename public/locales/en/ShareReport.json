@@ -1,4 +1,12 @@
 {
-  "shareReport": "Share more information",
-  "share": "Share"
+	"shareReport": "Share this report",
+	"share": "Open email",
+	"cancel": "Cancel",
+	"subtitle": "Copy the link or open an email with the report link included.",
+	"linkLabel": "Report link",
+	"copyLink": "Copy link",
+	"copied": "Copied!",
+	"copyFailed": "Could not copy the link. Select and copy it manually.",
+	"emailOptional": "Email (optional)",
+	"emailPlaceholder": "email@email.com"
 }

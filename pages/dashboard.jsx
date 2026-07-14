@@ -159,6 +159,7 @@ export async function getStaticProps(context) {
 				'NewReport',
 				'Profile',
 				'Navbar',
+				'ShareReport',
 			])),
 		},
 	}

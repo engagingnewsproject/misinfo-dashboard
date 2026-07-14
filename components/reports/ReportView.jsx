@@ -18,6 +18,7 @@ import { doc, onSnapshot } from "firebase/firestore"
 import { db } from '../../config/firebase'
 import Image from 'next/image'
 import {  useTranslation } from 'next-i18next'
+import { formatCityState } from '../../utils/format-location'
 
 /**
  * ReportView Component
@@ -214,7 +215,9 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 					<div className={style.sectionH2}>
 						{t('location_text')}
 					</div>
-					{data['city']+`, `+data['state']}
+					{formatCityState(data['city'], data['state']) || (
+						<span className="italic text-gray-400">—</span>
+					)}
 				</div>
 			</div>
 		</>
