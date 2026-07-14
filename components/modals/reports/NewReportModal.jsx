@@ -46,10 +46,7 @@ import MediaUploadField from '../../ui/MediaUploadField'
 import { useTranslation } from 'next-i18next'
 import { Typography } from '@material-tailwind/react'
 import { maxActiveTags } from '../../../config/tagSystems'
-import {
-	buildAgencyTagsPayload,
-	seedAgencyTagsDoc,
-} from '../../../utils/tag-defaults'
+import { seedAgencyTagsDoc } from '../../../utils/tag-defaults'
 
 const TOPICS_KEY_PREFIX = 'topics.'
 const SOURCES_KEY_PREFIX = 'sources.'
@@ -725,11 +722,13 @@ const NewReportModal = ({
 			// create tags collection if current agency does not have one
 			if (!docRef.exists()) {
 				console.log('Need to create tag collection for agency. ')
-				const payload = await buildAgencyTagsPayload()
-				setTopics(payload.Topic.list)
-				setList(payload.Topic.list)
-				setActive(payload.Topic.active)
-				await seedAgencyTagsDoc(selectedAgencyId)
+				// One fetch/write — reuse returned payload so UI matches the saved doc
+				const payload = await seedAgencyTagsDoc(selectedAgencyId)
+				if (payload) {
+					setTopics(payload.Topic.list)
+					setList(payload.Topic.list)
+					setActive(payload.Topic.active)
+				}
 				console.log('in if statement')
 
 				// Otherwise, tag collection already exists.

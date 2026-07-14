@@ -165,15 +165,18 @@ export async function buildAgencyTagsPayload(defaults) {
 
 /**
  * Creates or overwrites an agency tags document seeded from global defaults.
+ * Returns the same payload written to Firestore so callers can sync UI state
+ * without fetching defaults a second time.
  *
  * @param {string} agencyId
  * @param {TagDefaults} [defaults]
- * @returns {Promise<void>}
+ * @returns {Promise<{ Topic: object, Source: object, Labels: object }|undefined>}
  */
 export async function seedAgencyTagsDoc(agencyId, defaults) {
-	if (!agencyId) return
+	if (!agencyId) return undefined
 	const payload = await buildAgencyTagsPayload(defaults)
 	await setDoc(doc(db, 'tags', agencyId), payload)
+	return payload
 }
 
 /**
