@@ -48,6 +48,8 @@ import globalStyles from '../../../styles/globalStyles';
 import FormInput from '../../../components/ui/FormInput'
 import FormTextarea from '../../../components/ui/FormTextarea'
 import LabelSelectMenu from '../../../components/reports/LabelSelectMenu'
+import ShareReportModal from '../../../components/partials/modals/ShareReportModal'
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 
 /**
  * ReportDetails Page
@@ -70,6 +72,7 @@ const ReportDetails = () => {
 	const [agencyLabelColors, setAgencyLabelColors] = useState({})
 	const [otherLabelDraft, setOtherLabelDraft] = useState('')
 	const [otherLabelError, setOtherLabelError] = useState('')
+	const [shareReportModal, setShareReportModal] = useState(false)
 
 	const { reportId } = router.query
 	const linkStyle = 'font-light mb-1 text-sm underline underline-offset-1'
@@ -234,17 +237,6 @@ const ReportDetails = () => {
 		}
 	}, [info])
 
-	function SendLinkByMail(href) {
-    var subject= "Misinformation Report";
-    var body = "Link to report:\r\n";
-    body += window.location.href;
-    var uri = "mailto:?subject=";
-    uri += encodeURIComponent(subject);
-    uri += "&body=";
-    uri += encodeURIComponent(body);
-    window.open(uri);
-	}
-	
 	return (
 		<div className="p-16">
 			<div className="flex justify-between w-full mb-5">
@@ -390,15 +382,39 @@ const ReportDetails = () => {
 					</div>
 					<div className="mb-8">
 						<button
-							className="flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none" onClick={SendLinkByMail}> 
-							<BsShareFill className="my-1" size = {15}/> 
+							type="button"
+							className="flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none"
+							onClick={() => setShareReportModal(true)}>
+							<BsShareFill className="my-1" size={15} />
 							<div className="px-3 py-1">Share The Report</div>
 						</button>
 					</div>
 				</div>
 			</div>
+			{shareReportModal && (
+				<ShareReportModal
+					reportId={reportId}
+					reportTitle={info?.title || ''}
+					closeModal={setShareReportModal}
+				/>
+			)}
 		</div>
 	)
 }
 
 export default ReportDetails
+
+export async function getServerSideProps({ locale }) {
+	return {
+		props: {
+			...(await serverSideTranslations(locale, [
+				'Home',
+				'Report',
+				'NewReport',
+				'Profile',
+				'Navbar',
+				'ShareReport',
+			])),
+		},
+	}
+}

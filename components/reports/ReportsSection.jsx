@@ -20,7 +20,7 @@
  * @since 2024
  */
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import Papa from 'papaparse'
 import firebaseHelper from '../../firebase/FirebaseHelper'
@@ -57,6 +57,7 @@ import {
 	fetchAgencyLabelColors,
 	resolveAgencyIdByName,
 } from '../../utils/label-tags'
+import { formatLocationPart } from '../../utils/format-location'
 // Icons
 import {
 	Button,
@@ -95,7 +96,7 @@ const columns = [
 	{ label: 'Date/Time', accessor: 'createdDate', sortable: true },
 	// { label: 'Candidates', accessor: 'candidates', sortable: false },
 	{ label: 'Topic Tags', accessor: 'topic', sortable: true },
-	{ label: 'Sources', accessor: 'hearFrom', sortable: false },
+	// { label: 'Sources', accessor: 'hearFrom', sortable: false },
 	{ label: 'Labels', accessor: 'label', sortable: false },
 	{ label: 'Read/Unread', accessor: 'read', sortable: true },
 ]
@@ -167,8 +168,8 @@ function getReportSearchText(report) {
 	return [
 		report.title,
 		report.detail,
-		report.city,
-		report.state,
+		formatLocationPart(report.city),
+		formatLocationPart(report.state),
 		report.label,
 		report.topic,
 		report.email,
@@ -268,7 +269,6 @@ const ReportsSection = ({
 	const [agencyLabelColors, setAgencyLabelColors] = useState({})
 	const [agencyLabelColorsByAgency, setAgencyLabelColorsByAgency] = useState({})
 	const [postedDate, setPostedDate] = useState('') // Formatted posted date
-	const [reportLocation, setReportLocation] = useState('') // Report location
 	const [update, setUpdate] = useState(false) // Update trigger
 	const [deleteModal, setDeleteModal] = useState(false) // Delete modal visibility
 
@@ -279,6 +279,8 @@ const ReportsSection = ({
 	const [open, setOpen] = useState(true) // Section open/close state
 	const [includeArchived, setIncludeArchived] = useState(false)
 	const [activeExperimentId, setActiveExperimentId] = useState('2026-main')
+	/** Ignores stale getData responses when a newer fetch has already started. */
+	const getDataRequestIdRef = useRef(0)
 
 	/** Reports after text search or full-email submitter filter; pagination slices from this. */
 	const reportsMatchingSearch = useMemo(() => {
@@ -341,91 +343,143 @@ const ReportsSection = ({
 	}, [agencyLabelColors, agencyLabelColorsByAgency, report?.agency])
 
 	/**
+	 * Apply an empty reports table state (used when agency scope cannot be resolved).
+	 *
+	 * @param {string} [resolvedAgencyId]
+	 */
+	const applyEmptyReportsState = (resolvedAgencyId = '') => {
+		setReports([])
+		setFilteredReports([])
+		setIsDataFetched(true)
+		setReportsReadState({})
+		setAgencies([])
+		setAgencyId(resolvedAgencyId)
+		setActiveLabels([])
+		setAgencyLabelColors({})
+	}
+
+	/**
 	 * Fetches reports data from Firestore based on user role and permissions
-	 * Handles both agency-specific and admin data fetching patterns
-	 * 
+	 * Handles both agency-specific and admin data fetching patterns.
+	 * Waits until isAgency is resolved so agency users never briefly (or permanently)
+	 * load the unscoped admin list via a null-role race.
+	 *
 	 * @async
 	 * @function getData
 	 * @returns {Promise<void>}
 	 */
 	const getData = async () => {
+		// Role not resolved yet — never fall through to the admin (all agencies) path
+		if (isAgency === null) return
+
+		const requestId = ++getDataRequestIdRef.current
+		const isStale = () => requestId !== getDataRequestIdRef.current
+
 		let reportArr = []
-		let agencyName = ''
-		let agencyId = ''
+		let resolvedAgencyName = ''
+		let resolvedAgencyId = ''
 		let agencyTags = []
 
-		const experimentConfig = await fetchExperimentConfig()
-		const experimentId = getActiveExperimentId(experimentConfig)
-		setActiveExperimentId(experimentId)
+		try {
+			const experimentConfig = await fetchExperimentConfig()
+			const experimentId = getActiveExperimentId(experimentConfig)
+			if (isStale()) return
+			setActiveExperimentId(experimentId)
 
-		if (isAgency) {
-			// Agency user: fetch reports for their specific agency
-			const agencyQuery = query(
-				collection(db, 'agency'),
-				where('agencyUsers', 'array-contains', user.email),
-			)
-			const agencySnapshot = await getDocs(agencyQuery)
-			agencySnapshot.forEach((doc) => {
-				agencyName = doc.data().name
-				agencyId = doc.id
-			})
+			if (isAgency) {
+				if (!user?.email) {
+					console.error(
+						'Agency user missing email; refusing unscoped report fetch',
+					)
+					if (!isStale()) applyEmptyReportsState()
+					return
+				}
 
-			reportArr = await fetchReportsFromQuery(
-				buildActiveReportsQuery({
-					agency: agencyName,
-					activeExperimentId: experimentId,
-					includeArchived: false,
-				}),
-			)
+				// Agency user: fetch reports for their specific agency only
+				const agencyQuery = query(
+					collection(db, 'agency'),
+					where('agencyUsers', 'array-contains', user.email),
+				)
+				const agencySnapshot = await getDocs(agencyQuery)
+				if (isStale()) return
 
-			// Fetch agency-specific tags
-			const tagsDocRef = doc(db, 'tags', agencyId)
-			const tagsDoc = await getDoc(tagsDocRef)
-			if (tagsDoc.exists()) {
-				agencyTags = tagsDoc.data()
+				agencySnapshot.forEach((agencyDoc) => {
+					resolvedAgencyName = agencyDoc.data().name
+					resolvedAgencyId = agencyDoc.id
+				})
+
+				// Empty agency name would skip the Firestore agency constraint and return all reports
+				if (!resolvedAgencyName || !resolvedAgencyId) {
+					console.error(
+						'Agency user has no agency membership; refusing unscoped report fetch',
+					)
+					if (!isStale()) applyEmptyReportsState()
+					return
+				}
+
+				reportArr = await fetchReportsFromQuery(
+					buildActiveReportsQuery({
+						agency: resolvedAgencyName,
+						activeExperimentId: experimentId,
+						includeArchived: false,
+					}),
+				)
+				if (isStale()) return
+
+				const tagsDocRef = doc(db, 'tags', resolvedAgencyId)
+				const tagsDoc = await getDoc(tagsDocRef)
+				if (isStale()) return
+
+				if (tagsDoc.exists()) {
+					agencyTags = tagsDoc.data()
+				}
+				setActiveLabels(agencyTags?.Labels?.active || [])
+				setAgencyLabelColors(agencyTags?.Labels?.colors || {})
+				setAgencyId(resolvedAgencyId)
+			} else {
+				reportArr = await fetchAdminReportsList({ includeArchived })
+				if (isStale()) return
 			}
-			setActiveLabels(agencyTags?.Labels?.active || [])
-			setAgencyLabelColors(agencyTags?.Labels?.colors || {})
-			setAgencyId(agencyId)
-		} else {
-			reportArr = await fetchAdminReportsList({ includeArchived })
-		}
 
-		if (!isAgency) {
-			const uniqueAgencies = [
-				...new Set(reportArr.map((report) => report.agency).filter(Boolean)),
-			]
-			const colorsByAgency = {}
-			await Promise.all(
-				uniqueAgencies.map(async (name) => {
-					const resolvedId = await resolveAgencyIdByName(name)
-					if (resolvedId) {
-						colorsByAgency[name] = await fetchAgencyLabelColors(resolvedId)
-					}
-				}),
+			if (!isAgency) {
+				const uniqueAgencyNames = [
+					...new Set(reportArr.map((report) => report.agency).filter(Boolean)),
+				]
+				const colorsByAgency = {}
+				await Promise.all(
+					uniqueAgencyNames.map(async (name) => {
+						const id = await resolveAgencyIdByName(name)
+						if (id) {
+							colorsByAgency[name] = await fetchAgencyLabelColors(id)
+						}
+					}),
+				)
+				if (isStale()) return
+				setAgencyLabelColorsByAgency(colorsByAgency)
+				setAgencyLabelColors({})
+			}
+
+			if (isStale()) return
+
+			setReports(reportArr)
+			setIsDataFetched(true)
+			setFilteredReports(applyCombinedFilters(reportArr))
+			setReportsReadState(
+				reportArr.reduce((acc, report) => {
+					acc[report.reportID] = report.read
+					return acc
+				}, {}),
 			)
-			setAgencyLabelColorsByAgency(colorsByAgency)
-			setAgencyLabelColors({})
+			setAgencies(
+				Array.from(
+					new Set(
+						reportArr.map((r) => (r.agency ? r.agency : '')).filter(Boolean),
+					),
+				),
+			)
+		} catch (error) {
+			console.error('Error fetching reports:', error)
 		}
-		
-		// Update state with fetched data
-		setReports(reportArr)
-		setIsDataFetched(true)
-		setFilteredReports(applyCombinedFilters(reportArr))
-		
-		// Initialize read states for all reports
-		setReportsReadState(
-			reportArr.reduce((acc, report) => {
-				acc[report.reportID] = report.read
-				return acc
-			}, {}),
-		)
-
-		// Extract unique agencies from reports for filter dropdown
-		const uniqueAgencies = Array.from(
-			new Set(reportArr.map((r) => (r.agency ? r.agency : '')).filter(Boolean)),
-		)
-		setAgencies(uniqueAgencies)
 	}
 
 	// Helper to apply combined filters (date range, read status, reporter)
@@ -552,21 +606,6 @@ const ReportsSection = ({
 		} else {
 			setLoadedReports(reports)
 		}
-	}
-
-	/**
-	 * Opens default email client with pre-filled report information
-	 * 
-	 * @function handleUserSendEmail
-	 * @param {string} reportURI - URI/link to the report
-	 */
-	const handleUserSendEmail = (reportURI) => {
-		const subject = 'Misinfo Report'
-		const body = `Link to report:\n${reportURI}`
-		const uri = `mailto:?subject=${encodeURIComponent(
-			subject,
-		)}&body=${encodeURIComponent(body)}`
-		window.open(uri)
 	}
 
 	/**
@@ -1095,26 +1134,7 @@ const ReportsSection = ({
 		})
 	}
 
-	// Data fetching effect - triggers when update state changes
-	useEffect(() => {
-		getData()
-	}, [update])
-
-	// Agency data fetching effect - fetches agency name for agency users
-	useEffect(() => {
-		if (isAgency && user.email) {
-			firebaseHelper.fetchAgencyByUserEmail(user.email, (response) => {
-				if (response.isSuccess) {
-					const agencyData = response.response.data()
-					setAgencyName(agencyData.name)
-				} else {
-					console.error(response.message) // Handle the error or no agency found
-				}
-			})
-		}
-	}, [isAgency, user.email])
-
-	// User role determination effect - sets isAgency based on custom claims
+	// User role determination — must run before any report fetch
 	useEffect(() => {
 		if (customClaims.admin) {
 			setIsAgency(false)
@@ -1123,6 +1143,26 @@ const ReportsSection = ({
 		}
 	}, [customClaims])
 
+	// Agency display name for agency users
+	useEffect(() => {
+		if (isAgency && user.email) {
+			firebaseHelper.fetchAgencyByUserEmail(user.email, (response) => {
+				if (response.isSuccess) {
+					const agencyData = response.response.data()
+					setAgencyName(agencyData.name)
+				} else {
+					console.error(response.message)
+				}
+			})
+		}
+	}, [isAgency, user.email])
+
+	// Single fetch trigger — only after role is known (avoids admin-list race for agency users)
+	useEffect(() => {
+		if (isAgency === null) return
+		getData()
+	}, [update, newReportSubmitted, isAgency, includeArchived])
+
 	// Report modal state management effect - handles modal data setup and read status
 	useEffect(() => {
 		// Only proceed if reportModalShow is true
@@ -1130,7 +1170,7 @@ const ReportsSection = ({
 			// When a report's modal opens set the report as read
 			handleRowChangeRead(reportModalId, true)
 		}
-		// Set the date, label, and location for the report when the modal is shown
+		// Set the date and label for the report when the modal is shown
 		if (reportModalShow && report) {
 			if (report.createdDate) {
 				const options = {
@@ -1149,27 +1189,8 @@ const ReportsSection = ({
 				)
 			}
 			setSelectedLabel(report['label'] || DEFAULT_REPORT_LABEL)
-
-			const location = [report['city'], report['state']]
-				.filter(Boolean)
-				.join(', ')
-			setReportLocation(location)
 		}
 	}, [reportModalShow, reportModalId, customClaims.agency, report]) // this effect runs when the report modal is opened/closed
-
-	// Fetch data when new report is submitted or isAgency is set
-	useEffect(() => {
-		// Ensure isAgency is set before fetching data:
-		if (isAgency !== null) {
-			getData()
-		}
-	}, [newReportSubmitted, isAgency])
-
-	useEffect(() => {
-		if (customClaims.admin && isAgency === false) {
-			getData()
-		}
-	}, [includeArchived])
 
 	// Resolve Auth UID when the search box contains a full email (matches report.userID from ReportSystem)
 	useEffect(() => {
@@ -1438,8 +1459,6 @@ const ReportsSection = ({
 							onFormSubmit={handleFormSubmit}
 							onReportDelete={handleReportDelete}
 							postedDate={postedDate}
-							onUserSendEmail={handleUserSendEmail}
-							reportLocation={reportLocation}
 						/>
 					)}
 				</CardBody>

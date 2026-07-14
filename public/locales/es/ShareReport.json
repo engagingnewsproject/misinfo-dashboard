@@ -1,4 +1,12 @@
 {
-	"shareReport": "¡Comparta la información!",
-	"share": "Compartir"
+	"shareReport": "Compartir este reporte",
+	"share": "Abrir correo",
+	"cancel": "Cancelar",
+	"subtitle": "Copie el enlace o abra un correo con el enlace al reporte.",
+	"linkLabel": "Enlace del reporte",
+	"copyLink": "Copiar enlace",
+	"copied": "¡Copiado!",
+	"copyFailed": "No se pudo copiar el enlace. Selecciónelo y cópielo manualmente.",
+	"emailOptional": "Correo (opcional)",
+	"emailPlaceholder": "correo@correo.com"
 }
