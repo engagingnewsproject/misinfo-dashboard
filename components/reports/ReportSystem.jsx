@@ -44,6 +44,12 @@ import {
 	getActiveExperimentId,
 	newReportExperimentFields,
 } from "../../utils/reports-queries"
+import {
+	fetchTagDefaults,
+	getFallbackTagDefaults,
+	isOtherTagName,
+} from "../../utils/tag-defaults"
+import { formatLocationPart } from "../../utils/format-location"
 import { State, City } from "country-state-city"
 import moment from "moment"
 import Image from "next/image"
@@ -175,9 +181,6 @@ const ReportSystem = ({
 	const [isInitialLoad, setIsInitialLoad] = useState(true)
 	const [hasRestored, setHasRestored] = useState(false)
 
-	// Default tag systems for categorization
-	const defaultTopics = ["Health","Other","Politics","Weather"]
-	const defaultSources = ["Newspaper", "Other","Social","Website"]
 	// Initialize user data on component mount and check for persisted data
 	useEffect(() => {
 		getUserData()
@@ -206,6 +209,11 @@ const ReportSystem = ({
 			setHasRestored(false) // Reset restoration flag
 		}
 	}, [reportSystem, isInitialLoad])
+
+	// Prefer the selected agency's active tags; fall back to global defaults
+	useEffect(() => {
+		loadTagsForAgency(selectedAgency || "")
+	}, [selectedAgency])
 
 	// Reset form when component unmounts (cleanup)
 	useEffect(() => {
@@ -337,9 +345,8 @@ const ReportSystem = ({
 				await getAgencies(mobileRef.data().state.name)
 			}
 			
-			// Fetch topics and sources
-			await getTopics()
-			await getSources()
+			// Global defaults until an agency is chosen
+			await loadTagsForAgency("")
 		} catch (error) {
 			console.error("Error fetching user data:", error)
 		}
@@ -362,30 +369,49 @@ const ReportSystem = ({
 	}
 
 	/**
-	 * Fetches available topics from Firestore
+	 * Loads Topic/Source pickers from the selected agency's active tags,
+	 * falling back to global admin defaults when no agency is selected.
+	 *
+	 * @param {string} agencyName
 	 */
-	const getTopics = async () => {
+	const loadTagsForAgency = async (agencyName) => {
+		const fallback = getFallbackTagDefaults()
 		try {
-			const topicsDoc = await getDoc(doc(db, "tagSystems", "topic"))
-			const topics = topicsDoc.data()?.tags || defaultTopics
-			setAllTopicsArr(topics)
-		} catch (error) {
-			console.error("Error fetching topics:", error)
-			setAllTopicsArr(defaultTopics)
-		}
-	}
+			const defaults = await fetchTagDefaults()
+			if (!agencyName) {
+				setSelectedAgencyID("")
+				setAllTopicsArr(defaults.Topic.required)
+				setSources(defaults.Source.required)
+				return
+			}
 
-	/**
-	 * Fetches available sources from Firestore
-	 */
-	const getSources = async () => {
-		try {
-			const sourcesDoc = await getDoc(doc(db, "tagSystems", "source"))
-			const sources = sourcesDoc.data()?.tags || defaultSources
-			setSources(sources)
+			const agencyCollection = collection(db, "agency")
+			const q = query(agencyCollection, where("name", "==", agencyName))
+			const querySnapshot = await getDocs(q)
+			if (querySnapshot.empty) {
+				setAllTopicsArr(defaults.Topic.required)
+				setSources(defaults.Source.required)
+				return
+			}
+
+			const agencyId = querySnapshot.docs[0].id
+			setSelectedAgencyID(agencyId)
+			const tagsSnap = await getDoc(doc(db, "tags", agencyId))
+			if (tagsSnap.exists()) {
+				const topicActive =
+					tagsSnap.data()?.Topic?.active || defaults.Topic.required
+				const sourceActive =
+					tagsSnap.data()?.Source?.active || defaults.Source.required
+				setAllTopicsArr(topicActive)
+				setSources(sourceActive)
+			} else {
+				setAllTopicsArr(defaults.Topic.required)
+				setSources(defaults.Source.required)
+			}
 		} catch (error) {
-			console.error("Error fetching sources:", error)
-			setSources(defaultSources)
+			console.error("Error loading tags for agency:", error)
+			setAllTopicsArr(fallback.Topic.required)
+			setSources(fallback.Source.required)
 		}
 	}
 
@@ -394,8 +420,8 @@ const ReportSystem = ({
 	 */
 	const handleTopicChange = (topic) => {
 		setSelectedTopic(topic)
-		setShowOtherTopic(topic === "Other")
-		if (topic !== "Other") {
+		setShowOtherTopic(isOtherTagName(topic))
+		if (!isOtherTagName(topic)) {
 			setOtherTopic("")
 		}
 	}
@@ -412,8 +438,8 @@ const ReportSystem = ({
 	 */
 	const handleSourceChange = (source) => {
 		setSelectedSource(source)
-		setShowOtherSource(source === "Other")
-		if (source !== "Other") {
+		setShowOtherSource(isOtherTagName(source))
+		if (!isOtherTagName(source)) {
 			setOtherSource("")
 		}
 	}
@@ -531,13 +557,17 @@ const ReportSystem = ({
 		try {
 			const experimentConfig = await fetchExperimentConfig()
 			const experimentId = getActiveExperimentId(experimentConfig)
+			// Snapshot reporter location from their profile (public flow has no city/state picker)
+			const city =
+				formatLocationPart(userData?.city) || 'N/A'
+			const state = formatLocationPart(userData?.state)
 			const reportData = {
 				userID: user.accountId,
 				email: user.email,
 				agency: selectedAgency,
-				topic: selectedTopic === "Other" ? otherTopic : selectedTopic,
+				topic: isOtherTagName(selectedTopic) ? otherTopic : selectedTopic,
 				// `hearFrom` matches the established schema: tags.{agency}.Source.active -> reports.hearFrom.
-				hearFrom: selectedSource === "Other" ? otherSource : selectedSource,
+				hearFrom: isOtherTagName(selectedSource) ? otherSource : selectedSource,
 				// `origin` marks the submission channel; ReportSystem is the public /report flow.
 				origin: 'public',
 				title: title,
@@ -545,6 +575,8 @@ const ReportSystem = ({
 				secondLink: secondLink,
 				detail: detail,
 				images: imageURLs,
+				city,
+				...(state ? { state } : {}),
 				createdDate: moment().toDate(),
 				read: false,
 				label: DEFAULT_REPORT_LABEL,
@@ -777,8 +809,8 @@ const ReportSystem = ({
 							<ReviewStep
 								reportData={{
 									selectedAgency,
-									selectedTopic: selectedTopic === "Other" ? otherTopic : selectedTopic,
-									selectedSource: selectedSource === "Other" ? otherSource : selectedSource,
+									selectedTopic: isOtherTagName(selectedTopic) ? otherTopic : selectedTopic,
+									selectedSource: isOtherTagName(selectedSource) ? otherSource : selectedSource,
 									title,
 									link,
 									secondLink,

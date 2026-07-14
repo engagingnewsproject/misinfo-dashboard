@@ -48,7 +48,7 @@ import { Tooltip } from 'react-tooltip'
 import { IoTrash } from "react-icons/io5"
 import { FaPlus } from 'react-icons/fa'
 import { Button } from '@material-tailwind/react'
-import { DEFAULT_AGENCY_LABELS } from '../../config/labels'
+import { seedAgencyTagsDoc } from '../../utils/tag-defaults'
 import adminSectionStyles from '../../styles/adminSectionStyles'
 import AdminDataTable from './AdminDataTable'
 
@@ -99,7 +99,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [deleteModal, setDeleteModal] = useState(false) // Delete confirmation modal
 	
 	// Image upload and management
-	const [update, setUpdate] = useState('') // Trigger for image upload
 	const [logo, setLogo] = useState('') // Agency logo URL
 	const [images, setImages] = useState([]) // Selected image files
 	const [uploadedImageURLs, setUploadedImageURLs] = useState([]) // Uploaded image URLs
@@ -238,9 +237,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			const newImage = files[i]
 			setImages((prevState) => [...prevState, newImage])
 		}
-
-		// Trigger upload process
-		setUpdate(!update)
+		// Upload runs on Update Agency submit only (not on file select)
 	}
 
 	/**
@@ -259,7 +256,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			if (!storageInstance && typeof window !== 'undefined') {
 				if (!app.options?.storageBucket) {
 					console.error('Firebase Storage is not configured. Set NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET in your .env file (e.g. your-project-id.appspot.com), then restart the dev server.')
-					return
+					return false
 				}
 				try {
 					const storageModule = await import('firebase/storage')
@@ -272,10 +269,10 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			}
 			if (!storageInstance) {
 				console.error('Firebase Storage is not available.')
-				return
+				return false
 			}
 			if (images.length === 0) {
-				return
+				return false
 			}
 
 			// Create upload tasks for all selected images
@@ -296,9 +293,11 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			setLogo(imageURLs) // Update logo state
 
 			// Automatically save agency data after successful upload
-			saveAgency(imageURLs)
+			await saveAgency(imageURLs)
+			return true
 		} catch (error) {
 			console.error('Error uploading images:', error)
+			return false
 		}
 	}
 	
@@ -426,7 +425,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 
 			// Update local state and trigger UI refresh
 			setAgencyUsersArr(updatedUsers)
-			setUpdate(!update)
+			await getData()
+			handleAgencyUpdateSubmit?.()
 			console.log('Admin user deleted successfully.')
 		} catch (error) {
 			console.error('Error deleting admin user:', error)
@@ -444,13 +444,23 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 */
 	const handleSubmitClick = async (e) => {
 		e.preventDefault()
-		if (images.length > 0) {
-			// Trigger image upload process
-			setUpdate((prev) => !prev)
-		} else {
-			// Save agency data directly if no images
-			saveAgency(uploadedImageURLs)
+		try {
+			if (images.length > 0) {
+				const uploaded = await handleUpload()
+				if (!uploaded) return
+			} else {
+				// Preserve existing logo when no new file was chosen
+				const logoToSave =
+					uploadedImageURLs.length > 0
+						? uploadedImageURLs
+						: agencyInfo?.logo || []
+				await saveAgency(logoToSave)
+			}
+			setImages([])
+			setUploadedImageURLs([])
 			setAgencyModal(false)
+		} catch (error) {
+			console.error('Error updating agency:', error)
 		}
 	}
 
@@ -466,10 +476,10 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const saveAgency = (uploadedImageURLs) => {
 		if (!agencyId) {
 			console.error('Cannot save agency: missing agency document ID.')
-			return
+			return Promise.reject(new Error('missing agency document ID'))
 		}
 		const agencyRef = doc(db, 'agency', agencyId)
-		updateDoc(agencyRef, {
+		return updateDoc(agencyRef, {
 			logo: uploadedImageURLs,
 		}).then(() => {
 			handleAgencyUpdateSubmit()
@@ -521,14 +531,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 
 		const agencyDocRef = await addDoc(collection(db, 'agency'), agencyPayload)
 
-		const tagsRef = doc(db, 'tags', agencyDocRef.id)
-		const defaultTopics = ['Health', 'Other', 'Politics', 'Weather']
-		const defaultSources = ['Newspaper', 'Other/Otro', 'Social', 'Website']
-		await setDoc(tagsRef, {
-			Labels: { list: DEFAULT_AGENCY_LABELS, active: DEFAULT_AGENCY_LABELS },
-			Source: { list: defaultSources, active: defaultSources },
-			Topic: { list: defaultTopics, active: defaultTopics },
-		})
+		await seedAgencyTagsDoc(agencyDocRef.id)
 	}
 
 	/**
@@ -648,6 +651,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 */
 	const handleAgencyModalShow = async (agencyId) => {
 		setAgencyModal(true)
+		setImages([])
+		setUploadedImageURLs([])
 		const docRef = await getDoc(doc(db, 'agency', agencyId))
 		setAgencyInfo(docRef.data()) // Set agency data for editing
 		setAgencyUsersArr(docRef.data()['agencyUsers']) // Set agency users
@@ -679,13 +684,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	useEffect(() => {
 		getData()
 	}, [])
-	
-	// Trigger image upload when update flag is set
-	useEffect(() => {
-		if (update) {
-			handleUpload()
-		}
-	}, [update])
 	
 	// Debug logging when agency modal opens
 	useEffect(() => {

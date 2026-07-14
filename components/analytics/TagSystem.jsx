@@ -3,10 +3,9 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { tagSystems } from '../../config/tagSystems'
+import { tagSystems, maxActiveTags } from '../../config/tagSystems'
 import {
 	APP_WIDE_LABELS,
-	DEFAULT_AGENCY_LABELS,
 	getLabelColor,
 	isAppWideLabel,
 	isCustomLabel,
@@ -35,17 +34,14 @@ import {
 	fetchAgencyNameById,
 	updateAgencyLabelColor,
 } from '../../utils/label-tags'
+import {
+	buildAgencyTagsPayload,
+	fetchTagDefaults,
+	isOtherTagName,
+	isRequiredTag,
+} from '../../utils/tag-defaults'
 
-const maxTags = [0, 7, 10, 7]
-
-const DEFAULT_TOPICS = ['Health', 'Other', 'Politics', 'Weather']
-const DEFAULT_SOURCES = ['Newspaper', 'Other', 'Social', 'Website']
-
-const buildDefaultTagsDoc = () => ({
-	Topic: { list: DEFAULT_TOPICS, active: DEFAULT_TOPICS },
-	Labels: { list: DEFAULT_AGENCY_LABELS, active: DEFAULT_AGENCY_LABELS },
-	Source: { list: DEFAULT_SOURCES, active: DEFAULT_SOURCES },
-})
+const maxTags = maxActiveTags
 
 const setData = async (tagSystem, list, active, agency) => {
 	const docRef = doc(db, 'tags', agency)
@@ -76,6 +72,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 	const [active, setActive] = useState([])
 	const [labelColors, setLabelColors] = useState({})
 	const [agencyName, setAgencyName] = useState('')
+	const [requiredTags, setRequiredTags] = useState([])
 
 	const [selected, setSelected] = useState('')
 	const [search, setSearch] = useState('')
@@ -119,12 +116,15 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 		return customLabels.filter((label) => label.toLowerCase().includes(term))
 	}, [customLabels, search])
 
+	const selectedIsRequired =
+		!isLabelsMode && selected && isRequiredTag(selected, requiredTags)
+
 	const applyTagsToState = (tagsData) => {
 		setList(tagsData?.list || [])
 		const activeList = [...(tagsData?.active || [])]
 		activeList.sort((a, b) => {
-			if (a === 'Other') return 1
-			if (b === 'Other') return -1
+			if (isOtherTagName(a)) return 1
+			if (isOtherTagName(b)) return -1
 			return a.localeCompare(b)
 		})
 		setActive(activeList)
@@ -139,15 +139,24 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 		const name = await fetchAgencyNameById(id)
 		setAgencyName(name || '')
 
+		const defaults = await fetchTagDefaults()
+		if (tagSystem === 1) {
+			setRequiredTags(defaults.Topic.required)
+		} else if (tagSystem === 2) {
+			setRequiredTags(defaults.Source.required)
+		} else {
+			setRequiredTags([])
+		}
+
 		const docRef = doc(db, 'tags', id)
 		const docSnap = await getDoc(docRef)
 
 		if (docSnap.exists()) {
 			applyTagsToState(docSnap.get(tags[tagSystem - 1]))
 		} else {
-			const defaults = buildDefaultTagsDoc()
-			await setDoc(docRef, defaults)
-			applyTagsToState(defaults[tags[tagSystem - 1]])
+			const payload = await buildAgencyTagsPayload(defaults)
+			await setDoc(docRef, payload)
+			applyTagsToState(payload[tags[tagSystem - 1]])
 		}
 	}
 
@@ -156,6 +165,16 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 	}, [agencyID, tagSystem])
 
 	const updateTag = (e, updateType) => {
+		if (isRequiredTag(search, requiredTags) || isRequiredTag(selected, requiredTags)) {
+			if (
+				updateType === 'deactivate' ||
+				updateType === 'delete' ||
+				updateType === 'rename'
+			) {
+				return
+			}
+		}
+
 		switch (updateType) {
 			case 'activate':
 				if (active.length === maxTags[tagSystem]) {
@@ -189,6 +208,10 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 
 	const deleteTag = () => {
 		if (isLabelsMode) return
+		if (isRequiredTag(selected, requiredTags)) {
+			setDeleteModal(false)
+			return
+		}
 
 		if (list?.includes?.(selected)) {
 			list.splice(list.indexOf(selected), 1)
@@ -231,6 +254,8 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 	}
 
 	const replaceTag = (tag) => {
+		if (isRequiredTag(selected, requiredTags)) return
+
 		if (list?.includes?.(selected)) {
 			list[list.indexOf(selected)] = tag
 		}
@@ -241,10 +266,27 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 		setSelected('')
 	}
 
+	/**
+	 * Adds a newsroom tag to the agency catalog and turns it on immediately when
+	 * under the live-tag limit (no separate "Mark as Active" step).
+	 *
+	 * @param {string} tag - New topic or source label to append.
+	 */
 	const addNewTag = (tag) => {
 		const arr = [...list, tag]
 		setList(arr)
-		setData(tagSystem, arr, active, agencyID)
+
+		let nextActive = [...active]
+		if (!nextActive.includes(tag)) {
+			if (nextActive.length >= maxTags[tagSystem]) {
+				setMaxTagsError(true)
+			} else {
+				nextActive = [...nextActive, tag]
+				setMaxTagsError(false)
+			}
+		}
+		setActive(nextActive)
+		setData(tagSystem, arr, nextActive, agencyID)
 		setSearch('')
 	}
 
@@ -382,6 +424,10 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 							{`New ${tagSystems[tagSystem]}`}
 						</div>
 					</button>
+				) : selectedIsRequired ? (
+					<div className="ml-auto mr-6 text-sm text-gray-500 font-light">
+						Required default — cannot edit or deactivate
+					</div>
 				) : (
 					!isLabelsMode && (
 						<div className="flex items-center ml-auto">
@@ -446,7 +492,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 					<div className="shadow-lg absolute rounded-lg z-20 mt-2 w-1/2">
 						<div className="bg-white w-full rounded-lg">
 							{searchResult.map((item) => {
-								if (!isLabelsMode && item.includes('Other')) return null
+								if (!isLabelsMode && isOtherTagName(item)) return null
 								if (isLabelsMode && isAppWideLabel(item)) return null
 								return (
 									<div
@@ -457,6 +503,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 										className="text-light text-sm rounded-lg leading-tight py-2 pl-4 hover:bg-indigo-100 cursor-pointer"
 										key={item}>
 										{item}
+										{isRequiredTag(item, requiredTags) ? ' *' : ''}
 									</div>
 								)
 							})}
@@ -534,13 +581,16 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 								className="grid w-full p-4 mb-2 rounded-xl grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
 								onClick={clearSelection}>
 								{active.map((item) =>
-									!item.includes('Other') ? (
+									!isOtherTagName(item) ? (
 										<div
 											onClick={() => setSelected(item)}
 											className="text-md font-light my-5 cursor-pointer leading-normal flex items-center justify-center"
 											key={item}>
 											<GoDotFill size={25} className="text-green-600" />
-											<div className="pl-2">{item}</div>
+											<div className="pl-2">
+												{item}
+												{isRequiredTag(item, requiredTags) ? '*' : ''}
+											</div>
 										</div>
 									) : (
 										<div
@@ -566,7 +616,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 									'text-md font-light p-2 my-3 md:mx-2 cursor-pointer leading-normal flex items-center justify-center'
 								const selectedStyles =
 									normStyles + ' bg-blue-600 text-white rounded-lg'
-								if (item.includes('Other')) return null
+								if (isOtherTagName(item)) return null
 								return (
 									<div
 										onClick={() => setSelected(item)}
@@ -575,7 +625,10 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 										{active.includes(item) && (
 											<GoDotFill size={25} className="text-green-600" />
 										)}
-										<div className="pl-2">{item}</div>
+										<div className="pl-2">
+											{item}
+											{isRequiredTag(item, requiredTags) ? '*' : ''}
+										</div>
 									</div>
 								)
 							})}
@@ -635,7 +688,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 				<p>
 					{isLabelsMode
 						? 'To Investigate, Misinfo, Not Misinfo, and Other are defaults and cannot be edited or removed.'
-						: '* "Other" is a default that cannot be edited or removed.'}
+						: '* Required defaults (set by admins) cannot be edited, deactivated, or removed. You can still add custom tags.'}
 				</p>
 			</div>
 		</div>
