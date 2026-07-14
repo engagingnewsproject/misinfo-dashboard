@@ -13,9 +13,9 @@
  * @requires react-icons/io5
  * @requires react-icons/hi2
  * @requires react-tooltip
- * @requires ./modals/NewReportModal
- * @requires ./modals/HelpModal
- * @requires ./modals/ContactHelpModal
+ * @requires ../modals/reports/AgencyReportModal
+ * @requires ../modals/HelpModal
+ * @requires ../modals/ContactHelpModal
  * @requires ../context/AuthContext
  * @requires next-i18next
  */
@@ -40,7 +40,6 @@ import {
 } from 'react-icons/io5'
 import { HiOutlineDocumentPlus } from 'react-icons/hi2'
 import { Tooltip } from 'react-tooltip'
-import NewReportModal from '../modals/reports/NewReportModal'
 import HelpModal from '../modals/common/HelpModal'
 import ContactHelpModal from '../modals/ContactHelpModal'
 import { useAuth } from '../../context/AuthContext'

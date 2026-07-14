@@ -29,7 +29,7 @@ import Users from '../components/admin/Users'
 import Navbar from '../components/layout/Navbar'
 import { useAuth } from '../context/AuthContext'
 import Agencies from '../components/admin/Agencies'
-import NewReportModal from '../components/modals/reports/NewReportModal'
+import AgencyReportModal from '../components/modals/reports/AgencyReportModal'
 import { auth } from '../config/firebase'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import Head from 'next/head'
@@ -130,9 +130,9 @@ const Dashboard = () => {
 					)}
 					{tab == 5 && customClaims.admin && <HelpRequests />}
 				</div>
-				{/* Render the NewReportModal */}
+				{/* Render the AgencyReportModal */}
 				{newReportModal && (
-					<NewReportModal
+					<AgencyReportModal
 						setNewReportModal={setNewReportModal}
 						handleNewReportSubmit={handleNewReportSubmit}
 						customClaims={customClaims}
