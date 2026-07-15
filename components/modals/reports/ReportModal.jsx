@@ -47,6 +47,8 @@ import {
 } from '../../../config/labels'
 import LabelSelectMenu from '../../reports/LabelSelectMenu'
 import { formatReportLocation } from '../../../utils/format-location'
+import { useTranslation } from 'next-i18next'
+import { getTagLabel } from '../../../utils/tag-defaults'
 
 /**
  * ReportModal Component
@@ -129,6 +131,7 @@ const ReportModal = ({
 	changeStatus,
 	reportModalId,
 }) => {
+	const { t, i18n } = useTranslation('NewReport')
 	// CSS styles object for consistent styling across the modal
 	const style = {
 		header: "text-lg font-bold text-black tracking-wider mb-4",
@@ -261,7 +264,14 @@ const ReportModal = ({
 											<div className='font-semibold px-2 self-center pr-4'>
 												Tag
 											</div>
-											<div className='text-md font-light'>{report.topic}</div>
+											<div className='text-md font-light'>
+												{getTagLabel({
+													id: report.topic,
+													locale: i18n.language,
+													t,
+													system: 'topics',
+												})}
+											</div>
 										</div>
 										
 										{/* Sources/Media */}
@@ -271,7 +281,12 @@ const ReportModal = ({
 												Sources / Media
 											</div>
 											<div className='text-md font-light'>
-												{report.hearFrom}
+												{getTagLabel({
+													id: report.hearFrom,
+													locale: i18n.language,
+													t,
+													system: 'sources',
+												})}
 											</div>
 										</div>
 										

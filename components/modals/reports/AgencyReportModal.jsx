@@ -46,7 +46,14 @@ import MediaUploadField from '../../ui/MediaUploadField'
 import { useTranslation } from 'next-i18next'
 import { Typography } from '@material-tailwind/react'
 import { maxActiveTags } from '../../../config/tagSystems'
-import { seedAgencyTagsDoc } from '../../../utils/tag-defaults'
+import {
+	buildTagLabelMap,
+	dedupeTagList,
+	fetchTagDefaults,
+	getTagLabel,
+	isOtherTagName,
+	seedAgencyTagsDoc,
+} from '../../../utils/tag-defaults'
 
 const TOPICS_KEY_PREFIX = 'topics.'
 const SOURCES_KEY_PREFIX = 'sources.'
@@ -77,15 +84,13 @@ function stripSourcesKeyPrefix(sourceId) {
 
 /** True when this topic id is the “Other” row, including legacy `topics.Other` (or repeated prefix) in Firestore. */
 function isOtherTopicValue(value) {
-	if (typeof value !== 'string') return false
-	return stripTopicsKeyPrefix(value) === 'Other'
+	return isOtherTagName(stripTopicsKeyPrefix(value))
 }
 
 /** True when this source id is the “Other” row, including legacy `sources.Other` / `sources.Other/Otro`. */
 function isOtherSourceValue(value) {
-	if (typeof value !== 'string') return false
 	const id = stripSourcesKeyPrefix(value)
-	return id === 'Other' || id === 'Other/Otro'
+	return isOtherTagName(id)
 }
 
 /** Returns true when empty or a valid http(s) URL (protocol optional in input). */
@@ -155,6 +160,7 @@ const AgencyReportModal = ({
 	const [activeSources, setActiveSources] = useState([])
 	const [allSourcesArr, setSources] = useState([])
 	const [selectedSource, setSelectedSource] = useState('')
+	const [tagLabelMap, setTagLabelMap] = useState({})
 	const [activeLabels, setActiveLabels] = useState([])
 	const [agencyLabelColors, setAgencyLabelColors] = useState({})
 	const [selectedLabel, setSelectedLabel] = useState(DEFAULT_REPORT_LABEL)
@@ -165,7 +171,7 @@ const AgencyReportModal = ({
 	const [submitError, setSubmitError] = useState('')
 	const [showCloseConfirm, setShowCloseConfirm] = useState(false)
 
-	const { t } = useTranslation('NewReport')
+	const { t, i18n } = useTranslation('NewReport')
 
 	const clearFieldError = (field) => {
 		setErrors((prev) => {
@@ -722,27 +728,19 @@ const AgencyReportModal = ({
 			// create tags collection if current agency does not have one
 			if (!docRef.exists()) {
 				console.log('Need to create tag collection for agency. ')
-				// One fetch/write — reuse returned payload so UI matches the saved doc
 				const payload = await seedAgencyTagsDoc(selectedAgencyId)
 				if (payload) {
-					setTopics(payload.Topic.list)
-					setList(payload.Topic.list)
-					setActive(payload.Topic.active)
+					setTopics(dedupeTagList(payload.Topic.list))
+					setList(dedupeTagList(payload.Topic.list))
+					setActive(dedupeTagList(payload.Topic.active))
 				}
-				console.log('in if statement')
-
-				// Otherwise, tag collection already exists.
 			} else {
 				const tagsData = docRef.data()['Topic']
-				setTopics(docRef.data()['Topic']['list'])
-				setList(docRef.data()['Topic']['list'] || [])
-				tagsData['active'].sort((a, b) => {
-					if (a === t('Other')) return 1 // Move "Other" to the end
-					if (b === t('Other')) return -1 // Move "Other" to the end
-					return a.localeCompare(b) // Default sorting for other elements
-				})
-				// console.log(tagsData['active'])
-				setActive(tagsData['active'])
+				const list = dedupeTagList(docRef.data()['Topic']['list'] || [])
+				const activeSorted = dedupeTagList(tagsData['active'] || [])
+				setTopics(list)
+				setList(list)
+				setActive(activeSorted)
 			}
 		} catch (error) {
 			console.log(error)
@@ -767,16 +765,12 @@ const AgencyReportModal = ({
 		try {
 			getDoc(doc(db, 'tags', selectedAgencyId)).then((docRef) => {
 				if (docRef.exists()) {
-					// console.log(docRef.data())
 					const tagsData = docRef.data()['Source']
-					setSources(docRef.data()['Source']['active'])
-					setSourceList(docRef.data()['Source']['list'])
-					tagsData['active'].sort((a, b) => {
-						if (a === 'Other') return 1 // Move "Other" to the end
-						if (b === 'Other') return -1 // Move "Other" to the end
-						return a.localeCompare(b) // Default sorting for other elements
-					})
-					setActiveSources(docRef.data()['Source']['active'])
+					const activeSorted = dedupeTagList(tagsData['active'] || [])
+					const list = dedupeTagList(docRef.data()['Source']['list'] || [])
+					setSources(activeSorted)
+					setSourceList(list)
+					setActiveSources(activeSorted)
 				}
 			})
 		} catch (error) {
@@ -1026,14 +1020,16 @@ const AgencyReportModal = ({
 			setActiveLabels([])
 			setAgencyLabelColors({})
 		} else {
+			const defaults = await fetchTagDefaults()
+			setTagLabelMap(buildTagLabelMap(defaults))
 			const docRef = doc(db, 'tags', selectedAgencyId)
 			const docSnap = await getDoc(docRef)
 			if (docSnap.exists()) {
 				const topicData = docSnap.get('Topic')['active']
 				const sourceData = docSnap.get('Source')['active']
 				const labelData = docSnap.get('Labels')?.active || []
-				setTopics(topicData)
-				setSources(sourceData)
+				setTopics(dedupeTagList(topicData || []))
+				setSources(dedupeTagList(sourceData || []))
 				setActiveLabels(labelData)
 				setAgencyLabelColors(docSnap.get('Labels')?.colors || {})
 			} else {
@@ -1048,8 +1044,14 @@ const AgencyReportModal = ({
 	 */
 	const handleNewReportModalClose = requestClose
 
-	const topicOptions = allTopicsArr.map((topic) => ({
-		label: t('topics.' + stripTopicsKeyPrefix(topic), topic),
+	const topicOptions = dedupeTagList(allTopicsArr).map((topic) => ({
+		label: getTagLabel({
+			id: topic,
+			locale: i18n.language,
+			labelMap: tagLabelMap,
+			t,
+			system: 'topics',
+		}),
 		value: topic,
 	}))
 
@@ -1057,16 +1059,25 @@ const AgencyReportModal = ({
 		topicOptions.find((o) => o.value === selectedTopic) ??
 		(selectedTopic
 			? {
-					label: t(
-						'topics.' + stripTopicsKeyPrefix(selectedTopic),
-						selectedTopic,
-					),
+					label: getTagLabel({
+						id: selectedTopic,
+						locale: i18n.language,
+						labelMap: tagLabelMap,
+						t,
+						system: 'topics',
+					}),
 					value: selectedTopic,
 				}
 			: null)
 
-	const sourceOptions = allSourcesArr.map((source) => ({
-		label: t('sources.' + stripSourcesKeyPrefix(source), source),
+	const sourceOptions = dedupeTagList(allSourcesArr).map((source) => ({
+		label: getTagLabel({
+			id: source,
+			locale: i18n.language,
+			labelMap: tagLabelMap,
+			t,
+			system: 'sources',
+		}),
 		value: source,
 	}))
 
@@ -1074,10 +1085,13 @@ const AgencyReportModal = ({
 		sourceOptions.find((o) => o.value === selectedSource) ??
 		(selectedSource
 			? {
-					label: t(
-						'sources.' + stripSourcesKeyPrefix(selectedSource),
-						selectedSource,
-					),
+					label: getTagLabel({
+						id: selectedSource,
+						locale: i18n.language,
+						labelMap: tagLabelMap,
+						t,
+						system: 'sources',
+					}),
 					value: selectedSource,
 				}
 			: null)

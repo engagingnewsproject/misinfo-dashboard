@@ -50,6 +50,8 @@ import FormTextarea from '../../../components/ui/FormTextarea'
 import LabelSelectMenu from '../../../components/reports/LabelSelectMenu'
 import ShareReportModal from '../../../components/partials/modals/ShareReportModal'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import { useTranslation } from 'next-i18next'
+import { getTagLabel } from '../../../utils/tag-defaults'
 
 /**
  * ReportDetails Page
@@ -61,6 +63,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
  */
 const ReportDetails = () => {
 	const router = useRouter()
+	const { t, i18n } = useTranslation('NewReport')
 	const [info, setInfo] = useState({})
 	const [reporterInfo, setReporterInfo] = useState({})
 	const [postedDate, setPostedDate] = useState("")
@@ -315,12 +318,26 @@ const ReportDetails = () => {
 						<div className="flex flex-row mb-3 items-center">
 							<RiMessage2Fill size={20} />
 							<div className="font-semibold px-2 self-center pr-4">Tag</div>
-              <div className="text-md font-light">{info['topic']}</div>
+              <div className="text-md font-light">
+								{getTagLabel({
+									id: info['topic'],
+									locale: i18n.language,
+									t,
+									system: 'topics',
+								})}
+							</div>
 						</div>
 						<div className="flex flex-row mb-3 items-center">
 							<BiEditAlt size={20} />
               <div className="font-semibold px-2 self-center pr-4">Sources / Media</div>
-              <div className="text-md font-light">{info['hearFrom']}</div>
+              <div className="text-md font-light">
+								{getTagLabel({
+									id: info['hearFrom'],
+									locale: i18n.language,
+									t,
+									system: 'sources',
+								})}
+							</div>
 						</div>
 						<div className="flex flex-row mb-3 items-center">
 							<AiOutlineFieldTime size={20} />

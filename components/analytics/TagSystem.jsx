@@ -37,6 +37,7 @@ import {
 import {
 	buildAgencyTagsPayload,
 	fetchTagDefaults,
+	getRequiredIds,
 	isOtherTagName,
 	isRequiredTag,
 } from '../../utils/tag-defaults'
@@ -141,9 +142,9 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 
 		const defaults = await fetchTagDefaults()
 		if (tagSystem === 1) {
-			setRequiredTags(defaults.Topic.required)
+			setRequiredTags(getRequiredIds(defaults, 'Topic'))
 		} else if (tagSystem === 2) {
-			setRequiredTags(defaults.Source.required)
+			setRequiredTags(getRequiredIds(defaults, 'Source'))
 		} else {
 			setRequiredTags([])
 		}
