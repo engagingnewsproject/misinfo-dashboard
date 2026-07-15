@@ -84,13 +84,22 @@
     "Health": "Salud",
     "Weather": "Clima",
     "Other": "Otro",
-    "Politics":"Política"
+    "Politics": "Política",
+    "Voting": "Votación",
+    "Senate": "Senado",
+    "Gubernatorial": "Gobernatura",
+    "Mayoral": "Alcaldía",
+    "Election (general)": "Elección (general)",
+    "News": "Noticias"
   },
   "sources": {
-  "Social": "Social",
-  "Newspaper": "Periódico",
-  "Website": "Sitio web",
-  "Other": "Otro"
+    "Social": "Social",
+    "Newspaper": "Periódico",
+    "Website": "Sitio web",
+    "Television": "Televisión",
+    "Radio": "Radio",
+    "Podcast": "Podcast",
+    "Other": "Otro"
   },
   "thanksText": "Investigamos tantas denuncias como sea posible, aunque no siempre podemos llegar a todas."
 }

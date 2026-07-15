@@ -22,6 +22,7 @@
  */
 
 import React, { useEffect, useState } from "react"
+import { resolveAgencyIdByName } from '../../../utils/label-tags'
 import { Switch } from "@material-tailwind/react";
 import FormInput from '../../ui/FormInput'
 import FormTextarea from '../../ui/FormTextarea'
@@ -47,6 +48,11 @@ import {
 } from '../../../config/labels'
 import LabelSelectMenu from '../../reports/LabelSelectMenu'
 import { formatReportLocation } from '../../../utils/format-location'
+import { useTranslation } from 'next-i18next'
+import {
+	fetchMergedTagLabelMapForAgencyId,
+	getTagLabel,
+} from '../../../utils/tag-defaults'
 
 /**
  * ReportModal Component
@@ -129,6 +135,7 @@ const ReportModal = ({
 	changeStatus,
 	reportModalId,
 }) => {
+	const { t, i18n } = useTranslation('NewReport')
 	// CSS styles object for consistent styling across the modal
 	const style = {
 		header: "text-lg font-bold text-black tracking-wider mb-4",
@@ -151,12 +158,26 @@ const ReportModal = ({
 	// Local state management
 	const [images,setImages] = useState([]) // Image gallery state
 	const [shareReportModal, setShareReportModal] = useState(false) // Share modal visibility
-	
-	// useEffect(() => {
-	// 	console.log(customClaims);
-	// }, [reportModalId])
-	
-	
+	const [tagLabelMap, setTagLabelMap] = useState({})
+
+	useEffect(() => {
+		let cancelled = false
+		const loadLabels = async () => {
+			try {
+				const agencyId = await resolveAgencyIdByName(report?.agency)
+				const map = await fetchMergedTagLabelMapForAgencyId(agencyId)
+				if (!cancelled) setTagLabelMap(map)
+			} catch (err) {
+				console.error('Error loading tag labels for report modal:', err)
+				if (!cancelled) setTagLabelMap({})
+			}
+		}
+		loadLabels()
+		return () => {
+			cancelled = true
+		}
+	}, [report?.agency, reportModalId])
+
 	return (
 		<div
 			className='report-modal-overlay fixed z-[9998] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto' // {style.overlay}
@@ -261,7 +282,15 @@ const ReportModal = ({
 											<div className='font-semibold px-2 self-center pr-4'>
 												Tag
 											</div>
-											<div className='text-md font-light'>{report.topic}</div>
+											<div className='text-md font-light'>
+												{getTagLabel({
+													id: report.topic,
+													locale: i18n.language,
+													labelMap: tagLabelMap,
+													t,
+													system: 'topics',
+												})}
+											</div>
 										</div>
 										
 										{/* Sources/Media */}
@@ -271,7 +300,13 @@ const ReportModal = ({
 												Sources / Media
 											</div>
 											<div className='text-md font-light'>
-												{report.hearFrom}
+												{getTagLabel({
+													id: report.hearFrom,
+													locale: i18n.language,
+													labelMap: tagLabelMap,
+													t,
+													system: 'sources',
+												})}
 											</div>
 										</div>
 										
