@@ -1022,8 +1022,8 @@ const AgencyReportModal = ({
 	useEffect(() => {
 		if (selectedAgency) {
 			getTopicList()
-			getAllTags()
 		}
+		getAllTags()
 	}, [selectedAgency])
 
 	/**
@@ -1126,6 +1126,7 @@ const AgencyReportModal = ({
 			setAgencyLabelColors({})
 			setTopicLabels({})
 			setSourceLabels({})
+			setTagLabelMap({})
 		} else {
 			const defaults = await fetchTagDefaults()
 			const docRef = doc(db, 'tags', selectedAgencyId)
