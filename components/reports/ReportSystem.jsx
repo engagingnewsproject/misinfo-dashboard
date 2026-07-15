@@ -49,6 +49,7 @@ import {
 	getFallbackTagDefaults,
 	isOtherTagName,
 } from "../../utils/tag-defaults"
+import { CUSTOM_OTHER_TAG_MAX_LENGTH } from "../../config/tagSystems"
 import { formatLocationPart } from "../../utils/format-location"
 import { State, City } from "country-state-city"
 import moment from "moment"
@@ -278,8 +279,12 @@ const ReportSystem = ({
 					setSelectedAgency(formData.selectedAgency || '')
 					setSelectedTopic(formData.selectedTopic || '')
 					setSelectedSource(formData.selectedSource || '')
-					setOtherTopic(formData.otherTopic || '')
-					setOtherSource(formData.otherSource || '')
+					setOtherTopic(
+						(formData.otherTopic || '').slice(0, CUSTOM_OTHER_TAG_MAX_LENGTH),
+					)
+					setOtherSource(
+						(formData.otherSource || '').slice(0, CUSTOM_OTHER_TAG_MAX_LENGTH),
+					)
 					setTitle(formData.title || '')
 					setLink(formData.link || '')
 					setSecondLink(formData.secondLink || '')
@@ -427,10 +432,10 @@ const ReportSystem = ({
 	}
 
 	/**
-	 * Handles custom topic input
+	 * Handles custom topic input (capped for public Other submissions).
 	 */
 	const handleOtherTopicChange = (e) => {
-		setOtherTopic(e.target.value)
+		setOtherTopic(e.target.value.slice(0, CUSTOM_OTHER_TAG_MAX_LENGTH))
 	}
 
 	/**
@@ -445,10 +450,10 @@ const ReportSystem = ({
 	}
 
 	/**
-	 * Handles custom source input
+	 * Handles custom source input (capped for public Other submissions).
 	 */
 	const handleOtherSourceChange = (e) => {
-		setOtherSource(e.target.value)
+		setOtherSource(e.target.value.slice(0, CUSTOM_OTHER_TAG_MAX_LENGTH))
 	}
 
 	/**

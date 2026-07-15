@@ -17,6 +17,7 @@ import FormInput from '../../ui/FormInput'
 import { IoIosInformationCircle } from "react-icons/io"
 import { useTranslation } from 'next-i18next'
 import globalStyles from '../../../styles/globalStyles'
+import { CUSTOM_OTHER_TAG_MAX_LENGTH } from '../../../config/tagSystems'
 
 /**
  * SourceSelectionStep Component
@@ -79,13 +80,14 @@ const SourceSelectionStep = ({
             label={t("custom_source")}
             value={otherSource}
             onChange={handleOtherSourceChange}
+            maxLength={CUSTOM_OTHER_TAG_MAX_LENGTH}
           />
           <Typography
             variant='small'
             color='gray'
             className={globalStyles.mdInput.hint}>
             <IoIosInformationCircle />
-            {t("custom_source")}
+            {t("specify_source", { max: CUSTOM_OTHER_TAG_MAX_LENGTH })}
           </Typography>
         </div>
       )}

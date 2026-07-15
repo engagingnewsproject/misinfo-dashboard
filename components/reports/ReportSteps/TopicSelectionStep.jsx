@@ -17,6 +17,7 @@ import FormInput from '../../ui/FormInput'
 import { IoIosInformationCircle } from "react-icons/io"
 import { useTranslation } from 'next-i18next'
 import globalStyles from '../../../styles/globalStyles'
+import { CUSTOM_OTHER_TAG_MAX_LENGTH } from '../../../config/tagSystems'
 
 /**
  * TopicSelectionStep Component
@@ -79,13 +80,14 @@ const TopicSelectionStep = ({
             label={t("custom_topic")}
             value={otherTopic}
             onChange={handleOtherTopicChange}
+            maxLength={CUSTOM_OTHER_TAG_MAX_LENGTH}
           />
           <Typography
             variant='small'
             color='gray'
             className={globalStyles.mdInput.hint}>
             <IoIosInformationCircle />
-            {t("specify_topic")}
+            {t("specify_topic", { max: CUSTOM_OTHER_TAG_MAX_LENGTH })}
           </Typography>
         </div>
       )}

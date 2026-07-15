@@ -122,7 +122,7 @@ function isValidLink(value) {
 	}
 }
 
-const NewReportModal = ({
+const AgencyReportModal = ({
 	setNewReportModal,
 	handleNewReportSubmit,
 }) => {
@@ -372,7 +372,7 @@ const NewReportModal = ({
 			read: false,
 			topic: resolveTopicValue(),
 			hearFrom: resolveSourceValue(),
-			// `origin` marks the submission channel; NewReportModal is the agency-side dashboard flow.
+			// `origin` marks the submission channel; AgencyReportModal is the agency-side dashboard flow.
 			origin: 'agency',
 			...newReportExperimentFields(experimentId),
 		})
@@ -1339,4 +1339,4 @@ const NewReportModal = ({
 	)
 }
 
-export default NewReportModal
+export default AgencyReportModal
