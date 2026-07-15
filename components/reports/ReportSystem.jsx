@@ -47,6 +47,8 @@ import {
 import {
 	fetchTagDefaults,
 	getFallbackTagDefaults,
+	getRequiredIds,
+	buildTagLabelMap,
 	isOtherTagName,
 } from "../../utils/tag-defaults"
 import { CUSTOM_OTHER_TAG_MAX_LENGTH } from "../../config/tagSystems"
@@ -157,6 +159,7 @@ const ReportSystem = ({
 	const [selectedTopic, setSelectedTopic] = useState("")
 	const [sources, setSources] = useState([])
 	const [selectedSource, setSelectedSource] = useState("")
+	const [tagLabelMap, setTagLabelMap] = useState({})
 	
 	// Form validation and UI state
 	const [errors, setErrors] = useState({})
@@ -383,10 +386,13 @@ const ReportSystem = ({
 		const fallback = getFallbackTagDefaults()
 		try {
 			const defaults = await fetchTagDefaults()
+			setTagLabelMap(buildTagLabelMap(defaults))
+			const topicIds = getRequiredIds(defaults, 'Topic')
+			const sourceIds = getRequiredIds(defaults, 'Source')
 			if (!agencyName) {
 				setSelectedAgencyID("")
-				setAllTopicsArr(defaults.Topic.required)
-				setSources(defaults.Source.required)
+				setAllTopicsArr(topicIds)
+				setSources(sourceIds)
 				return
 			}
 
@@ -394,8 +400,8 @@ const ReportSystem = ({
 			const q = query(agencyCollection, where("name", "==", agencyName))
 			const querySnapshot = await getDocs(q)
 			if (querySnapshot.empty) {
-				setAllTopicsArr(defaults.Topic.required)
-				setSources(defaults.Source.required)
+				setAllTopicsArr(topicIds)
+				setSources(sourceIds)
 				return
 			}
 
@@ -404,19 +410,20 @@ const ReportSystem = ({
 			const tagsSnap = await getDoc(doc(db, "tags", agencyId))
 			if (tagsSnap.exists()) {
 				const topicActive =
-					tagsSnap.data()?.Topic?.active || defaults.Topic.required
+					tagsSnap.data()?.Topic?.active || topicIds
 				const sourceActive =
-					tagsSnap.data()?.Source?.active || defaults.Source.required
+					tagsSnap.data()?.Source?.active || sourceIds
 				setAllTopicsArr(topicActive)
 				setSources(sourceActive)
 			} else {
-				setAllTopicsArr(defaults.Topic.required)
-				setSources(defaults.Source.required)
+				setAllTopicsArr(topicIds)
+				setSources(sourceIds)
 			}
 		} catch (error) {
 			console.error("Error loading tags for agency:", error)
-			setAllTopicsArr(fallback.Topic.required)
-			setSources(fallback.Source.required)
+			setTagLabelMap(buildTagLabelMap(fallback))
+			setAllTopicsArr(getRequiredIds(fallback, 'Topic'))
+			setSources(getRequiredIds(fallback, 'Source'))
 		}
 	}
 
@@ -771,6 +778,7 @@ const ReportSystem = ({
 								handleOtherTopicChange={handleOtherTopicChange}
 								errors={errors}
 								onNext={() => setReportSystem(4)}
+								labelMap={tagLabelMap}
 							/>
 						)}
 
@@ -785,6 +793,7 @@ const ReportSystem = ({
 								handleOtherSourceChange={handleOtherSourceChange}
 								errors={errors}
 								onNext={() => setReportSystem(5)}
+								labelMap={tagLabelMap}
 							/>
 						)}
 
