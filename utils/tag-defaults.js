@@ -299,6 +299,123 @@ export function buildTagLabelMap(defaults) {
 }
 
 /**
+ * Normalizes a Firestore Topic.labels / Source.labels map into id → { en, es }.
+ *
+ * @param {Record<string, unknown>|undefined|null} agencyLabels
+ * @returns {Record<string, TagLabels>}
+ */
+export function normalizeAgencyLabelMap(agencyLabels) {
+	/** @type {Record<string, TagLabels>} */
+	const map = {}
+	if (!agencyLabels || typeof agencyLabels !== 'object') return map
+	for (const [rawId, rawLabels] of Object.entries(agencyLabels)) {
+		const id = canonicalizeTagId(rawId)
+		if (!id || id === 'Other') continue
+		const en =
+			typeof rawLabels?.en === 'string'
+				? rawLabels.en.trim()
+				: typeof rawLabels === 'string'
+					? rawLabels.trim()
+					: id
+		const es =
+			typeof rawLabels?.es === 'string' ? rawLabels.es.trim() : en || id
+		if (!en && !es) continue
+		map[id] = { en: en || id, es: es || en || id }
+	}
+	return map
+}
+
+/**
+ * Merges admin-default labels with agency custom labels.
+ * Defaults always win for required ids; agency entries only apply to custom tags.
+ *
+ * @param {Record<string, TagLabels>|undefined|null} defaultsMap
+ * @param {Record<string, TagLabels>|undefined|null} agencyLabels
+ * @returns {Record<string, TagLabels>}
+ */
+export function mergeTagLabelMaps(defaultsMap, agencyLabels) {
+	const defaults = defaultsMap || {}
+	/** @type {Set<string>} */
+	const requiredIds = new Set(
+		Object.keys(defaults).map((id) => canonicalizeTagId(id)).filter(Boolean),
+	)
+	/** @type {Record<string, TagLabels>} */
+	const customOnly = {}
+	for (const [id, labels] of Object.entries(
+		normalizeAgencyLabelMap(agencyLabels),
+	)) {
+		if (requiredIds.has(canonicalizeTagId(id))) continue
+		customOnly[id] = labels
+	}
+	return { ...defaults, ...customOnly }
+}
+
+/**
+ * Loads a display label map for an agency tags document id (defaults + custom).
+ *
+ * @param {string|undefined|null} agencyId
+ * @returns {Promise<Record<string, TagLabels>>}
+ */
+export async function fetchMergedTagLabelMapForAgencyId(agencyId) {
+	const defaults = await fetchTagDefaults()
+	if (!agencyId) return buildTagLabelMap(defaults)
+	const snap = await getDoc(doc(db, 'tags', agencyId))
+	if (!snap.exists()) return buildTagLabelMap(defaults)
+	return buildMergedAgencyTagLabelMap(defaults, snap.data())
+}
+
+/**
+ * Builds a merged label map for one agency tags doc + global defaults.
+ *
+ * @param {TagDefaults} defaults
+ * @param {{ Topic?: { labels?: Record<string, TagLabels> }, Source?: { labels?: Record<string, TagLabels> } }|undefined|null} agencyTagsDoc
+ * @returns {Record<string, TagLabels>}
+ */
+export function buildMergedAgencyTagLabelMap(defaults, agencyTagsDoc) {
+	const defaultsMap = buildTagLabelMap(defaults)
+	const topicLabels = normalizeAgencyLabelMap(agencyTagsDoc?.Topic?.labels)
+	const sourceLabels = normalizeAgencyLabelMap(agencyTagsDoc?.Source?.labels)
+	return mergeTagLabelMaps(defaultsMap, { ...topicLabels, ...sourceLabels })
+}
+
+/**
+ * Updates labels map when renaming a custom tag id.
+ *
+ * @param {Record<string, TagLabels>} labels
+ * @param {string} oldId
+ * @param {string} newId
+ * @param {TagLabels} nextLabels
+ * @returns {Record<string, TagLabels>}
+ */
+export function renameAgencyTagInLabelMap(labels, oldId, newId, nextLabels) {
+	const next = { ...(labels || {}) }
+	const from = canonicalizeTagId(oldId)
+	const to = canonicalizeTagId(newId)
+	if (from && from !== 'Other') delete next[from]
+	if (to && to !== 'Other') {
+		next[to] = {
+			en: nextLabels?.en?.trim() || to,
+			es: nextLabels?.es?.trim() || nextLabels?.en?.trim() || to,
+		}
+	}
+	return next
+}
+
+/**
+ * Removes a custom tag id from the labels map.
+ *
+ * @param {Record<string, TagLabels>} labels
+ * @param {string} id
+ * @returns {Record<string, TagLabels>}
+ */
+export function removeAgencyTagFromLabelMap(labels, id) {
+	const next = { ...(labels || {}) }
+	const key = canonicalizeTagId(id)
+	if (key) delete next[key]
+	return next
+}
+
+/**
  * Display label for a tag id.
  *
  * @param {{
@@ -356,8 +473,8 @@ export async function buildAgencyTagsPayload(defaults) {
 	const topics = getRequiredIds(resolved, 'Topic')
 	const sources = getRequiredIds(resolved, 'Source')
 	return {
-		Topic: { list: [...topics], active: [...topics] },
-		Source: { list: [...sources], active: [...sources] },
+		Topic: { list: [...topics], active: [...topics], labels: {} },
+		Source: { list: [...sources], active: [...sources], labels: {} },
 		Labels: {
 			list: [...DEFAULT_AGENCY_LABELS],
 			active: [...DEFAULT_AGENCY_LABELS],

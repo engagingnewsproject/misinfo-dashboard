@@ -49,6 +49,7 @@ import {
 	getFallbackTagDefaults,
 	getRequiredIds,
 	buildTagLabelMap,
+	buildMergedAgencyTagLabelMap,
 	isOtherTagName,
 } from "../../utils/tag-defaults"
 import { CUSTOM_OTHER_TAG_MAX_LENGTH } from "../../config/tagSystems"
@@ -409,12 +410,12 @@ const ReportSystem = ({
 			setSelectedAgencyID(agencyId)
 			const tagsSnap = await getDoc(doc(db, "tags", agencyId))
 			if (tagsSnap.exists()) {
-				const topicActive =
-					tagsSnap.data()?.Topic?.active || topicIds
-				const sourceActive =
-					tagsSnap.data()?.Source?.active || sourceIds
+				const data = tagsSnap.data()
+				const topicActive = data?.Topic?.active || topicIds
+				const sourceActive = data?.Source?.active || sourceIds
 				setAllTopicsArr(topicActive)
 				setSources(sourceActive)
+				setTagLabelMap(buildMergedAgencyTagLabelMap(defaults, data))
 			} else {
 				setAllTopicsArr(topicIds)
 				setSources(sourceIds)

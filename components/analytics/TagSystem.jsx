@@ -36,15 +36,22 @@ import {
 } from '../../utils/label-tags'
 import {
 	buildAgencyTagsPayload,
+	buildTagLabelMap,
+	canonicalizeTagId,
 	fetchTagDefaults,
 	getRequiredIds,
+	getTagLabel,
 	isOtherTagName,
 	isRequiredTag,
+	mergeTagLabelMaps,
+	normalizeAgencyLabelMap,
+	removeAgencyTagFromLabelMap,
+	renameAgencyTagInLabelMap,
 } from '../../utils/tag-defaults'
 
 const maxTags = maxActiveTags
 
-const setData = async (tagSystem, list, active, agency) => {
+const setData = async (tagSystem, list, active, agency, labels) => {
 	const docRef = doc(db, 'tags', agency)
 	const docSnap = await getDoc(docRef)
 	const key = tagSystems[tagSystem]
@@ -59,11 +66,15 @@ const setData = async (tagSystem, list, active, agency) => {
 				...existingSlice,
 				list,
 				active,
+				...(tagSystem === 3 ? {} : { labels: labels || {} }),
 			},
 		})
 	} else {
 		await setDoc(doc(db, 'tags', agency), {
-			[key]: { list, active },
+			[key]:
+				tagSystem === 3
+					? { list, active }
+					: { list, active, labels: labels || {} },
 		})
 	}
 }
@@ -71,6 +82,8 @@ const setData = async (tagSystem, list, active, agency) => {
 const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 	const [list, setList] = useState([])
 	const [active, setActive] = useState([])
+	const [tagLabels, setTagLabels] = useState({})
+	const [defaultsLabelMap, setDefaultsLabelMap] = useState({})
 	const [labelColors, setLabelColors] = useState({})
 	const [agencyName, setAgencyName] = useState('')
 	const [requiredTags, setRequiredTags] = useState([])
@@ -120,6 +133,37 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 	const selectedIsRequired =
 		!isLabelsMode && selected && isRequiredTag(selected, requiredTags)
 
+	const displayLabelMap = useMemo(
+		() => mergeTagLabelMaps(defaultsLabelMap, tagLabels),
+		[defaultsLabelMap, tagLabels],
+	)
+
+	const formatTagDisplay = (item) => {
+		if (isOtherTagName(item)) return 'Other'
+		const canonical = canonicalizeTagId(item)
+		const en = getTagLabel({
+			id: item,
+			locale: 'en',
+			labelMap: displayLabelMap,
+		})
+		// Map keys are canonical; raw item may still have topics./sources. prefixes.
+		const es = displayLabelMap?.[canonical]?.es
+		const showMutedId = en !== item
+		const showEs = Boolean(es) && es !== en
+		if (!showMutedId && !showEs) return en
+		return (
+			<span className="flex flex-col items-center text-center leading-tight">
+				<span>{en}</span>
+				{showMutedId && (
+					<span className="text-xs text-gray-400 font-normal">{item}</span>
+				)}
+				{showEs && (
+					<span className="text-xs text-gray-500 font-normal">{es}</span>
+				)}
+			</span>
+		)
+	}
+
 	const applyTagsToState = (tagsData) => {
 		setList(tagsData?.list || [])
 		const activeList = [...(tagsData?.active || [])]
@@ -131,6 +175,9 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 		setActive(activeList)
 		if (isLabelsMode) {
 			setLabelColors(tagsData?.colors || {})
+			setTagLabels({})
+		} else {
+			setTagLabels(normalizeAgencyLabelMap(tagsData?.labels))
 		}
 	}
 
@@ -141,6 +188,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 		setAgencyName(name || '')
 
 		const defaults = await fetchTagDefaults()
+		setDefaultsLabelMap(buildTagLabelMap(defaults))
 		if (tagSystem === 1) {
 			setRequiredTags(getRequiredIds(defaults, 'Topic'))
 		} else if (tagSystem === 2) {
@@ -204,7 +252,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 				setRenameTagModal(true)
 				break
 		}
-		setData(tagSystem, list, active, agencyID)
+		setData(tagSystem, list, active, agencyID, tagLabels)
 	}
 
 	const deleteTag = () => {
@@ -214,14 +262,14 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 			return
 		}
 
-		if (list?.includes?.(selected)) {
-			list.splice(list.indexOf(selected), 1)
-		}
-		if (active?.includes?.(selected)) {
-			active.splice(active.indexOf(selected), 1)
-		}
+		const nextList = list.filter((t) => t !== selected)
+		const nextActive = active.filter((t) => t !== selected)
+		const nextLabels = removeAgencyTagFromLabelMap(tagLabels, selected)
+		setList(nextList)
+		setActive(nextActive)
+		setTagLabels(nextLabels)
 		setSelected('')
-		setData(tagSystem, list, active, agencyID)
+		setData(tagSystem, nextList, nextActive, agencyID, nextLabels)
 		setDeleteModal(false)
 	}
 
@@ -254,16 +302,27 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 		await getData(agencyID)
 	}
 
-	const replaceTag = (tag) => {
+	const replaceTag = (entry) => {
 		if (isRequiredTag(selected, requiredTags)) return
+		const newId = typeof entry === 'string' ? entry : entry?.id
+		const nextLabelsPayload =
+			typeof entry === 'string'
+				? { en: entry, es: entry }
+				: entry?.labels || { en: newId, es: newId }
+		if (!newId) return
 
-		if (list?.includes?.(selected)) {
-			list[list.indexOf(selected)] = tag
-		}
-		if (active?.includes?.(selected)) {
-			active[active.indexOf(selected)] = tag
-		}
-		setData(tagSystem, list, active, agencyID)
+		const nextList = list.map((t) => (t === selected ? newId : t))
+		const nextActive = active.map((t) => (t === selected ? newId : t))
+		const nextLabels = renameAgencyTagInLabelMap(
+			tagLabels,
+			selected,
+			newId,
+			nextLabelsPayload,
+		)
+		setList(nextList)
+		setActive(nextActive)
+		setTagLabels(nextLabels)
+		setData(tagSystem, nextList, nextActive, agencyID, nextLabels)
 		setSelected('')
 	}
 
@@ -271,23 +330,38 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 	 * Adds a newsroom tag to the agency catalog and turns it on immediately when
 	 * under the live-tag limit (no separate "Mark as Active" step).
 	 *
-	 * @param {string} tag - New topic or source label to append.
+	 * @param {{ id: string, labels: { en: string, es: string } }|string} entry
 	 */
-	const addNewTag = (tag) => {
-		const arr = [...list, tag]
+	const addNewTag = (entry) => {
+		const id = typeof entry === 'string' ? entry.trim() : entry?.id?.trim()
+		const labels =
+			typeof entry === 'string'
+				? { en: id, es: id }
+				: {
+						en: entry?.labels?.en?.trim() || id,
+						es: entry?.labels?.es?.trim() || entry?.labels?.en?.trim() || id,
+					}
+		if (!id) return
+
+		const arr = [...list, id]
 		setList(arr)
 
 		let nextActive = [...active]
-		if (!nextActive.includes(tag)) {
+		if (!nextActive.includes(id)) {
 			if (nextActive.length >= maxTags[tagSystem]) {
 				setMaxTagsError(true)
 			} else {
-				nextActive = [...nextActive, tag]
+				nextActive = [...nextActive, id]
 				setMaxTagsError(false)
 			}
 		}
 		setActive(nextActive)
-		setData(tagSystem, arr, nextActive, agencyID)
+		const nextLabels = {
+			...tagLabels,
+			[id]: labels,
+		}
+		setTagLabels(nextLabels)
+		setData(tagSystem, arr, nextActive, agencyID, nextLabels)
 		setSearch('')
 	}
 
@@ -503,7 +577,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 										}}
 										className="text-light text-sm rounded-lg leading-tight py-2 pl-4 hover:bg-indigo-100 cursor-pointer"
 										key={item}>
-										{item}
+										{formatTagDisplay(item)}
 										{isRequiredTag(item, requiredTags) ? ' *' : ''}
 									</div>
 								)
@@ -589,7 +663,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 											key={item}>
 											<GoDotFill size={25} className="text-green-600" />
 											<div className="pl-2">
-												{item}
+												{formatTagDisplay(item)}
 												{isRequiredTag(item, requiredTags) ? '*' : ''}
 											</div>
 										</div>
@@ -627,7 +701,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 											<GoDotFill size={25} className="text-green-600" />
 										)}
 										<div className="pl-2">
-											{item}
+											{formatTagDisplay(item)}
 											{isRequiredTag(item, requiredTags) ? '*' : ''}
 										</div>
 									</div>
@@ -643,7 +717,6 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 					tagSystems={tagSystems}
 					tagSystem={tagSystem}
 					list={list}
-					setList={setList}
 					setNewTagModal={setNewTagModal}
 					addNewTag={addNewTag}
 				/>
@@ -654,7 +727,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 					selected={selected}
 					list={list}
 					setRenameTagModal={setRenameTagModal}
-					addNewTag={addNewTag}
+					existingLabels={tagLabels[canonicalizeTagId(selected)]}
 				/>
 			)}
 			{newLabelModal && (

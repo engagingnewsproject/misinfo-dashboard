@@ -51,7 +51,10 @@ import LabelSelectMenu from '../../../components/reports/LabelSelectMenu'
 import ShareReportModal from '../../../components/partials/modals/ShareReportModal'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
-import { getTagLabel } from '../../../utils/tag-defaults'
+import {
+	fetchMergedTagLabelMapForAgencyId,
+	getTagLabel,
+} from '../../../utils/tag-defaults'
 
 /**
  * ReportDetails Page
@@ -76,6 +79,7 @@ const ReportDetails = () => {
 	const [otherLabelDraft, setOtherLabelDraft] = useState('')
 	const [otherLabelError, setOtherLabelError] = useState('')
 	const [shareReportModal, setShareReportModal] = useState(false)
+	const [tagLabelMap, setTagLabelMap] = useState({})
 
 	const { reportId } = router.query
 	const linkStyle = 'font-light mb-1 text-sm underline underline-offset-1'
@@ -105,6 +109,13 @@ const ReportDetails = () => {
 
 		const resolvedAgencyId = await resolveAgencyIdByName(reportData.agency)
 		setModalAgencyId(resolvedAgencyId || '')
+		try {
+			const map = await fetchMergedTagLabelMapForAgencyId(resolvedAgencyId)
+			setTagLabelMap(map)
+		} catch (err) {
+			console.error('Error loading tag labels for report details:', err)
+			setTagLabelMap({})
+		}
 		if (resolvedAgencyId) {
 			const labels = await fetchAgencyActiveLabels(resolvedAgencyId)
 			setModalAgencyLabels(labels)
@@ -322,6 +333,7 @@ const ReportDetails = () => {
 								{getTagLabel({
 									id: info['topic'],
 									locale: i18n.language,
+									labelMap: tagLabelMap,
 									t,
 									system: 'topics',
 								})}
@@ -334,6 +346,7 @@ const ReportDetails = () => {
 								{getTagLabel({
 									id: info['hearFrom'],
 									locale: i18n.language,
+									labelMap: tagLabelMap,
 									t,
 									system: 'sources',
 								})}
