@@ -19,7 +19,7 @@
  * @version 1.0.0
  * @since 2024
  */
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import TagSystem from '../analytics/TagSystem';
 import ExperimentSettings from './ExperimentSettings';
 import TagDefaultsSettings from './TagDefaultsSettings';
@@ -48,12 +48,16 @@ const Settings = () => {
   const [tagSystem, setTagSystem] = useState(0) // 0 = main menu, 1 = Topics, 2 = Sources, 3 = Labels
 
   // --- Auth and user claims ---
-  const { user, customClaims, setCustomClaims } = useAuth() // Auth context and role claims
+  const { customClaims, refreshCustomClaims } = useAuth() // Auth context and role claims
 
   // --- Agency selection and management ---
   const [agencyID, setAgencyID] = useState() // Selected agency ID (admin or agency user)
   const [agency, setSelectedAgency] = useState() // Selected agency name (admin or agency user)
   const [agencies, setAgencies] = useState([]) // List of agencies for admin selection
+  const [agencyClaimsStatus, setAgencyClaimsStatus] = useState(
+    /** @type {'ok' | 'pending' | 'missing'} */ ('ok'),
+  )
+  const agencyClaimsRefreshAttempted = useRef(false)
 
   // --- State/city selection for admin filtering ---
   const [stateSelected, setStateSelected] = useState({ country: 'US', state: null, city: null }) // Selected state/city for agency filtering
@@ -120,16 +124,31 @@ const Settings = () => {
   // Effect: On mount or tagSystem change, determine agency for agency users or prompt admin to select
   useEffect(() => {
     // Agency users: prefer claim agencyId (doc id); do not query agencyUsers under scoped rules.
-    if (customClaims.admin) return
+    if (customClaims.admin) {
+      setAgencyClaimsStatus('ok')
+      return
+    }
     if (customClaims?.agencyId) {
+      setAgencyClaimsStatus('ok')
+      agencyClaimsRefreshAttempted.current = false
       setAgencyID(customClaims.agencyId)
       if (customClaims.agencyName) {
         setSelectedAgency(customClaims.agencyName)
       }
       return
     }
-    // Agency claim without agencyId: wait for AuthContext; skip legacy membership query.
-    if (customClaims?.agency) return
+    // Agency claim without agencyId: refresh once, then surface missing state.
+    if (customClaims?.agency) {
+      setAgencyClaimsStatus('pending')
+      if (!agencyClaimsRefreshAttempted.current && refreshCustomClaims) {
+        agencyClaimsRefreshAttempted.current = true
+        refreshCustomClaims()
+          .then((next) => {
+            if (!next?.agencyId) setAgencyClaimsStatus('missing')
+          })
+          .catch(() => setAgencyClaimsStatus('missing'))
+      }
+    }
   }, [tagSystem, customClaims?.agencyId, customClaims?.agencyName, customClaims?.agency, customClaims?.admin])
 
   // Effect: When agencyID changes, ensure tag document exists for the agency
@@ -162,6 +181,17 @@ const Settings = () => {
         {customClaims.admin && <TagDefaultsSettings />}
         <div className="mb-8 p-4 bg-white rounded-lg border border-blue-gray-100">
           <div className={globalStyles.heading.h1.blue}>Tagging Systems</div>
+          {agencyClaimsStatus === 'pending' && (
+            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
+              Loading agency access…
+            </div>
+          )}
+          {agencyClaimsStatus === 'missing' && (
+            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              Agency access is incomplete (missing agency ID on your account).
+              Refresh the page, or ask an admin to re-run agency claims backfill.
+            </div>
+          )}
           {customClaims.admin && 
           <div>
               <div className={globalStyles.heading.h2.blue}>Agency Location</div>
