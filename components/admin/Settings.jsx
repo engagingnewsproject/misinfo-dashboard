@@ -27,7 +27,7 @@ import { useAuth } from '../../context/AuthContext'
 import { canManageAgencyLabels } from '../../config/labels'
 import { seedAgencyTagsDoc } from '../../utils/tag-defaults'
 import globalStyles from '../../styles/globalStyles';
-import { collection, query, where, getDoc, getDocs, doc } from "firebase/firestore"; 
+import { collection, getDoc, getDocs, doc } from "firebase/firestore"; 
 import { db, auth } from "../../config/firebase"
 import {List,ListItem} from "@material-tailwind/react"
 import FormSelect from '../ui/FormSelect';
@@ -119,26 +119,18 @@ const Settings = () => {
   }, [agency])
   // Effect: On mount or tagSystem change, determine agency for agency users or prompt admin to select
   useEffect(() => {
-    // If current user is an agency, determine which agency
-    if (!customClaims.admin) {
-      const agencyCollection = collection(db,"agency")
-
-      const q = query(agencyCollection, where('agencyUsers', "array-contains", user.email));
-      let agencyId;
-
-      // TODO: FIX THIS
-      getDocs(q).then((querySnapshot) => {
-        querySnapshot.forEach((doc) => { // Set initial values
-          // console.log(doc.id)
-          agencyId = doc.id
-          setAgencyID(doc.id)
-        })
-        
-    
-    })
+    // Agency users: prefer claim agencyId (doc id); do not query agencyUsers under scoped rules.
+    if (customClaims.admin) return
+    if (customClaims?.agencyId) {
+      setAgencyID(customClaims.agencyId)
+      if (customClaims.agencyName) {
+        setSelectedAgency(customClaims.agencyName)
+      }
+      return
     }
-    // Otherwise, have the admin member select which agency tags they went 
-  }, [tagSystem])
+    // Agency claim without agencyId: wait for AuthContext; skip legacy membership query.
+    if (customClaims?.agency) return
+  }, [tagSystem, customClaims?.agencyId, customClaims?.agencyName, customClaims?.agency, customClaims?.admin])
 
   // Effect: When agencyID changes, ensure tag document exists for the agency
   useEffect(() => {
