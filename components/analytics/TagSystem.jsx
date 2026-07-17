@@ -138,22 +138,23 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 		[defaultsLabelMap, tagLabels],
 	)
 
-	const formatTagDisplay = (item) => {
-		if (isOtherTagName(item)) return 'Other'
+	const formatTagDisplay = (item, { required = false } = {}) => {
+		if (isOtherTagName(item)) return required ? 'Other *' : 'Other'
 		const canonical = canonicalizeTagId(item)
 		const en = getTagLabel({
 			id: item,
 			locale: 'en',
 			labelMap: displayLabelMap,
 		})
+		const enWithMarker = required ? `${en} *` : en
 		// Map keys are canonical; raw item may still have topics./sources. prefixes.
 		const es = displayLabelMap?.[canonical]?.es
 		const showMutedId = en !== item
 		const showEs = Boolean(es) && es !== en
-		if (!showMutedId && !showEs) return en
+		if (!showMutedId && !showEs) return enWithMarker
 		return (
 			<span className="flex flex-col items-center text-center leading-tight">
-				<span>{en}</span>
+				<span>{enWithMarker}</span>
 				{showMutedId && (
 					<span className="text-xs text-gray-400 font-normal">{item}</span>
 				)}
@@ -577,8 +578,9 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 										}}
 										className="text-light text-sm rounded-lg leading-tight py-2 pl-4 hover:bg-indigo-100 cursor-pointer"
 										key={item}>
-										{formatTagDisplay(item)}
-										{isRequiredTag(item, requiredTags) ? ' *' : ''}
+										{formatTagDisplay(item, {
+											required: isRequiredTag(item, requiredTags),
+										})}
 									</div>
 								)
 							})}
@@ -663,8 +665,9 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 											key={item}>
 											<GoDotFill size={25} className="text-green-600" />
 											<div className="pl-2">
-												{formatTagDisplay(item)}
-												{isRequiredTag(item, requiredTags) ? '*' : ''}
+												{formatTagDisplay(item, {
+													required: isRequiredTag(item, requiredTags),
+												})}
 											</div>
 										</div>
 									) : (
@@ -701,8 +704,9 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 											<GoDotFill size={25} className="text-green-600" />
 										)}
 										<div className="pl-2">
-											{formatTagDisplay(item)}
-											{isRequiredTag(item, requiredTags) ? '*' : ''}
+											{formatTagDisplay(item, {
+												required: isRequiredTag(item, requiredTags),
+											})}
 										</div>
 									</div>
 								)
