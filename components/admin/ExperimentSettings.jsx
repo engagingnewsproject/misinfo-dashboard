@@ -49,6 +49,7 @@ function getExperimentFunctions() {
 			fn,
 			'backfillReportExperimentFields',
 		),
+		backfillAgencyClaims: httpsCallable(fn, 'backfillAgencyClaims'),
 		getExperimentMetrics: httpsCallable(fn, 'getExperimentMetrics'),
 	}
 }
@@ -202,6 +203,32 @@ const ExperimentSettings = () => {
 		}
 	}
 
+	const handleBackfillAgencyClaims = async (dryRun) => {
+		if (
+			!window.confirm(
+				dryRun
+					? 'Dry-run: count agency users that need agencyId claims restamped?'
+					: 'Re-stamp agencyId/agencyName Auth claims for every email in agencyUsers? Users must refresh their session afterward.',
+			)
+		) {
+			return
+		}
+		setBusy(true)
+		setStatus('')
+		try {
+			const { backfillAgencyClaims } = getExperimentFunctions()
+			const result = await backfillAgencyClaims({ dryRun })
+			const d = result.data || {}
+			setStatus(
+				`${dryRun ? 'Dry-run' : 'Claims backfill'}: updated ${d.updated}, skipped ${d.skipped}, missingAuth ${d.missingAuth}, emails ${d.emailCount}.`,
+			)
+		} catch (err) {
+			setStatus(formatCallableError(err, 'Agency claims backfill failed.'))
+		} finally {
+			setBusy(false)
+		}
+	}
+
 	if (!config) {
 		return (
 			<div className="mb-8 p-4 bg-white rounded-lg">
@@ -339,6 +366,21 @@ const ExperimentSettings = () => {
 						disabled={busy}
 						onClick={handleBackfill}>
 						Initialize experiment fields
+					</Button>
+					<Button
+						size="sm"
+						variant="outlined"
+						disabled={busy}
+						onClick={() => handleBackfillAgencyClaims(true)}>
+						Dry-run agency claims
+					</Button>
+					<Button
+						size="sm"
+						color="blue"
+						variant="outlined"
+						disabled={busy}
+						onClick={() => handleBackfillAgencyClaims(false)}>
+						Backfill agency claims
 					</Button>
 				</div>
 				{previewCount !== null && (

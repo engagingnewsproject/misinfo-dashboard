@@ -43,6 +43,7 @@ import {
 	fetchExperimentConfig,
 	fetchReportsFromQuery,
 	getActiveExperimentId,
+	newReportAgencyFields,
 	newReportExperimentFields,
 } from '../../utils/reports-queries'
 import {
@@ -387,29 +388,41 @@ const ReportsSection = ({
 			setActiveExperimentId(experimentId)
 
 			if (isAgency) {
-				if (!user?.email) {
+				if (!user?.email && !customClaims?.agencyId) {
 					console.error(
-						'Agency user missing email; refusing unscoped report fetch',
+						'Agency user missing email/agencyId; refusing unscoped report fetch',
 					)
 					if (!isStale()) applyEmptyReportsState()
 					return
 				}
 
-				// Agency user: fetch reports for their specific agency only
-				const agencyQuery = query(
-					collection(db, 'agency'),
-					where('agencyUsers', 'array-contains', user.email),
-				)
-				const agencySnapshot = await getDocs(agencyQuery)
-				if (isStale()) return
+				// Prefer Auth claim agencyId (server-stamped); fall back to membership lookup
+				if (customClaims?.agencyId) {
+					resolvedAgencyId = customClaims.agencyId
+					resolvedAgencyName = customClaims.agencyName || ''
+					if (!resolvedAgencyName) {
+						const agencyDoc = await getDoc(doc(db, 'agency', resolvedAgencyId))
+						if (isStale()) return
+						if (agencyDoc.exists()) {
+							resolvedAgencyName = agencyDoc.data()?.name || ''
+						}
+					}
+				} else if (user?.email) {
+					const agencyQuery = query(
+						collection(db, 'agency'),
+						where('agencyUsers', 'array-contains', user.email),
+					)
+					const agencySnapshot = await getDocs(agencyQuery)
+					if (isStale()) return
 
-				agencySnapshot.forEach((agencyDoc) => {
-					resolvedAgencyName = agencyDoc.data().name
-					resolvedAgencyId = agencyDoc.id
-				})
+					agencySnapshot.forEach((agencyDoc) => {
+						resolvedAgencyName = agencyDoc.data().name
+						resolvedAgencyId = agencyDoc.id
+					})
+				}
 
-				// Empty agency name would skip the Firestore agency constraint and return all reports
-				if (!resolvedAgencyName || !resolvedAgencyId) {
+				// Empty agency id would skip the Firestore agency constraint and return all reports
+				if (!resolvedAgencyId) {
 					console.error(
 						'Agency user has no agency membership; refusing unscoped report fetch',
 					)
@@ -417,9 +430,13 @@ const ReportsSection = ({
 					return
 				}
 
+				if (!resolvedAgencyName) {
+					resolvedAgencyName = resolvedAgencyId
+				}
+
 				reportArr = await fetchReportsFromQuery(
 					buildActiveReportsQuery({
-						agency: resolvedAgencyName,
+						agencyId: resolvedAgencyId,
 						activeExperimentId: experimentId,
 						includeArchived: false,
 					}),
@@ -1071,6 +1088,7 @@ const ReportsSection = ({
 
 				for (const row of data) {
 					let agencyName = ''
+					let matchedAgencyId = ''
 					if (row.state && row.agency) {
 						const agencyQuery = query(
 							collection(db, 'agency'),
@@ -1079,25 +1097,36 @@ const ReportsSection = ({
 						const agencySnapshot = await getDocs(agencyQuery)
 
 						// Find agency with a name containing the CSV agency name (case-insensitive)
-						agencySnapshot.forEach((doc) => {
-							const fullAgencyName = doc.data().name.toLowerCase()
+						agencySnapshot.forEach((agencyDoc) => {
+							const fullAgencyName = agencyDoc.data().name.toLowerCase()
 							const csvAgencyName = row.agency.toLowerCase()
 
 							if (fullAgencyName.includes(csvAgencyName)) {
-								agencyName = doc.data().name // Use the full agency name from Firestore
+								agencyName = agencyDoc.data().name // Use the full agency name from Firestore
+								matchedAgencyId = agencyDoc.id
 							}
 						})
 
-						if (!agencyName) {
+						if (!agencyName || !matchedAgencyId) {
 							console.warn(
 								`No matching agency found for state: ${row.state} and partial name: ${row.agency}`,
 							)
 						}
 					}
 
-					// Format row with correct types, and assign matched agency name
+					if (!matchedAgencyId) {
+						console.warn(
+							`Skipping CSV row without agencyId (title: ${row.title || 'untitled'})`,
+						)
+						continue
+					}
+
+					// Format row with correct types, and assign matched agency name + id
 					const formattedRow = {
-						agency: agencyName, // Full agency name if found, otherwise empty string
+						...newReportAgencyFields({
+							agencyName,
+							agencyId: matchedAgencyId,
+						}),
 						city: String(row.city || ''),
 						createdDate: row.createdDate
 							? Timestamp.fromDate(new Date(row.createdDate))

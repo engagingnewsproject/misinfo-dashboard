@@ -35,7 +35,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, getDoc, doc, Timestamp } from "firebase/firestore";
 import { db } from '../../config/firebase'
 import {
   buildActiveReportsQuery,
@@ -80,6 +80,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
 
   // --- User/role state ---
   const [agencyName, setAgencyName] = useState("") // Name of the current agency (if applicable)
+  const [agencyId, setAgencyId] = useState("") // Firestore agency doc id
   const [privilege, setPrivilege] = useState(null) // User privilege level
   const [checkRole, setCheckRole] = useState(false) // Triggers role check
   const { user, verifyRole } = useAuth() // Auth context
@@ -169,7 +170,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
 
     const experimentConfig = await fetchExperimentConfig()
     const activeExperimentId = getActiveExperimentId(experimentConfig)
-    const agencyFilter = privilege === 'Agency' ? agencyName : undefined
+    const agencyIdFilter = privilege === 'Agency' ? agencyId : undefined
 
     // Stores the number of times that the topic was reported for each day within timeline
     const topicArray = []
@@ -183,7 +184,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
           topic: selectedTopics[topic].value,
           dateFrom: array[0][index],
           dateTo: array[0][index + 1],
-          agency: agencyFilter,
+          agencyId: agencyIdFilter,
           activeExperimentId,
         })
         const dailyReports = await getDocs(queryDaily);
@@ -246,24 +247,32 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
 
 
   useEffect(()=> {
-      verifyRole().then((result) => {
-        
-        // console.log("Current user information " + result.admin)
+      verifyRole().then(async (result) => {
         if (result.agency) {
-          let agencyTempName;
-          const agencyCollection = collection(db,"agency")
-          const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
-          getDocs(q).then((querySnapshot) => {
-          querySnapshot.forEach((doc) => { // Set initial values
-            agencyTempName = doc.data()['name']
+          if (result.agencyId) {
             setPrivilege("Agency")
-            setAgencyName(agencyTempName)
-          
+            setAgencyId(result.agencyId)
+            setAgencyName(result.agencyName || result.agencyId)
+            if (!result.agencyName) {
+              const agencyDoc = await getDoc(doc(db, "agency", result.agencyId))
+              if (agencyDoc.exists()) {
+                setAgencyName(agencyDoc.data()?.name || result.agencyId)
+              }
+            }
+          } else {
+            const agencyCollection = collection(db,"agency")
+            const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
+            const querySnapshot = await getDocs(q)
+            querySnapshot.forEach((docSnap) => {
+              setPrivilege("Agency")
+              setAgencyName(docSnap.data()['name'])
+              setAgencyId(docSnap.id)
             })
-          })
+          }
         } else if (result.admin) {
           setPrivilege("Admin")
           setAgencyName("")
+          setAgencyId("")
         }
   
         setCheckRole(true)

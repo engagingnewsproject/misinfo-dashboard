@@ -1003,9 +1003,32 @@ const Users = () => {
 						// Append the user's email to the new agency's agencyUsers array
 						const updatedNewAgencyUsers = [...newAgencyUsers, email]
 						await updateDoc(newDocRef, { agencyUsers: updatedNewAgencyUsers })
+						// Refresh Auth claims so rules/queries see the new agencyId
+						try {
+							await addAgencyRole({
+								email,
+								agencyId: selectedAgency.id,
+							})
+						} catch (claimError) {
+							console.error(
+								'Agency membership updated but claim refresh failed:',
+								claimError,
+							)
+						}
 						console.log('User successfully added to the new agency.')
 					} else {
 						console.log('User already exists in this agency.')
+						try {
+							await addAgencyRole({
+								email,
+								agencyId: selectedAgency.id,
+							})
+						} catch (claimError) {
+							console.error(
+								'Failed to refresh agency claims for existing membership:',
+								claimError,
+							)
+						}
 					}
 				} else {
 					console.log('Agency document does not exist.')
@@ -1196,8 +1219,11 @@ const Users = () => {
 			} else if (userRole === 'Agency') {
 				// Call the addAgencyRole function
 				try {
-					// Switch user's mobileUsers/doc/userRole to "Agency"
-					await addAgencyRole({ email: email })
+					if (!selectedAgency) {
+						throw new Error('Select an agency before assigning the Agency role.')
+					}
+					// Stamp claims with agencyId first (callable accepts preferred agencyId)
+					await addAgencyRole({ email: email, agencyId: selectedAgency })
 					// Add user's email to the selected agency's document
 					await addUserToAgency(email, selectedAgency) // Ensure `selectedAgency` is the actual document ID of the agency
 				} catch (error) {

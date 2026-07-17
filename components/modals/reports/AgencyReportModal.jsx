@@ -7,6 +7,7 @@ import { db } from '../../../config/firebase'
 import {
 	fetchExperimentConfig,
 	getActiveExperimentId,
+	newReportAgencyFields,
 	newReportExperimentFields,
 } from '../../../utils/reports-queries'
 import {
@@ -398,11 +399,17 @@ const AgencyReportModal = ({
 		const experimentConfig = await fetchExperimentConfig()
 		const experimentId = getActiveExperimentId(experimentConfig)
 		const resolvedLabel = resolveReportLabel()
+		if (!selectedAgencyId) {
+			throw new Error('Agency id is required before creating a report')
+		}
 		await addDoc(dbInstance, {
 			userID: user.accountId,
 			state: data.state.name,
 			city: data.city == null ? 'N/A' : data.city.name,
-			agency: selectedAgency,
+			...newReportAgencyFields({
+				agencyName: selectedAgency,
+				agencyId: selectedAgencyId,
+			}),
 			title: title,
 			link: link,
 			secondLink: secondLink,
@@ -1022,8 +1029,8 @@ const AgencyReportModal = ({
 	useEffect(() => {
 		if (selectedAgency) {
 			getTopicList()
+			getAllTags()
 		}
-		getAllTags()
 	}, [selectedAgency])
 
 	/**
