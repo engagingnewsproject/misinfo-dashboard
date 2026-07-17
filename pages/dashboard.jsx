@@ -30,7 +30,6 @@ import Navbar from '../components/layout/Navbar'
 import { useAuth } from '../context/AuthContext'
 import Agencies from '../components/admin/Agencies'
 import AgencyReportModal from '../components/modals/reports/AgencyReportModal'
-import { auth } from '../config/firebase'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import Head from 'next/head'
 import HelpRequests from '../components/admin/HelpRequests'
@@ -77,19 +76,13 @@ const Dashboard = () => {
 	}
 
 	useEffect(() => {
-		// AuthContext owns customClaims (including agencyId). Do not overwrite with
-		// partial { agency: true } — that strips agencyId and breaks scoped queries.
-		auth.currentUser
-			?.getIdTokenResult()
-			.then((idTokenResult) => {
-				if (!idTokenResult.claims.admin && !idTokenResult.claims.agency) {
-					setTab(1)
-				}
-			})
-			.catch((error) => {
-				console.log(error)
-			})
-	}, [])
+		// AuthContext owns customClaims (including agencyId). Gate the home tab from
+		// claims state — avoid auth.currentUser?.getIdTokenResult().then(...) which
+		// throws when currentUser is null (optional chain yields undefined).
+		if (!customClaims.admin && !customClaims.agency) {
+			setTab(1)
+		}
+	}, [customClaims.admin, customClaims.agency])
 
 	return (
 		<>

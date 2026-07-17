@@ -135,7 +135,7 @@ const AgencyReportModal = ({
 	handleNewReportSubmit,
 }) => {
 	const dbInstance = collection(db, 'reports')
-	const { user, customClaims } = useAuth()
+	const { user, customClaims, refreshCustomClaims } = useAuth()
 	// useStates
 	const [data, setData] = useState({ country: 'US', state: null, city: null })
 
@@ -610,13 +610,20 @@ const AgencyReportModal = ({
 	 */
 	const getAgencyForUser = async () => {
 		try {
-			const claimAgencyId =
+			let claimAgencyId =
 				typeof customClaims?.agencyId === 'string'
 					? customClaims.agencyId.trim()
 					: ''
+			if (!claimAgencyId && customClaims?.agency && refreshCustomClaims) {
+				const next = await refreshCustomClaims()
+				claimAgencyId =
+					typeof next?.agencyId === 'string' ? next.agencyId.trim() : ''
+			}
 			if (!claimAgencyId) {
 				if (customClaims?.agency) {
-					// Wait for AuthContext to stamp agencyId; do not run legacy membership query.
+					console.warn(
+						'Agency access incomplete: agency claim present without agencyId.',
+					)
 					return
 				}
 				console.warn('No agencyId on claims for current user.')

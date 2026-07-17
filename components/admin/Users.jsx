@@ -358,6 +358,7 @@ const Users = () => {
 		fetchUserRecord,
 		authGetUserList,
 		functionsReady,
+		refreshCustomClaims,
 	} = useAuth()
 
 	// User data management state
@@ -392,6 +393,10 @@ const Users = () => {
 	// State for agency-specific user management
 	const [agencyUsers, setAgencyUsers] = useState([]) // Users filtered by agency
 	const [agencyLoading, setAgencyLoading] = useState(false) // Loading state for agency users
+	const [agencyClaimsStatus, setAgencyClaimsStatus] = useState(
+		/** @type {'ok' | 'pending' | 'missing'} */ ('ok'),
+	)
+	const agencyClaimsRefreshAttempted = useRef(false)
 
 	// Initialize pagination hook for fetching users in batches
 	// For Admin users: fetches all users with pagination
@@ -542,11 +547,14 @@ const Users = () => {
 	 *
 	 * @async
 	 * @function
+	 * @param {{ agencyId?: string, agencyName?: string }} [agencyOverride]
+	 *        Freshly resolved agency values to use instead of React state
+	 *        (avoids reading stale agencyId/agencyName right after setState).
 	 * @returns {Promise<void>} This function does not return a value, but updates the component's state.
 	 *
 	 * @throws Will log an error to the console if the data fetching or processing fails.
 	 */
-	const getData = async () => {
+	const getData = async (agencyOverride) => {
 		try {
 			if (customClaims.agency) {
 				// Agency user is viewing Users table
@@ -571,10 +579,16 @@ const Users = () => {
 					}),
 				)
 
-				// Filter users by agency (claim agencyId; avoid agencyUsers query)
+				// Prefer explicit override (same tick as setState), then claims, then state
 				const filteredUsers = await filterUsersByAgency(mobileUsersArr, {
-					agencyId: customClaims?.agencyId || agencyId,
-					agencyName: customClaims?.agencyName || agencyName,
+					agencyId:
+						agencyOverride?.agencyId ||
+						customClaims?.agencyId ||
+						agencyId,
+					agencyName:
+						agencyOverride?.agencyName ||
+						customClaims?.agencyName ||
+						agencyName,
 				})
 
 				// Ensure filteredUsers is always an array
@@ -768,6 +782,7 @@ const Users = () => {
 	useEffect(() => {
 		const fetchInitialData = async () => {
 			if (customClaims.admin) {
+				setAgencyClaimsStatus('ok')
 				await fetchAgencies()
 				await getData()
 			} else if (customClaims.agency) {
@@ -775,9 +790,28 @@ const Users = () => {
 					typeof customClaims?.agencyId === 'string'
 						? customClaims.agencyId
 						: ''
-				// Agency claim without agencyId: wait for AuthContext; do not query agencyUsers.
-				if (!claimAgencyId) return
+				// Agency claim without agencyId: refresh once, then surface missing state.
+				if (!claimAgencyId) {
+					setAgencyClaimsStatus('pending')
+					setAgencyLoading(true)
+					if (!agencyClaimsRefreshAttempted.current && refreshCustomClaims) {
+						agencyClaimsRefreshAttempted.current = true
+						try {
+							const next = await refreshCustomClaims()
+							if (!next?.agencyId) {
+								setAgencyClaimsStatus('missing')
+								setAgencyLoading(false)
+							}
+						} catch {
+							setAgencyClaimsStatus('missing')
+							setAgencyLoading(false)
+						}
+					}
+					return
+				}
 
+				setAgencyClaimsStatus('ok')
+				agencyClaimsRefreshAttempted.current = false
 				let resolvedName =
 					typeof customClaims?.agencyName === 'string'
 						? customClaims.agencyName
@@ -790,7 +824,10 @@ const Users = () => {
 				}
 				setAgencyId(claimAgencyId)
 				setAgencyName(resolvedName)
-				await getData()
+				await getData({
+					agencyId: claimAgencyId,
+					agencyName: resolvedName,
+				})
 			}
 		}
 
@@ -1294,6 +1331,17 @@ const Users = () => {
 					<div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm mb-2 text-red-700">
 						<div className="font-bold">Error:</div>
 						<div>{paginationError}</div>
+					</div>
+				)}
+				{agencyClaimsStatus === 'pending' && (
+					<div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm mb-2 text-blue-800">
+						Loading agency access…
+					</div>
+				)}
+				{agencyClaimsStatus === 'missing' && (
+					<div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm mb-2 text-amber-900">
+						Agency access is incomplete (missing agency ID on your account).
+						Refresh the page, or ask an admin to re-run agency claims backfill.
 					</div>
 				)}
 				{/* Data status legend for admins - shows data consistency issues */}

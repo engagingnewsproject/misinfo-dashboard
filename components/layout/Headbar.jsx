@@ -76,8 +76,8 @@ const Headbar = ({ search, setSearch}) => {
                 }
             }
 
-            // Agency claim without agencyId: wait for AuthContext; do not run
-            // collection-wide agencyUsers queries (denied by scoped rules).
+            // Agency claim without agencyId: wait for AuthContext refresh; do not
+            // run collection-wide agencyUsers queries (denied by scoped rules).
             if (customClaims?.agency && !customClaims?.agencyId) {
                 return
             }

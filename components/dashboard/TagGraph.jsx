@@ -19,7 +19,7 @@
  * @requires @material-tailwind/react
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useAuth } from "../../context/AuthContext"
 import FirebaseHelper from "../../firebase/FirebaseHelper"
 import { getDocs, Timestamp, getDoc, doc } from "firebase/firestore";
@@ -47,7 +47,8 @@ import { Typography } from '@material-tailwind/react'
  * <TagGraph />
  */
 const TagGraph = () => {
-	const { verifyRole } = useAuth()
+	const { verifyRole, refreshCustomClaims, customClaims } = useAuth()
+	const agencyClaimsRefreshAttempted = useRef(false)
 	
 	// View state management
 	const [viewVal, setViewVal] = useState("overview")
@@ -113,26 +114,48 @@ const TagGraph = () => {
 	 */
 	const setRole = async () => {
 		try {
-			const result = await verifyRole()
-			
-			if (result.agency) {
-				if (result.agencyId) {
-					setAgencyId(result.agencyId)
-					setAgencyName(result.agencyName || result.agencyId)
+			let result = await verifyRole()
+			let resolvedAgencyId =
+				typeof result?.agencyId === 'string' ? result.agencyId : ''
+			let resolvedAgencyName =
+				typeof result?.agencyName === 'string' ? result.agencyName : ''
+
+			if (result?.agency && !resolvedAgencyId && customClaims?.agencyId) {
+				resolvedAgencyId = customClaims.agencyId
+				resolvedAgencyName = customClaims.agencyName || resolvedAgencyName
+			}
+
+			if (result?.agency) {
+				if (!resolvedAgencyId && refreshCustomClaims && !agencyClaimsRefreshAttempted.current) {
+					agencyClaimsRefreshAttempted.current = true
+					const next = await refreshCustomClaims()
+					resolvedAgencyId =
+						typeof next?.agencyId === 'string' ? next.agencyId : ''
+					resolvedAgencyName =
+						typeof next?.agencyName === 'string'
+							? next.agencyName
+							: resolvedAgencyName
+				}
+
+				if (resolvedAgencyId) {
+					setAgencyId(resolvedAgencyId)
+					setAgencyName(resolvedAgencyName || resolvedAgencyId)
 					setPrivilege("Agency")
-					if (!result.agencyName) {
-						const agencyDoc = await getDoc(doc(db, "agency", result.agencyId))
+					if (!resolvedAgencyName) {
+						const agencyDoc = await getDoc(doc(db, "agency", resolvedAgencyId))
 						if (agencyDoc.exists()) {
-							setAgencyName(agencyDoc.data()?.name || result.agencyId)
+							setAgencyName(agencyDoc.data()?.name || resolvedAgencyId)
 						}
 					}
 					return
 				}
+
 				// Agency claim without agencyId: wait for AuthContext; do not query agencyUsers.
 				setPrivilege("Agency")
 				return
-			} else if (result.admin) {
-				// Set admin privileges
+			}
+
+			if (result?.admin) {
 				setAgencyName("AdminName")
 				setAgencyId('AdminId')
 				setPrivilege("AdminPrivilege")
@@ -264,7 +287,7 @@ const TagGraph = () => {
 	 */
 	useEffect(() => {
 		setRole()
-	}, [])
+	}, [customClaims?.agencyId, customClaims?.agencyName])
 
 	/**
 	 * Effect hook to trigger data fetching after role verification.

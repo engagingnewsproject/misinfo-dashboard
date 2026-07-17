@@ -13,7 +13,7 @@
  * @requires react
  */
 
-import { createContext, useContext, useEffect, useState, useMemo } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react'
 import { 
     createUserWithEmailAndPassword,
     onAuthStateChanged,
@@ -340,6 +340,24 @@ export const AuthContextProvider = ({children}) => {
     }
 
     /**
+     * Force-refreshes the ID token and syncs customClaims (including agencyId).
+     * Use when agency is true but agencyId is still missing after login/promotion.
+     *
+     * @returns {Promise<{admin: boolean, agency: boolean, agencyId: string|null, agencyName: string|null}>}
+     */
+    const refreshCustomClaims = useCallback(async () => {
+        if (!auth.currentUser) {
+            const cleared = normalizeCustomClaims(null)
+            setCustomClaims(cleared)
+            return cleared
+        }
+        const idTokenResult = await auth.currentUser.getIdTokenResult(true)
+        const next = normalizeCustomClaims(idTokenResult.claims)
+        setCustomClaims(next)
+        return next
+    }, [])
+
+    /**
      * Verifies the current user's role claims.
      * 
      * @returns {Promise<Object>} User's custom claims
@@ -347,7 +365,7 @@ export const AuthContextProvider = ({children}) => {
      * @example
      * const claims = await verifyRole();
      */
-    const verifyRole = async () => {
+    const verifyRole = useCallback(async () => {
         try {
             const idTokenResult = await auth.currentUser.getIdTokenResult()
             return idTokenResult.claims
@@ -355,7 +373,7 @@ export const AuthContextProvider = ({children}) => {
             console.log("Error verifying role:", error)
             throw error;
         }
-    }
+    }, [])
     
     /**
      * Sends a password reset email to the specified address.
@@ -520,6 +538,7 @@ export const AuthContextProvider = ({children}) => {
             addAgencyRole: callables.addAgencyRole,
             backfillAgencyClaims: callables.backfillAgencyClaims,
             verifyRole,
+            refreshCustomClaims,
             viewRole: callables.viewRole,
             addUserRole: callables.addUserRole,
             getUserByEmail: callables.getUserByEmail,

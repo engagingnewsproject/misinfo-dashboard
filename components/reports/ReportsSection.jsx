@@ -228,7 +228,12 @@ const ReportsSection = ({
 	const [agencyName, setAgencyName] = useState('') // Agency name for display
 	const [agencyId, setAgencyId] = useState('') // Agency Firestore ID
 	const [isAgency, setIsAgency] = useState(null) // User role flag
-	const { user, customClaims, getUserByEmail } = useAuth() // Authentication context
+	const { user, customClaims, getUserByEmail, refreshCustomClaims } = useAuth() // Authentication context
+	/** Agency claim present but agencyId not yet on token (refresh race / incomplete provision). */
+	const [agencyClaimsStatus, setAgencyClaimsStatus] = useState(
+		/** @type {'ok' | 'pending' | 'missing'} */ ('ok'),
+	)
+	const agencyClaimsRefreshAttempted = useRef(false)
 	const [search, setSearch] = useState('') // Search term
 	/** When search is an email: loading + resolved Firebase UID (matches report.userID) */
 	const [emailSearchStatus, setEmailSearchStatus] = useState({
@@ -389,7 +394,11 @@ const ReportsSection = ({
 			setActiveExperimentId(experimentId)
 
 			if (isAgency) {
-				if (!user?.email && !customClaims?.agencyId) {
+				// Wait for claim agencyId — never wipe the table to "empty" during refresh races.
+				if (!customClaims?.agencyId) {
+					if (customClaims?.agency) {
+						return
+					}
 					console.error(
 						'Agency user missing email/agencyId; refusing unscoped report fetch',
 					)
@@ -397,33 +406,15 @@ const ReportsSection = ({
 					return
 				}
 
-				// Prefer Auth claim agencyId (server-stamped); fall back to membership lookup
-				if (customClaims?.agencyId) {
-					resolvedAgencyId = customClaims.agencyId
-					resolvedAgencyName = customClaims.agencyName || ''
-					if (!resolvedAgencyName) {
-						const agencyDoc = await getDoc(doc(db, 'agency', resolvedAgencyId))
-						if (isStale()) return
-						if (agencyDoc.exists()) {
-							resolvedAgencyName = agencyDoc.data()?.name || ''
-						}
-					}
-				} else if (user?.email) {
-					if (customClaims?.agency) {
-						if (!isStale()) applyEmptyReportsState()
-						return
-					}
-					const agencyQuery = query(
-						collection(db, 'agency'),
-						where('agencyUsers', 'array-contains', user.email),
-					)
-					const agencySnapshot = await getDocs(agencyQuery)
+				// Prefer Auth claim agencyId (server-stamped)
+				resolvedAgencyId = customClaims.agencyId
+				resolvedAgencyName = customClaims.agencyName || ''
+				if (!resolvedAgencyName) {
+					const agencyDoc = await getDoc(doc(db, 'agency', resolvedAgencyId))
 					if (isStale()) return
-
-					agencySnapshot.forEach((agencyDoc) => {
-						resolvedAgencyName = agencyDoc.data().name
-						resolvedAgencyId = agencyDoc.id
-					})
+					if (agencyDoc.exists()) {
+						resolvedAgencyName = agencyDoc.data()?.name || ''
+					}
 				}
 
 				// Empty agency id would skip the Firestore agency constraint and return all reports
@@ -1208,8 +1199,25 @@ const ReportsSection = ({
 	// Single fetch trigger — only after role is known (avoids admin-list race for agency users)
 	useEffect(() => {
 		if (isAgency === null) return
-		// Agency users need agencyId on claims before scoped report queries can succeed
-		if (isAgency && !customClaims?.agencyId) return
+
+		// Agency users need agencyId before scoped queries. Refresh token once if missing.
+		if (isAgency && !customClaims?.agencyId) {
+			setAgencyClaimsStatus('pending')
+			if (!agencyClaimsRefreshAttempted.current && refreshCustomClaims) {
+				agencyClaimsRefreshAttempted.current = true
+				refreshCustomClaims()
+					.then((next) => {
+						if (!next?.agencyId) {
+							setAgencyClaimsStatus('missing')
+						}
+					})
+					.catch(() => setAgencyClaimsStatus('missing'))
+			}
+			return
+		}
+
+		setAgencyClaimsStatus('ok')
+		agencyClaimsRefreshAttempted.current = false
 		getData()
 	}, [update, newReportSubmitted, isAgency, includeArchived, customClaims?.agencyId])
 
@@ -1421,6 +1429,17 @@ const ReportsSection = ({
 							</div>
 						</div>
 					</div>
+					{agencyClaimsStatus === 'pending' && (
+						<div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
+							Loading agency access…
+						</div>
+					)}
+					{agencyClaimsStatus === 'missing' && (
+						<div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+							Agency access is incomplete (missing agency ID on your account).
+							Refresh the page, or ask an admin to re-run agency claims backfill.
+						</div>
+					)}
 					<div className="card-header--bottom flex items-center justify-between gap-8">
 						<TableFilterControls
 							readFilter={readFilter}

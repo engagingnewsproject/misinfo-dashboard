@@ -83,7 +83,8 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   const [agencyId, setAgencyId] = useState("") // Firestore agency doc id
   const [privilege, setPrivilege] = useState(null) // User privilege level
   const [checkRole, setCheckRole] = useState(false) // Triggers role check
-  const { verifyRole } = useAuth() // Auth context
+  const { verifyRole, refreshCustomClaims, customClaims } = useAuth() // Auth context
+  const agencyClaimsRefreshAttempted = useRef(false)
 
   const palette = [
     '#2563EB', '#A855F7', '#22C55E', '#F59E0B', '#0EA5E9', '#EF4444', '#14B8A6',
@@ -247,31 +248,64 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
 
 
   useEffect(()=> {
-      verifyRole().then(async (result) => {
-        if (result.agency) {
-          if (result.agencyId) {
-            setPrivilege("Agency")
-            setAgencyId(result.agencyId)
-            setAgencyName(result.agencyName || result.agencyId)
-            if (!result.agencyName) {
-              const agencyDoc = await getDoc(doc(db, "agency", result.agencyId))
-              if (agencyDoc.exists()) {
-                setAgencyName(agencyDoc.data()?.name || result.agencyId)
-              }
-            }
-          } else {
-            // Agency claim without agencyId: wait for AuthContext; do not query agencyUsers.
-            setPrivilege("Agency")
+      const resolveRole = async () => {
+        try {
+          let result = await verifyRole()
+          let resolvedAgencyId =
+            typeof result?.agencyId === 'string' ? result.agencyId : ''
+          let resolvedAgencyName =
+            typeof result?.agencyName === 'string' ? result.agencyName : ''
+
+          // Prefer AuthContext claim if verifyRole returned a stale token without agencyId.
+          if (result?.agency && !resolvedAgencyId && customClaims?.agencyId) {
+            resolvedAgencyId = customClaims.agencyId
+            resolvedAgencyName = customClaims.agencyName || resolvedAgencyName
           }
-        } else if (result.admin) {
-          setPrivilege("Admin")
-          setAgencyName("")
-          setAgencyId("")
+
+          if (result?.agency) {
+            if (!resolvedAgencyId && refreshCustomClaims && !agencyClaimsRefreshAttempted.current) {
+              agencyClaimsRefreshAttempted.current = true
+              const next = await refreshCustomClaims()
+              resolvedAgencyId =
+                typeof next?.agencyId === 'string' ? next.agencyId : ''
+              resolvedAgencyName =
+                typeof next?.agencyName === 'string'
+                  ? next.agencyName
+                  : resolvedAgencyName
+            }
+
+            if (resolvedAgencyId) {
+              setPrivilege("Agency")
+              setAgencyId(resolvedAgencyId)
+              setAgencyName(resolvedAgencyName || resolvedAgencyId)
+              if (!resolvedAgencyName) {
+                const agencyDoc = await getDoc(doc(db, "agency", resolvedAgencyId))
+                if (agencyDoc.exists()) {
+                  setAgencyName(agencyDoc.data()?.name || resolvedAgencyId)
+                }
+              }
+              setCheckRole(true)
+              return
+            }
+
+            // Agency claim without agencyId: do not run scoped queries yet.
+            setPrivilege("Agency")
+            return
+          }
+
+          if (result?.admin) {
+            setPrivilege("Admin")
+            setAgencyName("")
+            setAgencyId("")
+            setCheckRole(true)
+          }
+        } catch (error) {
+          console.error('Error resolving comparison graph role:', error)
         }
-  
-        setCheckRole(true)
-      })  
-  }, [])
+      }
+
+      resolveRole()
+  }, [customClaims?.agencyId, customClaims?.agencyName])
   // Populates graph with new data for the selected date range and topics once the
   // topic reports have been collected. 
   useEffect(()=> {
