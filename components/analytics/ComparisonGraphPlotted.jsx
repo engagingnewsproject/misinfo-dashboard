@@ -35,7 +35,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { collection, query, where, getDocs, getDoc, doc, Timestamp } from "firebase/firestore";
+import { getDocs, getDoc, doc, Timestamp } from "firebase/firestore";
 import { db } from '../../config/firebase'
 import {
   buildActiveReportsQuery,
@@ -83,7 +83,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   const [agencyId, setAgencyId] = useState("") // Firestore agency doc id
   const [privilege, setPrivilege] = useState(null) // User privilege level
   const [checkRole, setCheckRole] = useState(false) // Triggers role check
-  const { user, verifyRole } = useAuth() // Auth context
+  const { verifyRole } = useAuth() // Auth context
 
   const palette = [
     '#2563EB', '#A855F7', '#22C55E', '#F59E0B', '#0EA5E9', '#EF4444', '#14B8A6',
@@ -260,14 +260,8 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
               }
             }
           } else {
-            const agencyCollection = collection(db,"agency")
-            const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
-            const querySnapshot = await getDocs(q)
-            querySnapshot.forEach((docSnap) => {
-              setPrivilege("Agency")
-              setAgencyName(docSnap.data()['name'])
-              setAgencyId(docSnap.id)
-            })
+            // Agency claim without agencyId: wait for AuthContext; do not query agencyUsers.
+            setPrivilege("Agency")
           }
         } else if (result.admin) {
           setPrivilege("Admin")

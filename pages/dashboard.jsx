@@ -47,7 +47,6 @@ const Dashboard = () => {
 		user,
 		logout,
 		customClaims,
-		setCustomClaims,
 		verifyPrivilege,
 		changeRole,
 		addAdminRole,
@@ -78,22 +77,18 @@ const Dashboard = () => {
 	}
 
 	useEffect(() => {
-		// TODO: debugging callback function to verify user role before displaying dashboard view
+		// AuthContext owns customClaims (including agencyId). Do not overwrite with
+		// partial { agency: true } — that strips agencyId and breaks scoped queries.
 		auth.currentUser
-			.getIdTokenResult()
+			?.getIdTokenResult()
 			.then((idTokenResult) => {
-				if (idTokenResult.claims.admin) {
-					setCustomClaims({ admin: true })
-				} else if (idTokenResult.claims.agency) {
-					setCustomClaims({ agency: true })
-				} else {
+				if (!idTokenResult.claims.admin && !idTokenResult.claims.agency) {
 					setTab(1)
 				}
 			})
 			.catch((error) => {
 				console.log(error)
 			})
-		// console.log(customClaims)
 	}, [])
 
 	return (

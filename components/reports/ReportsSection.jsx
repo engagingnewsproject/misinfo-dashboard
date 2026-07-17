@@ -57,6 +57,7 @@ import {
 	fetchAgencyActiveLabels,
 	fetchAgencyLabelColors,
 	resolveAgencyIdByName,
+	resolveAgencyIdForReport,
 } from '../../utils/label-tags'
 import { formatLocationPart } from '../../utils/format-location'
 // Icons
@@ -408,6 +409,10 @@ const ReportsSection = ({
 						}
 					}
 				} else if (user?.email) {
+					if (customClaims?.agency) {
+						if (!isStale()) applyEmptyReportsState()
+						return
+					}
 					const agencyQuery = query(
 						collection(db, 'agency'),
 						where('agencyUsers', 'array-contains', user.email),
@@ -649,9 +654,19 @@ const ReportsSection = ({
 		setInfo(docRef.data())
 		setReportModalId(reportId)
 
-		let resolvedAgencyId = agencyId
+		let resolvedAgencyId =
+			(typeof reportData.agencyId === 'string' && reportData.agencyId.trim()) ||
+			agencyId ||
+			customClaims?.agencyId ||
+			''
 		if (!resolvedAgencyId && reportData.agency) {
-			resolvedAgencyId = await resolveAgencyIdByName(reportData.agency)
+			try {
+				resolvedAgencyId =
+					(await resolveAgencyIdForReport(reportData, customClaims?.agencyId)) ||
+					''
+			} catch (err) {
+				console.error(err)
+			}
 		}
 		setModalAgencyId(resolvedAgencyId || '')
 
@@ -1172,25 +1187,31 @@ const ReportsSection = ({
 		}
 	}, [customClaims])
 
-	// Agency display name for agency users
+	// Agency display name for agency users (prefer claim; avoid agencyUsers collection query)
 	useEffect(() => {
-		if (isAgency && user.email) {
-			firebaseHelper.fetchAgencyByUserEmail(user.email, (response) => {
-				if (response.isSuccess) {
-					const agencyData = response.response.data()
-					setAgencyName(agencyData.name)
-				} else {
-					console.error(response.message)
-				}
-			})
+		if (!isAgency) return
+		if (customClaims?.agencyName) {
+			setAgencyName(customClaims.agencyName)
+			return
 		}
-	}, [isAgency, user.email])
+		if (customClaims?.agencyId) {
+			getDoc(doc(db, 'agency', customClaims.agencyId))
+				.then((agencySnap) => {
+					if (agencySnap.exists()) {
+						setAgencyName(agencySnap.data()?.name || '')
+					}
+				})
+				.catch((err) => console.error(err))
+		}
+	}, [isAgency, customClaims?.agencyId, customClaims?.agencyName])
 
 	// Single fetch trigger — only after role is known (avoids admin-list race for agency users)
 	useEffect(() => {
 		if (isAgency === null) return
+		// Agency users need agencyId on claims before scoped report queries can succeed
+		if (isAgency && !customClaims?.agencyId) return
 		getData()
-	}, [update, newReportSubmitted, isAgency, includeArchived])
+	}, [update, newReportSubmitted, isAgency, includeArchived, customClaims?.agencyId])
 
 	// Report modal state management effect - handles modal data setup and read status
 	useEffect(() => {

@@ -18,7 +18,7 @@
  * @version 1.0.0
  * @since 2024
  */
-import React,{ useState,useEffect } from 'react'
+import React from 'react'
 import { useRouter } from 'next/router'
 import Image from 'next/image';
 import { reportSystems } from '../../pages/report';
@@ -26,7 +26,6 @@ import ReportSystem from './ReportSystem';
 import ReportList from './ReportList';
 import { IoChevronForward } from "react-icons/io5";
 import { auth } from '../../config/firebase'
-import { useAuth } from '../../context/AuthContext';
 
 import { useTranslation } from 'next-i18next';
 
@@ -87,37 +86,11 @@ const ReportLanding = ({
 	}
 
 	const router = useRouter()
-	// Initialize authentication context
-	const { setCustomClaims } = useAuth()
-
-
 
 	/**
 	 * get current user's email
 	 */
 	const userEmail = auth.currentUser.email
-	useEffect(()=> {
-		// TODO: debugging callback function to verify user role before displaying dashboard view
-		const unsubscribe = auth.onAuthStateChanged((user) => {
-			if (user) {
-				// Add check for auth.currentUser (performance)
-				auth.currentUser.getIdTokenResult()
-					.then((idTokenResult) => {
-						if (idTokenResult.claims.admin) {
-							setCustomClaims({ admin: true })
-						} else if (idTokenResult.claims.agency) {
-							setCustomClaims({ agency: true })
-						} else {
-							// console.log('GENERAL USER')
-						}
-					})
-					.catch((error) => {
-						console.log(error)
-					})
-			}
-		})
-		return () => unsubscribe();
-	}, [setCustomClaims])
 	return (
 		<div className={style.container}>
 			{/* Headbar */}

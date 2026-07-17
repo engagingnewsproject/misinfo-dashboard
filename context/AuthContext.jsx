@@ -175,7 +175,8 @@ export const AuthContextProvider = ({children}) => {
                 // Verify user's custom claims for role-based access (includes agencyId)
                 user.getIdTokenResult(true)
                     .then((idTokenResult) => {
-                        setCustomClaims(normalizeCustomClaims(idTokenResult.claims))
+                        const next = normalizeCustomClaims(idTokenResult.claims)
+                        setCustomClaims(next)
                     })
                     .catch((error) => {
                         console.log("Error fetching custom claims:", error);

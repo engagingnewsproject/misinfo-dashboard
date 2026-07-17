@@ -31,11 +31,7 @@ import DeleteModal from '../modals/common/DeleteModal'
 import { useRouter } from 'next/router'
 import LanguageSwitcher from '../layout/LanguageSwitcher'
 import {
-  collection,
-  getDocs,
   getDoc,
-  query,
-  where,
   updateDoc,
   doc,
 } from 'firebase/firestore'
@@ -114,22 +110,29 @@ const Profile = ({ customClaims }) => {
 
   /**
    * Fetches the agency data for the current user.
+   * Prefer claim agencyId (doc read); avoid agencyUsers collection queries under scoped rules.
    */
   const getAgencyData = async () => {
-    const agencyCollection = collection(db, 'agency')
-    const q = query(
-      agencyCollection,
-      where('agencyUsers', 'array-contains', user['email'])
-    )
-    const querySnapshot = await getDocs(q)
-
-    if (!querySnapshot.empty) {
-      const agencyDoc = querySnapshot.docs[0]
-      setAgency({ id: agencyDoc.id, ...agencyDoc.data() })
-      setAgencyName(agencyDoc.data().name)
-      setAgencyState(agencyDoc.data().state)
-      setAgencyCity(agencyDoc.data().city)
-      // console.log('Agency data fetched:', agencyDoc.data())
+    try {
+      let agencyDocId =
+        typeof customClaims?.agencyId === 'string' ? customClaims.agencyId : ''
+      if (!agencyDocId) {
+        const claims = await verifyRole()
+        agencyDocId =
+          typeof claims?.agencyId === 'string' ? claims.agencyId : ''
+      }
+      if (!agencyDocId) {
+        console.error('Agency profile: no agencyId on claims')
+        return
+      }
+      const agencySnap = await getDoc(doc(db, 'agency', agencyDocId))
+      if (!agencySnap.exists()) return
+      setAgency({ id: agencySnap.id, ...agencySnap.data() })
+      setAgencyName(agencySnap.data().name)
+      setAgencyState(agencySnap.data().state)
+      setAgencyCity(agencySnap.data().city)
+    } catch (error) {
+      console.error('Error fetching agency data:', error)
     }
   }
 
@@ -157,7 +160,7 @@ const Profile = ({ customClaims }) => {
     if (isAgency) {
       getAgencyData()
     }
-  }, [isAgency])
+  }, [isAgency, customClaims?.agencyId])
 
   /**
    * Saves the updated agency data to Firestore.

@@ -459,59 +459,44 @@ const Users = () => {
 	}
 
 	/**
-	 * Fetches the user IDs associated with a specific agency from the Firestore 'reports' collection.
+	 * Fetches reporter user IDs from active reports for an agency.
+	 * Prefer agencyId so the query matches scoped Firestore rules.
 	 *
-	 * This function queries the 'reports' collection in Firestore for documents where the 'agency'
-	 * field matches the provided agency name. It then maps each document to the user ID found in
-	 * the 'userID' field of the report and returns an array of these user IDs.
-	 *
-	 * @param {string} agencyName - The name of the agency for which to fetch user IDs.
-	 * @returns {Promise<string[]>} A promise that resolves to an array of user IDs associated with the specified agency.
+	 * @param {{ agencyId?: string, agencyName?: string }} agency
+	 * @returns {Promise<string[]>}
 	 */
-	const getAgencyUserIds = async (agencyName) => {
+	const getAgencyUserIds = async ({ agencyId, agencyName } = {}) => {
 		const experimentConfig = await fetchExperimentConfig()
 		const activeExperimentId = getActiveExperimentId(experimentConfig)
 		const reportQuery = buildActiveReportsQuery({
-			agency: agencyName,
+			...(agencyId ? { agencyId } : { agency: agencyName }),
 			activeExperimentId,
 		})
 		const reportSnapshot = await getDocs(reportQuery)
 		const userIds = reportSnapshot.docs.map((doc) => doc.data().userID)
-		// console.log("User IDs from reports:", userIds); // Verify the IDs being captured
 		return userIds
 	}
 
 	/**
-	 * Filters the given list of users by the agency associated with the provided user email.
+	 * Filters users to those who submitted reports for the given agency.
+	 * Prefer claim agencyId (scoped report query); avoid agencyUsers collection queries.
 	 *
-	 * This function queries the 'agency' collection in Firestore to find an agency that
-	 * includes the provided user's email. It then retrieves the user IDs associated with
-	 * that agency and filters the input user list to include only those users whose
-	 * IDs match the retrieved agency user IDs.
-	 *
-	 * @param {Array} users - An array of user objects to be filtered. Each user object should contain a `mobileUserId` property.
-	 * @param {string} userEmail - The email of the user whose agency is being queried.
-	 * @returns {Promise<Array>} A promise that resolves to an array of filtered user objects associated with the user's agency.
+	 * @param {Array} users
+	 * @param {{ agencyId?: string, agencyName?: string }} agency
+	 * @returns {Promise<Array>}
 	 */
-	const filterUsersByAgency = async (users, userEmail) => {
-		const q = query(
-			collection(db, 'agency'),
-			where('agencyUsers', 'array-contains', userEmail),
-		)
-		const querySnapshot = await getDocs(q)
-		if (querySnapshot.docs.length > 0) {
-			const agencyName = querySnapshot.docs[0].data().name // Assuming the first result is the correct one
-
-			const userIds = await getAgencyUserIds(agencyName) // Retrieve user IDs for this agency
-			const filteredUsers = users.filter((user) =>
-				userIds.includes(user.mobileUserId),
-			)
-			// console.log("Filtered users:", filteredUsers); // Log the filtered users for debugging
-			return filteredUsers
-		} else {
+	const filterUsersByAgency = async (users, agency) => {
+		const agencyId =
+			typeof agency?.agencyId === 'string' ? agency.agencyId.trim() : ''
+		const agencyName =
+			typeof agency?.agencyName === 'string' ? agency.agencyName.trim() : ''
+		if (!agencyId && !agencyName) {
 			console.log('No agency found for this user.')
-			return [] // Return an empty array if no agency is found
+			return []
 		}
+
+		const userIds = await getAgencyUserIds({ agencyId, agencyName })
+		return users.filter((u) => userIds.includes(u.mobileUserId))
 	}
 
 	/**
@@ -586,11 +571,11 @@ const Users = () => {
 					}),
 				)
 
-				// Filter users by agency
-				const filteredUsers = await filterUsersByAgency(
-					mobileUsersArr,
-					user.email,
-				)
+				// Filter users by agency (claim agencyId; avoid agencyUsers query)
+				const filteredUsers = await filterUsersByAgency(mobileUsersArr, {
+					agencyId: customClaims?.agencyId || agencyId,
+					agencyName: customClaims?.agencyName || agencyName,
+				})
 
 				// Ensure filteredUsers is always an array
 				setAgencyUsers(sortByJoinedDate(filteredUsers) || [])
@@ -783,40 +768,34 @@ const Users = () => {
 	useEffect(() => {
 		const fetchInitialData = async () => {
 			if (customClaims.admin) {
-				// Admin: Fetch all agencies and user data
 				await fetchAgencies()
 				await getData()
 			} else if (customClaims.agency) {
-				// Agency user: Fetch only the agency details and user data
-				const agencySnapshot = await getDocs(
-					query(
-						collection(db, 'agency'),
-						where('agencyUsers', 'array-contains', user.email.toLowerCase()),
-					),
-				)
+				const claimAgencyId =
+					typeof customClaims?.agencyId === 'string'
+						? customClaims.agencyId
+						: ''
+				// Agency claim without agencyId: wait for AuthContext; do not query agencyUsers.
+				if (!claimAgencyId) return
 
-				if (!agencySnapshot.empty) {
-					const agencyDoc = agencySnapshot.docs[0]
-					const agencyId = agencyDoc.id
-					const agencyName = agencyDoc.data().name
-					console.log(agencyDoc)
-					console.log(agencyId)
-					console.log(agencyName)
-					// Store the agency ID and name in state or context
-					setAgencyId(agencyId)
-					setAgencyName(agencyName)
-
-					await getData()
-					// Fetch data relevant to this agency
-					// await getData(agencyId) // Pass the agencyId to fetch data for this agency
-				} else {
-					console.error('No agency found for the current user.')
+				let resolvedName =
+					typeof customClaims?.agencyName === 'string'
+						? customClaims.agencyName
+						: ''
+				if (!resolvedName) {
+					const agencySnap = await getDoc(doc(db, 'agency', claimAgencyId))
+					if (agencySnap.exists()) {
+						resolvedName = agencySnap.data()?.name || ''
+					}
 				}
+				setAgencyId(claimAgencyId)
+				setAgencyName(resolvedName)
+				await getData()
 			}
 		}
 
 		fetchInitialData()
-	}, [])
+	}, [customClaims?.admin, customClaims?.agency, customClaims?.agencyId, customClaims?.agencyName])
 
 	/**
 	 * Triggers the delete user modal and sets the user ID for deletion.

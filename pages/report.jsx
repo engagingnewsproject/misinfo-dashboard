@@ -47,7 +47,7 @@ const tabList = ['Report', 'Profile'];
 export const reportSystems = ['Report History', 'Reminder', 'Location', 'What', 'Where', 'Detail', 'Thank You'];
 
 const Report = () => {
-	const { user, customClaims, setCustomClaims } = useAuth()
+	const { user, customClaims } = useAuth()
 	const router = useRouter()
 	const [reportSystem, setReportSystem] = useState(0)
 	const [reportView, setReportView] = useState(0)
@@ -102,18 +102,6 @@ const Report = () => {
         setLocationModal(true)
       }
     })
-		auth.currentUser.getIdTokenResult()
-			.then((idTokenResult) => {
-
-				if (!!idTokenResult.claims.admin) {
-					setCustomClaims({admin: true})
-				} else if (!!idTokenResult.claims.agency) {
-					setCustomClaims({agency: true})
-				} 
-			})
-			.catch((error) => {
-				console.log(error);
-			})
 	}, [])
 	
 

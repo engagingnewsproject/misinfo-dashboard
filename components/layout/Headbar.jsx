@@ -67,25 +67,35 @@ const Headbar = ({ search, setSearch}) => {
             }
         }
 
-        if (customClaims?.agencyId) {
-            const agencySnap = await getDoc(doc(db, 'agency', customClaims.agencyId))
-            if (agencySnap.exists()) {
-                applyAgencyDoc(agencySnap.data())
+        try {
+            if (customClaims?.agencyId) {
+                const agencySnap = await getDoc(doc(db, 'agency', customClaims.agencyId))
+                if (agencySnap.exists()) {
+                    applyAgencyDoc(agencySnap.data())
+                    return
+                }
+            }
+
+            // Agency claim without agencyId: wait for AuthContext; do not run
+            // collection-wide agencyUsers queries (denied by scoped rules).
+            if (customClaims?.agency && !customClaims?.agencyId) {
                 return
             }
-        }
 
-        // Legacy tokens without agencyId: membership lookup
-        if (!user?.email) return
-        const agencyCollection = collection(db, 'agency')
-        const q = query(
-            agencyCollection,
-            where('agencyUsers', 'array-contains', user.email),
-        )
-        const querySnapshot = await getDocs(q)
-        querySnapshot.forEach((agencyDoc) => {
-            applyAgencyDoc(agencyDoc.data())
-        })
+            // Legacy tokens without agencyId: membership lookup
+            if (!user?.email) return
+            const agencyCollection = collection(db, 'agency')
+            const q = query(
+                agencyCollection,
+                where('agencyUsers', 'array-contains', user.email),
+            )
+            const querySnapshot = await getDocs(q)
+            querySnapshot.forEach((agencyDoc) => {
+                applyAgencyDoc(agencyDoc.data())
+            })
+        } catch (error) {
+            console.error(error)
+        }
     }
     
     /**

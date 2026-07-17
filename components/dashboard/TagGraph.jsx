@@ -22,7 +22,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from "../../context/AuthContext"
 import FirebaseHelper from "../../firebase/FirebaseHelper"
-import { collection, query, where, getDocs, Timestamp, getDoc, doc } from "firebase/firestore";
+import { getDocs, Timestamp, getDoc, doc } from "firebase/firestore";
 import { db } from '../../config/firebase'
 import {
 	buildActiveReportsQuery,
@@ -47,7 +47,7 @@ import { Typography } from '@material-tailwind/react'
  * <TagGraph />
  */
 const TagGraph = () => {
-	const { user, verifyRole } = useAuth()
+	const { verifyRole } = useAuth()
 	
 	// View state management
 	const [viewVal, setViewVal] = useState("overview")
@@ -128,16 +128,9 @@ const TagGraph = () => {
 					}
 					return
 				}
-				// Legacy tokens without agencyId: membership lookup
-				const agencyCollection = collection(db, "agency")
-				const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']))
-				const querySnapshot = await getDocs(q)
-				
-				querySnapshot.forEach((docSnap) => {
-					setAgencyName(docSnap.data()['name'])
-					setAgencyId(docSnap.id)
-					setPrivilege("Agency")
-				})
+				// Agency claim without agencyId: wait for AuthContext; do not query agencyUsers.
+				setPrivilege("Agency")
+				return
 			} else if (result.admin) {
 				// Set admin privileges
 				setAgencyName("AdminName")
@@ -277,9 +270,10 @@ const TagGraph = () => {
 	 * Effect hook to trigger data fetching after role verification.
 	 */
 	useEffect(() => {
-		if (privilege) {
-			setCheckRole(true)
-		}
+		if (!privilege) return
+		// Agency users need agencyId before scoped tags/reports queries
+		if (privilege === 'Agency' && !agencyId) return
+		setCheckRole(true)
 	}, [agencyId, privilege])
 
 	/**

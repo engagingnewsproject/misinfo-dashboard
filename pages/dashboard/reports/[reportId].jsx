@@ -34,7 +34,7 @@ import {
 	addAgencyCustomLabel,
 	fetchAgencyActiveLabels,
 	fetchAgencyLabelColors,
-	resolveAgencyIdByName,
+	resolveAgencyIdForReport,
 } from '../../../utils/label-tags'
 import { RiMessage2Fill } from 'react-icons/ri'
 import { BiEditAlt } from 'react-icons/bi'
@@ -51,6 +51,7 @@ import LabelSelectMenu from '../../../components/reports/LabelSelectMenu'
 import ShareReportModal from '../../../components/partials/modals/ShareReportModal'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
+import { useAuth } from '../../../context/AuthContext'
 import {
 	fetchMergedTagLabelMapForAgencyId,
 	getTagLabel,
@@ -67,6 +68,7 @@ import {
 const ReportDetails = () => {
 	const router = useRouter()
 	const { t, i18n } = useTranslation('NewReport')
+	const { customClaims } = useAuth()
 	const [info, setInfo] = useState({})
 	const [reporterInfo, setReporterInfo] = useState({})
 	const [postedDate, setPostedDate] = useState("")
@@ -107,7 +109,10 @@ const ReportDetails = () => {
 			setReporterInfo({})
 		}
 
-		const resolvedAgencyId = await resolveAgencyIdByName(reportData.agency)
+		const resolvedAgencyId = await resolveAgencyIdForReport(
+			reportData,
+			customClaims?.agencyId,
+		)
 		setModalAgencyId(resolvedAgencyId || '')
 		try {
 			const map = await fetchMergedTagLabelMapForAgencyId(resolvedAgencyId)
