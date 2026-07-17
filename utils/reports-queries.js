@@ -55,7 +55,8 @@ export function getActiveExperimentId(config) {
 
 /**
  * @typedef {Object} ActiveReportsQueryOptions
- * @property {string} [agency]
+ * @property {string} [agency] Display-name filter (legacy / transition)
+ * @property {string} [agencyId] Stable agency doc id filter (preferred for scoped queries)
  * @property {string} [topic]
  * @property {import('firebase/firestore').Timestamp} [dateFrom]
  * @property {import('firebase/firestore').Timestamp} [dateTo]
@@ -70,12 +71,16 @@ export function getActiveExperimentId(config) {
 /**
  * Builds a Firestore query for operational report reads.
  *
+ * Prefer `agencyId` for agency-scoped queries (matches security rules).
+ * `agency` (display name) remains for transitional/legacy use only.
+ *
  * @param {ActiveReportsQueryOptions} [options]
  * @returns {import('firebase/firestore').Query}
  */
 export function buildActiveReportsQuery(options = {}) {
 	const {
 		agency,
+		agencyId,
 		topic,
 		dateFrom,
 		dateTo,
@@ -102,7 +107,9 @@ export function buildActiveReportsQuery(options = {}) {
 		constraints.push(where('experimentId', '==', expId))
 	}
 
-	if (agency) {
+	if (agencyId) {
+		constraints.push(where('agencyId', '==', agencyId))
+	} else if (agency) {
 		constraints.push(where('agency', '==', agency))
 	}
 
@@ -123,6 +130,25 @@ export function buildActiveReportsQuery(options = {}) {
 	}
 
 	return query(reportsRef, ...constraints)
+}
+
+/**
+ * Agency identity fields for new report documents.
+ * Keep display `agency` for UI; `agencyId` for rules and scoped queries.
+ *
+ * @param {{ agencyName?: string, agencyId?: string }} opts
+ * @returns {{ agency: string, agencyId: string }}
+ */
+export function newReportAgencyFields({ agencyName, agencyId }) {
+	const name = typeof agencyName === 'string' ? agencyName.trim() : ''
+	const id = typeof agencyId === 'string' ? agencyId.trim() : ''
+	if (!id) {
+		throw new Error('agencyId is required when creating a report')
+	}
+	return {
+		agency: name,
+		agencyId: id,
+	}
 }
 
 /**

@@ -42,6 +42,7 @@ import { db } from "../../config/firebase"
 import {
 	fetchExperimentConfig,
 	getActiveExperimentId,
+	newReportAgencyFields,
 	newReportExperimentFields,
 } from "../../utils/reports-queries"
 import {
@@ -570,6 +571,14 @@ const ReportSystem = ({
 		try {
 			const experimentConfig = await fetchExperimentConfig()
 			const experimentId = getActiveExperimentId(experimentConfig)
+			if (!agencyID) {
+				console.error("Cannot save report without agencyId")
+				setErrors((prev) => ({
+					...prev,
+					agency: "Agency is required",
+				}))
+				return
+			}
 			// Snapshot reporter location from their profile (public flow has no city/state picker)
 			const city =
 				formatLocationPart(userData?.city) || 'N/A'
@@ -577,7 +586,10 @@ const ReportSystem = ({
 			const reportData = {
 				userID: user.accountId,
 				email: user.email,
-				agency: selectedAgency,
+				...newReportAgencyFields({
+					agencyName: selectedAgency,
+					agencyId: agencyID,
+				}),
 				topic: isOtherTagName(selectedTopic) ? otherTopic : selectedTopic,
 				// `hearFrom` matches the established schema: tags.{agency}.Source.active -> reports.hearFrom.
 				hearFrom: isOtherTagName(selectedSource) ? otherSource : selectedSource,
@@ -604,6 +616,7 @@ const ReportSystem = ({
 				logEvent(analytics, 'report_submitted', {
 					user_id: user.accountId,
 					agency: selectedAgency,
+					agencyId: agencyID,
 					topic: selectedTopic
 				})
 			}

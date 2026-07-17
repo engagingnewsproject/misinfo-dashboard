@@ -19,7 +19,7 @@
 import React, { useState, useEffect } from 'react'
 import { AiOutlineSearch } from 'react-icons/ai'
 import { GiMagnifyingGlass } from "react-icons/gi";
-import { collection, getDocs, query, where } from 'firebase/firestore'
+import { collection, getDocs, getDoc, doc, query, where } from 'firebase/firestore'
 import { useAuth } from '../../context/AuthContext'
 import { db } from "../../config/firebase"
 import Image from 'next/image'
@@ -58,13 +58,34 @@ const Headbar = ({ search, setSearch}) => {
      * @throws {Error} When Firestore query fails
      */
     const getData = async () => {
+        const applyAgencyDoc = (agencyData) => {
+            if (!agencyData) return
+            setTitle(agencyData.name || '')
+            const logo = agencyData.logo
+            if (Array.isArray(logo) && logo[0]) {
+                setAgencyLogo(logo[0])
+            }
+        }
+
+        if (customClaims?.agencyId) {
+            const agencySnap = await getDoc(doc(db, 'agency', customClaims.agencyId))
+            if (agencySnap.exists()) {
+                applyAgencyDoc(agencySnap.data())
+                return
+            }
+        }
+
+        // Legacy tokens without agencyId: membership lookup
+        if (!user?.email) return
         const agencyCollection = collection(db, 'agency')
-        const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']));
+        const q = query(
+            agencyCollection,
+            where('agencyUsers', 'array-contains', user.email),
+        )
         const querySnapshot = await getDocs(q)
-        querySnapshot.forEach((doc) => {
-            setTitle(doc.data()['name'])
-            setAgencyLogo(doc.data()['logo'][0])
-        });
+        querySnapshot.forEach((agencyDoc) => {
+            applyAgencyDoc(agencyDoc.data())
+        })
     }
     
     /**
@@ -96,7 +117,7 @@ const Headbar = ({ search, setSearch}) => {
      */
     useEffect(() => {
         getData()
-    }, [])
+    }, [customClaims?.agencyId, user?.email])
 
     /**
      * Renders the appropriate title and subtitle based on user role.

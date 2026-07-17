@@ -73,7 +73,49 @@ export const AuthContextProvider = ({children}) => {
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
     const [userRole, setUserRole] = useState('user')
-    const [customClaims, setCustomClaims] = useState({agency: false, admin: false})
+    const [customClaims, setCustomClaims] = useState({
+        agency: false,
+        admin: false,
+        agencyId: null,
+        agencyName: null,
+    })
+
+    /**
+     * Normalizes Auth token claims into the shape the app consumes.
+     *
+     * @param {Record<string, unknown>|undefined|null} claims
+     * @returns {{admin: boolean, agency: boolean, agencyId: string|null, agencyName: string|null}}
+     */
+    const normalizeCustomClaims = (claims) => {
+        if (claims?.admin) {
+            return {
+                admin: true,
+                agency: false,
+                agencyId: null,
+                agencyName: null,
+            }
+        }
+        if (claims?.agency) {
+            return {
+                admin: false,
+                agency: true,
+                agencyId:
+                    typeof claims.agencyId === 'string' && claims.agencyId
+                        ? claims.agencyId
+                        : null,
+                agencyName:
+                    typeof claims.agencyName === 'string' && claims.agencyName
+                        ? claims.agencyName
+                        : null,
+            }
+        }
+        return {
+            admin: false,
+            agency: false,
+            agencyId: null,
+            agencyName: null,
+        }
+    }
 
     // Functions instance created on the client so callables work (avoids null during SSR).
     // If the SDK throws "Service functions is not available" (e.g. in some Next.js/build envs), we degrade gracefully.
@@ -130,17 +172,10 @@ export const AuthContextProvider = ({children}) => {
                 })
                 localStorage.setItem("userId", localId)
                 
-                // Verify user's custom claims for role-based access
+                // Verify user's custom claims for role-based access (includes agencyId)
                 user.getIdTokenResult(true)
                     .then((idTokenResult) => {
-                        // Set custom claims based on user's role
-                        if (!!idTokenResult.claims.admin) {
-                            setCustomClaims({admin: true})
-                        } else if (!!idTokenResult.claims.agency) {
-                            setCustomClaims({agency: true})
-                        } else {
-                            setCustomClaims({agency: false, admin: false})
-                        }
+                        setCustomClaims(normalizeCustomClaims(idTokenResult.claims))
                     })
                     .catch((error) => {
                         console.log("Error fetching custom claims:", error);
@@ -149,7 +184,7 @@ export const AuthContextProvider = ({children}) => {
             } else {
                 // Clear user state when signed out
                 setUser(null)
-                setCustomClaims({agency: false, admin: false})
+                setCustomClaims(normalizeCustomClaims(null))
             }
             setLoading(false)
         })
@@ -163,6 +198,7 @@ export const AuthContextProvider = ({children}) => {
             return {
                 addAdminRole: noopCallable,
                 addAgencyRole: noopCallable,
+                backfillAgencyClaims: noopCallable,
                 viewRole: noopCallable,
                 addUserRole: noopCallable,
                 getUserByEmail: noopCallable,
@@ -175,6 +211,10 @@ export const AuthContextProvider = ({children}) => {
         return {
             addAdminRole: httpsCallable(functionsInstance, 'addAdminRole'),
             addAgencyRole: httpsCallable(functionsInstance, 'addAgencyRole'),
+            backfillAgencyClaims: httpsCallable(
+                functionsInstance,
+                'backfillAgencyClaims',
+            ),
             viewRole: httpsCallable(functionsInstance, 'viewRole'),
             addUserRole: httpsCallable(functionsInstance, 'addUserRole'),
             getUserByEmail: httpsCallable(functionsInstance, 'getUserByEmail'),
@@ -477,6 +517,7 @@ export const AuthContextProvider = ({children}) => {
             sendSignIn,
             addAdminRole: callables.addAdminRole,
             addAgencyRole: callables.addAgencyRole,
+            backfillAgencyClaims: callables.backfillAgencyClaims,
             verifyRole,
             viewRole: callables.viewRole,
             addUserRole: callables.addUserRole,

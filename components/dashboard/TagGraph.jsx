@@ -116,16 +116,26 @@ const TagGraph = () => {
 			const result = await verifyRole()
 			
 			if (result.agency) {
-				// Fetch agency information for agency users
+				if (result.agencyId) {
+					setAgencyId(result.agencyId)
+					setAgencyName(result.agencyName || result.agencyId)
+					setPrivilege("Agency")
+					if (!result.agencyName) {
+						const agencyDoc = await getDoc(doc(db, "agency", result.agencyId))
+						if (agencyDoc.exists()) {
+							setAgencyName(agencyDoc.data()?.name || result.agencyId)
+						}
+					}
+					return
+				}
+				// Legacy tokens without agencyId: membership lookup
 				const agencyCollection = collection(db, "agency")
 				const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']))
 				const querySnapshot = await getDocs(q)
 				
-				querySnapshot.forEach((doc) => {
-					const agencyTempName = doc.data()['name']
-					const agencyTempId = doc.id
-					setAgencyName(agencyTempName)
-					setAgencyId(agencyTempId)
+				querySnapshot.forEach((docSnap) => {
+					setAgencyName(docSnap.data()['name'])
+					setAgencyId(docSnap.id)
 					setPrivilege("Agency")
 				})
 			} else if (result.admin) {
@@ -188,14 +198,14 @@ const TagGraph = () => {
 
 		// Process each topic for different time periods
 		for (let index = 0; index < tempTopics.length; index++) {
-			const agencyFilter =
-				privilege === 'Agency' ? agencyName : undefined
+			const agencyIdFilter =
+				privilege === 'Agency' ? agencyId : undefined
 
 			const queryYesterday = buildActiveReportsQuery({
 				topic: tempTopics[index],
 				dateFrom: getStartOfDay(1),
 				dateTo: getEndOfDay(),
-				agency: agencyFilter,
+				agencyId: agencyIdFilter,
 				activeExperimentId,
 			})
 			const dataYesterday = await getDocs(queryYesterday)
@@ -204,7 +214,7 @@ const TagGraph = () => {
 				topic: tempTopics[index],
 				dateFrom: getStartOfDay(3),
 				dateTo: getEndOfDay(),
-				agency: agencyFilter,
+				agencyId: agencyIdFilter,
 				activeExperimentId,
 			})
 			const dataThreeDays = await getDocs(queryThreeDays)
@@ -213,7 +223,7 @@ const TagGraph = () => {
 				topic: tempTopics[index],
 				dateFrom: getStartOfDay(7),
 				dateTo: getEndOfDay(),
-				agency: agencyFilter,
+				agencyId: agencyIdFilter,
 				activeExperimentId,
 			})
 			const dataSevenDays = await getDocs(querySevenDays)
@@ -270,7 +280,7 @@ const TagGraph = () => {
 		if (privilege) {
 			setCheckRole(true)
 		}
-	}, [agencyName, privilege])
+	}, [agencyId, privilege])
 
 	/**
 	 * Effect hook to fetch topic reports after role verification.
