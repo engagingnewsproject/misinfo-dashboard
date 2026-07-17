@@ -33,11 +33,8 @@ import { MdOutlineRemoveRedEye } from "react-icons/md"; // <MdOutlineRemoveRedEy
 import {
 	collection,
 	getDocs,
-	getDoc,
 	query,
 	where,
-	updateDoc,
-	doc,
 } from "firebase/firestore"
 import { GiMagnifyingGlass } from "react-icons/gi";
 import Head from 'next/head';
@@ -92,28 +89,34 @@ const Login = () => {
       await login(data.email, data.password)
       // Login successful, check if email is verified
       if (auth.currentUser?.emailVerified) {
-        const idTokenResult = await auth.currentUser.getIdTokenResult()
-        // console.log("Claims:", idTokenResult.claims)
-        
-        const dbInstance = collection(db, 'agency');
-        const q = query(dbInstance, where("agencyUsers", "array-contains", data.email));
-        const querySnapshot = await getDocs(q)
+        // Force-refresh so post-backfill agencyId claims are visible immediately
+        const idTokenResult = await auth.currentUser.getIdTokenResult(true)
 
-        // adds agency role to current user if their email is in an agency users array
-        if (!querySnapshot.empty && !idTokenResult.claims.agency) {
-          await addAgencyRole({ email: data.email })
-					console.log(`${ data.email } has been made an agency user`)
-        }
-        
-        // Redirect user based on their role
-        if (idTokenResult.claims.admin || idTokenResult.claims.agency) {
+        // Agency/admin users must not run a collection-wide agencyUsers query:
+        // new rules only allow reading their own agency doc (or all for admin).
+        // Prefer token claims; only probe membership when the user has no agency claim yet.
+        if (!idTokenResult.claims.admin && !idTokenResult.claims.agency) {
+          const dbInstance = collection(db, 'agency')
+          const q = query(
+            dbInstance,
+            where('agencyUsers', 'array-contains', data.email),
+          )
+          const querySnapshot = await getDocs(q)
 
-          // console.log("Redirecting to dashboard...")
-          await router.push("/dashboard")
-        } else {
-          // console.log("Redirecting to report page...")
-          await router.push("/report")
+          if (!querySnapshot.empty) {
+            const agencyId = querySnapshot.docs[0].id
+            await addAgencyRole({ email: data.email, agencyId })
+            await auth.currentUser.getIdToken(true)
+            console.log(`${data.email} has been made an agency user`)
+            await router.push('/dashboard')
+            return
+          }
+
+          await router.push('/report')
+          return
         }
+
+        await router.push('/dashboard')
       } else {
         // Email not verified, send verification email and redirect
         // console.log("Email not verified. Sending verification email...")

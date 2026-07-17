@@ -29,8 +29,6 @@ import {
 	collection,
 	updateDoc,
 	addDoc,
-	query,
-	where,
 	arrayUnion,
 } from 'firebase/firestore'
 import {
@@ -137,7 +135,7 @@ const AgencyReportModal = ({
 	handleNewReportSubmit,
 }) => {
 	const dbInstance = collection(db, 'reports')
-	const { user } = useAuth()
+	const { user, customClaims, refreshCustomClaims } = useAuth()
 	// useStates
 	const [data, setData] = useState({ country: 'US', state: null, city: null })
 
@@ -607,40 +605,44 @@ const AgencyReportModal = ({
 	/**
 	 * getAgencyForUser
 	 *
-	 * This asynchronous function fetches the agency associated with the currently logged-in user.
-	 * It performs the following tasks:
-	 *
-	 * 1. Queries the 'agency' collection to find a document where the 'agencyUsers' array contains the user's email.
-	 * 2. If a matching agency is found, it extracts the agency's ID and name.
-	 * 3. Updates the state with the agency name and ID.
-	 *
-	 * @returns {void}
+	 * Prefer claim agencyId (direct doc read). Avoid agencyUsers collection queries
+	 * under scoped Firestore rules.
 	 */
 	const getAgencyForUser = async () => {
 		try {
-			// Query the 'agency' collection for the document where the 'agencyUsers' array contains the user's email
-			const agencyCollectionRef = collection(db, 'agency')
-			const agencyQuery = query(
-				agencyCollectionRef,
-				where('agencyUsers', 'array-contains', user.email),
-			)
-			const querySnapshot = await getDocs(agencyQuery)
-
-			if (!querySnapshot.empty) {
-				// Assuming there is only one agency that contains the user's email, you can get the first document
-				const agencyDoc = querySnapshot.docs[0]
-				const agencyId = agencyDoc.id
-				const agencyName = agencyDoc.data().name
-
-				// console.log('Agency ID:', agencyId);
-				// console.log('Agency Name:', agencyName);
-
-				// You can now use this agency name and ID as needed, e.g., setting them in state
-				setSelectedAgency(agencyName)
-				setSelectedAgencyId(agencyId)
-			} else {
-				console.warn('No agency found for the current user.')
+			let claimAgencyId =
+				typeof customClaims?.agencyId === 'string'
+					? customClaims.agencyId.trim()
+					: ''
+			if (!claimAgencyId && customClaims?.agency && refreshCustomClaims) {
+				const next = await refreshCustomClaims()
+				claimAgencyId =
+					typeof next?.agencyId === 'string' ? next.agencyId.trim() : ''
 			}
+			if (!claimAgencyId) {
+				if (customClaims?.agency) {
+					console.warn(
+						'Agency access incomplete: agency claim present without agencyId.',
+					)
+					return
+				}
+				console.warn('No agencyId on claims for current user.')
+				return
+			}
+
+			let agencyName =
+				typeof customClaims?.agencyName === 'string'
+					? customClaims.agencyName.trim()
+					: ''
+			if (!agencyName) {
+				const agencySnap = await getDoc(doc(db, 'agency', claimAgencyId))
+				if (agencySnap.exists()) {
+					agencyName = agencySnap.data()?.name || ''
+				}
+			}
+
+			setSelectedAgency(agencyName || claimAgencyId)
+			setSelectedAgencyId(claimAgencyId)
 		} catch (error) {
 			console.error('Error fetching agency for user:', error)
 		}
@@ -1005,17 +1007,15 @@ const AgencyReportModal = ({
 	}
 
 	/**
-	 * useEffect hook - Fetch all agencies and the agency associated with the current user when the component mounts.
-	 *
-	 * This hook runs only once, when the component first mounts. It performs the following tasks:
-	 *
-	 * 1. Calls `getAllAgencies` to retrieve and set the list of all available agencies.
-	 * 2. Calls `getAgencyForUser` to find and set the agency that the current user is associated with, based on their email.
+	 * useEffect hook - Resolve agency (and optionally list agencies for admins) on mount / claims.
 	 */
 	useEffect(() => {
-		getAllAgencies()
+		// Listing the full agency collection is admin-only under scoped rules.
+		if (customClaims?.admin) {
+			getAllAgencies()
+		}
 		getAgencyForUser()
-	}, [])
+	}, [customClaims?.admin, customClaims?.agency, customClaims?.agencyId, customClaims?.agencyName])
 
 	/**
 	 * useEffect hook - Fetch topics and sources when the selected agency changes.

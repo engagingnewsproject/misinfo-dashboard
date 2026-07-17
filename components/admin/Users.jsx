@@ -358,6 +358,7 @@ const Users = () => {
 		fetchUserRecord,
 		authGetUserList,
 		functionsReady,
+		refreshCustomClaims,
 	} = useAuth()
 
 	// User data management state
@@ -392,6 +393,10 @@ const Users = () => {
 	// State for agency-specific user management
 	const [agencyUsers, setAgencyUsers] = useState([]) // Users filtered by agency
 	const [agencyLoading, setAgencyLoading] = useState(false) // Loading state for agency users
+	const [agencyClaimsStatus, setAgencyClaimsStatus] = useState(
+		/** @type {'ok' | 'pending' | 'missing'} */ ('ok'),
+	)
+	const agencyClaimsRefreshAttempted = useRef(false)
 
 	// Initialize pagination hook for fetching users in batches
 	// For Admin users: fetches all users with pagination
@@ -459,59 +464,44 @@ const Users = () => {
 	}
 
 	/**
-	 * Fetches the user IDs associated with a specific agency from the Firestore 'reports' collection.
+	 * Fetches reporter user IDs from active reports for an agency.
+	 * Prefer agencyId so the query matches scoped Firestore rules.
 	 *
-	 * This function queries the 'reports' collection in Firestore for documents where the 'agency'
-	 * field matches the provided agency name. It then maps each document to the user ID found in
-	 * the 'userID' field of the report and returns an array of these user IDs.
-	 *
-	 * @param {string} agencyName - The name of the agency for which to fetch user IDs.
-	 * @returns {Promise<string[]>} A promise that resolves to an array of user IDs associated with the specified agency.
+	 * @param {{ agencyId?: string, agencyName?: string }} agency
+	 * @returns {Promise<string[]>}
 	 */
-	const getAgencyUserIds = async (agencyName) => {
+	const getAgencyUserIds = async ({ agencyId, agencyName } = {}) => {
 		const experimentConfig = await fetchExperimentConfig()
 		const activeExperimentId = getActiveExperimentId(experimentConfig)
 		const reportQuery = buildActiveReportsQuery({
-			agency: agencyName,
+			...(agencyId ? { agencyId } : { agency: agencyName }),
 			activeExperimentId,
 		})
 		const reportSnapshot = await getDocs(reportQuery)
 		const userIds = reportSnapshot.docs.map((doc) => doc.data().userID)
-		// console.log("User IDs from reports:", userIds); // Verify the IDs being captured
 		return userIds
 	}
 
 	/**
-	 * Filters the given list of users by the agency associated with the provided user email.
+	 * Filters users to those who submitted reports for the given agency.
+	 * Prefer claim agencyId (scoped report query); avoid agencyUsers collection queries.
 	 *
-	 * This function queries the 'agency' collection in Firestore to find an agency that
-	 * includes the provided user's email. It then retrieves the user IDs associated with
-	 * that agency and filters the input user list to include only those users whose
-	 * IDs match the retrieved agency user IDs.
-	 *
-	 * @param {Array} users - An array of user objects to be filtered. Each user object should contain a `mobileUserId` property.
-	 * @param {string} userEmail - The email of the user whose agency is being queried.
-	 * @returns {Promise<Array>} A promise that resolves to an array of filtered user objects associated with the user's agency.
+	 * @param {Array} users
+	 * @param {{ agencyId?: string, agencyName?: string }} agency
+	 * @returns {Promise<Array>}
 	 */
-	const filterUsersByAgency = async (users, userEmail) => {
-		const q = query(
-			collection(db, 'agency'),
-			where('agencyUsers', 'array-contains', userEmail),
-		)
-		const querySnapshot = await getDocs(q)
-		if (querySnapshot.docs.length > 0) {
-			const agencyName = querySnapshot.docs[0].data().name // Assuming the first result is the correct one
-
-			const userIds = await getAgencyUserIds(agencyName) // Retrieve user IDs for this agency
-			const filteredUsers = users.filter((user) =>
-				userIds.includes(user.mobileUserId),
-			)
-			// console.log("Filtered users:", filteredUsers); // Log the filtered users for debugging
-			return filteredUsers
-		} else {
+	const filterUsersByAgency = async (users, agency) => {
+		const agencyId =
+			typeof agency?.agencyId === 'string' ? agency.agencyId.trim() : ''
+		const agencyName =
+			typeof agency?.agencyName === 'string' ? agency.agencyName.trim() : ''
+		if (!agencyId && !agencyName) {
 			console.log('No agency found for this user.')
-			return [] // Return an empty array if no agency is found
+			return []
 		}
+
+		const userIds = await getAgencyUserIds({ agencyId, agencyName })
+		return users.filter((u) => userIds.includes(u.mobileUserId))
 	}
 
 	/**
@@ -557,11 +547,14 @@ const Users = () => {
 	 *
 	 * @async
 	 * @function
+	 * @param {{ agencyId?: string, agencyName?: string }} [agencyOverride]
+	 *        Freshly resolved agency values to use instead of React state
+	 *        (avoids reading stale agencyId/agencyName right after setState).
 	 * @returns {Promise<void>} This function does not return a value, but updates the component's state.
 	 *
 	 * @throws Will log an error to the console if the data fetching or processing fails.
 	 */
-	const getData = async () => {
+	const getData = async (agencyOverride) => {
 		try {
 			if (customClaims.agency) {
 				// Agency user is viewing Users table
@@ -586,11 +579,17 @@ const Users = () => {
 					}),
 				)
 
-				// Filter users by agency
-				const filteredUsers = await filterUsersByAgency(
-					mobileUsersArr,
-					user.email,
-				)
+				// Prefer explicit override (same tick as setState), then claims, then state
+				const filteredUsers = await filterUsersByAgency(mobileUsersArr, {
+					agencyId:
+						agencyOverride?.agencyId ||
+						customClaims?.agencyId ||
+						agencyId,
+					agencyName:
+						agencyOverride?.agencyName ||
+						customClaims?.agencyName ||
+						agencyName,
+				})
 
 				// Ensure filteredUsers is always an array
 				setAgencyUsers(sortByJoinedDate(filteredUsers) || [])
@@ -783,40 +782,57 @@ const Users = () => {
 	useEffect(() => {
 		const fetchInitialData = async () => {
 			if (customClaims.admin) {
-				// Admin: Fetch all agencies and user data
+				setAgencyClaimsStatus('ok')
 				await fetchAgencies()
 				await getData()
 			} else if (customClaims.agency) {
-				// Agency user: Fetch only the agency details and user data
-				const agencySnapshot = await getDocs(
-					query(
-						collection(db, 'agency'),
-						where('agencyUsers', 'array-contains', user.email.toLowerCase()),
-					),
-				)
-
-				if (!agencySnapshot.empty) {
-					const agencyDoc = agencySnapshot.docs[0]
-					const agencyId = agencyDoc.id
-					const agencyName = agencyDoc.data().name
-					console.log(agencyDoc)
-					console.log(agencyId)
-					console.log(agencyName)
-					// Store the agency ID and name in state or context
-					setAgencyId(agencyId)
-					setAgencyName(agencyName)
-
-					await getData()
-					// Fetch data relevant to this agency
-					// await getData(agencyId) // Pass the agencyId to fetch data for this agency
-				} else {
-					console.error('No agency found for the current user.')
+				const claimAgencyId =
+					typeof customClaims?.agencyId === 'string'
+						? customClaims.agencyId
+						: ''
+				// Agency claim without agencyId: refresh once, then surface missing state.
+				if (!claimAgencyId) {
+					setAgencyClaimsStatus('pending')
+					setAgencyLoading(true)
+					if (!agencyClaimsRefreshAttempted.current && refreshCustomClaims) {
+						agencyClaimsRefreshAttempted.current = true
+						try {
+							const next = await refreshCustomClaims()
+							if (!next?.agencyId) {
+								setAgencyClaimsStatus('missing')
+								setAgencyLoading(false)
+							}
+						} catch {
+							setAgencyClaimsStatus('missing')
+							setAgencyLoading(false)
+						}
+					}
+					return
 				}
+
+				setAgencyClaimsStatus('ok')
+				agencyClaimsRefreshAttempted.current = false
+				let resolvedName =
+					typeof customClaims?.agencyName === 'string'
+						? customClaims.agencyName
+						: ''
+				if (!resolvedName) {
+					const agencySnap = await getDoc(doc(db, 'agency', claimAgencyId))
+					if (agencySnap.exists()) {
+						resolvedName = agencySnap.data()?.name || ''
+					}
+				}
+				setAgencyId(claimAgencyId)
+				setAgencyName(resolvedName)
+				await getData({
+					agencyId: claimAgencyId,
+					agencyName: resolvedName,
+				})
 			}
 		}
 
 		fetchInitialData()
-	}, [])
+	}, [customClaims?.admin, customClaims?.agency, customClaims?.agencyId, customClaims?.agencyName])
 
 	/**
 	 * Triggers the delete user modal and sets the user ID for deletion.
@@ -1315,6 +1331,17 @@ const Users = () => {
 					<div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm mb-2 text-red-700">
 						<div className="font-bold">Error:</div>
 						<div>{paginationError}</div>
+					</div>
+				)}
+				{agencyClaimsStatus === 'pending' && (
+					<div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm mb-2 text-blue-800">
+						Loading agency access…
+					</div>
+				)}
+				{agencyClaimsStatus === 'missing' && (
+					<div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm mb-2 text-amber-900">
+						Agency access is incomplete (missing agency ID on your account).
+						Refresh the page, or ask an admin to re-run agency claims backfill.
 					</div>
 				)}
 				{/* Data status legend for admins - shows data consistency issues */}

@@ -22,7 +22,7 @@
  */
 
 import React, { useEffect, useState } from "react"
-import { resolveAgencyIdByName } from '../../../utils/label-tags'
+import { resolveAgencyIdForReport } from '../../../utils/label-tags'
 import { Switch } from "@material-tailwind/react";
 import FormInput from '../../ui/FormInput'
 import FormTextarea from '../../ui/FormTextarea'
@@ -53,6 +53,14 @@ import {
 	fetchMergedTagLabelMapForAgencyId,
 	getTagLabel,
 } from '../../../utils/tag-defaults'
+
+/** Href for report links that may omit http(s): — avoids relative localhost paths. */
+function toExternalHref(url) {
+	const trimmed = String(url || '').trim()
+	if (!trimmed) return trimmed
+	if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith('//')) return trimmed
+	return `//${trimmed}`
+}
 
 /**
  * ReportModal Component
@@ -164,7 +172,10 @@ const ReportModal = ({
 		let cancelled = false
 		const loadLabels = async () => {
 			try {
-				const agencyId = await resolveAgencyIdByName(report?.agency)
+				const agencyId = await resolveAgencyIdForReport(
+					report,
+					customClaims?.agencyId,
+				)
 				const map = await fetchMergedTagLabelMapForAgencyId(agencyId)
 				if (!cancelled) setTagLabelMap(map)
 			} catch (err) {
@@ -176,7 +187,7 @@ const ReportModal = ({
 		return () => {
 			cancelled = true
 		}
-	}, [report?.agency, reportModalId])
+	}, [report?.agency, report?.agencyId, reportModalId, customClaims?.agencyId])
 
 	return (
 		<div
@@ -247,7 +258,7 @@ const ReportModal = ({
 													className={style.link}
 													target='_blank'
 													rel='noreferrer'
-													href={report.link}>
+													href={toExternalHref(report.link)}>
 													{report.link}
 												</a>
 											)) || (
@@ -261,7 +272,7 @@ const ReportModal = ({
 													className={style.link}
 													target='_blank'
 													rel='noreferrer'
-													href={"//" + report.secondLink}>
+													href={toExternalHref(report.secondLink)}>
 													{report.secondLink}
 												</a>
 											)}

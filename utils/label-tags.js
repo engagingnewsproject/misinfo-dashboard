@@ -59,6 +59,8 @@ export async function fetchAgencyLabelColors(agencyId) {
 
 /**
  * Resolves a Firestore agency document ID from the agency display name.
+ * Collection query — agency-claim users usually cannot run this under scoped rules;
+ * prefer `report.agencyId` / claim `agencyId` first via `resolveAgencyIdForReport`.
  *
  * @param {string} agencyName
  * @returns {Promise<string|null>}
@@ -74,6 +76,23 @@ export async function resolveAgencyIdByName(agencyName) {
 	if (snap.empty) return null
 
 	return snap.docs[0].id
+}
+
+/**
+ * Resolves agency doc id for a report without a banned cross-agency list query when possible.
+ *
+ * @param {{ agencyId?: string, agency?: string }|null|undefined} report
+ * @param {string|null|undefined} claimAgencyId
+ * @returns {Promise<string|null>}
+ */
+export async function resolveAgencyIdForReport(report, claimAgencyId) {
+	const fromReport =
+		typeof report?.agencyId === 'string' ? report.agencyId.trim() : ''
+	if (fromReport) return fromReport
+	const fromClaim =
+		typeof claimAgencyId === 'string' ? claimAgencyId.trim() : ''
+	if (fromClaim) return fromClaim
+	return resolveAgencyIdByName(report?.agency)
 }
 
 /**

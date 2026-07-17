@@ -54,11 +54,19 @@ service cloud.firestore {
 
     // Community/public submitters need to list agencies for /report.
     // Agency-claim users may only read their own agency doc (avoids cross-agency agencyUsers leaks).
+    // Agency users may update their own profile fields (name/logo/location), not membership lists.
     match /agency/{agencyId} {
       allow read: if isAdmin()
         || (isAgencyUser() && agencyId == request.auth.token.agencyId)
         || (isSignedIn() && request.auth.token.get('agency', false) != true);
-      allow create, update, delete: if isAdmin();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (
+          isAgencyUser()
+          && agencyId == request.auth.token.agencyId
+          && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['agencyUsers'])
+        );
     }
 
     match /tags/{agencyDocId} {
