@@ -50,7 +50,7 @@
 		"uuid": "^9.0.1"
 	},
 	"devDependencies": {
-		"@firebase/rules-unit-testing": "^4.0.1",
+		"@firebase/rules-unit-testing": "^5.0.1",
 		"@tailwindcss/forms": "^0.5.7",
 		"@types/react": "^19.2.15",
 		"@types/react-dom": "^19.2.3",
