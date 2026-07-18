@@ -1,106 +1,125 @@
 import React, { useState } from 'react'
-import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../../context/AuthContext'
-import { useTranslation } from 'next-i18next';
+import { useTranslation } from 'next-i18next'
 import { auth } from '../../../config/firebase'
 import FormInput from '../../ui/FormInput'
+import ModalCloseButton from '../../ui/ModalCloseButton'
+import {
+	Button,
+	Dialog,
+	DialogBody,
+	DialogHeader,
+	Typography,
+} from '@material-tailwind/react'
 
+/**
+ * Mount when visible (`{emailModal && <UpdateEmailModal ... />}`); Dialog is always open
+ * while mounted, matching existing call sites.
+ */
 const UpdateEmailModal = ({ setEmailModal }) => {
-    const {t} = useTranslation("Profile")
+	const { t } = useTranslation('Profile')
 
-    const { user, updateUserEmail } = useAuth()
-    const [updateSuccess, setUpdateSuccess] = useState(false)
-    const [incorrectPassword, setIncorrectPassword] = useState(false)
-    const [data, setData] = useState({
-        currentEmail: '',
-        newEmail: '',
-        currentPassword: ''
-    })
-    
-    const handleChange = (e) => {
-        setData({ ...data, [e.target.id]: e.target.value})
-    }
+	const { updateUserEmail } = useAuth()
+	const [updateSuccess, setUpdateSuccess] = useState(false)
+	const [incorrectPassword, setIncorrectPassword] = useState(false)
+	const [data, setData] = useState({
+		currentEmail: '',
+		newEmail: '',
+		currentPassword: '',
+	})
 
-    const handleUpdateEmail = async (e) => {
-        e.preventDefault()
-        try {
-            const result = await updateUserEmail(auth, data.currentPassword, data.newEmail)
-            setUpdateSuccess(true)
-            setIncorrectPassword(false)
-        } catch (error) {
-            setUpdateSuccess(false)
-            setIncorrectPassword(true)
-        }
-    }
+	const handleClose = () => setEmailModal(false)
 
-    return (
-        <div>
-            <div className="flex justify-center items-center z-[9998] fixed top-0 left-0 w-full h-screen bg-black opacity-60">
-            </div>
-            <div 
-            className="flex justify-center items-center z-[9999] fixed top-0 left-0 w-full h-screen"
-            onClick={() => setEmailModal(false)}>
-                <div className="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10"
-                onClick={(e) => {
-                    e.stopPropagation()
-                }}>
-                    <div className="flex justify-between w-full mb-5">
-                        <div className="text-md font-bold text-blue-600 tracking-wide">{updateSuccess ? t('emailUpdated'): t('resetEmail')}</div>
-                        {/* TODO: Change here */}
-                        <button onClick={() => setEmailModal(false)} className="text-gray-800">
-                            <IoClose size={25}/>
-                        </button>
-                    </div>
-                    <form onChange={handleChange} onSubmit={handleUpdateEmail}>
-                        <div className="mb-4">
-                            <FormInput
-                                id="currentEmail"
-                                type="email"
-                                label={t('currentEmail')}
-                                required
-                                value={data.currentEmail}
-                                onChange={handleChange}
-                                autoComplete="email"
-                                />
-                        </div>
-                        <div className={incorrectPassword ? 'mb-0' : 'mb-4'}>
-                            <FormInput
-                                id="currentPassword"
-                                type="password"
-                                label="Verify password"
-                                required
-                                value={data.currentPassword}
-                                onChange={handleChange}
-                                autoComplete='current-password'
-                                />
-                        </div>
-                        {incorrectPassword && <span className="text-red-500 text-sm font-light">Incorrect password</span>}
-                        <div className="mb-0.5">
-                            <FormInput
-                                id="newEmail"
-                                type="email"
-                                label={t('newEmail')}
-                                required
-                                value={data.newEmail}
-                                onChange={handleChange}
-                                autoComplete="email"
-                                />
-                        </div>
-                        {data.newEmail.length > 0 && data.newEmail.length < 8 && <span className="text-red-500 text-sm font-light">{t('incorrectEmail')}.</span>}
-                        
-                        <div className="mt-6">
-                            <button
-                                disabled={!data.newEmail || data.newEmail.length > 0 && data.newEmail.length < 8}
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
-                                type="submit">
-                                {t('resetEmail')}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    )
+	const handleChange = (e) => {
+		setData({ ...data, [e.target.id]: e.target.value })
+	}
+
+	const handleUpdateEmail = async (e) => {
+		e.preventDefault()
+		try {
+			await updateUserEmail(auth, data.currentPassword, data.newEmail)
+			setUpdateSuccess(true)
+			setIncorrectPassword(false)
+		} catch (error) {
+			setUpdateSuccess(false)
+			setIncorrectPassword(true)
+		}
+	}
+
+	return (
+		<Dialog
+			open
+			handler={handleClose}
+			size="xs"
+			className="update-email-modal rounded-md">
+			<DialogHeader className="justify-between gap-4">
+				<Typography variant="h3" color="blue" className="mt-0 mb-0">
+					{updateSuccess ? t('emailUpdated') : t('resetEmail')}
+				</Typography>
+				<ModalCloseButton onClick={handleClose} />
+			</DialogHeader>
+			<DialogBody>
+				<form onChange={handleChange} onSubmit={handleUpdateEmail}>
+					<div className="mb-4">
+						<FormInput
+							id="currentEmail"
+							type="email"
+							label={t('currentEmail')}
+							required
+							value={data.currentEmail}
+							onChange={handleChange}
+							autoComplete="email"
+						/>
+					</div>
+					<div className={incorrectPassword ? 'mb-0' : 'mb-4'}>
+						<FormInput
+							id="currentPassword"
+							type="password"
+							label="Verify password"
+							required
+							value={data.currentPassword}
+							onChange={handleChange}
+							autoComplete="current-password"
+						/>
+					</div>
+					{incorrectPassword && (
+						<span className="text-red-500 text-sm font-light">
+							Incorrect password
+						</span>
+					)}
+					<div className="mb-0.5">
+						<FormInput
+							id="newEmail"
+							type="email"
+							label={t('newEmail')}
+							required
+							value={data.newEmail}
+							onChange={handleChange}
+							autoComplete="email"
+						/>
+					</div>
+					{data.newEmail.length > 0 && data.newEmail.length < 8 && (
+						<span className="text-red-500 text-sm font-light">
+							{t('incorrectEmail')}.
+						</span>
+					)}
+
+					<div className="mt-6">
+						<Button
+							disabled={
+								!data.newEmail ||
+								(data.newEmail.length > 0 && data.newEmail.length < 8)
+							}
+							type="submit"
+							variant="filled"
+							fullWidth>
+							{t('resetEmail')}
+						</Button>
+					</div>
+				</form>
+			</DialogBody>
+		</Dialog>
+	)
 }
 
 export default UpdateEmailModal

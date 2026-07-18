@@ -1,9 +1,17 @@
 import React, { Fragment, useEffect, useMemo, useState } from "react"
-import { IoClose } from "react-icons/io5"
-import { Switch } from "@headlessui/react"
 import FormInput from '../../ui/FormInput'
+import FormTextarea from '../../ui/FormTextarea'
 import FormSelect from '../../ui/FormSelect'
+import ModalCloseButton from '../../ui/ModalCloseButton'
 import { State, City } from "country-state-city"
+import {
+	Button,
+	Dialog,
+	DialogBody,
+	DialogHeader,
+	Switch,
+	Typography,
+} from '@material-tailwind/react'
 
 const EditUserModal = ({
 	userEditingUID,
@@ -33,30 +41,13 @@ const EditUserModal = ({
 	mobileUserFieldTypes,
 	mobileFieldFormError,
 }) => {
-	// Styles
+	// Styles (form layout only — Dialog handles shell)
 	const style = {
-		modal_background:
-			"fixed z-[9998] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto",
-		modal_container:
-			"absolute top-8 inset-0 flex justify-center items-start z-[9999] overflow-y-scroll",
-		modal_wrapper:
-			"flex-col justify-center items-start w-10/12 rounded-2xl py-10 px-10 bg-sky-100 sm:overflow-visible",
-		modal_header_container: "grid md:gap-5 lg:gap-5 auto-cols-auto mb-6",
-		modal_header_wrapper: "flex w-full items-baseline justify-between",
-		modal_header: "text-lg font-bold text-blue-600 tracking-wider",
-		modal_close: "text-gray-800",
 		modal_form_container:
-			"grid justify-center md:gap-5 lg:gap-5 grid-cols-3 auto-cols-auto",
-		modal_form_label: "text-lg font-bold text-black tracking-wider mb-4",
-		modal_form_switch: "flex mb-4 col-span-2",
-		modal_form_upload_image:
-			"block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer",
-		modal_form_radio_container: "flex gap-2 col-span-2",
+			"grid justify-center md:gap-5 lg:gap-5 grid-cols-1 md:grid-cols-2 auto-cols-auto",
+		modal_form_switch: "flex mb-4 items-center gap-2",
+		modal_form_radio_container: "flex gap-4 flex-wrap mb-4",
 		modal_form_radio: "mr-1",
-		modal_form_input:
-			"shadow border-none rounded-xl min-w-full col-span-2 p-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
-		modal_form_button:
-			"bg-blue-600 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
 	}
 
 	const isAdmin = Boolean(customClaims?.admin)
@@ -588,47 +579,39 @@ const EditUserModal = ({
 		const fieldConfig = mobileUserFieldTypes?.[fieldKey]
 		const fieldType = fieldConfig?.type || typeof fieldValue
 		const inputId = `mobile-field-${fieldKey}`
-		const commonInputProps = {
-			id: inputId,
-			className: `${style.modal_form_input} ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`,
-			disabled: !isAdmin,
-		}
+		const disabled = !isAdmin
 
 		if (fieldType === 'boolean') {
 			return (
-				<div className={`${style.modal_form_switch} ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}>
-					<Switch
-						checked={Boolean(fieldValue)}
-						onChange={(checked) => commitMobileFieldChange(fieldKey, checked)}
-						disabled={!isAdmin}
-						className={`${
-							Boolean(fieldValue) ? "bg-blue-600" : "bg-gray-200"
-						} relative inline-flex h-6 w-11 items-center rounded-full mr-2`}
-					>
-						<span className='sr-only'>{formatFieldLabel(fieldKey)}</span>
-						<span
-							aria-hidden='true'
-							className={`${
-								Boolean(fieldValue) ? "translate-x-6" : "translate-x-1"
-							} inline-block h-4 w-4 transform rounded-full bg-white transition`}
+				<div>
+					<Typography variant="small" className="font-semibold mb-2">
+						{formatFieldLabel(fieldKey)}
+					</Typography>
+					<div className={`${style.modal_form_switch} ${disabled ? 'opacity-60' : ''}`}>
+						<Switch
+							checked={Boolean(fieldValue)}
+							onChange={(e) => commitMobileFieldChange(fieldKey, e.target.checked)}
+							disabled={disabled}
+							color="blue"
 						/>
-					</Switch>
-					<div className='text-sm'>
-						{Boolean(fieldValue) ? 'Enabled' : 'Disabled'}
+						<Typography variant="small" className="mb-0">
+							{Boolean(fieldValue) ? 'Enabled' : 'Disabled'}
+						</Typography>
 					</div>
 				</div>
 			)
 		}
 
 		if (fieldType === 'number') {
-			// Special-case: numeric Unix-seconds timestamp for joiningDate
 			if (fieldKey === 'joiningDate') {
 				const dateValue = unixSecondsToLocalInput(fieldValue)
 				return (
-					<input
-						{...commonInputProps}
-						type='datetime-local'
+					<FormInput
+						id={inputId}
+						type="datetime-local"
+						label={formatFieldLabel(fieldKey)}
 						value={dateValue}
+						disabled={disabled}
 						onChange={(e) => {
 							const secs = localInputToUnixSeconds(e.target.value)
 							commitMobileFieldChange(fieldKey, secs)
@@ -637,13 +620,14 @@ const EditUserModal = ({
 				)
 			}
 
-			// Default numeric field
 			const displayValue = fieldValue ?? ''
 			return (
-				<input
-					{...commonInputProps}
-					type='number'
+				<FormInput
+					id={inputId}
+					type="number"
+					label={formatFieldLabel(fieldKey)}
 					value={displayValue}
+					disabled={disabled}
 					onChange={(event) => {
 						const { value } = event.target
 						commitMobileFieldChange(
@@ -669,19 +653,24 @@ const EditUserModal = ({
 			return (
 				<div className='flex flex-col gap-1'>
 					<FormInput
-						{...commonInputProps}
+						id={inputId}
 						type='text'
 						label='Timestamp (ISO or Firestore JSON)'
 						placeholder='2024-10-31T12:00:00Z or {"seconds": 1698676800, "nanoseconds": 0}'
 						value={draftValue}
+						disabled={disabled}
 						onChange={(event) => handleTimestampDraftChange(fieldKey, event.target.value)}
 						onBlur={() => handleTimestampCommit(fieldKey)}
 					/>
 					{previewDate && (
-						<div className='text-xs text-slate-600'>Readable date: {previewDate}</div>
+						<Typography variant="small" className="text-slate-600 mb-0">
+							Readable date: {previewDate}
+						</Typography>
 					)}
 					{timestampErrors[fieldKey] && (
-						<div className='text-xs text-red-600'>{timestampErrors[fieldKey]}</div>
+						<Typography variant="small" className="text-red-600 mb-0">
+							{timestampErrors[fieldKey]}
+						</Typography>
 					)}
 				</div>
 			)
@@ -696,8 +685,7 @@ const EditUserModal = ({
 							type='number'
 							step='any'
 							label='Latitude'
-							className={commonInputProps.className}
-							disabled={commonInputProps.disabled}
+							disabled={disabled}
 							id={`${inputId}-latitude`}
 							value={draft.latitude}
 							onChange={(event) => handleGeoPointDraftChange(fieldKey, 'latitude', event.target.value)}
@@ -707,8 +695,7 @@ const EditUserModal = ({
 							type='number'
 							step='any'
 							label='Longitude'
-							className={commonInputProps.className}
-							disabled={commonInputProps.disabled}
+							disabled={disabled}
 							id={`${inputId}-longitude`}
 							value={draft.longitude}
 							onChange={(event) => handleGeoPointDraftChange(fieldKey, 'longitude', event.target.value)}
@@ -716,7 +703,9 @@ const EditUserModal = ({
 						/>
 					</div>
 					{geoPointErrors[fieldKey] && (
-						<div className='text-xs text-red-600'>{geoPointErrors[fieldKey]}</div>
+						<Typography variant="small" className="text-red-600 mb-0">
+							{geoPointErrors[fieldKey]}
+						</Typography>
 					)}
 				</div>
 			)
@@ -728,15 +717,20 @@ const EditUserModal = ({
 				JSON.stringify(fieldValue ?? (fieldType === 'array' ? [] : {}), null, 2)
 			return (
 				<div className='flex flex-col gap-1'>
-					<textarea
-						{...commonInputProps}
-						className={`${commonInputProps.className} min-h-[140px] font-mono text-xs`}
+					<FormTextarea
+						id={inputId}
+						label={formatFieldLabel(fieldKey)}
+						className="font-mono text-xs"
+						disabled={disabled}
+						rows={6}
 						value={serialized}
 						onChange={(event) => handleStructuredFieldDraftChange(fieldKey, event.target.value)}
 						onBlur={() => handleStructuredFieldCommit(fieldKey, fieldType)}
 					/>
 					{structuredFieldErrors[fieldKey] && (
-						<div className='text-xs text-red-600'>{structuredFieldErrors[fieldKey]}</div>
+						<Typography variant="small" className="text-red-600 mb-0">
+							{structuredFieldErrors[fieldKey]}
+						</Typography>
 					)}
 				</div>
 			)
@@ -744,282 +738,283 @@ const EditUserModal = ({
 
 		const fallbackValue = fieldValue == null ? '' : String(fieldValue)
 		return (
-			<input
-				{...commonInputProps}
+			<FormInput
+				id={inputId}
 				type='text'
+				label={formatFieldLabel(fieldKey)}
 				value={fallbackValue}
+				disabled={disabled}
 				onChange={(event) => commitMobileFieldChange(fieldKey, event.target.value)}
 			/>
 		)
 	}
 
 	return (
-		<div
-			className={style.modal_background}
-			onClick={attemptCloseModal}>
-			<div className={style.modal_container}>
-				<div
-					className={style.modal_wrapper}
-					onClick={(e) => e.stopPropagation()}>
-					<div className={style.modal_header_container}>
-						<div className={style.modal_header_wrapper}>
-							<div className={style.modal_header}>User Info</div>
-							<button
-								onClick={attemptCloseModal}
-								className={style.modal_close}>
-								<IoClose size={25} />
-							</button>
+		<Dialog
+			open
+			handler={attemptCloseModal}
+			size="xl"
+			className="edit-user-modal rounded-md"
+			dismiss={{
+				outsidePress: (event) => {
+					const target = event.target
+					if (!(target instanceof Element)) return true
+					if (
+						target.closest(
+							'.form-select__menu-portal, .form-select__menu',
+						)
+					) {
+						return false
+					}
+					return true
+				},
+			}}>
+			<DialogHeader className="justify-between gap-4">
+				<Typography variant="h3" color="blue" className="mt-0 mb-0">
+					User Info
+				</Typography>
+				<ModalCloseButton onClick={attemptCloseModal} />
+			</DialogHeader>
+			<DialogBody className="overflow-y-auto max-h-[calc(100dvh-8rem)] pt-0">
+				<form onSubmit={(e) => { onFormSubmit(e); setHasUnsavedChanges(false); setUnsavedWarning('') }}>
+					<div className={style.modal_form_container}>
+						<div className="md:col-span-2">
+							<FormInput
+								id="name"
+								type="text"
+								label="Name"
+								onChange={handleNameLocal}
+								defaultValue={userEditing.name || 'Name not set'}
+							/>
+						</div>
+						<div className="md:col-span-2">
+							<FormInput
+								id="userId"
+								label="User ID"
+								value={userId}
+								disabled
+							/>
+						</div>
+						<div className="md:col-span-2">
+							<FormInput
+								id="email"
+								type="email"
+								label="Email"
+								onChange={handleEmailLocal}
+								defaultValue={userEditing.email}
+							/>
+						</div>
+
+						{/* Location (City & State) */}
+						<div className='md:col-span-2 flex items-center justify-between pt-2'>
+							<Typography variant="h5" color="blue" className="mt-0 mb-0">
+								Location
+							</Typography>
+							{isAdmin && (
+								<Button
+									type="button"
+									variant="text"
+									size="sm"
+									className="normal-case"
+									onClick={() => {
+										setIsEditingLocation((s) => !s)
+										setLocationError('')
+									}}>
+									{isEditingLocation ? 'Cancel' : 'Change Location'}
+								</Button>
+							)}
+						</div>
+
+						{!isEditingLocation && (
+							<Typography variant="small" className="md:col-span-2 text-slate-700 mb-0">
+								Current: {cityDraft || '—'}, {stateDraft || '—'}
+							</Typography>
+						)}
+
+						<div>
+							<FormSelect
+								id='state'
+								label='State'
+								isDisabled={!isAdmin || !isEditingLocation}
+								value={selectedStateOption}
+								onChange={(option) => {
+									setSelectedStateOption(option || null)
+									setSelectedCityOption(null)
+									setStateDraft(option?.name || '')
+									setCityDraft('')
+									setHasUnsavedChanges(true)
+									setLocationError('')
+								}}
+								options={stateOptions}
+								getOptionLabel={(option) => option.name}
+								getOptionValue={(option) => option.isoCode}
+							/>
+						</div>
+
+						<div>
+							<FormSelect
+								id='city'
+								label={
+									selectedStateOption ? 'City' : 'Select a state first'
+								}
+								isDisabled={
+									!isAdmin || !isEditingLocation || !selectedStateOption
+								}
+								value={selectedCityOption}
+								onChange={(option) => {
+									setSelectedCityOption(option || null)
+									setCityDraft(option?.name || '')
+									setHasUnsavedChanges(true)
+									setLocationError('')
+								}}
+								options={cityOptions}
+								getOptionLabel={(option) => option.name}
+								getOptionValue={(option) =>
+									`${option.name}-${option.stateCode}-${option.latitude}-${option.longitude}`
+								}
+							/>
+						</div>
+
+						{locationError && (
+							<Typography variant="small" className="md:col-span-2 text-red-600 mb-0">
+								{locationError}
+							</Typography>
+						)}
+
+						{isAdmin && isEditingLocation && (
+							<div className='md:col-span-2 flex justify-end'>
+								<Button type="button" onClick={handleLocationSave}>
+									Save Location
+								</Button>
+							</div>
+						)}
+
+						{Object.keys(mobileUserDetails || {}).length > 0 && (
+							<Fragment>
+								<Typography
+									variant="h5"
+									color="blue"
+									className="md:col-span-2 mt-4 mb-0">
+									Additional details
+								</Typography>
+								{Object.entries(mobileUserDetails)
+									.filter(([k]) => k !== 'city' && k !== 'state')
+									.map(([fieldKey, fieldValue]) => (
+										<div key={fieldKey} className="md:col-span-2">
+											{renderAdditionalField(fieldKey, fieldValue)}
+										</div>
+									))}
+								{!isAdmin && (
+									<Typography variant="small" className="md:col-span-2 text-slate-600 mb-0">
+										Only admins can edit these values.
+									</Typography>
+								)}
+							</Fragment>
+						)}
+
+						<div className={style.modal_form_switch}>
+							<Typography variant="small" className="font-semibold mb-0 mr-2">
+								Banned
+							</Typography>
+							<Switch
+								checked={banned}
+								onChange={(e) => {
+									const next = e.target.checked
+									setBanned(next)
+									handleBannedLocal(next)
+								}}
+								color="red"
+							/>
+							<Typography variant="small" className="mb-0">
+								{banned ? 'Banned' : 'Not banned'}
+							</Typography>
+						</div>
+
+						{customClaims.admin && (
+							<>
+								<Typography variant="h5" color="blue" className="md:col-span-2 mt-2 mb-0">
+									Permissions
+								</Typography>
+								<div className={`${style.modal_form_radio_container} md:col-span-2`}>
+									<label htmlFor='admin'>
+										<input
+											type='radio'
+											value='Admin'
+											id='admin'
+											checked={userRole === "Admin"}
+											onChange={() => handleRoleLocal("Admin")}
+											className={style.modal_form_radio}
+										/>
+										Admin
+									</label>
+									<label htmlFor='agency'>
+										<input
+											type='radio'
+											value='Agency'
+											id='agency'
+											checked={userRole === "Agency"}
+											onChange={() => handleRoleLocal("Agency")}
+											className={style.modal_form_radio}
+										/>
+										Agency
+									</label>
+									<label htmlFor='user'>
+										<input
+											type='radio'
+											value='User'
+											id='user'
+											checked={userRole === "User"}
+											onChange={() => handleRoleLocal("User")}
+											className={style.modal_form_radio}
+										/>
+										User
+									</label>
+								</div>
+								{userRole === "Agency" && (
+									<div className="md:col-span-2">
+										<FormSelect
+											id="agency"
+											label="Agency"
+											value={
+												agenciesArray.find((a) => a.id === selectedAgency) || null
+											}
+											options={agenciesArray}
+											getOptionLabel={(option) => option.name}
+											getOptionValue={(option) => option.id}
+											onChange={(option) => {
+												handleAgencyLocal({
+													preventDefault: () => {},
+													target: { value: option?.id || '' },
+												})
+											}}
+											isClearable
+										/>
+									</div>
+								)}
+							</>
+						)}
+						{unsavedWarning && (
+							<Typography variant="small" className="md:col-span-2 text-red-600 text-center mb-0">
+								{unsavedWarning}
+							</Typography>
+						)}
+						{mobileFieldFormError && (
+							<Typography variant="small" className="md:col-span-2 text-red-600 text-center mb-0">
+								{mobileFieldFormError}
+							</Typography>
+						)}
+						<div className='md:col-span-2 flex flex-col items-center gap-2 pt-2'>
+							<Typography variant="small" className="mb-0">
+								Current Role: {userRole}
+							</Typography>
+							<Button type='submit'>
+								Update User
+							</Button>
 						</div>
 					</div>
-					<div>
-						<form onSubmit={(e) => { onFormSubmit(e); setHasUnsavedChanges(false); setUnsavedWarning('') }}>
-							<div className={style.modal_form_container}>
-								{/* Name */}
-								<label htmlFor='name' className={style.modal_form_label}>
-									Name
-								</label>
-								<input
-									className={style.modal_form_input}
-									id='name'
-									type='text'
-									onChange={handleNameLocal}
-									defaultValue={userEditing.name || 'Name not set'}
-								/>
-								<label htmlFor='name' className={style.modal_form_label}>
-									User ID
-								</label>
-								<span className={style.modal_form_input}>{userId}</span>
-								{/* Email */}
-								<div className={style.modal_form_label}>Email</div>
-								<input
-									className={style.modal_form_input}
-									id='email'
-									type='text'
-									onChange={handleEmailLocal}
-									defaultValue={userEditing.email}
-								/>
-
-								{/* Location (City & State) */}
-								<div className='col-span-3 flex items-center justify-between pt-2'>
-									<div className={style.modal_form_label}>Location</div>
-									{isAdmin && (
-										<button
-											type='button'
-											className='text-blue-600 underline'
-											onClick={() => {
-												setIsEditingLocation((s) => !s)
-												setLocationError('')
-											}}
-										>
-											{isEditingLocation ? 'Cancel' : 'Change Location'}
-										</button>
-									)}
-								</div>
-
-								{/* Show current location when not editing */}
-								{!isEditingLocation && (
-									<div className='col-span-3 text-sm text-slate-700 pb-1'>
-										Current: {cityDraft || '—'}, {stateDraft || '—'}
-									</div>
-								)}
-
-								<div className='col-span-2'>
-									<FormSelect
-										id='state'
-										label='State'
-										isDisabled={!isAdmin || !isEditingLocation}
-										value={selectedStateOption}
-										onChange={(option) => {
-											setSelectedStateOption(option || null)
-											setSelectedCityOption(null)
-											setStateDraft(option?.name || '')
-											setCityDraft('')
-											setHasUnsavedChanges(true)
-											setLocationError('')
-										}}
-										options={stateOptions}
-										getOptionLabel={(option) => option.name}
-										getOptionValue={(option) => option.isoCode}
-									/>
-								</div>
-
-								<div className='col-span-2'>
-									<FormSelect
-										id='city'
-										label={
-											selectedStateOption ? 'City' : 'Select a state first'
-										}
-										isDisabled={
-											!isAdmin || !isEditingLocation || !selectedStateOption
-										}
-										value={selectedCityOption}
-										onChange={(option) => {
-											setSelectedCityOption(option || null)
-											setCityDraft(option?.name || '')
-											setHasUnsavedChanges(true)
-											setLocationError('')
-										}}
-										options={cityOptions}
-										getOptionLabel={(option) => option.name}
-										getOptionValue={(option) =>
-											`${option.name}-${option.stateCode}-${option.latitude}-${option.longitude}`
-										}
-									/>
-								</div>
-
-								{locationError && (
-									<div className='col-span-3 text-sm text-red-600'>{locationError}</div>
-								)}
-
-								{/* Save location */}
-								{isAdmin && isEditingLocation && (
-									<div className='col-span-3 flex justify-end'>
-										<button
-											type='button'
-											className={style.modal_form_button}
-											onClick={handleLocationSave}
-										>
-											Save Location
-										</button>
-									</div>
-								)}
-
-								{Object.keys(mobileUserDetails || {}).length > 0 && (
-									<Fragment>
-										<div className={`${style.modal_header} col-span-3 pt-4`}>
-											Additional details
-										</div>
-										{Object.entries(mobileUserDetails)
-											.filter(([k]) => k !== 'city' && k !== 'state')
-											.map(([fieldKey, fieldValue]) => (
-												<Fragment key={fieldKey}>
-													<label
-														htmlFor={`mobile-field-${fieldKey}`}
-														className={style.modal_form_label}>
-														{formatFieldLabel(fieldKey)}
-													</label>
-													<div className='col-span-2'>
-														{renderAdditionalField(fieldKey, fieldValue)}
-													</div>
-												</Fragment>
-											))}
-										{!isAdmin && (
-											<div className='col-span-3 text-xs text-slate-600'>
-												Only admins can edit these values.
-											</div>
-										)}
-									</Fragment>
-								)}
-								<div className={style.modal_form_label}>Banned</div>
-								{/* BANNED */}
-								<div className={style.modal_form_switch}>
-									<Switch
-										checked={banned}
-										onChange={(checked) => handleBannedLocal(checked)}
-										onClick={() => { setBanned(!banned); setHasUnsavedChanges(true) }}
-										className={`${
-											banned ? "bg-red-600" : "bg-gray-200"
-										} relative inline-flex h-6 w-11 items-center rounded-full mr-2`}>
-										<span className='sr-only'>Banned</span>
-										<span
-											aria-hidden='true'
-											className={`${
-												banned ? "translate-x-6" : "translate-x-1"
-											} inline-block h-4 w-4 transform rounded-full bg-white transition`}
-										/>
-									</Switch>
-									{banned == true ? (
-										<div className='text-sm'>Banned</div>
-									) : (
-										<div className='text-sm'>Not banned</div>
-									)}
-								</div>
-								{/* Permissions (claims) */}
-								{customClaims.admin && (
-									<>
-										<div className={style.modal_form_label}>Permissions</div>
-										<div className={style.modal_form_radio_container}>
-											<label htmlFor='admin'>
-												<input
-													type='radio'
-													value='Admin'
-													id='admin'
-													checked={userRole === "Admin"}
-													onChange={() => handleRoleLocal("Admin")}
-													className={style.modal_form_radio}
-												/>
-												Admin
-											</label>
-											<label htmlFor='agency'>
-												<input
-													type='radio'
-													value='Agency'
-													id='agency'
-													checked={userRole === "Agency"}
-													onChange={() => handleRoleLocal("Agency")}
-													className={style.modal_form_radio}
-												/>
-												Agency
-											</label>
-											<label htmlFor='user'>
-												<input
-													type='radio'
-													value='User'
-													id='user'
-													checked={userRole === "User"}
-													onChange={() => handleRoleLocal("User")}
-													className={style.modal_form_radio}
-												/>
-												User
-											</label>
-										</div>
-										{/* Agency - TODO: dropdown to select/change agency */}
-										{userRole === "Agency" && (
-											<>
-												<div className={style.modal_form_label}>Agency</div>
-												<select
-													id='agency'
-													onChange={(e) => handleAgencyLocal(e)}
-													value={selectedAgency || ''}
-													className={`${style.modal_form_input}`}
-												>
-													<option value="">None</option>
-													{agenciesArray.map((agency) => (
-														<option value={agency.id} key={agency.id}>
-															{agency.name}
-														</option>
-													))}
-												</select>
-											</>
-										)}
-									</>
-								)}
-								{unsavedWarning && (
-									<div className='col-span-3 text-sm text-red-600 text-center'>
-										{unsavedWarning}
-									</div>
-								)}
-								{mobileFieldFormError && (
-									<div className='col-span-3 text-sm text-red-600 text-center'>
-										{mobileFieldFormError}
-									</div>
-								)}
-								<div className='grid col-span-3 justify-center'>
-									<div className={style.modal_form_label}>
-										Current Role: {userRole}
-									</div>
-									<input
-										className={style.modal_form_button}
-										type='submit'
-										value={`Update User`}
-									/>
-								</div>
-							</div>
-						</form>
-					</div>
-				</div>
-			</div>
-		</div>
+				</form>
+			</DialogBody>
+		</Dialog>
 	)
 }
 

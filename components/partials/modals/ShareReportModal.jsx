@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'next-i18next'
 import FormInput from '../../ui/FormInput'
+import ModalCloseButton from '../../ui/ModalCloseButton'
+import {
+	Button,
+	Dialog,
+	DialogBody,
+	DialogFooter,
+	DialogHeader,
+	Typography,
+} from '@material-tailwind/react'
 import {
 	buildReportShareUrl,
 	copyReportShareLink,
@@ -10,9 +19,7 @@ import {
 /**
  * Modal for sharing a report by email or by copying its dashboard link.
  *
- * Collects an optional recipient address, or lets the user copy the URL
- * to paste elsewhere. Uses shared mailto/clipboard helpers so all share
- * entry points behave the same.
+ * Mount when visible; Dialog is always open while mounted.
  *
  * @param {Object} props
  * @param {string} props.reportId - Report document id used to build the share URL
@@ -25,6 +32,8 @@ const ShareReportModal = ({ reportId, reportTitle = '', closeModal }) => {
 	const [copied, setCopied] = useState(false)
 	const [copyError, setCopyError] = useState(false)
 	const shareUrl = buildReportShareUrl(reportId)
+
+	const handleClose = () => closeModal(false)
 
 	useEffect(() => {
 		if (!copied) return undefined
@@ -53,70 +62,61 @@ const ShareReportModal = ({ reportId, reportTitle = '', closeModal }) => {
 	}
 
 	return (
-		<div onClick={(e) => e.stopPropagation()}>
-			<div className='flex justify-center items-center z-[10000] fixed top-0 left-0 w-full h-full bg-black opacity-60'></div>
-			<div
-				className='flex justify-center items-center z-[10001] fixed top-0 left-0 w-full h-full'
-				onClick={() => closeModal(false)}>
-				<div
-					className='flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10'
-					onClick={(e) => {
-						e.stopPropagation()
-					}}>
-					<div className='grid justify-items-center mb-4'>
-						<div className='flex-col mt-3 mb-2 text-center tracking-wide'>
-							<div className='text-lg text-blue-500 font-bold my-2'>
-								{t('shareReport')}
-							</div>
-							<div className='text-xs font-light'>{t('subtitle')}</div>
+		<Dialog
+			open
+			handler={handleClose}
+			size="xs"
+			className="share-report-modal rounded-md">
+			<form onSubmit={handleSubmit}>
+				<DialogHeader className="justify-between gap-4">
+					<div>
+						<Typography variant="h3" color="blue" className="mt-0 mb-1">
+							{t('shareReport')}
+						</Typography>
+						<Typography variant="small" className="font-normal">
+							{t('subtitle')}
+						</Typography>
+					</div>
+					<ModalCloseButton onClick={handleClose} />
+				</DialogHeader>
+				<DialogBody className="flex flex-col gap-3">
+					<div>
+						<label className="block text-xs font-semibold text-gray-600 mb-1">
+							{t('linkLabel')}
+						</label>
+						<div className="rounded-md bg-gray-50 border border-gray-200 px-3 py-2 text-xs text-gray-700 break-all">
+							{shareUrl}
 						</div>
 					</div>
-					<form onSubmit={handleSubmit}>
-						<div className='mt-2 flex flex-col gap-3'>
-							<div>
-								<label className='block text-xs font-semibold text-gray-600 mb-1'>
-									{t('linkLabel')}
-								</label>
-								<div className='rounded-xl bg-gray-50 border border-gray-200 px-3 py-2 text-xs text-gray-700 break-all'>
-									{shareUrl}
-								</div>
-							</div>
-							<button
-								type='button'
-								onClick={handleCopyLink}
-								className='bg-white hover:bg-blue-50 text-sm text-blue-600 font-bold py-1.5 px-6 rounded-md border border-blue-200 focus:outline-none focus:shadow-outline'>
-								{copied ? t('copied') : t('copyLink')}
-							</button>
-							{copyError && (
-								<p className='text-xs text-red-500'>{t('copyFailed')}</p>
-							)}
-							<FormInput
-								id='email'
-								type='email'
-								label={t('emailOptional')}
-								placeholder={t('emailPlaceholder')}
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-							/>
-							<div className='mt-2 flex flex-col gap-2'>
-								<button
-									type='button'
-									onClick={() => closeModal(false)}
-									className='bg-white hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline'>
-									{t('cancel')}
-								</button>
-								<button
-									className='bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline'
-									type='submit'
-									autoFocus>
-									{t('share')}
-								</button>
-							</div>
-						</div>
-					</form>
-				</div>
-			</div>
-		</div>
+					<Button type="button" variant="outlined" onClick={handleCopyLink}>
+						{copied ? t('copied') : t('copyLink')}
+					</Button>
+					{copyError && (
+						<p className="text-xs text-red-500">{t('copyFailed')}</p>
+					)}
+					<FormInput
+						id="email"
+						type="email"
+						label={t('emailOptional')}
+						placeholder={t('emailPlaceholder')}
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+					/>
+				</DialogBody>
+				<DialogFooter className="justify-between gap-4">
+					<Button
+						type="button"
+						variant="outlined"
+						color="red"
+						onClick={handleClose}>
+						{t('cancel')}
+					</Button>
+					<Button type="submit" autoFocus>
+						{t('share')}
+					</Button>
+				</DialogFooter>
+			</form>
+		</Dialog>
 	)
 }
 
