@@ -1,10 +1,10 @@
 /**
  * Shows a circular loading spinner so screens don’t feel frozen while data or auth is loading.
  *
- * @param {{ className?: string }} props - Optional Tailwind classes for size/color (e.g. `h-8 w-8 text-blue-600`).
+ * @param {{ className?: string }} props - Optional Tailwind classes for size/color (e.g. `h-8 w-8 text-[#2E3B4E]`).
  * @returns {JSX.Element}
  */
-export default function LoadingSpinner({ className = 'h-10 w-10 text-blue-600' }) {
+export default function LoadingSpinner({ className = 'h-10 w-10 text-[#2E3B4E]' }) {
 	return (
 		<svg
 			aria-hidden="true"

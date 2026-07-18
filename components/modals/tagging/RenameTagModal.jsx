@@ -1,6 +1,14 @@
 import React, { useState } from 'react'
-import { IoClose } from 'react-icons/io5'
 import FormInput from '../../ui/FormInput'
+import ModalCloseButton from '../../ui/ModalCloseButton'
+import {
+	Button,
+	Dialog,
+	DialogBody,
+	DialogFooter,
+	DialogHeader,
+	Typography,
+} from '@material-tailwind/react'
 import {
 	TAG_ID_MAX_LENGTH,
 	TAG_LABEL_MAX_LENGTH,
@@ -10,6 +18,8 @@ import {
 
 /**
  * Modal to rename/edit a custom agency tag id and EN/ES labels.
+ *
+ * Mount when visible; Dialog is always open while mounted.
  *
  * @param {{
  *   replaceTag: (entry: { id: string, labels: { en: string, es: string } }) => void,
@@ -34,6 +44,8 @@ const RenameTagModal = ({
 	const [labelEn, setLabelEn] = useState(existingLabels?.en || selected || '')
 	const [labelEs, setLabelEs] = useState(existingLabels?.es || '')
 	const [error, setError] = useState('')
+
+	const handleClose = () => setRenameTagModal(false)
 
 	const commit = (e) => {
 		e.preventDefault()
@@ -65,73 +77,58 @@ const RenameTagModal = ({
 	}
 
 	return (
-		<div>
-			<div className="flex justify-center items-center z-[9998] absolute top-0 left-0 w-full h-full bg-black opacity-60" />
-			<div
-				onClick={() => setRenameTagModal(false)}
-				className="flex justify-center items-center z-[9999] absolute top-0 left-0 w-full h-full">
-				<div
-					onClick={(e) => e.stopPropagation()}
-					className="flex-col justify-center items-center bg-white w-96 max-w-[95vw] h-auto rounded-2xl py-10 px-10">
-					<div className="flex justify-between w-full mb-5">
-						<div className="text-md font-bold text-blue-600 tracking-wide">
-							Edit tag
-						</div>
-						<button
-							onClick={() => setRenameTagModal(false)}
-							className="text-gray-800"
-							type="button">
-							<IoClose size={25} />
-						</button>
-					</div>
-					<form onSubmit={commit} className="flex flex-col gap-2">
-						<FormInput
-							id="renameTagId"
-							type="text"
-							label="English id (stored)"
-							value={id}
-							required
-							maxLength={TAG_ID_MAX_LENGTH}
-							onChange={(e) => setId(e.target.value)}
-						/>
-						<FormInput
-							id="renameTagEn"
-							type="text"
-							label="Label (EN)"
-							value={labelEn}
-							required
-							maxLength={TAG_LABEL_MAX_LENGTH}
-							onChange={(e) => setLabelEn(e.target.value)}
-						/>
-						<FormInput
-							id="renameTagEs"
-							type="text"
-							label="Label (ES)"
-							value={labelEs}
-							required
-							maxLength={TAG_LABEL_MAX_LENGTH}
-							onChange={(e) => setLabelEs(e.target.value)}
-						/>
-						{error && (
-							<p className="text-red-500 text-sm font-light">{error}</p>
-						)}
-						<div className="mt-6 flex justify-between">
-							<button
-								onClick={() => setRenameTagModal(false)}
-								className="bg-white hover:bg-gray-500 hover:text-white text-sm text-gray-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
-								type="button">
-								Cancel
-							</button>
-							<button
-								className="bg-white hover:bg-blue-600 hover:text-white text-sm text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
-								type="submit">
-								Save
-							</button>
-						</div>
-					</form>
-				</div>
-			</div>
-		</div>
+		<Dialog
+			open
+			handler={handleClose}
+			size="sm"
+			className="rename-tag-modal rounded-md">
+			<form onSubmit={commit}>
+				<DialogHeader className="justify-between gap-4">
+					<Typography variant="h3" color="blue" className="mt-0 mb-0">
+						Edit tag
+					</Typography>
+					<ModalCloseButton onClick={handleClose} />
+				</DialogHeader>
+				<DialogBody className="flex flex-col gap-2">
+					<FormInput
+						id="renameTagId"
+						type="text"
+						label="English id (stored)"
+						value={id}
+						required
+						maxLength={TAG_ID_MAX_LENGTH}
+						onChange={(e) => setId(e.target.value)}
+					/>
+					<FormInput
+						id="renameTagEn"
+						type="text"
+						label="Label (EN)"
+						value={labelEn}
+						required
+						maxLength={TAG_LABEL_MAX_LENGTH}
+						onChange={(e) => setLabelEn(e.target.value)}
+					/>
+					<FormInput
+						id="renameTagEs"
+						type="text"
+						label="Label (ES)"
+						value={labelEs}
+						required
+						maxLength={TAG_LABEL_MAX_LENGTH}
+						onChange={(e) => setLabelEs(e.target.value)}
+					/>
+					{error && (
+						<p className="text-red-500 text-sm font-light">{error}</p>
+					)}
+				</DialogBody>
+				<DialogFooter className="justify-between gap-4">
+					<Button type="button" variant="outlined" color="red" onClick={handleClose}>
+						Cancel
+					</Button>
+					<Button type="submit">Save</Button>
+				</DialogFooter>
+			</form>
+		</Dialog>
 	)
 }
 

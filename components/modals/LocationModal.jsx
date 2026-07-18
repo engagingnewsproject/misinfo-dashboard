@@ -1,139 +1,131 @@
 import React, { useState } from 'react'
-import { IoClose } from "react-icons/io5"
 import { useAuth } from '../../context/AuthContext'
-import { db, auth } from "../../config/firebase"
+import { db } from '../../config/firebase'
+import { updateDoc, doc } from 'firebase/firestore'
+import { useTranslation } from 'next-i18next'
+import { State, City } from 'country-state-city'
+import FormSelect from '../ui/FormSelect'
+import ModalCloseButton from '../ui/ModalCloseButton'
 import {
-	collection,
-	getDocs,
-	getDoc,
-	query,
-	where,
-	updateDoc,
-	doc,
-} from "firebase/firestore"
-import { useTranslation } from 'next-i18next';
-import { State, City } from "country-state-city"
-import FormSelect from "../ui/FormSelect"
+	Button,
+	Dialog,
+	DialogBody,
+	DialogHeader,
+	Typography,
+} from '@material-tailwind/react'
 
+/**
+ * Mount when visible (`{locationModal && <LocationModal ... />}`); Dialog is always open
+ * while mounted, matching existing call sites.
+ */
 const LocationModal = ({ setLocationModal }) => {
-    const {t} = useTranslation("Profile")
+	const { t } = useTranslation('Profile')
+	const { user } = useAuth()
+	const [userLocation, setUserLocation] = useState(null)
+	const [errors, setErrors] = useState({})
 
-    const { user } = useAuth()
-    const [updateSuccess, setUpdateSuccess] = useState(false)
-    
-    const [userData, setUserData] = useState(null)
-    const [userLocation, setUserLocation] = useState(null)
+	const handleClose = () => setLocationModal(false)
 
-    const [errors, setErrors] = useState({})
+	const handleStateChange = (e) => {
+		setUserLocation((data) => ({ ...data, state: e, city: null }))
+	}
 
-    // LOCATION CHANGE FOR USERS
-    const handleStateChange = (e) => {
+	const handleCityChange = (e) => {
+		setUserLocation((data) => ({ ...data, city: e !== null ? e : null }))
+	}
 
-      setUserLocation(data=>({...data,state: e, city: null }))     
-    }
-    const handleCityChange = (e) => {
-      setUserLocation((data) => ({ ...data, city: e !== null ? e : null }))
-    }
+	const handleUserLocationChange = (e) => {
+		e.preventDefault()
+		const allErrors = {}
 
-     // handle location change for users
-  const handleUserLocationChange = (e) => {
-      e.preventDefault()
-      // STATE
-      const allErrors = {}
+		if (!userLocation?.state) {
+			allErrors.userState = 'Please enter a state.'
+			setErrors(allErrors)
+			return
+		}
 
-      if (!userLocation.state) {
-        console.log(userLocation.state)
-        console.log("state error")
-        allErrors.userState = "Please enter a state."
-      }
-        //  no errors, update doc
-      else {
-        const userDoc = doc(db, "mobileUsers", user.accountId)
-        updateDoc(userDoc, {
-          state: userLocation?.state,
-          city: userLocation?.city,
-        }).then(() => {
-          // update state variables
-          setLocationModal(false)
-        })
-      }
-    }
+		const userDoc = doc(db, 'mobileUsers', user.accountId)
+		updateDoc(userDoc, {
+			state: userLocation?.state,
+			city: userLocation?.city,
+		}).then(() => {
+			setLocationModal(false)
+		})
+	}
 
-    const style = {
-      button:
-        "bg-blue-600 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
-      input:
-        "text-md font-light bg-white rounded-xl p-4 border-none w-full focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none",
-      inputSelect:
-        "border-gray-300 col-span-1 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
-      buttonCancel:
-        " col-start-3 border-solid border-red-500 self-end hover:bg-blue-700 text-sm text-red-500 font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline",
-      fileUploadButton:
-        "block flex flex-col text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer",
-    }
-  
-  
+	return (
+		<Dialog
+			open
+			handler={handleClose}
+			size="xs"
+			className="location-modal rounded-md"
+			dismiss={{
+				outsidePress: (event) => {
+					const target = event.target
+					if (!(target instanceof Element)) return true
+					if (
+						target.closest(
+							'.form-select__menu-portal, .form-select__menu',
+						)
+					) {
+						return false
+					}
+					return true
+				},
+			}}>
+			<DialogHeader className="justify-between gap-4">
+				<Typography variant="h3" color="blue" className="mt-0 mb-0">
+					{t('addLocation')}
+				</Typography>
+				<ModalCloseButton onClick={handleClose} />
+			</DialogHeader>
+			<DialogBody>
+				<form onSubmit={handleUserLocationChange}>
+					<div className="mb-4">
+						<FormSelect
+							id="state"
+							name="state"
+							required
+							label={t('NewReport:state_text')}
+							value={userLocation?.state}
+							options={State.getStatesOfCountry('US')}
+							getOptionLabel={(options) => options['name']}
+							getOptionValue={(options) => options['name']}
+							onChange={handleStateChange}
+						/>
+					</div>
+					<div className="mb-0.5">
+						<FormSelect
+							id="city"
+							name="city"
+							label={t('NewReport:city_text')}
+							value={userLocation?.city}
+							options={City.getCitiesOfState(
+								userLocation?.state?.countryCode,
+								userLocation?.state?.isoCode,
+							)}
+							getOptionLabel={(options) => options['name']}
+							getOptionValue={(options) => options['name']}
+							onChange={handleCityChange}
+						/>
+					</div>
+					{errors.userState && !userLocation?.state && (
+						<span className="text-red-500">{errors.userState}</span>
+					)}
 
-    return (
-      <div>
-      <div className="flex justify-center items-center z-[1200] absolute top-0 left-0 w-full h-full bg-black opacity-60">
-      </div>
-      <div 
-      className="flex justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full"
-      onClick={() => setLocationModal(false)}>
-          <div className="flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10"
-          onClick={(e) => {
-              e.stopPropagation()
-          }}>
-              <div className="flex justify-between w-full mb-5">
-                  <div className="text-md font-bold text-blue-600 tracking-wide">{t('addLocation')}</div>
-                  {/* TODO: Change here */}
-                
-              </div>
-              <form  onSubmit={handleUserLocationChange}>
-                  <div className="mb-4">
-                    <FormSelect
-                    id="state"
-                    name='state'
-                    required
-                    label={t("NewReport:state_text")}
-                    value={userLocation?.state}
-                    options={State.getStatesOfCountry("US")}
-                    getOptionLabel={(options) => options["name"]}
-                    getOptionValue={(options) => options["name"]}
-                    onChange={handleStateChange}
-                    />
-                  </div>
-                  <div className="mb-0.5">
-                    <FormSelect
-                      id="city"
-                      name='city'
-                      label={t("NewReport:city_text")}
-                      value={userLocation?.city}
-                      options={City.getCitiesOfState(
-                      userLocation?.state?.countryCode,
-                      userLocation?.state?.isoCode
-                      )}
-                      getOptionLabel={(options) => options["name"]}
-                      getOptionValue={(options) => options["name"]}
-                      onChange={handleCityChange}
-                      />
-                  </div>
-                  {errors.state && data.state === null &&  (<span className="text-red-500">{errors.state}</span>)} 
-                  
-                  <div className="mt-6">
-                      <button
-                          disabled={userLocation?.state == null}
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
-                          type="submit">
-                          {t("updateLocation")}
-                      </button>
-                  </div>
-              </form>
-          </div>
-      </div>
-  </div>
-    )
+					<div className="mt-6">
+						<Button
+							disabled={userLocation?.state == null}
+							type="submit"
+							variant="filled"
+							fullWidth>
+							{t('updateLocation')}
+						</Button>
+					</div>
+				</form>
+			</DialogBody>
+		</Dialog>
+	)
 }
 
 export default LocationModal

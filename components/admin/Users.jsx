@@ -1321,7 +1321,7 @@ const Users = () => {
 							className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm mr-2"
 						/>
 						<button className={style.button} onClick={handleAddNewUserModal}>
-							<FaPlus className="text-blue-600 mr-2" size={12} />
+							<FaPlus className="text-[#2E3B4E] mr-2" size={12} />
 							Add User
 						</button>
 					</div>
@@ -1370,7 +1370,7 @@ const Users = () => {
 									<span className="text-gray-500">Loading more users...</span>
 								</div>
 							}>
-							<table className="min-w-full bg-white rounded-xl p-1">
+							<table className="min-w-full bg-white rounded-md p-1">
 								<thead className="border-b dark:border-indigo-100 bg-slate-100">
 									<tr>
 										<th scope="col" className={tableHeading.default}>
@@ -1416,7 +1416,7 @@ const Users = () => {
 										<tr>
 											<td colSpan="100%" className="text-center">
 												<div className="flex flex-col justify-center items-center gap-2 h-40">
-													<LoadingSpinner className="h-10 w-10 text-blue-600" />
+													<LoadingSpinner className="h-10 w-10 text-[#2E3B4E]" />
 													<span className="text-sm text-gray-600">Loading users…</span>
 												</div>
 											</td>

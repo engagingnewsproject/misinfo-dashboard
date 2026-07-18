@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
-import { IoClose } from 'react-icons/io5'
+import ModalCloseButton from '../../ui/ModalCloseButton'
 import { useAuth } from '../../../context/AuthContext'
 import moment from 'moment'
 import { db } from '../../../config/firebase'
@@ -43,7 +43,13 @@ import FormTextarea from '../../ui/FormTextarea'
 import FormSelect from '../../ui/FormSelect'
 import MediaUploadField from '../../ui/MediaUploadField'
 import { useTranslation } from 'next-i18next'
-import { Typography } from '@material-tailwind/react'
+import {
+	Button,
+	Dialog,
+	DialogBody,
+	DialogHeader,
+	Typography,
+} from '@material-tailwind/react'
 import { maxActiveTags } from '../../../config/tagSystems'
 import {
 	buildMergedAgencyTagLabelMap,
@@ -131,6 +137,7 @@ function isValidLink(value) {
 }
 
 const AgencyReportModal = ({
+	open,
 	setNewReportModal,
 	handleNewReportSubmit,
 }) => {
@@ -1010,12 +1017,13 @@ const AgencyReportModal = ({
 	 * useEffect hook - Resolve agency (and optionally list agencies for admins) on mount / claims.
 	 */
 	useEffect(() => {
+		if (!open) return
 		// Listing the full agency collection is admin-only under scoped rules.
 		if (customClaims?.admin) {
 			getAllAgencies()
 		}
 		getAgencyForUser()
-	}, [customClaims?.admin, customClaims?.agency, customClaims?.agencyId, customClaims?.agencyName])
+	}, [open, customClaims?.admin, customClaims?.agency, customClaims?.agencyId, customClaims?.agencyName])
 
 	/**
 	 * useEffect hook - Fetch topics and sources when the selected agency changes.
@@ -1233,278 +1241,291 @@ const AgencyReportModal = ({
 	const hasFieldErrors = Object.keys(errors).length > 0
 
 	return (
-		<div className="bk-white h-full w-full">
-			<div
-				className="fixed inset-0 z-[9999] bg-black bg-opacity-50 overflow-y-auto"
-				onClick={handleNewReportModalClose}>
-				<div className="flex min-h-full justify-center items-start p-4 md:p-6">
-					<div
-						onClick={(e) => {
-							e.stopPropagation()
-						}}
-						className="flex flex-col bg-white w-full max-h-[calc(100dvh-2rem)] overflow-y-auto py-10 px-10 md:w-10/12 lg:w-8/12 xl:max-w-4xl rounded-2xl">
-						<div className="flex justify-between items-start w-full mb-5">
-							<div className="text-md font-bold text-blue-600 tracking-wide">
-								<Typography variant='h5'>{t('add_report')}</Typography>
+		<>
+			<Dialog
+				open={open}
+				handler={handleNewReportModalClose}
+				size="xl"
+				className="agency-report-modal rounded-md"
+				dismiss={{
+					// While discard confirm is up, don't let Dialog steal Escape / outside clicks
+					escapeKey: !showCloseConfirm,
+					outsidePress: (event) => {
+						if (showCloseConfirm) return false
+						const target = event.target
+						if (!(target instanceof Element)) return true
+						// Portaled react-select menus live on document.body (outside Dialog)
+						if (
+							target.closest(
+								'.form-select__menu-portal, .form-select__menu, .confirm-modal-root',
+							)
+						) {
+							return false
+						}
+						return true
+					},
+				}}>
+				<DialogHeader className="justify-between gap-4">
+					<Typography variant="h3" color="blue" className="mt-0 mb-0">
+						{t('add_report')}
+					</Typography>
+					<ModalCloseButton onClick={handleNewReportModalClose} />
+				</DialogHeader>
+				<DialogBody className="dialog-body overflow-y-auto max-h-[calc(100dvh-8rem)] pt-0">
+					<form noValidate onSubmit={handleNewReport}>
+						{hasFieldErrors && (
+							<div
+								role="alert"
+								className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+								{t('formErrorsSummary', {
+									defaultValue:
+										'Please fix the highlighted fields below.',
+								})}
 							</div>
-							<button
-								onClick={handleNewReportModalClose}
-								className="text-gray-800">
-								<IoClose size={25} />
-							</button>
+						)}
+						<div className="mt-4 mb-0.5">
+							<FormInput
+								id="title"
+								type="text"
+								label={t('add_title')}
+								onChange={handleTitleChange}
+								value={title}
+							/>
+							<FieldError message={errors.title} />
 						</div>
-						<form noValidate onSubmit={handleNewReport}>
-							{hasFieldErrors && (
-								<div
-									role="alert"
-									className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-									{t('formErrorsSummary', {
-										defaultValue:
-											'Please fix the highlighted fields below.',
-									})}
-								</div>
-							)}
-							<div className="mt-4 mb-0.5">
-								<FormInput
-									id="title"
-									type="text"
-									label={t('add_title')}
-									onChange={handleTitleChange}
-									value={title}
-								/>
-								<FieldError message={errors.title} />
-							</div>
 
-							<div className="mt-4 grid grid-cols-1 md:grid-cols-2 md:gap-4">
-								<div>
-									<FormSelect
-										id="state"
-										label={t('state_text')}
-										value={data.state}
-										options={State.getStatesOfCountry(data.country)}
-										getOptionLabel={(options) => options['name']}
-										getOptionValue={(options) => options['name']}
-										onChange={handleStateChange}
-									/>
-									<FieldError message={errors.state} />
-								</div>
-
-								<div>
-									<FormSelect
-										id="city"
-										label={t('city_text')}
-										value={data.city}
-										options={City.getCitiesOfState(
-											data.state?.countryCode,
-											data.state?.isoCode,
-										)}
-										getOptionLabel={(options) => options['name']}
-										getOptionValue={(options) => options['name']}
-										onChange={handleCityChange}
-									/>
-									<FieldError message={errors.city} />
-								</div>
-							</div>
-
-							<div className="mt-4 grid grid-cols-1 md:grid-cols-2 md:gap-4">
-								<div>
-									<FormSelect
-										id="topic-selection"
-										label={t('topic')}
-										options={topicOptions}
-										onChange={handleTopicChange}
-										value={topicSelectValue}
-									/>
-									<FieldError message={errors.topic} />
-									{showOtherTopic && (
-										<div className="mt-4 flex flex-col gap-2">
-											<FormInput
-												id="topic-other"
-												type="text"
-												label="English id / label (EN)"
-												onChange={handleOtherTopicChange}
-												value={otherTopic}
-												maxLength={TAG_LABEL_MAX_LENGTH}
-											/>
-											{topicNeedsCatalogEs() && (
-												<FormInput
-													id="topic-other-es"
-													type="text"
-													label="Label (ES)"
-													onChange={(e) => {
-														setOtherTopicEs(e.target.value)
-														clearFieldError('topic')
-													}}
-													value={otherTopicEs}
-													maxLength={TAG_LABEL_MAX_LENGTH}
-													required
-												/>
-											)}
-										</div>
-									)}
-								</div>
-
-								<div>
-									<FormSelect
-										id="source-selection"
-										label="Source"
-										options={sourceOptions}
-										onChange={handleSourceChangeOther}
-										value={sourceSelectValue}
-									/>
-									<FieldError message={errors.source} />
-									{showOtherSource && (
-										<div className="mt-4 flex flex-col gap-2">
-											<FormInput
-												id="source-other"
-												type="text"
-												label="English id / label (EN)"
-												onChange={handleOtherSourceChange}
-												value={otherSource}
-												maxLength={TAG_LABEL_MAX_LENGTH}
-											/>
-											{sourceNeedsCatalogEs() && (
-												<FormInput
-													id="source-other-es"
-													type="text"
-													label="Label (ES)"
-													onChange={(e) => {
-														setOtherSourceEs(e.target.value)
-														clearFieldError('source')
-													}}
-													value={otherSourceEs}
-													maxLength={TAG_LABEL_MAX_LENGTH}
-													required
-												/>
-											)}
-										</div>
-									)}
-								</div>
-							</div>
-
-							<div className="mt-4 mb-0.5">
+						<div className="mt-4 grid grid-cols-1 md:grid-cols-2 md:gap-4">
+							<div>
 								<FormSelect
-									id="label-selection"
-									label={t('label_optional')}
-									options={labelOptions}
-									onChange={handleLabelChange}
-									value={labelSelectValue}
-									formatOptionLabel={(option) => (
-										<LabelOptionWithDot
-											label={option.label}
-											agencyLabelColors={agencyLabelColors}
-										/>
-									)}
+									id="state"
+									label={t('state_text')}
+									value={data.state}
+									options={State.getStatesOfCountry(data.country)}
+									getOptionLabel={(options) => options['name']}
+									getOptionValue={(options) => options['name']}
+									onChange={handleStateChange}
 								/>
-								{selectedLabel === OTHER_LABEL && (
-									<div className="mt-4 mb-0.5">
+								<FieldError message={errors.state} />
+							</div>
+
+							<div>
+								<FormSelect
+									id="city"
+									label={t('city_text')}
+									value={data.city}
+									options={City.getCitiesOfState(
+										data.state?.countryCode,
+										data.state?.isoCode,
+									)}
+									getOptionLabel={(options) => options['name']}
+									getOptionValue={(options) => options['name']}
+									onChange={handleCityChange}
+								/>
+								<FieldError message={errors.city} />
+							</div>
+						</div>
+
+						<div className="mt-4 grid grid-cols-1 md:grid-cols-2 md:gap-4">
+							<div>
+								<FormSelect
+									id="topic-selection"
+									label={t('topic')}
+									options={topicOptions}
+									onChange={handleTopicChange}
+									value={topicSelectValue}
+								/>
+								<FieldError message={errors.topic} />
+								{showOtherTopic && (
+									<div className="mt-4 flex flex-col gap-2">
 										<FormInput
-											id="label-other"
+											id="topic-other"
 											type="text"
-											label={t('custom_label', {
-												max: CUSTOM_LABEL_MAX_LENGTH,
-											})}
-											onChange={handleOtherLabelChange}
-											value={otherLabelDraft}
-											maxLength={CUSTOM_LABEL_MAX_LENGTH}
+											label="English id / label (EN)"
+											onChange={handleOtherTopicChange}
+											value={otherTopic}
+											maxLength={TAG_LABEL_MAX_LENGTH}
 										/>
-										<FieldError message={errors.label} />
+										{topicNeedsCatalogEs() && (
+											<FormInput
+												id="topic-other-es"
+												type="text"
+												label="Label (ES)"
+												onChange={(e) => {
+													setOtherTopicEs(e.target.value)
+													clearFieldError('topic')
+												}}
+												value={otherTopicEs}
+												maxLength={TAG_LABEL_MAX_LENGTH}
+												required
+											/>
+										)}
 									</div>
 								)}
 							</div>
-							<section className="mt-4 rounded-xl border border-slate-200 bg-sky-300 px-4 py-6 md:px-6">
-								<Typography variant='h6' className="mb-2">
-									{t('detailed')}
-								</Typography>
-								{/* Link 1 */}
-								<div className="mb-4">
-									<FormInput
-										id="link"
-										type="url"
-										label={t('linkFirst')}
-										onChange={(e) => {
-											setLink(e.target.value)
-											clearFieldError('content')
-											clearFieldError('link')
-										}}
-										value={link}
-									/>
-									<FieldError message={errors.link} />
-								</div>
-								{/* Link 2 */}
-								<div className="mb-4">
-									<FormInput
-										id="secondLink"
-										type="url"
-										label={t('second_link')}
-										onChange={(e) => {
-											setSecondLink(e.target.value)
-											clearFieldError('secondLink')
-										}}
-										value={secondLink}
-									/>
-									<FieldError message={errors.secondLink} />
-								</div>
-								{/* Detailed */}
-								<div className="mb-4">
-									<FormTextarea
-										id="detail"
-										label={t('detailed')}
-										resizable
-										onChange={(e) => {
-											setDetail(e.target.value)
-											clearFieldError('content')
-										}}
-										value={detail}
-										rows={5}
-									/>
-								</div>
-								<FieldError message={errors.content} />
-								{/* Media Upload */}
-								<MediaUploadField
-									id="multiple_files"
-									inputRef={imgPicker}
-									onChange={handleImageChange}
-									onRemoveFile={handleRemoveImage}
-									files={images}
-									label={t('imageBtn')}
-									actionText={t('choose_files')}
+
+							<div>
+								<FormSelect
+									id="source-selection"
+									label="Source"
+									options={sourceOptions}
+									onChange={handleSourceChangeOther}
+									value={sourceSelectValue}
 								/>
-							</section>
-							<div className="mt-3 sm:mt-6">
-								<FieldError message={submitError} />
-								<button
-									className="w-full bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline"
-									type="submit"
-									disabled={isSubmitting}>
-									{isSubmitting ? t('createReport') + '…' : t('createReport')}
-								</button>
-								<div className='flex items-center justify-center gap-2 pt-4'>
-									<Typography className='uppercase text-xs font-bold' color='gray'>Agency:</Typography>
-									<Typography className='uppercase text-xs font-medium' color='gray'>
-										{selectedAgency}
-									</Typography>
-								</div>
+								<FieldError message={errors.source} />
+								{showOtherSource && (
+									<div className="mt-4 flex flex-col gap-2">
+										<FormInput
+											id="source-other"
+											type="text"
+											label="English id / label (EN)"
+											onChange={handleOtherSourceChange}
+											value={otherSource}
+											maxLength={TAG_LABEL_MAX_LENGTH}
+										/>
+										{sourceNeedsCatalogEs() && (
+											<FormInput
+												id="source-other-es"
+												type="text"
+												label="Label (ES)"
+												onChange={(e) => {
+													setOtherSourceEs(e.target.value)
+													clearFieldError('source')
+												}}
+												value={otherSourceEs}
+												maxLength={TAG_LABEL_MAX_LENGTH}
+												required
+											/>
+										)}
+									</div>
+								)}
 							</div>
-						</form>
-					</div>
-				</div>
-				{showCloseConfirm && (
-					<ConfirmModal
-						func={confirmDiscardAndClose}
-						title={t('discardReportTitle', {
-							defaultValue: 'Discard this report?',
-						})}
-						subtitle={t('discardReportSubtitle', {
-							defaultValue:
-								'You have unsaved changes. If you close now, your work will be lost.',
-						})}
-						CTA={t('discardReportCTA', { defaultValue: 'Discard' })}
-						closeModal={setShowCloseConfirm}
-					/>
-				)}
-			</div>
-		</div>
+						</div>
+
+						<div className="mt-4 mb-0.5">
+							<FormSelect
+								id="label-selection"
+								label={t('label_optional')}
+								options={labelOptions}
+								onChange={handleLabelChange}
+								value={labelSelectValue}
+								formatOptionLabel={(option) => (
+									<LabelOptionWithDot
+										label={option.label}
+										agencyLabelColors={agencyLabelColors}
+									/>
+								)}
+							/>
+							{selectedLabel === OTHER_LABEL && (
+								<div className="mt-4 mb-0.5">
+									<FormInput
+										id="label-other"
+										type="text"
+										label={t('custom_label', {
+											max: CUSTOM_LABEL_MAX_LENGTH,
+										})}
+										onChange={handleOtherLabelChange}
+										value={otherLabelDraft}
+										maxLength={CUSTOM_LABEL_MAX_LENGTH}
+									/>
+									<FieldError message={errors.label} />
+								</div>
+							)}
+						</div>
+						<section className="mt-4 rounded-md border border-slate-200 bg-sky-300 px-4 py-6 md:px-6">
+							<Typography variant="h6" className="mb-2">
+								{t('detailed')}
+							</Typography>
+							{/* Link 1 */}
+							<div className="mb-4">
+								<FormInput
+									id="link"
+									type="url"
+									label={t('linkFirst')}
+									onChange={(e) => {
+										setLink(e.target.value)
+										clearFieldError('content')
+										clearFieldError('link')
+									}}
+									value={link}
+								/>
+								<FieldError message={errors.link} />
+							</div>
+							{/* Link 2 */}
+							<div className="mb-4">
+								<FormInput
+									id="secondLink"
+									type="url"
+									label={t('second_link')}
+									onChange={(e) => {
+										setSecondLink(e.target.value)
+										clearFieldError('secondLink')
+									}}
+									value={secondLink}
+								/>
+								<FieldError message={errors.secondLink} />
+							</div>
+							{/* Detailed */}
+							<div className="mb-4">
+								<FormTextarea
+									id="detail"
+									label={t('detailed')}
+									resizable
+									onChange={(e) => {
+										setDetail(e.target.value)
+										clearFieldError('content')
+									}}
+									value={detail}
+									rows={5}
+								/>
+							</div>
+							<FieldError message={errors.content} />
+							{/* Media Upload */}
+							<MediaUploadField
+								id="multiple_files"
+								inputRef={imgPicker}
+								onChange={handleImageChange}
+								onRemoveFile={handleRemoveImage}
+								files={images}
+								label={t('imageBtn')}
+								actionText={t('choose_files')}
+							/>
+						</section>
+						<div className="mt-3 sm:mt-6">
+							<FieldError message={submitError} />
+							<Button type="submit" fullWidth disabled={isSubmitting}>
+								{isSubmitting ? t('createReport') + '…' : t('createReport')}
+							</Button>
+							<div className="flex items-center justify-center gap-2 pt-4">
+								<Typography
+									className="uppercase text-xs font-bold"
+									color="gray">
+									Agency:
+								</Typography>
+								<Typography
+									className="uppercase text-xs font-medium"
+									color="gray">
+									{selectedAgency}
+								</Typography>
+							</div>
+						</div>
+					</form>
+				</DialogBody>
+			</Dialog>
+			{showCloseConfirm && (
+				<ConfirmModal
+					func={confirmDiscardAndClose}
+					title={t('discardReportTitle', {
+						defaultValue: 'Discard this report?',
+					})}
+					subtitle={t('discardReportSubtitle', {
+						defaultValue:
+							'You have unsaved changes. If you close now, your work will be lost.',
+					})}
+					CTA={t('discardReportCTA', { defaultValue: 'Discard' })}
+					closeModal={setShowCloseConfirm}
+				/>
+			)}
+		</>
 	)
 }
 

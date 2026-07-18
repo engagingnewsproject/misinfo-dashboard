@@ -259,7 +259,7 @@ const ReportDetails = () => {
 	return (
 		<div className="p-16">
 			<div className="flex justify-between w-full mb-5">
-				<div className="text-2xl font-bold text-blue-600 tracking-wider mb-8">
+				<div className="text-2xl font-bold text-[#2E3B4E] tracking-wider mb-8">
 				{/* Temp link back to Dashboard for testing */}
 					More Information
 				</div>
@@ -281,12 +281,12 @@ const ReportDetails = () => {
 				<div className="left-side">
 					<div className="mb-2">
 						<h6 className={`${globalStyles.heading.h2.black} mb-2`}>Title</h6>
-            <div className="text-sm bg-white rounded-xl p-4">{info['title'] || <span className="italic text-gray-400">No Title</span>}</div>
+            <div className="text-sm bg-white rounded-md p-4">{info['title'] || <span className="italic text-gray-400">No Title</span>}</div>
 						</div>
           {reporterInfo?.name && reporterInfo?.email && (
 						<div className="text-md mb-4 font-light text-right">
 							<div>
-              <span className="font-semibold">Reported by:</span> {reporterInfo['name']} (<a target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline" href={"mailto:" + reporterInfo['email']}>{reporterInfo['email']}</a>)
+              <span className="font-semibold">Reported by:</span> {reporterInfo['name']} (<a target="_blank" rel="noopener noreferrer" className="text-[#2E3B4E] hover:underline" href={"mailto:" + reporterInfo['email']}>{reporterInfo['email']}</a>)
 							</div>
           </div>)}
 					{info?.origin === 'scrape' && !(reporterInfo?.name && reporterInfo?.email) && (
@@ -395,7 +395,7 @@ const ReportDetails = () => {
               <button onClick={revertBack}
                 className="bg-white hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline">Cancel</button>
               <button onClick={saveChanges}
-                className="bg-white hover:bg-blue-500 hover:text-white text-sm text-blue-500 font-bold ml-4 py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">Save Changes</button>
+                className="bg-white hover:bg-blue-500 hover:text-white text-sm text-[#2E3B4E] font-bold ml-4 py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline" type="submit">Save Changes</button>
             </div>}
 					</div>
 					<div className="w-full mb-12">

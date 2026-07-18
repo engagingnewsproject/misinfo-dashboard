@@ -283,18 +283,26 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 
 	const handleLabelDeletePrompt = async (e) => {
 		e.preventDefault()
-		const count = await countReportsWithLabel(agencyName, selected)
-		if (count > 0) {
-			const reportWord = count === 1 ? 'report uses' : 'reports use'
-			setDeleteSubtitle(
-				`${count} ${reportWord} this label. They will keep the label text, but it will no longer appear in the dropdown.`,
-			)
-		} else {
+		try {
+			const count = await countReportsWithLabel(agencyID, selected)
+			if (count > 0) {
+				const reportWord = count === 1 ? 'report uses' : 'reports use'
+				setDeleteSubtitle(
+					`${count} ${reportWord} this label. They will keep the label text, but it will no longer appear in the dropdown.`,
+				)
+			} else {
+				setDeleteSubtitle(
+					'You will permanently remove this custom label. You cannot undo this action.',
+				)
+			}
+			setDeleteModal(true)
+		} catch (error) {
+			console.error('Error checking label usage before delete:', error)
 			setDeleteSubtitle(
 				'You will permanently remove this custom label. You cannot undo this action.',
 			)
+			setDeleteModal(true)
 		}
-		setDeleteModal(true)
 	}
 
 	const handleLabelColorSave = async (hex) => {
@@ -454,7 +462,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 				<button onClick={() => setTagSystem(0)} type="button">
 					<IoMdArrowRoundBack size={25} />
 				</button>
-				<div className="text-xl px-5 font-extrabold text-blue-600 tracking-wider">
+				<div className="text-xl px-5 font-extrabold text-[#2E3B4E] tracking-wider">
 					{isLabelsMode ? 'Labels' : `${tagSystems[tagSystem]} Tags`}
 				</div>
 				<div className="text-sm font-light">
@@ -470,7 +478,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 								className="flex items-center shadow mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
 								type="button"
 								onClick={() => setEditLabelModal(true)}>
-								<MdModeEditOutline className="text-blue-600" size={18} />
+								<MdModeEditOutline className="text-[#2E3B4E]" size={18} />
 								<div className="px-2 font-normal tracking-wide">Edit</div>
 							</button>
 							<button
@@ -486,7 +494,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 							className="flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
 							type="button"
 							onClick={handleAddNew}>
-							<FaPlus className="text-blue-600" size={12} />
+							<FaPlus className="text-[#2E3B4E]" size={12} />
 							<div className="px-2 font-normal tracking-wide">New Label</div>
 						</button>
 					)
@@ -495,7 +503,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 						className="flex items-center shadow ml-auto mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
 						type="button"
 						onClick={handleAddNew}>
-						<FaPlus className="text-blue-600" size={12} />
+						<FaPlus className="text-[#2E3B4E]" size={12} />
 						<div className="px-2 font-normal tracking-wide">
 							{`New ${tagSystems[tagSystem]}`}
 						</div>
@@ -518,7 +526,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 								className="flex items-center shadow mr-6 bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline"
 								type="button"
 								onClick={(e) => updateTag(e, 'rename')}>
-								<MdModeEditOutline className="text-blue-600" size={18} />
+								<MdModeEditOutline className="text-[#2E3B4E]" size={18} />
 								<div className="px-2 font-normal tracking-wide">Rename</div>
 							</button>
 							<button
@@ -550,12 +558,12 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 					onChange={handleChange}
 					onSubmit={handleSearch}>
 					<button
-						className="p-1 absolute right-1 top-1 bg-blue-600 text-white rounded-xl"
+						className="p-1 absolute right-1 top-1 bg-blue-600 text-white rounded-md"
 						type="submit">
 						<AiOutlineSearch size={25} />
 					</button>
 					<input
-						className="shadow border-none rounded-xl w-full p-3 pr-11 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+						className="shadow border-none rounded-md w-full p-3 pr-11 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 						id="search"
 						type="text"
 						placeholder="Search"
@@ -593,7 +601,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 				{isLabelsMode ? (
 					<div>
 						<div
-							className="grid w-full p-4 mb-2 rounded-xl grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+							className="grid w-full p-4 mb-2 rounded-md grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
 							onClick={clearSelection}>
 							{filteredDisplayLabels.map((item) => (
 								<div
@@ -609,7 +617,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 						</div>
 
 						<div
-							className="grid bg-white w-full p-4 mt-10 rounded-xl grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+							className="grid bg-white w-full p-4 mt-10 rounded-md grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
 							onClick={clearSelection}>
 							{maxLabelsError && (
 								<div className="col-span-full text-red-500 text-sm font-light pl-2">
@@ -641,7 +649,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 						</div>
 					</div>
 				) : list.length === 0 ? (
-					<div className="grid bg-white w-full py-6 px-4 rounded-xl text-center items-center">
+					<div className="grid bg-white w-full py-6 px-4 rounded-md text-center items-center">
 						<Image
 							src="svgs/warning.svg"
 							width={156}
@@ -655,7 +663,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 					<div>
 						{active.length !== 0 && (
 							<div
-								className="grid w-full p-4 mb-2 rounded-xl grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+								className="grid w-full p-4 mb-2 rounded-md grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
 								onClick={clearSelection}>
 								{active.map((item) =>
 									!isOtherTagName(item) ? (
@@ -687,7 +695,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 							</span>
 						)}
 						<div
-							className="grid bg-white w-full p-4 mt-10 rounded-xl grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+							className="grid bg-white w-full p-4 mt-10 rounded-md grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
 							onClick={clearSelection}>
 							{list.map((item) => {
 								const normStyles =

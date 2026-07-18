@@ -6,7 +6,7 @@
  */
 import React from 'react'
 import Image from 'next/image'
-import { Button } from '@material-tailwind/react'
+import { Button, Typography } from '@material-tailwind/react'
 import FormInput from '../ui/FormInput'
 import MediaUploadField from '../ui/MediaUploadField'
 import LocationField from '../partials/forms/LocationField'
@@ -61,11 +61,11 @@ const AgencySettingsForm = ({
     : 'No agency logo'
 
   return (
-    <section className="mb-8 p-4 bg-white rounded-lg border border-blue-gray-100">
+    <section className="mb-8 p-6 bg-white rounded-lg border border-blue-gray-100">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h2 className="text-xl font-extrabold text-blue-600 tracking-wider">
+        <Typography variant="h2" className="mt-0 mb-0 text-brand">
           Agency Settings
-        </h2>
+        </Typography>
         {isEditing ? (
           <div className="flex gap-2 shrink-0">
             <Button

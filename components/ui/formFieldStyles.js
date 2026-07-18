@@ -62,6 +62,35 @@ export const FORM_CONTROL_FOCUS_BORDER_CLASS = [
   'focus:[&:not(:placeholder-shown)]:!border-b-blue-gray-200',
 ].join(' ')
 
+/**
+ * Keep outlined look when disabled — MT defaults to border-0 + gray fill.
+ * Floated labels need a transparent top edge for the notch.
+ */
+export const FORM_CONTROL_DISABLED_FIELD_CLASS = [
+  'disabled:!bg-white',
+  'disabled:!border',
+  'disabled:!border-blue-gray-200',
+  'disabled:placeholder-shown:!border-t-blue-gray-200',
+  'disabled:[&:not(:placeholder-shown)]:!border-t-transparent',
+].join(' ')
+
+/**
+ * Keep floating label + notch visible when disabled — MT uses
+ * peer-disabled:text-transparent and transparent notch borders.
+ */
+export const FORM_CONTROL_DISABLED_LABEL_CLASS = [
+  'peer-disabled:!text-blue-gray-400',
+  'peer-disabled:peer-placeholder-shown:!text-blue-gray-500',
+  'peer-disabled:before:!border-t',
+  'peer-disabled:before:!border-l',
+  'peer-disabled:before:!border-blue-gray-200',
+  'peer-disabled:after:!border-t',
+  'peer-disabled:after:!border-r',
+  'peer-disabled:after:!border-blue-gray-200',
+  'peer-disabled:peer-placeholder-shown:before:!border-transparent',
+  'peer-disabled:peer-placeholder-shown:after:!border-transparent',
+].join(' ')
+
 export const FORM_CONTROL_FIELD_CLASS = [
   '!bg-white',
   '!shadow-none',
@@ -69,6 +98,7 @@ export const FORM_CONTROL_FIELD_CLASS = [
   FORM_CONTROL_BORDER_WIDTH_CLASS,
   FORM_CONTROL_FOCUS_BORDER_CLASS,
   FORM_CONTROL_PADDING_CLASS,
+  FORM_CONTROL_DISABLED_FIELD_CLASS,
 ].join(' ')
 
 /**

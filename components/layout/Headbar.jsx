@@ -172,7 +172,7 @@ const Headbar = ({ search, setSearch}) => {
             )
         } else {
             return (
-                <div className='bg-blue-600 p-3 rounded-full'>
+                <div className='bg-brand p-3 rounded-full'>
                     <GiMagnifyingGlass className='fill-white' />
                 </div>
             )
@@ -199,14 +199,14 @@ const Headbar = ({ search, setSearch}) => {
             <form className="col-start-3 col-span-8 mt-5 flex relative md:w-2/4 lg:w-1/4 lg:max-w-xs" onChange={handleChange} onSubmit={handleSearch}>
                
                 <input
-                    className="shadow border-none rounded-xl w-full p-3 pr-11 text-xs text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    className="shadow border-none rounded-md w-full p-3 pr-11 text-xs text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                     id="search"
                     type="text"
                     placeholder="Search"
                     onChange={handleChange}
                     value={search} />
                 <button 
-                className="py-1 px-1 mt-1 mr-1 absolute right-0 top-0 bg-blue-600 text-white rounded-xl" 
+                className="py-1 px-1 mt-1 mr-1 absolute right-0 top-0 bg-blue-600 text-white rounded-md" 
                 type='submit'>
                     <AiOutlineSearch size={25}/>
                 </button>

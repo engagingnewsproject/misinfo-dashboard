@@ -77,7 +77,7 @@ const TableBody = ({
                   )
                   tData = (
                     <Typography
-                      className={`${globalStyles.label.default} px-5 py-1 rounded-2xl`}
+                      className={`${globalStyles.label.default} px-5 py-1 rounded-md`}
                       style={badgeStyle}
                       data-tip="Change label"
                       data-for="labelTooltip">

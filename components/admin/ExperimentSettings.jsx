@@ -238,7 +238,7 @@ const ExperimentSettings = () => {
 	}
 
 	return (
-		<div className="experiment-settings mb-8 p-4 bg-white rounded-lg border border-blue-gray-100">
+		<div className="experiment-settings mb-8 p-6 bg-white rounded-lg border border-blue-gray-100">
 			<Typography variant="h5" color="blue" className="mb-4">
 				Experiment &amp; archive
 			</Typography>
@@ -398,7 +398,7 @@ const ExperimentSettings = () => {
 					call the <code>getExperimentMetrics</code> Cloud Function. See{' '}
 					<a
 						href="https://github.com/engagingnewsproject/misinfo-dashboard/wiki/Archiving"
-						className="text-blue-600 underline"
+						className="text-[#2E3B4E] underline"
 						target="_blank"
 						rel="noopener noreferrer">
 						Archiving (wiki)

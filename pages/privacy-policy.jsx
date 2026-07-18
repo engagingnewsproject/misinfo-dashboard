@@ -12,11 +12,11 @@ export default function PrivacyPolicyPage() {
 			<Head>
 				<title>Privacy Policy | Truth Sleuth</title>
 			</Head>
-			<div className="min-h-screen bg-sky-100 py-8 px-4">
+			<div className="min-h-screen bg-[#D3D3D3] py-8 px-4">
 				<div className="max-w-3xl mx-auto shadow-lg">
 					<PrivacyPolicyContent />
 					<div className="bg-white border-t px-6 py-4 text-center text-sm text-gray-600 rounded-b-2xl">
-						<Link href="/login" className="text-blue-600 font-semibold hover:underline">
+						<Link href="/login" className="text-[#2E3B4E] font-semibold hover:underline">
 							Back to login
 						</Link>
 					</div>

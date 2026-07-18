@@ -199,17 +199,19 @@ export async function deleteAgencyCustomLabel(agencyId, labelText) {
 
 /**
  * Counts reports for an agency that use a given label.
+ * Prefer agencyId so the query matches scoped Firestore rules
+ * (`sameAgency()` requires resource.data.agencyId == token.agencyId).
  *
- * @param {string} agencyName
+ * @param {string} agencyId
  * @param {string} labelText
  * @returns {Promise<number>}
  */
-export async function countReportsWithLabel(agencyName, labelText) {
-	if (!agencyName || !labelText) return 0
+export async function countReportsWithLabel(agencyId, labelText) {
+	if (!agencyId || !labelText) return 0
 
 	const reportsQuery = query(
 		collection(db, 'reports'),
-		where('agency', '==', agencyName),
+		where('agencyId', '==', agencyId),
 		where('label', '==', labelText),
 	)
 	const snapshot = await getCountFromServer(reportsQuery)

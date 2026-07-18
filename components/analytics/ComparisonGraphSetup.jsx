@@ -170,7 +170,7 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
               {/* Initial screen that appears when user selects the comparison view. Allows user to select three topics. */}
             {tab == 0 && 
               <div className="flex items-center justify-center md:ml-12">
-              <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 h-auto">
+              <div className="bg-white rounded-md mt-6 py-5 pl-3 pr-3 h-auto">
                 <h2 className={`${globalStyles.heading.h2.blue} text-center py-4`}>Select topics to compare. </h2>
                 <h1 className="pl-3 pb-4 text-center">Choose at least one topic to view the number of reports.</h1>
                 {topicError && <h1 className="pl-3 pb-4 text-center text-red-500">You must choose at least one topic to compare.</h1>}
@@ -202,8 +202,8 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
                   <IoIosArrowBack size={25} />
                   <Tooltip anchorSelect=".tooltip-previous" place="top" delayShow={500}>Previous</Tooltip>
                 </button>
-                                <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-full lg:w-1/3 overflow-x-auto order-first lg:order-none">
-                  <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select dates</h1>
+                                <div className="bg-white rounded-md mt-6 py-5 pl-3 pr-3 w-full lg:w-1/3 overflow-x-auto order-first lg:order-none">
+                  <h1 className="text-2xl font-bold text-[#2E3B4E] pt-6 tracking-wider text-center ">Select dates</h1>
                   <h1 className="pl-3 text-center">Select a date range to collect the number of reports for the selected topics. </h1>
                   {dateError && <h1 className="pl-3 pb-4 text-center text-red-500">You must select a date range of at least three days and no more than three weeks.</h1>}
                   
@@ -242,7 +242,7 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
           
         {/* Once user selects the topics and date range, graph of topic reports will be plotted. */}
         {tab == 4 && dateRange && selectedTopics && 
-          <div className="bg-white rounded-xl mt-6 py-5">
+          <div className="bg-white rounded-md mt-6 py-5">
             <ComparisonGraphPlotted 
               dateRange={dateRange} 
               setDateRange={setDateRange} 

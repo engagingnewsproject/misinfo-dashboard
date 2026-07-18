@@ -549,8 +549,8 @@ export const AuthContextProvider = ({children}) => {
             authGetUserList: callables.authGetUserList,
         }}>
             {loading ? (
-                <div className="min-h-screen w-full flex flex-col items-center justify-center bg-sky-100 gap-3">
-                    <LoadingSpinner className="h-12 w-12 text-blue-600" />
+                <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#D3D3D3] gap-3">
+                    <LoadingSpinner className="h-12 w-12 text-[#2E3B4E]" />
                     <p className="text-sm text-gray-600">Loading…</p>
                 </div>
             ) : children}

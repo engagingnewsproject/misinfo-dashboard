@@ -10,8 +10,8 @@ import Link from 'next/link'
  */
 export default function PrivacyPolicyContent() {
 	return (
-		<div className="flex flex-col overflow-y-auto bg-white rounded-2xl py-6 px-6 md:px-10">
-			<Typography variant="h2" color="blue" className="mb-2 border-b-4">
+		<div className="flex flex-col overflow-y-auto bg-white rounded-md py-6 px-6 md:px-10">
+			<Typography variant="h2" color="blue" className="mt-0 mb-2 border-b-4">
 				Privacy Policy
 			</Typography>
 			<Typography variant="paragraph" className="mb-3">
@@ -71,7 +71,7 @@ export default function PrivacyPolicyContent() {
 			</Typography>
 			<Typography variant="paragraph" className="mb-3">
 				If you have any questions, please contact us at{' '}
-				<Link className="text-blue-600" href="mailto:mediaengagement@austin.utexas.edu">
+				<Link className="text-[#2E3B4E]" href="mailto:mediaengagement@austin.utexas.edu">
 					mediaengagement@austin.utexas.edu
 				</Link>
 				.

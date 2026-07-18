@@ -1410,12 +1410,12 @@ const ReportsSection = ({
 			<Card className="reports-section-card w-full mt-4">
 				<CardHeader floated={false} shadow={false} className="rounded-none md:mt-0 pt-4">
 					<div className="card-header--top flex items-center justify-between gap-8 mb-4">
-						<Typography variant="h5" color="blue">
+						<Typography variant="h3" className="mt-0 mb-0 text-brand">
 							List of Reports
 							{customClaims.admin && activeExperimentId && (
-								<span className="block text-xs font-normal text-gray-500 mt-1">
+								<Typography variant="small" className="text-gray-500">
 									Table: all study waves · graphs use {activeExperimentId}
-								</span>
+								</Typography>
 							)}
 						</Typography>
 						<div className="flex flex-row justify-end gap-1 items-center">

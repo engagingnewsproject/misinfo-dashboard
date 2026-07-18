@@ -57,7 +57,7 @@ const LanguageSwitcher = () => {
      }
   };
 
-  const active = "text-blue-600 font-bold text-sm"
+  const active = "text-[#2E3B4E] font-bold text-sm"
   const nonactive = "text-gray-600 text-sm"
 
 

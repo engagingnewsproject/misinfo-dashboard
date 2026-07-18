@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import Select from 'react-select'
 import { getFormSelectControlStyles } from './formFieldStyles'
 
-const MENU_Z_INDEX = 9999
+// Above MT Dialog overlay (z-index 9999) so portaled menus stay clickable
+const MENU_Z_INDEX = 10050
 
 /**
  * react-select with a Material Tailwind–style floating label.
@@ -39,6 +40,7 @@ const FormSelect = ({
       )}
       <Select
         {...selectProps}
+        classNamePrefix="form-select"
         inputId={id}
         value={value}
         placeholder=""

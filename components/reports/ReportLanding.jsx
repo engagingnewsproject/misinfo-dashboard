@@ -79,10 +79,10 @@ const ReportLanding = ({
 	const style = {
 		container: "z-0 flex-col lg:max-w-4xl mb-12",
 		headerWrap: 'flex pb-4 justify-between',
-		header: "text-center md:text-left text-xl font-bold text-blue-600 tracking-wider",
-		buttonLg: 'flex items-center justify-center gap-5 bg-blue-600 w-full hover:bg-blue-600 text-white font-normal py-2 px-6 border border-blue-600 rounded-xl',
-		button: 'bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 mt-4 border border-blue-600 rounded-xl',
-		systemWrap: 'text-xl font-extrabold text-blue-600 tracking-wider mt-5'
+		header: "text-center md:text-left text-xl font-bold text-[#2E3B4E] tracking-wider",
+		buttonLg: 'flex items-center justify-center gap-5 bg-blue-600 w-full hover:bg-blue-600 text-white font-normal py-2 px-6 border border-[#868686] rounded-md',
+		button: 'bg-[#D3D3D3] hover:bg-[#ebebeb] text-[#2E3B4E] font-normal py-2 px-6 mt-4 border border-[#868686] rounded-md',
+		systemWrap: 'text-xl font-extrabold text-[#2E3B4E] tracking-wider mt-5'
 	}
 
 	const router = useRouter()

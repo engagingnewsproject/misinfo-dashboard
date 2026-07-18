@@ -1,72 +1,162 @@
-const style = {
-  typography: {
-    styles: {
-      variants: {
-        h1: {},
-        h2: {},
-        h3: {},
-        h4: {},
-        h5: {},
-        h6: {},
-        lead: {},
-        paragraph: {
-          fontWeight: 'font-normal',
-          letterSpacing: 'tracking-wide',
-        },
-        small: {},
-      },
-    },
-  },
-  button: {
-    defaultProps: {
-      variant: 'filled',
-      size: 'md',
-      color: 'blue',
-    },
-    valid: {
-      variants: ['filled', 'outlined', 'gradient', 'text'],
-      sizes: ['sm', 'md', 'lg'],
-      colors: [
-        'white',
-        'blue',
-      ],
-    },
-    styles: {
-      base: {
-        initial: {
-          textTransform: 'none',
-          fontWeight: 'font-normal',
-          letterSpacing: 'tracking-wide',
-          fontSize: 'text-lg',
-        },
-        fullwidth: {
-          color: 'text-white',
-        },
-      },
-      sizes: {
-        md: {
-          fontSize: 'text-sm',
-          py: 'py-2',
-          px: 'px-6',
-          borderRadius: 'rounded-lg',
-        },
-      },
-      variants: {
-        filled: {
-          blue: {
-            hover: 'hover:shadow-lg hover:shadow-blue-500/40',
-            focus: 'focus:opacity-[0.85] focus:shadow-none',
-            active: 'active:opacity-[0.85] active:shadow-none',
-          },
-        },
-        outlined: {
-          blue: {
-            hover: 'hover:shadow-lg hover:shadow-blue-500/40',
-          },
-        },
-      },
-    },
-  },
-};
+/**
+ * Material Tailwind theme overrides (deep-merged with MT defaults in ThemeProvider).
+ * Only put values here that differ from the library defaults.
+ *
+ * We treat MT's "blue" color channel as brand (#2E3B4E) for Button, IconButton, and Switch.
+ */
+const brandButtonVariants = {
+	filled: {
+		blue: {
+			background: 'bg-brand',
+			color: 'text-white',
+			shadow: 'shadow-md shadow-brand/20',
+			hover: 'hover:bg-brand-hover hover:shadow-lg hover:shadow-brand/40',
+			focus: 'focus:opacity-[0.85] focus:shadow-none',
+			active: 'active:opacity-[0.85] active:shadow-none',
+		},
+	},
+	outlined: {
+		blue: {
+			border: 'border border-brand',
+			color: 'text-brand',
+			hover: 'hover:opacity-75',
+			focus: 'focus:ring focus:ring-brand/20',
+			active: 'active:opacity-[0.85]',
+		},
+	},
+	text: {
+		blue: {
+			color: 'text-brand',
+			hover: 'hover:bg-brand/10',
+			active: 'active:bg-brand/20',
+		},
+	},
+}
 
-export default style;
+const roundedMdSizes = {
+	sm: { borderRadius: 'rounded-md' },
+	md: { borderRadius: 'rounded-md' },
+	lg: { borderRadius: 'rounded-md' },
+}
+
+const style = {
+	typography: {
+		defaultProps: {
+			// Body copy (paragraph/small/etc). Brand headings use color="blue".
+			// Variant color classes lose to MT's color prop via twMerge, so set
+			// the default color channel here instead of on the paragraph variant.
+			color: 'gray',
+		},
+		styles: {
+			variants: {
+				paragraph: {
+					fontWeight: 'font-normal',
+					letterSpacing: 'tracking-normal',
+				},
+				small: {
+					fontSize: 'text-xs',
+					fontWeight: 'font-normal',
+					letterSpacing: 'tracking-wide',
+					lineHeight: 'leading-normal',
+				},
+				h1: {
+					fontSize: 'text-2xl',
+					fontWeight: 'font-extrabold',
+					letterSpacing: 'tracking-wider',
+					lineHeight: 'leading-8',
+				},
+				h2: {
+					fontSize: 'text-xl',
+					fontWeight: 'font-extrabold',
+					letterSpacing: 'tracking-wider',
+					lineHeight: 'leading-7',
+					margin: 'mt-6 mb-2',
+				},
+				h3: {
+					fontSize: 'text-lg',
+					fontWeight: 'font-extrabold',
+					letterSpacing: 'tracking-wider',
+					lineHeight: 'leading-7',
+					margin: 'mt-4 mb-2',
+				},
+				h4: {
+					fontSize: 'text-base',
+					fontWeight: 'font-extrabold',
+					letterSpacing: 'tracking-wider',
+					lineHeight: 'leading-6',
+					margin: 'mt-3 mb-1',
+				},
+				h5: {
+					fontSize: 'text-sm',
+					fontWeight: 'font-extrabold',
+					letterSpacing: 'tracking-wider',
+					lineHeight: 'leading-5',
+					margin: 'mt-3 mb-1',
+				},
+				h6: {
+					fontSize: 'text-sm',
+					fontWeight: 'font-extrabold',
+					letterSpacing: 'tracking-wider',
+					lineHeight: 'leading-5',
+					margin: 'mt-2 mb-1',
+				},
+			},
+			colors: {
+				blue: {
+					color: 'text-brand',
+					gradient: 'bg-gradient-to-tr from-brand to-brand-hover',
+				},
+				gray: {
+					color: 'text-gray-800',
+					gradient: 'bg-gradient-to-tr from-gray-600 to-gray-400',
+				},
+			},
+		},
+	},
+	button: {
+		defaultProps: {
+			// MT default color is "gray"; we treat "blue" as the brand channel.
+			color: 'blue',
+		},
+		styles: {
+			base: {
+				initial: {
+					textTransform: 'none',
+					fontWeight: 'font-normal',
+					letterSpacing: 'tracking-wide',
+				},
+			},
+			// Size styles override base for the same keys (and deep-merge keeps MT
+			// defaults if omitted) — set radius here so all sizes stay in sync.
+			sizes: roundedMdSizes,
+			variants: brandButtonVariants,
+		},
+	},
+	// IconButton keeps its own theme key; share brand variants with Button.
+	iconButton: {
+		defaultProps: {
+			color: 'blue',
+		},
+		styles: {
+			sizes: roundedMdSizes,
+			variants: brandButtonVariants,
+		},
+	},
+	// Switch reads theme.switch (the package exports this key as switchButton).
+	switch: {
+		defaultProps: {
+			color: 'blue',
+		},
+		styles: {
+			colors: {
+				blue: {
+					input: 'checked:bg-brand',
+					circle: 'peer-checked:border-brand',
+					before: 'peer-checked:before:bg-brand',
+				},
+			},
+		},
+	},
+}
+
+export default style
