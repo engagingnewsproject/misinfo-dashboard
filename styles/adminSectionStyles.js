@@ -7,10 +7,10 @@ const adminSectionStyles = {
 		'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
 	section_wrapper: 'flex flex-col h-full',
 	section_header: 'flex justify-between ml-10 md:mx-0 py-5',
-	section_title: 'text-xl font-extrabold text-blue-600 tracking-wider',
+	section_title: 'text-xl font-extrabold text-[#2E3B4E] tracking-wider',
 	section_filters: '',
 	section_filtersWrap: 'p-0 px-4 md:p-4 md:py-0 md:px-4 flex items-center',
-	table_main: 'min-w-full bg-white rounded-xl p-1',
+	table_main: 'min-w-full bg-white rounded-md p-1',
 	table_thead: 'border-b dark:border-indigo-100 bg-slate-100',
 	table_th: 'px-3 p-3 text-sm font-semibold text-left tracking-wide',
 	table_tr:

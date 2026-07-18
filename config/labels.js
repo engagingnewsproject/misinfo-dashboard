@@ -16,10 +16,10 @@ export const CUSTOM_LABEL_MAX_LENGTH = 40
 export const MAX_CUSTOM_LABELS = 6
 
 export const DEFAULT_LABEL_COLORS = {
-	'To Investigate': '#facc15',
-	Misinfo: '#ef4444',
-	'Not Misinfo': '#22c55e',
-	Other: '#9ca3af',
+	'To Investigate': '#071f31',
+	Misinfo: '#ba401d',
+	'Not Misinfo': '#95a8b5',
+	Other: '#d1dfea',
 }
 
 export const CUSTOM_LABEL_DEFAULT_COLOR = '#9ca3af'

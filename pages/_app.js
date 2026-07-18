@@ -20,6 +20,7 @@
  * @since 2024
  */
 import { useRouter } from "next/router"
+import { Inter } from "next/font/google"
 import ProtectedRoute from "../components/layout/ProtectedRoute"
 import { AuthContextProvider } from "../context/AuthContext"
 import "../styles/globals.css"
@@ -29,6 +30,12 @@ import { ThemeProvider } from "@material-tailwind/react"
 import style from '../styles/style.js'
 import Head from 'next/head'
 import LoadingSpinner from "../components/ui/LoadingSpinner"
+
+const inter = Inter({
+	subsets: ["latin"],
+	variable: "--font-inter",
+	display: "swap",
+})
 
 const noAuthRequired = ["/login", "/signup", "/resetPassword", "/testPage", "/privacy-policy"]
 // for testing page add '/testPage' above
@@ -46,8 +53,8 @@ const noAuthRequired = ["/login", "/signup", "/resetPassword", "/testPage", "/pr
 /** Fallback when Next.js passes undefined Component (e.g. during error or route resolve). */
 function FallbackPage() {
 	return (
-		<div className="w-screen h-screen flex flex-col justify-center items-center bg-sky-100 gap-3">
-			<LoadingSpinner className="h-12 w-12 text-blue-600" />
+		<div className="w-screen h-screen flex flex-col justify-center items-center bg-[#D3D3D3] gap-3">
+			<LoadingSpinner className="h-12 w-12 text-[#2E3B4E]" />
 			<p className="text-sm text-gray-600">Loading…</p>
 		</div>
 	)
@@ -69,7 +76,7 @@ function MyApp({ Component, pageProps }) {
 			</Head>
 			<ThemeProvider value={style}>
 				<AuthContextProvider>
-					<div className='bg-sky-100 w-full max-w-full overflow-x-hidden min-h-screen'>
+					<div className={`${inter.variable} font-sans bg-[#D3D3D3] w-full max-w-full overflow-x-hidden min-h-screen`}>
 						<div className='w-screen content-center'>
 							{noAuthRequired.includes(router.pathname) ? (
 								<SafeComponent {...pageProps} />

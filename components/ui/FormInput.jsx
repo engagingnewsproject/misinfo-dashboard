@@ -1,6 +1,7 @@
 import { Input } from '@material-tailwind/react'
 import {
   FORM_CONTROL_CONTAINER_PROPS,
+  FORM_CONTROL_DISABLED_LABEL_CLASS,
   FORM_CONTROL_FIELD_CLASS,
   FORM_CONTROL_LABEL_NOTCH_CLASS,
 } from './formFieldStyles'
@@ -68,6 +69,7 @@ const FormInput = ({
         className: [
           '!z-[1]',
           FORM_CONTROL_LABEL_NOTCH_CLASS,
+          FORM_CONTROL_DISABLED_LABEL_CLASS,
           AUTOFILL_LABEL_CLASS,
           labelProps?.className,
         ]
