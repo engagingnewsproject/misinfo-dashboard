@@ -159,7 +159,9 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
  * Updates state with the results for graph rendering.
  */
   const getDailyTopicReports = async() => {
-    // console.log("before date: " + dateRange[0].endDate.getTime())
+    // Agency-scoped rules reject unscoped list queries — never fetch until agencyId is known.
+    if (privilege === 'Agency' && !agencyId) return
+
     const days = Math.ceil((dateRange[0].endDate.getTime()- dateRange[0].startDate.getTime()) / 86400000)
     const array = getDates(days)
     
@@ -188,17 +190,12 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
           agencyId: agencyIdFilter,
           activeExperimentId,
         })
-        const dailyReports = await getDocs(queryDaily);
-
-
         try {
+          const dailyReports = await getDocs(queryDaily)
           numReports.push(dailyReports.size)
-          // console.log(selectedTopics[topic].value)
-          // console.log("day:" + array[0][index])
-          // console.log(dailyReports.size)
-        }
-        catch (error) {
-          console.log(error)
+        } catch (error) {
+          console.error('Comparison graph daily query failed:', error)
+          numReports.push(0)
         }
       }
 
@@ -323,12 +320,13 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     }	
   }, [graphData])
 
-  // On page load, populates graph with the given topics and date range.
-  useEffect (()=> {
-    if (loaded == false) {
-      getDailyTopicReports()
-    }
-  }, [loaded]);
+  // Fetch only after role resolution so agency queries include agencyId (matches rules).
+  useEffect(() => {
+    if (loaded !== false) return
+    if (!checkRole) return
+    if (privilege === 'Agency' && !agencyId) return
+    getDailyTopicReports()
+  }, [loaded, checkRole, privilege, agencyId]);
 
 
   // Configuration for React-ChartJS-2
