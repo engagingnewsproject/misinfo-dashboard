@@ -167,7 +167,7 @@ const Headbar = ({ search, setSearch}) => {
                     width={55} 
                     height={55} 
                     alt="agency logo" 
-                    className='w-auto'
+                    className="h-[55px] w-[55px] object-contain"
                 />
             )
         } else {
