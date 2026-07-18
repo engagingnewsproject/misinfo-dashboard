@@ -113,7 +113,7 @@ const VerifyEmail = () => {
 						{/* Agency-specific verification instructions */}
 						{userRole?.agency ? (
 							<div>
-								<p className="text-lg font-bold text-blue-600 tracking-wider pt-2">
+								<p className="text-lg font-bold text-[#2E3B4E] tracking-wider pt-2">
 									Email Verification
 								</p>
 

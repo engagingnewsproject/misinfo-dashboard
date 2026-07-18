@@ -353,7 +353,7 @@ const SignUp = () => {
 						<div className="bg-blue-600 p-7 rounded-full mb-2">
 							<GiMagnifyingGlass size={30} className="fill-white" />
 						</div>
-						<Typography variant="small" className='text-xs font-semibold text-blue-600'>Truth Sleuth Local</Typography>
+						<Typography variant="small" className='text-xs font-semibold text-[#2E3B4E]'>Truth Sleuth Local</Typography>
 					</div>
 					
 					{/* Signup form */}
@@ -528,14 +528,14 @@ const SignUp = () => {
 						{t('haveAccount')}
 						<Link
 							href="/login"
-							className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+							className="inline-block px-2 align-baseline font-bold text-sm text-[#2E3B4E] hover:text-blue-800">
 							{t('login_action')}
 						</Link>
 					</p>
 					
 					{/* Language switcher */}
 					<div className="flex justify-center items-center p-6 gap-1">
-						{/* <span className="text-blue-500 text-md uppercase font-bold py-2 px-2">{t("select")}</span> */}
+						{/* <span className="text-[#2E3B4E] text-md uppercase font-bold py-2 px-2">{t("select")}</span> */}
 						<LanguageSwitcher />
 					</div>
 					
@@ -543,7 +543,7 @@ const SignUp = () => {
 					<div className="privacy_policy flex justify-center items-center">
 						<Link
 							href="/privacy-policy"
-							className="text-blue-600 font-semibold hover:underline">
+							className="text-[#2E3B4E] font-semibold hover:underline">
 							Privacy Policy
 						</Link>
 					</div>

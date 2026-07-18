@@ -128,7 +128,7 @@ const ResetPassword = () => {
 						Already have an account?
 						<Link
 							href="/login"
-							className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+							className="inline-block px-2 align-baseline font-bold text-sm text-[#2E3B4E] hover:text-blue-800">
 							Log In
 						</Link>
 					</p>
