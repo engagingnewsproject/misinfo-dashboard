@@ -179,7 +179,7 @@ const Settings = () => {
       {tagSystem == 0 ?
       <div className="z-0 flex-col p-16">
         {customClaims.admin && <TagDefaultsSettings />}
-        <div className="mb-8 p-4 bg-white rounded-lg border border-blue-gray-100">
+        <div className="mb-8 p-6 bg-white rounded-lg border border-blue-gray-100">
           <div className={globalStyles.heading.h1.blue}>Tagging Systems</div>
           {agencyClaimsStatus === 'pending' && (
             <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
@@ -227,7 +227,7 @@ const Settings = () => {
                   <div className="font-light">Topic Tags</div>
                   <button
                       onClick={() => setTagSystem(1)}
-                      className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                      className="bg-[#D3D3D3] hover:bg-[#ebebeb] text-[#2E3B4E] font-normal py-2 px-6 border border-[#868686] rounded-md">
                       Edit Topics
                   </button>
               </div>
@@ -235,7 +235,7 @@ const Settings = () => {
                   <div className="font-light">Source Tags</div>
                   <button
                       onClick={() => setTagSystem(2)}
-                      className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                      className="bg-[#D3D3D3] hover:bg-[#ebebeb] text-[#2E3B4E] font-normal py-2 px-6 border border-[#868686] rounded-md">
                       Edit Sources
                   </button>
               </div>
@@ -244,7 +244,7 @@ const Settings = () => {
                   <div className="font-light">Labels</div>
                   <button
                       onClick={() => setTagSystem(3)}
-                      className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                      className="bg-[#D3D3D3] hover:bg-[#ebebeb] text-[#2E3B4E] font-normal py-2 px-6 border border-[#868686] rounded-md">
                       Edit Labels
                   </button>
                 </div>
@@ -253,7 +253,7 @@ const Settings = () => {
                   <div className="font-light">Customized Labels</div>
                   <button
                       onClick={() => setTagSystem(3)}
-                      className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
+                      className="bg-[#D3D3D3] hover:bg-[#ebebeb] text-[#2E3B4E] font-normal py-2 px-6 border border-[#868686] rounded-md">
                       Edit Labels
                   </button>
               </div> */}

@@ -150,7 +150,7 @@ function RequiredTagListEditor({ title, maxActive, tags, setTags }) {
 	return (
 		<div className="flex-1 min-w-[280px]">
 			<div className="flex items-baseline justify-between gap-2 mb-2">
-				<div className="font-medium text-blue-600">{title}</div>
+				<div className="font-medium text-[#2E3B4E]">{title}</div>
 				<div className="text-xs text-gray-500">
 					Maximum: {maxActive - 1} Tags (+Other)
 				</div>
@@ -258,7 +258,7 @@ function RequiredTagListEditor({ title, maxActive, tags, setTags }) {
 							<span className="flex items-center gap-1 shrink-0">
 								<button
 									type="button"
-									className="text-blue-600 hover:text-blue-800 p-1"
+									className="text-[#2E3B4E] hover:text-blue-800 p-1"
 									aria-label={`Edit ${tag.id}`}
 									onClick={() => startEdit(tag)}>
 									<MdModeEditOutline size={18} />
@@ -420,14 +420,14 @@ const TagDefaultsSettings = () => {
 
 	if (loading) {
 		return (
-			<div className="mb-8 p-4 bg-white rounded-lg border border-blue-gray-100">
+			<div className="mb-8 p-6 bg-white rounded-lg border border-blue-gray-100">
 				<Typography>Loading global tag defaults…</Typography>
 			</div>
 		)
 	}
 
 	return (
-		<div className="mb-8 p-4 bg-white rounded-lg border border-blue-gray-100">
+		<div className="mb-8 p-6 bg-white rounded-lg border border-blue-gray-100">
 			<div className={globalStyles.heading.h1.blue}>Global Tag Defaults</div>
 			<p className="text-sm text-gray-600 mb-4">
 				These Topic and Source tags are required for every newsroom. Agencies

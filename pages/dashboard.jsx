@@ -121,9 +121,9 @@ const Dashboard = () => {
 				{/* Render the AgencyReportModal */}
 				{newReportModal && (
 					<AgencyReportModal
+						open={newReportModal}
 						setNewReportModal={setNewReportModal}
 						handleNewReportSubmit={handleNewReportSubmit}
-						customClaims={customClaims}
 					/>
 				)}
 			</div>

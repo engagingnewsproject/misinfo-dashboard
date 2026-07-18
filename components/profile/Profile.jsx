@@ -442,7 +442,7 @@ const Profile = ({ customClaims }) => {
    */
   const languageToggle = () => (
     <div className="flex justify-between mx-0 my-6 tracking-normal items-center">
-      <div className="text-xl font-extrabold text-blue-600">
+      <div className="text-xl font-extrabold text-[#2E3B4E]">
         {t('selectLanguage')}
       </div>
       <div>
@@ -469,11 +469,11 @@ const Profile = ({ customClaims }) => {
       </div>
       <div className="flex justify-between tracking-normal items-center">
         <div className="font-light mr-4">{t('delete')}</div>
-        <button
+        <Button
           onClick={() => setDeleteModal(true)}
-          className="bg-sky-100 hover:bg-red-200 text-red-600 font-normal py-2 px-6 border border-red-600 rounded-xl">
+          variant="outlined" color="red" type="button">
           {t('request')}
-        </button>
+        </Button>
       </div>
     </div>
   )

@@ -432,7 +432,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   return (
     <div>
           {/* Once user selects the topics and date range, graph of topic reports will be plotted. */}
-          <div className="bg-white rounded-xl mt-6 py-5">
+          <div className="bg-white rounded-md mt-6 py-5">
           <ComparisonGraphMenu dateRange={dateRange} setDateRange={setDateRange} 
               selectedTopics={selectedTopics} setSelectedTopics={setSelectedTopics}
               listTopicChoices={topicList} tab={tab} setTab={setTab}
@@ -445,7 +445,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
             {loaded &&	
             <div className="m-auto">	
               {/* Displays graph once data is collected for the topics. */}	
-              <div className="text-xl lg:text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Topic Reports - {formatDates()}</div>	
+              <div className="text-xl lg:text-2xl font-bold text-[#2E3B4E] pt-6 tracking-wider text-center ">Topic Reports - {formatDates()}</div>	
               <div className="relative z-10 lg:pl-20 lg:pr-20 overflow-x-auto max-h-[340px] min-h-[220px]">
                 <Line height={280} options={options} data={graphData} />
               </div>	

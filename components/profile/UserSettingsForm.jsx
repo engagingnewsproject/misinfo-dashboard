@@ -5,7 +5,7 @@
  * location editors. Logout lives outside this card.
  */
 import React, { useRef, useState } from 'react'
-import { Button } from '@material-tailwind/react'
+import { Button, Typography } from '@material-tailwind/react'
 import { useTranslation } from 'next-i18next'
 import LocationUpdate from '../partials/forms/LocationUpdate'
 
@@ -53,11 +53,11 @@ const UserSettingsForm = ({
   }
 
   return (
-    <section className="mb-8 p-4 bg-white rounded-lg border border-blue-gray-100">
+    <section className="user-settings-form mb-8 p-6 bg-white rounded-md">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-xl font-extrabold text-blue-600 tracking-wider">
+        <Typography variant="h2" color="blue" className="mt-0 mb-0">
           {t('account')}
-        </h1>
+        </Typography>
         {isEditing ? (
           <div className="flex gap-2 shrink-0">
             <Button
