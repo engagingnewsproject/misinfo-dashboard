@@ -62,12 +62,8 @@ env:
       - BUILD
       - RUNTIME
 
-  # Optional: only for dev/debug; omit or use a separate backend for production
-  - variable: NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN
-    secret: NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN
-    availability:
-      - BUILD
-      - RUNTIME
+  # Do NOT set NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN on this production backend.
+  # Debug tokens are for local/dev only (see config/firebase.js + local .env).
 
   # Set to your App Hosting URL (or custom domain) after first deploy; used for auth email links
   - variable: NEXT_PUBLIC_APP_URL
