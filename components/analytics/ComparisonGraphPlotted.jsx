@@ -86,9 +86,14 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   const { verifyRole, refreshCustomClaims, customClaims } = useAuth() // Auth context
   const agencyClaimsRefreshAttempted = useRef(false)
 
+  // Futuristic Robot palette (dark → light for contrast on white chart bg)
   const palette = [
-    '#2563EB', '#A855F7', '#22C55E', '#F59E0B', '#0EA5E9', '#EF4444', '#14B8A6',
-    '#F97316', '#8B5CF6', '#10B981', '#6366F1', '#EC4899', '#84CC16', '#06B6D4'
+    '#071C2C', // Trapped Darkness
+    '#103A54', // Gibraltar Sea
+    '#315D77', // Berry Blue
+    '#688390', // Blue Prince
+    '#A2AAA4', // Ginkgo Green
+    '#DBDDD5', // Pacific Fog
   ]
 
   // Keep topic colors consistent even if the selection order changes.
