@@ -73,7 +73,15 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
   // --- Validation state ---
   const [topicError, setTopicError] = useState(false) // Error state for topic selection
   const [dateError, setDateError] = useState(false) // Error state for date selection
-  const [dateRangeSelected, setDateRangeSelected] = useState(false) // Whether the user actively picked dates
+
+  const getDaysSelected = (range = dateRange[0]) =>
+    ((range.endDate - range.startDate) / (1000 * 60 * 60 * 24)) + 1
+
+  // Valid comparison window: 3–30 days inclusive (matches graph refresh rules).
+  const isValidDateRange = (range = dateRange[0]) => {
+    const daysSelected = getDaysSelected(range)
+    return daysSelected > 2 && daysSelected < 31
+  }
 
   /**
    * Handles the selection of a new date range.
@@ -83,11 +91,7 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
   const handleDateSelection = (item) => {
     if (item.selection.endDate !== item.selection.startDate) {
       setDateRange([item.selection])
-      const daysSelected = ((item.selection.endDate  - item.selection.startDate)/(1000*60*60*24)) + 1
-      setDateRangeSelected(true)
-      if (daysSelected > 2 && daysSelected < 31) {
-        setDateError(false)
-      }
+      setDateError(!isValidDateRange(item.selection))
     } 
   }
 
@@ -105,8 +109,7 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
    * Sets error state if invalid.
    */
   const handleGraphChange = () => {
-    const daysSelected = ((dateRange[0].endDate - dateRange[0].startDate)/(1000*60*60*24)) + 1
-    if (daysSelected > 2 && daysSelected < 31) {
+    if (isValidDateRange()) {
       setTab(4)
       setDateError(false)
     } else {
@@ -123,7 +126,6 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
       setTopicError(true)
     } else  {
       setTopicError(false)
-      setDateRangeSelected(false)
       setTab(1)
     }
   }
@@ -157,6 +159,7 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
   const animatedComponents = makeAnimated();
 
   const canProceedToDates = selectedTopics.length > 0
+  const canProceedToGraph = isValidDateRange()
 
   return (
     <div className="relative h-full lg:h-1/2">
@@ -240,7 +243,7 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
                     </div>
                    
                 </div>
-                {dateRangeSelected &&
+                {canProceedToGraph &&
                   <Button
                     size="sm"
                     variant="outlined"
