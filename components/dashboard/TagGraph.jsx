@@ -166,35 +166,48 @@ const TagGraph = () => {
 	}
 
 	/**
+	 * Reads createdDate from a report doc as epoch ms.
+	 * @param {unknown} created
+	 * @returns {number|null}
+	 */
+	const createdDateToMs = (created) => {
+		if (!created) return null
+		if (typeof created.toMillis === 'function') return created.toMillis()
+		if (typeof created.seconds === 'number') {
+			return (
+				created.seconds * 1000 +
+				Math.floor((created.nanoseconds || 0) / 1e6)
+			)
+		}
+		const ms = Number(created)
+		return Number.isFinite(ms) ? ms : null
+	}
+
+	/**
 	 * Fetches and processes topic report data for visualization.
-	 * 
-	 * This function retrieves report data from Firestore, filters by user role
-	 * and time periods, and processes the data to identify trending topics.
-	 * It handles both agency-specific and system-wide data aggregation.
-	 * 
+	 *
+	 * One range query for the past 7 days, then buckets counts client-side into
+	 * yesterday / 3-day / 7-day windows (avoids topics × 3 sequential reads).
+	 *
 	 * @returns {Promise<void>} Resolves when all data is processed
-	 * @throws {Error} When data fetching or processing fails
 	 */
 	async function getTopicReports() {
 		setLoading(true)
 		const experimentConfig = await fetchExperimentConfig()
 		const activeExperimentId = getActiveExperimentId(experimentConfig)
-		
+
 		// Fetch topics based on user privilege
 		let tempTopics = []
 		if (privilege === 'Agency') {
-			// Retrieve agency-specific topics
 			const topicDoc = doc(db, 'tags', agencyId)
 			const topicRef = await getDoc(topicDoc)
 			tempTopics = topicRef.get('Topic')['active']
 			setTopics(tempTopics)
 		} else {
 			try {
-				// Retrieve all system-wide topics
 				const tags = await FirebaseHelper.fetchAllRecordsOfCollection('tags')
 				const allActiveTopics = tags.map((tag) => tag.Topic.active)
 				const combinedTopics = allActiveTopics.flat()
-				// Remove duplicates
 				tempTopics = [...new Set(combinedTopics)]
 				setTopics(tempTopics)
 			} catch (error) {
@@ -206,78 +219,74 @@ const TagGraph = () => {
 			setLoading(false)
 			return
 		}
-		
-		// Initialize arrays for different time periods
-		const topicsYesterday = []
-		const topicsThreeDays = []
-		const topicsSevenDays = []
 
-		// Process each topic for different time periods
-		for (let index = 0; index < tempTopics.length; index++) {
-			const agencyIdFilter =
-				privilege === 'Agency' ? agencyId : undefined
+		const activeTopicSet = new Set(tempTopics)
+		const agencyIdFilter = privilege === 'Agency' ? agencyId : undefined
+		const rangeFrom = getStartOfDay(7)
+		const rangeTo = getEndOfDay()
+		const yesterdayFromMs = getStartOfDay(1).toMillis()
+		const threeDaysFromMs = getStartOfDay(3).toMillis()
+		const sevenDaysFromMs = rangeFrom.toMillis()
+		const rangeToMs = rangeTo.toMillis()
 
-			const queryYesterday = buildActiveReportsQuery({
-				topic: tempTopics[index],
-				dateFrom: getStartOfDay(1),
-				dateTo: getEndOfDay(),
-				agencyId: agencyIdFilter,
-				activeExperimentId,
-			})
-			const dataYesterday = await getDocs(queryYesterday)
+		const countsYesterday = new Map()
+		const countsThreeDays = new Map()
+		const countsSevenDays = new Map()
 
-			const queryThreeDays = buildActiveReportsQuery({
-				topic: tempTopics[index],
-				dateFrom: getStartOfDay(3),
-				dateTo: getEndOfDay(),
-				agencyId: agencyIdFilter,
-				activeExperimentId,
-			})
-			const dataThreeDays = await getDocs(queryThreeDays)
-
-			const querySevenDays = buildActiveReportsQuery({
-				topic: tempTopics[index],
-				dateFrom: getStartOfDay(7),
-				dateTo: getEndOfDay(),
-				agencyId: agencyIdFilter,
-				activeExperimentId,
-			})
-			const dataSevenDays = await getDocs(querySevenDays)
-
-			// Add topics with reports to respective arrays
-			if (dataYesterday.size !== 0) {
-				topicsYesterday.push([tempTopics[index], dataYesterday.size])
-			}
-			if (dataThreeDays.size !== 0) {
-				topicsThreeDays.push([tempTopics[index], dataThreeDays.size])
-			}
-			if (dataSevenDays.size !== 0) {
-				topicsSevenDays.push([tempTopics[index], dataSevenDays.size])
-			}
+		const bump = (map, topic) => {
+			map.set(topic, (map.get(topic) || 0) + 1)
 		}
-		
+
+		try {
+			const rangeQuery = buildActiveReportsQuery({
+				dateFrom: rangeFrom,
+				dateTo: rangeTo,
+				agencyId: agencyIdFilter,
+				activeExperimentId,
+			})
+			const snapshot = await getDocs(rangeQuery)
+
+			for (const reportDoc of snapshot.docs) {
+				const data = reportDoc.data()
+				const topic = data?.topic
+				if (!topic || !activeTopicSet.has(topic)) continue
+
+				const ms = createdDateToMs(data?.createdDate)
+				if (ms === null || ms < sevenDaysFromMs || ms >= rangeToMs) continue
+
+				bump(countsSevenDays, topic)
+				if (ms >= threeDaysFromMs) bump(countsThreeDays, topic)
+				if (ms >= yesterdayFromMs) bump(countsYesterday, topic)
+			}
+		} catch (error) {
+			console.error('Overview graph range query failed:', error)
+		}
+
+		const toPairs = (map) =>
+			[...map.entries()].filter(([, count]) => count > 0)
+
+		const topicsYesterday = toPairs(countsYesterday)
+		const topicsThreeDays = toPairs(countsThreeDays)
+		const topicsSevenDays = toPairs(countsSevenDays)
+
 		// Determine number of trending topics to display (max 3)
-		const numTopics = []
-		const numTopicsYesterday = topicsYesterday.length > 2 ? 3 : topicsYesterday.length
-		numTopics.push(numTopicsYesterday)
-		const numTopicsThreeDays = topicsThreeDays.length > 2 ? 3 : topicsThreeDays.length
-		numTopics.push(numTopicsThreeDays)
-		const numTopicsSevenDays = topicsSevenDays.length > 2 ? 3 : topicsSevenDays.length
-		numTopics.push(numTopicsSevenDays)
-		
+		const numTopics = [
+			topicsYesterday.length > 2 ? 3 : topicsYesterday.length,
+			topicsThreeDays.length > 2 ? 3 : topicsThreeDays.length,
+			topicsSevenDays.length > 2 ? 3 : topicsSevenDays.length,
+		]
+
 		setNumTrendingTopics(numTopics)
-		
-		// Sort topics by report count (descending) and limit to top 3
+
 		const sortedYesterday = [...topicsYesterday].sort((a, b) => b[1] - a[1]).slice(0, numTopics[0])
 		const sortedThreeDays = [...topicsThreeDays].sort((a, b) => b[1] - a[1]).slice(0, numTopics[1])
 		const sortedSevenDays = [...topicsSevenDays].sort((a, b) => b[1] - a[1]).slice(0, numTopics[2])
-		
-		// Prepare data for visualization with header row
+
 		const trendingTopics = [["Topics", "Number Reports"]]
 		setYesterdayReports(trendingTopics.concat(sortedYesterday))
 		setThreeDayReports(trendingTopics.concat(sortedThreeDays))
 		setSevenDayReports(trendingTopics.concat(sortedSevenDays))
-		
+
 		setLoaded(true)
 		setLoading(false)
 	}
