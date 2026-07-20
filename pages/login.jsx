@@ -226,10 +226,12 @@ const Login = () => {
 									<input
 										type="checkbox"
 										name="remember-me"
-										className="form-checkbox rounded-sm border-transparent focus:border-transparent focus:ring-0"
-										onChange={handleChange}
+										id="remember-me"
+										className="form-checkbox rounded-sm border-gray-400 text-[#2E3B4E] focus:ring-[#2E3B4E]"
 									/>
-									<span className="text-sm p-2">{t('remember')}</span>
+									<label htmlFor="remember-me" className="text-sm p-2">
+										{t('remember')}
+									</label>
 								</div>
 								<Link
 									href="/resetPassword"

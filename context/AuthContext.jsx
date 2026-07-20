@@ -72,6 +72,8 @@ export const AuthContextProvider = ({children}) => {
 
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
+    /** False until the first ID-token claims read finishes (or sign-out clears them). */
+    const [claimsReady, setClaimsReady] = useState(false)
     const [userRole, setUserRole] = useState('user')
     const [customClaims, setCustomClaims] = useState({
         agency: false,
@@ -152,42 +154,62 @@ export const AuthContextProvider = ({children}) => {
 
     /**
      * Effect hook to monitor authentication state changes.
-     * 
-     * This effect sets up a listener for Firebase authentication state changes.
-     * When a user signs in, it fetches their location data, sets up user state,
-     * and verifies their custom claims for role-based access control.
+     *
+     * Sets React `user` as soon as Firebase Auth reports a session (so route
+     * guards do not bounce a successful login). Location id and custom claims
+     * are loaded afterward without blocking that initial setUser.
      */
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Fetch location data for user identification
-                const ref = await getDoc(doc(db, "locations", "Texas"))
-                const localId = ref.data()['Austin']
-                
+                // Set auth user immediately so login → /dashboard is not bounced by
+                // ProtectedRoute while Firestore/App Check are still warming up.
+                const cachedLocalId =
+                    typeof window !== 'undefined'
+                        ? localStorage.getItem('userId')
+                        : null
                 setUser({
-                    uid: localId, // Local identifier for user tracking
+                    uid: cachedLocalId || user.uid,
                     accountId: user.uid,
                     displayName: user.displayName,
-                    email: user.email
+                    email: user.email,
                 })
-                localStorage.setItem("userId", localId)
-                
-                // Verify user's custom claims for role-based access (includes agencyId)
+                setClaimsReady(false)
+                setLoading(false)
+
+                // Custom claims (includes agencyId) — non-blocking
                 user.getIdTokenResult(true)
                     .then((idTokenResult) => {
-                        const next = normalizeCustomClaims(idTokenResult.claims)
-                        setCustomClaims(next)
+                        setCustomClaims(normalizeCustomClaims(idTokenResult.claims))
                     })
                     .catch((error) => {
-                        console.log("Error fetching custom claims:", error);
-                    });
-              
+                        console.log('Error fetching custom claims:', error)
+                    })
+                    .finally(() => {
+                        setClaimsReady(true)
+                    })
+
+                // Local tracking id from locations/Texas — non-blocking
+                getDoc(doc(db, 'locations', 'Texas'))
+                    .then((ref) => {
+                        const localId = ref.data()?.['Austin']
+                        if (!localId) return
+                        localStorage.setItem('userId', localId)
+                        setUser((prev) =>
+                            prev && prev.accountId === user.uid
+                                ? { ...prev, uid: localId }
+                                : prev,
+                        )
+                    })
+                    .catch((error) => {
+                        console.log('Error fetching location id:', error)
+                    })
             } else {
-                // Clear user state when signed out
                 setUser(null)
                 setCustomClaims(normalizeCustomClaims(null))
+                setClaimsReady(true)
+                setLoading(false)
             }
-            setLoading(false)
         })
         return () => unsubscribe()
     }, [])
@@ -521,6 +543,8 @@ export const AuthContextProvider = ({children}) => {
     return (
         <AuthContext.Provider value={{
             user,
+            loading,
+            claimsReady,
             customClaims,
             setCustomClaims,
             functionsReady: !!functionsInstance,

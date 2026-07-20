@@ -20,8 +20,7 @@
  */
 
 import { useRouter } from 'next/router'
-import React from 'react'
-import { useState, useEffect } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import Home from '../components/dashboard/Home'
 import Profile from '../components/profile/Profile'
 import Settings from '../components/admin/Settings'
@@ -34,6 +33,34 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import Head from 'next/head'
 import HelpRequests from '../components/admin/HelpRequests'
 
+/** Stable view names synced to `?view=` so refresh restores the active tab. */
+const VIEW_BY_TAB = [
+	'home',
+	'profile',
+	'settings',
+	'users',
+	'agencies',
+	'help',
+]
+
+/**
+ * Whether a tab index is allowed for the given claims.
+ *
+ * @param {number} tabIndex
+ * @param {{admin: boolean, agency: boolean}} claims
+ * @returns {boolean}
+ */
+function isTabAllowed(tabIndex, claims) {
+	if (tabIndex === 1) return true
+	if (tabIndex === 0 || tabIndex === 2 || tabIndex === 3) {
+		return !!(claims.admin || claims.agency)
+	}
+	if (tabIndex === 4 || tabIndex === 5) {
+		return !!claims.admin
+	}
+	return false
+}
+
 /**
  * Dashboard Page
  *
@@ -42,47 +69,89 @@ import HelpRequests from '../components/admin/HelpRequests'
  * @returns {JSX.Element} The rendered dashboard page
  */
 const Dashboard = () => {
-	const {
-		user,
-		logout,
-		customClaims,
-		verifyPrivilege,
-		changeRole,
-		addAdminRole,
-		addAgencyRole,
-		viewRole,
-	} = useAuth()
-	const [tab, setTab] = useState(0)
+	const { customClaims, claimsReady } = useAuth()
 	const router = useRouter()
 
 	const [agencyUpdateSubmitted, setAgencyUpdateSubmitted] = useState(0)
 
-	const [newReportModal,setNewReportModal] = useState(false)
-	const [newReportSubmitted,setNewReportSubmitted] = useState(0)
+	const [newReportModal, setNewReportModal] = useState(false)
+	const [newReportSubmitted, setNewReportSubmitted] = useState(0)
 
 	const handleNewReportSubmit = () => {
-		// increment the newReportSubmitted
 		setNewReportSubmitted((prevState) => prevState + 1)
 		setNewReportModal(false)
 	}
 
 	const handleNewReportClick = () => {
-		setNewReportModal(true) // Open the modal when the button is clicked
+		setNewReportModal(true)
 	}
 
 	const handleAgencyUpdateSubmit = () => {
-		// increment the agencyUpdateSubmitted
 		setAgencyUpdateSubmitted((prevState) => prevState + 1)
 	}
 
+	const viewFromQuery = useMemo(() => {
+		const raw = router.query.view
+		return typeof raw === 'string' ? raw : null
+	}, [router.query.view])
+
+	const tab = useMemo(() => {
+		const idx = viewFromQuery ? VIEW_BY_TAB.indexOf(viewFromQuery) : -1
+		return idx >= 0 ? idx : 0
+	}, [viewFromQuery])
+
+	const setTab = useCallback(
+		(nextTab) => {
+			const view = VIEW_BY_TAB[nextTab] ?? 'home'
+			if (viewFromQuery === view) return
+			router.replace(
+				{
+					pathname: router.pathname,
+					query: { ...router.query, view },
+				},
+				undefined,
+				{ shallow: true },
+			)
+		},
+		[router, viewFromQuery],
+	)
+
+	// Persist / restore view via URL; only clamp roles after claims are known.
+	// (Previously an effect treated the default {admin:false,agency:false} as
+	// "regular user" and forced Profile on every refresh before claims loaded.)
 	useEffect(() => {
-		// AuthContext owns customClaims (including agencyId). Gate the home tab from
-		// claims state — avoid auth.currentUser?.getIdTokenResult().then(...) which
-		// throws when currentUser is null (optional chain yields undefined).
-		if (!customClaims.admin && !customClaims.agency) {
-			setTab(1)
+		if (!router.isReady || !claimsReady) return
+
+		const isPrivileged = !!(customClaims.admin || customClaims.agency)
+		const requestedIdx = viewFromQuery
+			? VIEW_BY_TAB.indexOf(viewFromQuery)
+			: -1
+
+		let nextIdx = requestedIdx
+		if (nextIdx < 0 || !isTabAllowed(nextIdx, customClaims)) {
+			nextIdx = isPrivileged ? 0 : 1
 		}
-	}, [customClaims.admin, customClaims.agency])
+
+		const nextView = VIEW_BY_TAB[nextIdx]
+		if (viewFromQuery !== nextView) {
+			router.replace(
+				{
+					pathname: router.pathname,
+					query: { ...router.query, view: nextView },
+				},
+				undefined,
+				{ shallow: true },
+			)
+		}
+	}, [
+		router,
+		router.isReady,
+		claimsReady,
+		customClaims,
+		customClaims.admin,
+		customClaims.agency,
+		viewFromQuery,
+	])
 
 	return (
 		<>
@@ -135,12 +204,10 @@ export default Dashboard
 
 /* Allows us to retrieve the json files from the pubic folder so that we can translate on the component pages*/
 export async function getStaticProps(context) {
-	// extract the locale identifier from the URL
 	const { locale } = context
 
 	return {
 		props: {
-			// pass the translation props to the page component
 			...(await serverSideTranslations(locale, [
 				'Home',
 				'Report',
