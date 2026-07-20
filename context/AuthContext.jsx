@@ -517,11 +517,12 @@ export const AuthContextProvider = ({children}) => {
      * await sendSignIn('user@example.com');
      */
     const sendSignIn = async (email) => {
-        // Base URL for email action links: localhost in dev, NEXT_PUBLIC_APP_URL in production (e.g. Firebase Hosting URL)
-        const isLocalhost = window.location.hostname === 'localhost';
-        const baseUrl = isLocalhost
-            ? 'http://localhost:3000/signup'
-            : (process.env.NEXT_PUBLIC_APP_URL || 'https://truthsleuthlocal.netlify.app') + '/signup';
+        // Continue URL for email action links: current origin in browser, else configured app URL
+        const origin =
+            typeof window !== 'undefined' && window.location?.origin
+                ? window.location.origin
+                : (process.env.NEXT_PUBLIC_APP_URL || 'https://truthsleuthlocal.netlify.app')
+        const baseUrl = `${origin.replace(/\/$/, '')}/signup`
 
         const actionCodeSettings = {
             url: baseUrl,

@@ -53,7 +53,7 @@ const Login = () => {
 
   const { t } = useTranslation('Welcome');
 
-  const { user, login, verifyEmail, addAgencyRole } = useAuth()
+  const { user, login, verifyEmail, addAgencyRole, refreshCustomClaims } = useAuth()
   const [data, setData] = useState({
     email: '',
     password: '',
@@ -62,7 +62,6 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState()
   const [loading, setLoading] = useState(false)
 	// password show/hide
-  const [password, setPassword] = useState("")
   const [type, setType] = useState('password')
   const [icon, setIcon] = useState(false)
   // handle the toggle between the hide password (eyeOff icon) and the show password (eye icon)
@@ -106,7 +105,8 @@ const Login = () => {
           if (!querySnapshot.empty) {
             const agencyId = querySnapshot.docs[0].id
             await addAgencyRole({ email: data.email, agencyId })
-            await auth.currentUser.getIdToken(true)
+            // Sync React customClaims (not just the Firebase token) before dashboard
+            await refreshCustomClaims()
             console.log(`${data.email} has been made an agency user`)
             await router.push('/dashboard')
             return
@@ -121,10 +121,7 @@ const Login = () => {
         // Email not verified, send verification email and redirect
         // console.log("Email not verified. Sending verification email...")
         await verifyEmail(auth.currentUser)
-        const isLocalhost = window.location.hostname === 'localhost';
-        const verifyEmailRoute = isLocalhost ? "http://localhost:3000/verifyEmail" : "/verifyEmail";
-
-        await router.push(verifyEmailRoute);
+        await router.push('/verifyEmail')
       }
 
     } catch (error) {
@@ -149,15 +146,11 @@ const Login = () => {
   }
 
   const handleChange = (e) => {
-    // console.log("Before state update:", data); // Log state before update
-    setPassword(e.target.value)
-    // setData({ ...data, [e.target.id]: e.target.value})
-    const { id, value } = e.target;
-    setData(prevData => ({
+    const { id, value } = e.target
+    setData((prevData) => ({
       ...prevData,
-      [id]: value
-    }));
-    // console.log("After state update:", data); // Log state after update
+      [id]: value,
+    }))
   }
 
 
