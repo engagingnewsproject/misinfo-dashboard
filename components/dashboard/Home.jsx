@@ -20,7 +20,6 @@ import Headbar from '../layout/Headbar'
 import ReportsSection from '../reports/ReportsSection'
 import TagGraph from './TagGraph'
 import { useAuth } from '../../context/AuthContext'
-import { auth } from '../../config/firebase'
 import globalStyles from '../../styles/globalStyles'
 
 /**
@@ -47,18 +46,7 @@ const Home = ({ newReportSubmitted, handleNewReportSubmit, handleNewReportClick 
 	// Search state for filtering reports
 	const [search, setSearch] = useState('')
 	
-	// Authentication context for user data and permissions
-	const {
-		user,
-		customClaims,
-		setCustomClaims,
-		logout,
-		verifyPrivilege,
-		changeRole,
-		addAdminRole,
-		addAgencyRole,
-		viewRole,
-	} = useAuth()
+	const { user, customClaims } = useAuth()
 	
 	/**
 	 * Memoized search value to optimize component re-renders.
