@@ -445,7 +445,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
 
             {/* Displays graph once data is collected for the topics. */}
 		
-            {loaded &&	
+            {loaded ?	
             <div className="m-auto">	
               {/* Displays graph once data is collected for the topics. */}	
               <div className="text-xl lg:text-2xl font-bold text-[#2E3B4E] pt-6 tracking-wider text-center ">Topic Reports - {formatDates()}</div>	
@@ -453,7 +453,11 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
                 <Line height={280} options={options} data={graphData} />
               </div>	
             </div>	
-            }	
+            : (
+            <div className="flex flex-col items-center justify-center min-h-[220px] pt-6 text-[#2E3B4E]">
+              <p className="text-sm text-gray-500">Loading report data for selected topics…</p>
+            </div>
+            )}	
         </div>
     </div>
   )
