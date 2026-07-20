@@ -72,6 +72,8 @@ export const AuthContextProvider = ({children}) => {
 
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
+    /** False until the first ID-token claims read finishes (or sign-out clears them). */
+    const [claimsReady, setClaimsReady] = useState(false)
     const [userRole, setUserRole] = useState('user')
     const [customClaims, setCustomClaims] = useState({
         agency: false,
@@ -172,6 +174,7 @@ export const AuthContextProvider = ({children}) => {
                     displayName: user.displayName,
                     email: user.email,
                 })
+                setClaimsReady(false)
                 setLoading(false)
 
                 // Custom claims (includes agencyId) — non-blocking
@@ -181,6 +184,9 @@ export const AuthContextProvider = ({children}) => {
                     })
                     .catch((error) => {
                         console.log('Error fetching custom claims:', error)
+                    })
+                    .finally(() => {
+                        setClaimsReady(true)
                     })
 
                 // Local tracking id from locations/Texas — non-blocking
@@ -201,6 +207,7 @@ export const AuthContextProvider = ({children}) => {
             } else {
                 setUser(null)
                 setCustomClaims(normalizeCustomClaims(null))
+                setClaimsReady(true)
                 setLoading(false)
             }
         })
@@ -537,6 +544,7 @@ export const AuthContextProvider = ({children}) => {
         <AuthContext.Provider value={{
             user,
             loading,
+            claimsReady,
             customClaims,
             setCustomClaims,
             functionsReady: !!functionsInstance,
