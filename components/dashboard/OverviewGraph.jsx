@@ -48,9 +48,9 @@ const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayRepor
   // console.log(date)
   const options = {
     slices: {
-      0: { color: '#F6413A' },
-      1: { color: '#FFCA29' },
-      2: { color: '#2196F3'}
+      0: { color: '#071C2C' }, // Trapped Darkness — largest
+      1: { color: '#688390' }, // Blue Prince — middle
+      2: { color: '#A2AAA4' }, // Ginkgo Green — smallest
     },
     legend: {backgroundColor: 'white'},
     backgroundColor: 'none',

@@ -43,6 +43,7 @@ import {
   getActiveExperimentId,
 } from '../../utils/reports-queries'
 import ComparisonGraphMenu from './ComparisonGraphMenu'
+import { Spinner, Typography } from '@material-tailwind/react'
 
 import _ from "lodash";
 
@@ -86,9 +87,14 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   const { verifyRole, refreshCustomClaims, customClaims } = useAuth() // Auth context
   const agencyClaimsRefreshAttempted = useRef(false)
 
+  // Futuristic Robot palette (dark → light for contrast on white chart bg)
   const palette = [
-    '#2563EB', '#A855F7', '#22C55E', '#F59E0B', '#0EA5E9', '#EF4444', '#14B8A6',
-    '#F97316', '#8B5CF6', '#10B981', '#6366F1', '#EC4899', '#84CC16', '#06B6D4'
+    '#071C2C', // Trapped Darkness
+    '#103A54', // Gibraltar Sea
+    '#315D77', // Berry Blue
+    '#688390', // Blue Prince
+    '#A2AAA4', // Ginkgo Green
+    '#DBDDD5', // Pacific Fog
   ]
 
   // Keep topic colors consistent even if the selection order changes.
@@ -155,16 +161,57 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   }
 
   /**
+   * bucketCountsByDay - Counts reports into per-day buckets using day-boundary Timestamps.
+   * Day i is [dayBounds[i], dayBounds[i + 1]).
+   * @param {import('firebase/firestore').QueryDocumentSnapshot[]} docs
+   * @param {import('firebase/firestore').Timestamp[]} dayBounds
+   * @returns {number[]}
+   */
+  const bucketCountsByDay = (docs, dayBounds) => {
+    const numDays = dayBounds.length - 1
+    const counts = new Array(numDays).fill(0)
+    const boundMs = dayBounds.map((t) => t.toMillis())
+
+    for (const reportDoc of docs) {
+      const created = reportDoc.data()?.createdDate
+      if (!created) continue
+      let ms
+      if (typeof created.toMillis === 'function') {
+        ms = created.toMillis()
+      } else if (typeof created.seconds === 'number') {
+        ms =
+          created.seconds * 1000 +
+          Math.floor((created.nanoseconds || 0) / 1e6)
+      } else {
+        ms = Number(created)
+      }
+      if (!Number.isFinite(ms)) continue
+
+      for (let i = 0; i < numDays; i++) {
+        if (ms >= boundMs[i] && ms < boundMs[i + 1]) {
+          counts[i] += 1
+          break
+        }
+      }
+    }
+    return counts
+  }
+
+  /**
  * getDailyTopicReports - Fetches and aggregates report counts for each topic and date in the range.
- * Updates state with the results for graph rendering.
+ * One range query per topic (parallel), then buckets counts by day client-side.
  */
   const getDailyTopicReports = async() => {
-    // console.log("before date: " + dateRange[0].endDate.getTime())
+    // Agency-scoped rules reject unscoped list queries — never fetch until agencyId is known.
+    if (privilege === 'Agency' && !agencyId) return
+
     const days = Math.ceil((dateRange[0].endDate.getTime()- dateRange[0].startDate.getTime()) / 86400000)
     const array = getDates(days)
+    const dayBounds = array[0]
+    const emptyCounts = () => new Array(Math.max(0, dayBounds.length - 1)).fill(0)
     
     // Stores dates in format used to query the reports. 
-    setDates(array[0])
+    setDates(dayBounds)
 
     // Stores date labels used for the x-axis on the comparison chart
     setDateLabels (array[1])
@@ -172,39 +219,28 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     const experimentConfig = await fetchExperimentConfig()
     const activeExperimentId = getActiveExperimentId(experimentConfig)
     const agencyIdFilter = privilege === 'Agency' ? agencyId : undefined
+    const rangeFrom = dayBounds[0]
+    const rangeTo = dayBounds[dayBounds.length - 1]
 
-    // Stores the number of times that the topic was reported for each day within timeline
-    const topicArray = []
-    
-    // Maintain daily count of reports for top three topics within given timeline
-    for (let topic = 0; topic < selectedTopics.length; topic++) {
-      const numReports = []
-      for (let index = 0; index < array[0].length - 1; index++) {
-
-        const queryDaily = buildActiveReportsQuery({
-          topic: selectedTopics[topic].value,
-          dateFrom: array[0][index],
-          dateTo: array[0][index + 1],
-          agencyId: agencyIdFilter,
-          activeExperimentId,
-        })
-        const dailyReports = await getDocs(queryDaily);
-
-
+    // One query per topic over the full range; parallelize topics.
+    const topicArray = await Promise.all(
+      selectedTopics.map(async (topic) => {
         try {
-          numReports.push(dailyReports.size)
-          // console.log(selectedTopics[topic].value)
-          // console.log("day:" + array[0][index])
-          // console.log(dailyReports.size)
+          const rangeQuery = buildActiveReportsQuery({
+            topic: topic.value,
+            dateFrom: rangeFrom,
+            dateTo: rangeTo,
+            agencyId: agencyIdFilter,
+            activeExperimentId,
+          })
+          const snapshot = await getDocs(rangeQuery)
+          return bucketCountsByDay(snapshot.docs, dayBounds)
+        } catch (error) {
+          console.error('Comparison graph range query failed:', error)
+          return emptyCounts()
         }
-        catch (error) {
-          console.log(error)
-        }
-      }
-
-      // Keeps track of each topic and the amount of times it was reported each day for the specified timeline
-      topicArray.push(numReports)
-    }
+      }),
+    )
     setData(topicArray)
   }
   
@@ -323,12 +359,13 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     }	
   }, [graphData])
 
-  // On page load, populates graph with the given topics and date range.
-  useEffect (()=> {
-    if (loaded == false) {
-      getDailyTopicReports()
-    }
-  }, [loaded]);
+  // Fetch only after role resolution so agency queries include agencyId (matches rules).
+  useEffect(() => {
+    if (loaded !== false) return
+    if (!checkRole) return
+    if (privilege === 'Agency' && !agencyId) return
+    getDailyTopicReports()
+  }, [loaded, checkRole, privilege, agencyId]);
 
 
   // Configuration for React-ChartJS-2
@@ -432,7 +469,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   return (
     <div>
           {/* Once user selects the topics and date range, graph of topic reports will be plotted. */}
-          <div className="bg-white rounded-md mt-6 py-5">
+          <div className="bg-white rounded-md mt-6 py-5 px-3">
           <ComparisonGraphMenu dateRange={dateRange} setDateRange={setDateRange} 
               selectedTopics={selectedTopics} setSelectedTopics={setSelectedTopics}
               listTopicChoices={topicList} tab={tab} setTab={setTab}
@@ -442,15 +479,27 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
 
             {/* Displays graph once data is collected for the topics. */}
 		
-            {loaded &&	
+            {loaded ?	
             <div className="m-auto">	
-              {/* Displays graph once data is collected for the topics. */}	
-              <div className="text-xl lg:text-2xl font-bold text-[#2E3B4E] pt-6 tracking-wider text-center ">Topic Reports - {formatDates()}</div>	
+              <Typography
+                variant="h5"
+                color="blue"
+                className="pt-6 tracking-wider text-center"
+              >
+                Topic Reports - {formatDates()}
+              </Typography>
               <div className="relative z-10 lg:pl-20 lg:pr-20 overflow-x-auto max-h-[340px] min-h-[220px]">
                 <Line height={280} options={options} data={graphData} />
               </div>	
             </div>	
-            }	
+            : (
+            <div className="flex flex-col items-center justify-center gap-3 min-h-[220px] pt-6">
+              <Spinner className="h-8 w-8" color="blue" />
+              <Typography variant="small" className="text-gray-500">
+                Loading report data for selected topics…
+              </Typography>
+            </div>
+            )}	
         </div>
     </div>
   )
