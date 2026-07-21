@@ -8,6 +8,7 @@ import {
   getLabelBadgeStyle,
   isInvestigationPending,
 } from '../../config/labels'
+import { DEFAULT_INVESTIGATION_ROW } from '../../utils/appearance-config'
 
 const TableBody = ({
   loadedReports,
@@ -18,6 +19,7 @@ const TableBody = ({
   reportsReadState,
   agencyLabelColors = {},
   agencyLabelColorsByAgency = {},
+  investigationHighlight = DEFAULT_INVESTIGATION_ROW,
 }) => {
   function trimToWordCount(str, wordCount) {
     const words = str.split(' ')
@@ -30,6 +32,10 @@ const TableBody = ({
     }
     return agencyLabelColorsByAgency[report.agency] || {}
   }
+
+  const highlightBg = investigationHighlight?.bg || DEFAULT_INVESTIGATION_ROW.bg
+  const highlightHover =
+    investigationHighlight?.hover || DEFAULT_INVESTIGATION_ROW.hover
 
   return (
     <tbody>
@@ -62,10 +68,25 @@ const TableBody = ({
               key={report.reportID}
               onClick={() => onReportModalShow(report.reportID)}
               className={`p-4 border-b border-blue-gray-50 cursor-pointer ${
+                needsInvestigation ? '' : 'hover:bg-gray-100'
+              }`}
+              style={
+                needsInvestigation ? { backgroundColor: highlightBg } : undefined
+              }
+              onMouseEnter={
                 needsInvestigation
-                  ? 'bg-red-50 hover:bg-red-100'
-                  : 'hover:bg-gray-100'
-              }`}>
+                  ? (e) => {
+                      e.currentTarget.style.backgroundColor = highlightHover
+                    }
+                  : undefined
+              }
+              onMouseLeave={
+                needsInvestigation
+                  ? (e) => {
+                      e.currentTarget.style.backgroundColor = highlightBg
+                    }
+                  : undefined
+              }>
               {columns.map(({ accessor }) => {
                 let tData
                 if (accessor === 'createdDate') {

@@ -354,8 +354,27 @@ const Navbar = ({
 							)}
 						</div>
 						
-						{/* Bottom section - Help and Profile */}
+						{/* Bottom section - Appearance, Help and Profile */}
 						<div className="self-end">
+							{/* Appearance - Admin only */}
+							{customClaims.admin && (
+								<>
+									<IconButton
+										variant="text"
+										onClick={() => handleTabNavigation(6)}
+										className={navIconClass('tooltip-appearance', tab === 6)}
+										aria-label="Appearance">
+										<IoSettingsOutline size={30} />
+									</IconButton>
+									<Tooltip
+										anchorSelect=".tooltip-appearance"
+										place="bottom"
+										delayShow={500}>
+										Appearance
+									</Tooltip>
+								</>
+							)}
+
 							{/* Help - Admin and Agency users */}
 							{(customClaims.admin || customClaims.agency) && (
 								<>

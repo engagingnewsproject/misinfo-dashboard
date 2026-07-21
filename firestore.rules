@@ -42,6 +42,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /settings/appearance {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
     match /tagSystems/{docId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
