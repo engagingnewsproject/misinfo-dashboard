@@ -60,6 +60,10 @@ import {
 	resolveAgencyIdForReport,
 } from '../../utils/label-tags'
 import { formatLocationPart } from '../../utils/format-location'
+import {
+	DEFAULT_INVESTIGATION_ROW,
+	getAppearanceConfig,
+} from '../../utils/appearance-config'
 // Icons
 import {
 	Button,
@@ -275,6 +279,9 @@ const ReportsSection = ({
 	const [changeStatus, setChangeStatus] = useState('') // Status change tracking
 	const [agencyLabelColors, setAgencyLabelColors] = useState({})
 	const [agencyLabelColorsByAgency, setAgencyLabelColorsByAgency] = useState({})
+	const [investigationHighlight, setInvestigationHighlight] = useState(
+		DEFAULT_INVESTIGATION_ROW,
+	)
 	const [postedDate, setPostedDate] = useState('') // Formatted posted date
 	const [update, setUpdate] = useState(false) // Update trigger
 	const [deleteModal, setDeleteModal] = useState(false) // Delete modal visibility
@@ -1178,6 +1185,22 @@ const ReportsSection = ({
 		}
 	}, [customClaims])
 
+	// Shared appearance (investigation row highlight, etc.)
+	useEffect(() => {
+		let cancelled = false
+		getAppearanceConfig(db)
+			.then((config) => {
+				if (cancelled) return
+				setInvestigationHighlight(config.reportTable.investigationRow)
+			})
+			.catch((err) => {
+				console.error(err)
+			})
+		return () => {
+			cancelled = true
+		}
+	}, [])
+
 	// Agency display name for agency users (prefer claim; avoid agencyUsers collection query)
 	useEffect(() => {
 		if (!isAgency) return
@@ -1498,6 +1521,7 @@ const ReportsSection = ({
 							reportsReadState={reportsReadState}
 							agencyLabelColors={agencyLabelColors}
 							agencyLabelColorsByAgency={agencyLabelColorsByAgency}
+							investigationHighlight={investigationHighlight}
 						/>
 					</table>
 

@@ -32,6 +32,7 @@ import AgencyReportModal from '../components/modals/reports/AgencyReportModal'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import Head from 'next/head'
 import HelpRequests from '../components/admin/HelpRequests'
+import Appearance from '../components/admin/Appearance'
 
 /** Stable view names synced to `?view=` so refresh restores the active tab. */
 const VIEW_BY_TAB = [
@@ -41,6 +42,7 @@ const VIEW_BY_TAB = [
 	'users',
 	'agencies',
 	'help',
+	'appearance',
 ]
 
 /**
@@ -55,7 +57,7 @@ function isTabAllowed(tabIndex, claims) {
 	if (tabIndex === 0 || tabIndex === 2 || tabIndex === 3) {
 		return !!(claims.admin || claims.agency)
 	}
-	if (tabIndex === 4 || tabIndex === 5) {
+	if (tabIndex === 4 || tabIndex === 5 || tabIndex === 6) {
 		return !!claims.admin
 	}
 	return false
@@ -186,6 +188,7 @@ const Dashboard = () => {
 						<Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />
 					)}
 					{tab == 5 && customClaims.admin && <HelpRequests />}
+					{tab == 6 && customClaims.admin && <Appearance />}
 				</div>
 				{/* Render the AgencyReportModal */}
 				{newReportModal && (
