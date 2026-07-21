@@ -253,7 +253,7 @@ const ReportModal = ({
 				</DialogHeader>
 				<DialogBody className="dialog-body overflow-y-auto max-h-[calc(100dvh-8rem)] pt-2">
 					<form onSubmit={onFormSubmit}>
-						<div className='grid md:grid-cols-2 md:gap-10 lg:gap-15'>
+						<div className='grid md:grid-cols-2 md:gap-10 lg:gap-15 md:items-start'>
 							{/* Left Column - Report Content */}
 							<div className='left-side'>
 								<>
@@ -317,7 +317,7 @@ const ReportModal = ({
 							{/* END left side */}
 							
 							{/* Right Column - Metadata and Actions */}
-							<div className='right-side flex flex-col justify-between'>
+							<div className='right-side flex flex-col'>
 								<div>
 									<List className="p-0 mb-5">
 										<ReportMetaItem
@@ -392,13 +392,13 @@ const ReportModal = ({
 									</List>
 
 									{/* Image Gallery */}
-									<div className='images mb-12'>
+									<div className={`images ${report.images?.length > 0 ? 'mb-12' : 'mb-4'}`}>
 										<Typography variant="h5" color="blue" className="mt-0 mb-4">
 											Images
 										</Typography>
-										<div className='grid grid-cols-4 gap-4 w-full overflow-y-auto'>
-											{report.images ?
-												report.images.map((image, i) => {
+										{report.images?.length > 0 ? (
+											<div className='grid grid-cols-4 gap-4 w-full overflow-y-auto'>
+												{report.images.map((image, i) => {
 													return (
 														<div className='grid-cols-subgrid' key={i}>
 															{image ? (
@@ -418,10 +418,13 @@ const ReportModal = ({
 															)}
 														</div>
 													)
-												}) :
-												`No images uploaded`
-											}
-										</div>
+												})}
+											</div>
+										) : (
+											<Typography variant="small" className="italic" color="gray">
+												No images for this report
+											</Typography>
+										)}
 									</div>
 								</div>
 							</div>
