@@ -282,7 +282,7 @@ export const AuthContextProvider = ({children}) => {
      */
     const verifyEmail = (user) => {
         return new Promise((resolve, reject) => {
-            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://truthsleuthlocal.netlify.app';
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app';
             const actionCodeSettings = {
                 'url': `${baseUrl}/login`,
                 'handleCodeInApp': true,
@@ -517,12 +517,12 @@ export const AuthContextProvider = ({children}) => {
      * await sendSignIn('user@example.com');
      */
     const sendSignIn = async (email) => {
-        // Continue URL for email action links: current origin in browser, else configured app URL
-        const origin =
-            typeof window !== 'undefined' && window.location?.origin
-                ? window.location.origin
-                : (process.env.NEXT_PUBLIC_APP_URL || 'https://truthsleuthlocal.netlify.app')
-        const baseUrl = `${origin.replace(/\/$/, '')}/signup`
+        // Always use configured app URL so invites from localhost still point at the live app
+        const origin = (
+            process.env.NEXT_PUBLIC_APP_URL ||
+            'https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app'
+        ).replace(/\/$/, '')
+        const baseUrl = `${origin}/signup`
 
         const actionCodeSettings = {
             url: baseUrl,
