@@ -82,9 +82,11 @@ const TableBody = ({
               }
               onMouseLeave={
                 needsInvestigation
-                  ? 'bg-red-50 hover:bg-red-100'
-                  : 'hover:bg-gray-100'
-              }`}>
+                  ? (e) => {
+                      e.currentTarget.style.backgroundColor = highlightBg
+                    }
+                  : undefined
+              }>
               {columns.map(({ accessor }) => {
                 let tData
                 if (accessor === 'createdDate') {
