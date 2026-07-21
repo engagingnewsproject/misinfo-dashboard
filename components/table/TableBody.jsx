@@ -63,7 +63,7 @@ const TableBody = ({
               onClick={() => onReportModalShow(report.reportID)}
               className={`p-4 border-b border-blue-gray-50 cursor-pointer ${
                 needsInvestigation
-                  ? 'bg-yellow-50 hover:bg-yellow-100'
+                  ? 'bg-red-50 hover:bg-red-100'
                   : 'hover:bg-gray-100'
               }`}>
               {columns.map(({ accessor }) => {

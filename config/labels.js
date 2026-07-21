@@ -17,7 +17,7 @@ export const MAX_CUSTOM_LABELS = 6
 
 export const DEFAULT_LABEL_COLORS = {
 	'To Investigate': '#071f31',
-	Misinfo: '#ba401d',
+	Misinfo: '#C42B47',
 	'Not Misinfo': '#95a8b5',
 	Other: '#d1dfea',
 }
