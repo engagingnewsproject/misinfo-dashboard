@@ -57,7 +57,9 @@ env:
       - RUNTIME
 
   - variable: NEXT_PUBLIC_FIREBASE_RECAPTCHA_ENTERPRISE_SITE_KEY
-    value: "6LejY88pAAAAAMxotghWgJiIPx-KEufTBEOMUw9b"
+    # Must match Firebase App Check → truthsleuthlocal web app (reCAPTCHA Enterprise)
+    # and include the App Hosting domain in that key's allowed domains.
+    value: "6Ld9gLksAAAAAJ5gvPvbmOd3vjQvuJjeRwixffdv"
     availability:
       - BUILD
       - RUNTIME
