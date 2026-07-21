@@ -183,7 +183,9 @@ const AgencyModal = ({
 									actionText="Choose image"
 								/>
 							</div>
-							<Button type="submit">Update Agency</Button>
+							<Button type="submit" size="sm">
+								Update Agency
+							</Button>
 						</div>
 					</form>
 				</DialogBody>
