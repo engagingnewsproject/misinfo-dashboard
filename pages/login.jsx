@@ -243,16 +243,13 @@ const Login = () => {
 						</Link>
 					</p>
 					{/* <View> */}
-					<div className="flex justify-between items-center p-6 gap-1">
-						<span className="text-[#2E3B4E] text-md uppercase font-bold py-2 px-2">
-							{t('select')}
-						</span>
+					<div className="flex justify-center items-center p-6 gap-1">
 						<LanguageSwitcher />
 					</div>
 					<div className="privacy_policy flex justify-center items-center">
 						<Link
 							href="/privacy-policy"
-							className="text-[#2E3B4E] font-semibold hover:underline">
+							className="text-[#2E3B4E] text-xs font-semibold hover:underline">
 							Privacy Policy
 						</Link>
 					</div>

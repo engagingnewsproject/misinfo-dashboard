@@ -27,5 +27,14 @@
     "login_network_live": "No se pudo conectar con Firebase (red). Compruebe su conexión, VPN y la configuración de App Check / token de depuración.",
     "phone": "Numero de teléfono (opcional)",
     "contact": "Acepto que mi redacción local pueda contactarme para dar seguimiento a los informes que comparto.",
-    "password_error": "Las contraseñas no coinciden."
+    "password_error": "Las contraseñas no coinciden.",
+    "verifyEmailPageTitle": "Verificar correo | Truth Sleuth Local",
+    "verifyEmailHeading": "Verificación de correo",
+    "verifyEmailAgencyIntro": "Al crear una cuenta, se le pedirá que verifique su correo electrónico.",
+    "verifyEmailAgencyStep1": "Haga clic en el enlace del correo de verificación.",
+    "verifyEmailAgencyStep2": "Inicie sesión en el panel con la información de su nueva cuenta.",
+    "verifyEmailAgencyStep3": "Si es necesario, puede cambiar el nombre y la ubicación de su agencia en su perfil.",
+    "verifyEmailUserPrompt": "Revise su bandeja de entrada para verificar su correo electrónico e iniciar sesión.",
+    "verifyEmailResend": "Reenviar correo",
+    "verifyEmailSent": "Se envió un nuevo correo de verificación."
   }
