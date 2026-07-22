@@ -13,7 +13,6 @@
  * @requires ../firebase/FirebaseHelper
  * @requires firebase/firestore
  * @requires ../config/firebase
- * @requires ./Toggle
  * @requires ./OverviewGraph
  * @requires ./ComparisonGraphSetup
  * @requires @material-tailwind/react
@@ -29,30 +28,24 @@ import {
 	fetchExperimentConfig,
 	getActiveExperimentId,
 } from '../../utils/reports-queries'
-import Toggle from '../common/Toggle'
 import OverviewGraph from './OverviewGraph'
 import ComparisonGraphSetup from '../analytics/ComparisonGraphSetup'
 import { Typography } from '@material-tailwind/react'
 
 /**
  * TagGraph - Main data visualization component for trending topics.
- * 
- * This component manages the display of trending topic data through
- * different visualization types (overview pie charts and comparison line graphs).
- * It handles data fetching, role-based filtering, and time period analysis
- * for report topics across the system.
- * 
- * @returns {JSX.Element} Component with toggle controls and data visualizations
- * @example
- * <TagGraph />
+ *
+ * View mode (overview vs comparison) is controlled by the parent so the toggle
+ * can live in the shared Headbar.
+ *
+ * @param {Object} props
+ * @param {string} props.viewVal - "overview" | "comparison"
+ * @returns {JSX.Element}
  */
-const TagGraph = () => {
+const TagGraph = ({ viewVal = 'overview' }) => {
 	const { verifyRole, refreshCustomClaims, customClaims } = useAuth()
 	const agencyClaimsRefreshAttempted = useRef(false)
-	
-	// View state management
-	const [viewVal, setViewVal] = useState("overview")
-	
+
 	// Report data for different time periods
 	const [yesterdayReports, setYesterdayReports] = useState([])
 	const [threeDayReports, setThreeDayReports] = useState([])
@@ -332,9 +325,6 @@ const TagGraph = () => {
 	
 	return (
 		<div className="w-full">
-			{/* View toggle controls */}
-			<Toggle viewVal={viewVal} setViewVal={setViewVal} />
-			
 			{/* Loading state */}
 			{loading ? (
 				<div className='flex items-center justify-center p-5'>

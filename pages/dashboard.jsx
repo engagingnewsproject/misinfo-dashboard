@@ -27,6 +27,7 @@ import Settings from '../components/admin/Settings'
 import Users from '../components/admin/Users'
 import Navbar from '../components/layout/Navbar'
 import Headbar from '../components/layout/Headbar'
+import Toggle from '../components/common/Toggle'
 import { useAuth } from '../context/AuthContext'
 import { MobileNavProvider, useNavContentOffsetStyle } from '../context/MobileNavContext'
 import Agencies from '../components/admin/Agencies'
@@ -192,9 +193,21 @@ function DashboardLayout({
 	setNewReportModal,
 }) {
 	const contentOffsetStyle = useNavContentOffsetStyle()
+	const [viewVal, setViewVal] = useState('overview')
+	const showGraphToggle = tab === 0 && (customClaims.admin || customClaims.agency)
+
+	const headbarTitles = {
+		0: 'Dashboard',
+		1: 'Profile',
+		2: 'Tagging Systems',
+		3: 'Users',
+		4: 'Agencies',
+		5: 'Help Requests',
+		6: 'Appearance',
+	}
 
 	return (
-		<div className="w-full">
+		<div data-component="dashboard" className="w-full">
 			<Navbar
 				tab={tab}
 				setTab={setTab}
@@ -203,13 +216,22 @@ function DashboardLayout({
 				customClaims={customClaims}
 			/>
 			<div className="flex flex-col py-5" style={contentOffsetStyle}>
-				<Headbar />
+				<Headbar
+					title={headbarTitles[tab]}
+					actions={
+						showGraphToggle ? (
+							<Toggle viewVal={viewVal} setViewVal={setViewVal} />
+						) : null
+					}
+				/>
 				{tab == 0 && (customClaims.admin || customClaims.agency) && (
 					<Home
 						newReportSubmitted={newReportSubmitted}
 						handleNewReportSubmit={handleNewReportSubmit}
 						handleNewReportClick={handleNewReportClick}
 						customClaims={customClaims}
+						viewVal={viewVal}
+						setViewVal={setViewVal}
 					/>
 				)}
 				{tab == 1 && <Profile customClaims={customClaims} />}

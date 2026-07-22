@@ -122,7 +122,7 @@ const Report = () => {
 	// //
   const style = {
 		button: 'w-80 self-center mt-4 shadow bg-blue-600 hover:bg-gray-100 text-sm text-white py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
-		pageContainer: 'md:h-full w-full md:pt-4',
+		pageContainer: 'md:h-full w-full',
 		wrapper: 'w-full h-full flex flex-col py-5',
 		content: 'w-full md:h-full flex flex-col px-3 md:px-12 py-5 md:py-0 mb-5 overflow-y-auto'
 	}
@@ -177,9 +177,13 @@ function ReportLayout({
 	setLocationModal,
 }) {
 	const contentOffsetStyle = useNavContentOffsetStyle()
+	const headbarTitles = {
+		0: 'Report',
+		1: 'Profile',
+	}
 
 	return (
-		<div className={style.pageContainer}>
+		<div data-component="report" className={style.pageContainer}>
 			<Navbar
 				tab={tab}
 				setTab={setTab}
@@ -188,7 +192,7 @@ function ReportLayout({
 			/>
 			<div className="w-full" style={contentOffsetStyle}>
 				<div className={style.wrapper}>
-					<Headbar />
+					<Headbar title={headbarTitles[tab]} />
 					<div className={style.content}>
 						{tab == 0 && reportSystem == 0 && (
 							<ReportLanding
