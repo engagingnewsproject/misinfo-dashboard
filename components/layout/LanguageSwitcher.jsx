@@ -68,7 +68,7 @@ const LanguageSwitcher = () => {
         checked={router.locale == "en" ? false : true}
         onChange={handleLanguageChange} 
         checkedIcon	={false} uncheckedIcon = {true}
-        onColor="#2563eb"/>
+        onColor="#2E3B4E"/>
         <span className={router.locale == "es" ? active : nonactive }>Español</span>
       </div>
 
