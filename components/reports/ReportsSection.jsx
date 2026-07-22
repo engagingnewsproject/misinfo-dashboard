@@ -49,6 +49,7 @@ import {
 import {
 	buildLabelOptions,
 	DEFAULT_REPORT_LABEL,
+	isCustomLabel,
 	OTHER_LABEL,
 	validateCustomLabel,
 } from '../../config/labels'
@@ -1040,6 +1041,10 @@ const ReportsSection = ({
 						keys.forEach((key) => {
 							value = value[key] !== undefined ? value[key] : '' // Safely access nested values
 						})
+						
+						if (header === 'label' && typeof value === 'string' && isCustomLabel(value)) {
+							value = `Other(${value})`
+						}
 
 						// Handle commas and newlines in CSV fields
 						if (typeof value === 'string') {
