@@ -7,7 +7,7 @@
  * 
  * Key Features:
  * - Detailed report information display (title, description, links, metadata)
- * - Image gallery with external link support
+ * - Image gallery with lightbox preview
  * - Role-based editing (admin vs agency restrictions)
  * - Read/unread status management
  * - Label assignment and management
@@ -41,7 +41,7 @@ import ButtonEmailSend from "../../partials/ButtonEmailSend"
 import ShareReportModal from "../../partials/modals/ShareReportModal"
 import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"
 import Link from "next/link"
-import Image from "next/image"
+import { createPortal } from "react-dom"
 import {Tooltip} from "react-tooltip";
 // icons
 import { RiMessage2Fill } from "react-icons/ri"
@@ -51,7 +51,14 @@ import { BiLinkExternal } from "react-icons/bi";
 import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
 // import { MdOutlineLocalPhone } from "react-icons/md";
 
-import { IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
+import {
+	IoTrash,
+	IoLocation,
+	IoBusinessOutline,
+	IoClose,
+	IoChevronBackOutline,
+	IoChevronForwardOutline,
+} from "react-icons/io5"
 import ModalCloseButton from "../../ui/ModalCloseButton"
 import {
 	CUSTOM_LABEL_MAX_LENGTH,
@@ -194,6 +201,22 @@ const ReportModal = ({
 	const [images,setImages] = useState([]) // Image gallery state
 	const [shareReportModal, setShareReportModal] = useState(false) // Share modal visibility
 	const [tagLabelMap, setTagLabelMap] = useState({})
+	const [lightboxIndex, setLightboxIndex] = useState(null)
+	const [brokenImageIndexes, setBrokenImageIndexes] = useState(() => new Set())
+
+	const reportImages = Array.isArray(report.images)
+		? report.images.filter(Boolean)
+		: []
+	const lightboxOpen = lightboxIndex !== null
+	const activeLightboxImage =
+		lightboxOpen ? reportImages[lightboxIndex] : null
+	const lightboxImageBroken =
+		lightboxOpen && brokenImageIndexes.has(lightboxIndex)
+
+	useEffect(() => {
+		setBrokenImageIndexes(new Set())
+		setLightboxIndex(null)
+	}, [reportModalId, report?.images])
 
 	useEffect(() => {
 		let cancelled = false
@@ -216,6 +239,58 @@ const ReportModal = ({
 		}
 	}, [report?.agency, report?.agencyId, reportModalId, customClaims?.agencyId])
 
+	useEffect(() => {
+		if (!lightboxOpen) return undefined
+		if (lightboxIndex >= reportImages.length) {
+			setLightboxIndex(reportImages.length > 0 ? reportImages.length - 1 : null)
+			return undefined
+		}
+
+		const onKeyDown = (event) => {
+			if (event.key === 'Escape') {
+				setLightboxIndex(null)
+				return
+			}
+			if (reportImages.length <= 1) return
+			if (event.key === 'ArrowLeft') {
+				setLightboxIndex(
+					(current) =>
+						((current ?? 0) - 1 + reportImages.length) % reportImages.length,
+				)
+			}
+			if (event.key === 'ArrowRight') {
+				setLightboxIndex(
+					(current) => ((current ?? 0) + 1) % reportImages.length,
+				)
+			}
+		}
+
+		document.addEventListener('keydown', onKeyDown)
+		return () => document.removeEventListener('keydown', onKeyDown)
+	}, [lightboxOpen, lightboxIndex, reportImages.length])
+
+	const markImageBroken = (index) => {
+		setBrokenImageIndexes((prev) => {
+			if (prev.has(index)) return prev
+			const next = new Set(prev)
+			next.add(index)
+			return next
+		})
+	}
+
+	const showPrevLightbox = (event) => {
+		event.stopPropagation()
+		setLightboxIndex(
+			(current) =>
+				((current ?? 0) - 1 + reportImages.length) % reportImages.length,
+		)
+	}
+
+	const showNextLightbox = (event) => {
+		event.stopPropagation()
+		setLightboxIndex((current) => ((current ?? 0) + 1) % reportImages.length)
+	}
+
 	return (
 		<>
 			<Dialog
@@ -224,9 +299,9 @@ const ReportModal = ({
 				size="xl"
 				className="report-modal rounded-md"
 				dismiss={{
-					escapeKey: !shareReportModal,
+					escapeKey: !shareReportModal && !lightboxOpen,
 					outsidePress: (event) => {
-						if (shareReportModal) return false
+						if (shareReportModal || lightboxOpen) return false
 						const target = event.target
 						if (!(target instanceof Element)) return true
 						// Nested share overlay / MT Menu portals sit outside Dialog
@@ -392,33 +467,35 @@ const ReportModal = ({
 									</List>
 
 									{/* Image Gallery */}
-									<div className={`images ${report.images?.length > 0 ? 'mb-12' : 'mb-4'}`}>
+									<div className={`images ${reportImages.length > 0 ? 'mb-12' : 'mb-4'}`}>
 										<Typography variant="h5" color="blue" className="mt-0 mb-4">
 											Images
 										</Typography>
-										{report.images?.length > 0 ? (
+										{reportImages.length > 0 ? (
 											<div className='grid grid-cols-4 gap-4 w-full overflow-y-auto'>
-												{report.images.map((image, i) => {
-													return (
-														<div className='grid-cols-subgrid' key={i}>
-															{image ? (
-																<Link href={image} target='_blank'>
-																	<Image
-																		src={image}
-																		width={400}
-																		height={400}
-																		alt='image'
-																		className="w-auto"
-																	/>
-																</Link>
-															) : (
-																<span className='italic font-light'>
-																	Image not found
-																</span>
-															)}
-														</div>
-													)
-												})}
+												{reportImages.map((image, i) => (
+													<div className='grid-cols-subgrid' key={i}>
+														{brokenImageIndexes.has(i) ? (
+															<span className="flex min-h-[4.5rem] items-center justify-center rounded-md border border-slate-200 bg-slate-50 px-2 text-center text-xs italic text-gray-400">
+																Image not found
+															</span>
+														) : (
+															<button
+																type="button"
+																onClick={() => setLightboxIndex(i)}
+																className="block w-full overflow-hidden rounded-md border border-slate-200 bg-white transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+																aria-label={`View image ${i + 1}`}>
+																{/* Plain img: Next Image optimizer fetches without browser Origin and can 401 against Storage */}
+																<img
+																	src={image}
+																	alt={`Report image ${i + 1}`}
+																	className="h-auto w-full object-cover"
+																	onError={() => markImageBroken(i)}
+																/>
+															</button>
+														)}
+													</div>
+												))}
 											</div>
 										) : (
 											<Typography variant="small" className="italic" color="gray">
@@ -552,6 +629,65 @@ const ReportModal = ({
 					closeModal={setShareReportModal}
 				/>
 			)}
+
+			{activeLightboxImage &&
+				typeof document !== 'undefined' &&
+				createPortal(
+					<div
+						className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/80 p-4"
+						onClick={() => setLightboxIndex(null)}
+						role="dialog"
+						aria-modal="true"
+						aria-label={`Report image ${lightboxIndex + 1}`}>
+						<button
+							type="button"
+							onClick={() => setLightboxIndex(null)}
+							className="absolute right-4 top-4 rounded-full p-1 text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white"
+							aria-label="Close image preview">
+							<IoClose className="h-7 w-7" aria-hidden="true" />
+						</button>
+
+						{reportImages.length > 1 && (
+							<>
+								<button
+									type="button"
+									onClick={showPrevLightbox}
+									className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full p-2 text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white"
+									aria-label="Previous image">
+									<IoChevronBackOutline className="h-7 w-7" aria-hidden="true" />
+								</button>
+								<button
+									type="button"
+									onClick={showNextLightbox}
+									className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-2 text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white"
+									aria-label="Next image">
+									<IoChevronForwardOutline className="h-7 w-7" aria-hidden="true" />
+								</button>
+							</>
+						)}
+
+						{lightboxImageBroken ? (
+							<p className="rounded-md bg-white/10 px-4 py-3 text-sm italic text-white/90">
+								Image not found
+							</p>
+						) : (
+							<img
+								src={activeLightboxImage}
+								alt={`Report image ${lightboxIndex + 1}`}
+								className="max-h-[90vh] max-w-full object-contain"
+								onClick={(event) => event.stopPropagation()}
+								onError={() => markImageBroken(lightboxIndex)}
+							/>
+						)}
+
+						{reportImages.length > 1 && (
+							<p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm text-white/90">
+								{lightboxIndex + 1} / {reportImages.length}
+							</p>
+						)}
+					</div>,
+					document.body,
+				)}
 		</>
 	)
 }

@@ -3,11 +3,10 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     match /{allPaths=**} {
-      // Allow read access for everyone (unauthenticated) during development
-      allow read: if request.auth == null && request.origin == "http://localhost:3000";
-      
-      // Restrict write access to authenticated users
-      allow write, read: if request.auth != null;
+      // Authenticated app users can read/write.
+      // Download URLs from getDownloadURL() also work via their token (public link).
+      // Note: request.origin is not a valid Storage rules field — do not use it.
+      allow read, write: if request.auth != null;
     }
   }
 }

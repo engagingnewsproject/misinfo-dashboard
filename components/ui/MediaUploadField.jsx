@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
 	IoChevronBackOutline,
 	IoChevronForwardOutline,
@@ -37,25 +37,29 @@ const MediaUploadField = ({
 }) => {
 	const [isDragging, setIsDragging] = useState(false)
 	const [lightboxIndex, setLightboxIndex] = useState(null)
+	const [previews, setPreviews] = useState([])
 	const localInputRef = useRef(null)
 	const ref = inputRef || localInputRef
 
-	const previews = useMemo(
-		() =>
-			files.map((file, index) => ({
-				index,
-				key: `${file.name}-${file.size}-${file.lastModified}-${index}`,
-				url: URL.createObjectURL(file),
-				name: file.name,
-			})),
-		[files],
-	)
-
+	// Create blob URLs in an effect (not useMemo). Strict Mode remounts revoke
+	// memoized URLs while keeping the same memo result → broken <img> srcs.
 	useEffect(() => {
+		const next = files.map((file, index) => ({
+			index,
+			key: `${file?.name || 'file'}-${file?.size || 0}-${file?.lastModified || 0}-${index}`,
+			url:
+				typeof Blob !== 'undefined' && file instanceof Blob
+					? URL.createObjectURL(file)
+					: String(file || ''),
+			name: file?.name || `image-${index + 1}`,
+		}))
+		setPreviews(next)
 		return () => {
-			previews.forEach((preview) => URL.revokeObjectURL(preview.url))
+			next.forEach((preview) => {
+				if (preview.url?.startsWith('blob:')) URL.revokeObjectURL(preview.url)
+			})
 		}
-	}, [previews])
+	}, [files])
 
 	useEffect(() => {
 		if (lightboxIndex === null) return undefined
