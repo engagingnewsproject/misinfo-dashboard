@@ -742,7 +742,7 @@ const ReportSystem = ({
 					<Typography variant='h5' color='blue'>
 						{t("reminder")}
 					</Typography>
-					<Typography>{t("description")}</Typography>
+					<Typography className='text-center'>{t("description")}</Typography>
 					<Typography>{t("example")}</Typography>
 					<List>
 						<ListItem disabled={true} className='opacity-100'>

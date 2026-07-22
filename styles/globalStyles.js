@@ -102,7 +102,7 @@ const globalStyles = {
     button: 'rounded-full border-[#868686] absolute top-4 right-4'
   },
   page: {
-    wrap: 'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto'
+    wrap: 'w-full h-full flex flex-col mb-5 overflow-y-auto'
   },
   inputTextarea:
     'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
@@ -110,7 +110,7 @@ const globalStyles = {
     'block w-full pb-16 border-none file:mr-4 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-[#D3D3D3] file:text-brand hover:file:bg-blue-100 file:cursor-pointer',
   inputSingle:
     'border-gray-300 rounded-md w-full pb-14 border-none border-transparent text-gray-700 bg-white leading-tight focus:outline-none focus:shadow-outline',
-  viewWrapperCenter: 'flex flex-col gap-2 mt-8 items-center',
+  viewWrapperCenter: 'flex flex-col gap-2 md:mt-8 items-center',
   sectionWrapper: 'flex items-center',
   sectionContainer: 'w-full h-full flex flex-col mb-5 overflow-y-visible'
 };

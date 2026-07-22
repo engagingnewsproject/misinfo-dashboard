@@ -88,7 +88,7 @@ const Profile = ({ customClaims }) => {
   const [agencyUpdateMessageShow, setAgencyUpdateMessageShow] = useState(false)
 
   const style = {
-    sectionWrapper: 'flex flex-col',
+    sectionWrapper: 'flex flex-col flex-1 min-h-[calc(100dvh-10rem)]',
   }
 
   /**
@@ -437,27 +437,26 @@ const Profile = ({ customClaims }) => {
   }, [])
 
   /**
-   * Renders the language switcher section.
-   * @returns {JSX.Element} The language switcher component.
+   * Renders the language switcher row (general users only).
+   * @returns {JSX.Element}
    */
   const languageToggle = () => (
-    <div className="flex justify-between mx-0 my-6 tracking-normal items-center">
+    <div className="flex justify-between tracking-normal items-center mb-4">
       <div className="text-xl font-extrabold text-[#2E3B4E]">
         {t('selectLanguage')}
       </div>
-      <div>
-        <LanguageSwitcher />
-      </div>
+      <LanguageSwitcher />
     </div>
   )
 
-// todo: change to "Disable account"
+  // todo: change to "Disable account"
   /**
-   * Renders logout + delete account actions (outside edit sections).
+   * Renders language (when shown) + logout/delete in one bottom card.
    * @returns {JSX.Element}
    */
   const accountActions = () => (
-    <div className="mb-8 p-4">
+    <section className="mt-auto mb-8 p-6 bg-white rounded-md">
+      {!isAgency && !isAdmin && languageToggle()}
       <div className="flex justify-between tracking-normal items-center mb-4">
         <div className="font-light">{t('logout')}</div>
         <Button
@@ -475,7 +474,7 @@ const Profile = ({ customClaims }) => {
           {t('request')}
         </Button>
       </div>
-    </div>
+    </section>
   )
 
   return (
@@ -484,7 +483,7 @@ const Profile = ({ customClaims }) => {
       className={`${
         customClaims === null
           ? globalStyles.page.wrap
-          : globalStyles.page.wrap + ' md:p-12'
+          : globalStyles.page.wrap
       }`}>
       <div className={style.sectionWrapper}>
         <UserSettingsForm
@@ -499,7 +498,6 @@ const Profile = ({ customClaims }) => {
           onEditPassword={() => setOpenModal(true)}
         />
 
-        {!isAgency && !isAdmin && languageToggle()}
         {isAgency && (
           <AgencySettingsForm
             agency={agency}
