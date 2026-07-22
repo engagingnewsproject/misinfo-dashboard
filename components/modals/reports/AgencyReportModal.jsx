@@ -1356,7 +1356,6 @@ const AgencyReportModal = ({
 												}}
 												value={otherTopicEs}
 												maxLength={TAG_LABEL_MAX_LENGTH}
-												required
 											/>
 										)}
 									</div>
@@ -1393,7 +1392,6 @@ const AgencyReportModal = ({
 												}}
 												value={otherSourceEs}
 												maxLength={TAG_LABEL_MAX_LENGTH}
-												required
 											/>
 										)}
 									</div>
