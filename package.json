@@ -17,6 +17,7 @@
 		"lockfile:regen:fresh": "./scripts/lockfile-ci.sh regen:fresh"
 	},
 	"dependencies": {
+		"@ducanh2912/next-pwa": "^10.2.9",
 		"@google-cloud/storage": "^7.10.1",
 		"@headlessui/react": "^1.7.19",
 		"@material-tailwind/react": "^2.1.9",

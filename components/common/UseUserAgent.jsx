@@ -11,12 +11,13 @@
  * Integrates with:
  * - window.navigator.userAgent for browser detection
  * - window.matchMedia for PWA display mode
+ * - navigator.standalone for iOS home-screen apps
  *
  * @author Misinformation Dashboard Team
  * @version 1.0.0
  * @since 2024
  */
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * useUserAgent Hook
@@ -32,57 +33,52 @@ import React, { useEffect, useState } from 'react';
  *   - userAgentString: {string|null} The raw user agent string
  */
 export default function useUserAgent() {
-    /**
-     * we set our initial state as null because we don't know what the user agent is yet
-     * that way we can check if the user agent has been set or not
-     */
-	const [isMobile,setIsMobile] = useState(null);
-    const [userAgent, setUserAgent] = useState(null);
-    const [isIOS, setIsIOS] = useState(null);
-    const [isStandalone, setIsStandalone] = useState(null);
-    const [userAgentString, setUserAgentString] = useState(null);
+	const [isMobile, setIsMobile] = useState(null);
+	const [userAgent, setUserAgent] = useState(null);
+	const [isIOS, setIsIOS] = useState(null);
+	const [isStandalone, setIsStandalone] = useState(null);
+	const [userAgentString, setUserAgentString] = useState(null);
 
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const userAgentString = window.navigator.userAgent;
-            setUserAgentString(userAgentString);
-					let userAgent;
-					
-            /**
-             * Parse user agent string to determine browser
-             * The order of the if statements is important because some browsers
-             * have multiple matches in their user agent string
-             */
-            if (userAgentString.indexOf('SamsungBrowser') > -1) {
-                userAgent = 'SamsungBrowser';
-            } else if (userAgentString.indexOf('Firefox') > -1) {
-                userAgent = 'Firefox';
-            } else if (userAgentString.indexOf('FxiOS') > -1) {
-                userAgent = 'FirefoxiOS';
-            } else if (userAgentString.indexOf('CriOS') > -1) {
-                userAgent = 'ChromeiOS';
-            } else if (userAgentString.indexOf('Chrome') > -1) {
-                userAgent = 'Chrome';
-            } else if (userAgentString.indexOf('Safari') > -1) {
-                userAgent = 'Safari';
-            } else {
-                userAgent = 'unknown';
-            }
-            setUserAgent(userAgent);
+	useEffect(() => {
+		if (typeof window === 'undefined') return;
 
-            // Check if user agent is mobile
-            const isIOS = userAgentString.match(/iPhone|iPad|iPod/i);
-            const isAndroid = userAgentString.match(/Android/i);
-            setIsIOS(!!isIOS);
-            const isMobile = isIOS || isAndroid;
-            setIsMobile(!!isMobile);
+		const uaString = window.navigator.userAgent;
+		setUserAgentString(uaString);
 
-            // Check if app is installed (if it's installed we wont show the prompt)
-            if (window.matchMedia('(display-mode: standalone)').matches) {
-                setIsStandalone(true);
-            }
-        }
-    }, []);
+		/**
+		 * Parse user agent string to determine browser.
+		 * Order matters because some browsers match multiple tokens.
+		 */
+		let detected;
+		if (uaString.indexOf('SamsungBrowser') > -1) {
+			detected = 'SamsungBrowser';
+		} else if (uaString.indexOf('Firefox') > -1) {
+			detected = 'Firefox';
+		} else if (uaString.indexOf('FxiOS') > -1) {
+			detected = 'FirefoxiOS';
+		} else if (uaString.indexOf('CriOS') > -1) {
+			detected = 'ChromeiOS';
+		} else if (uaString.indexOf('Chrome') > -1) {
+			detected = 'Chrome';
+		} else if (uaString.indexOf('Safari') > -1) {
+			detected = 'Safari';
+		} else {
+			detected = 'unknown';
+		}
+		setUserAgent(detected);
 
-    return { isMobile, userAgent, isIOS, isStandalone, userAgentString };
+		const iosMatch = uaString.match(/iPhone|iPad|iPod/i);
+		const androidMatch = uaString.match(/Android/i);
+		const ios = !!iosMatch;
+		setIsIOS(ios);
+		setIsMobile(!!(iosMatch || androidMatch));
+
+		const standaloneDisplay =
+			window.matchMedia('(display-mode: standalone)').matches ||
+			window.matchMedia('(display-mode: fullscreen)').matches ||
+			window.navigator.standalone === true;
+		setIsStandalone(standaloneDisplay);
+	}, []);
+
+	return { isMobile, userAgent, isIOS, isStandalone, userAgentString };
 }

@@ -45,10 +45,13 @@ ui-debug.log
 # Auto Generated PWA files
 **/public/workbox-*.js
 public/workbox-*.js.map
+**/public/workbox-*.js.map
 public/worker-*.js
 public/worker-*.js.map
 **/public/sw.js
 public/sw.js.map
+**/public/swe-worker-*.js
+public/swe-worker-*.js
 **/public/fallback-*.js
 !/public/robots.txt
 

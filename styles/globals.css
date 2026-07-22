@@ -83,6 +83,7 @@ body {
 	padding: 0;
 	margin: 0;
 	font-family: var(--font-inter, system-ui), sans-serif;
+	overscroll-behavior: none;
 }
 
 a {
@@ -95,4 +96,16 @@ a {
 }
 [type="text"]:focus {
 	outline: 0;
+}
+
+/* Standalone PWA: clear notch / home indicator */
+.min-h-screen-safe {
+	min-height: 100vh;
+	min-height: 100dvh;
+}
+
+.safe-area-pad {
+	/* Vertical only — avoids horizontal overflow with w-screen children */
+	padding-top: env(safe-area-inset-top, 0px);
+	padding-bottom: env(safe-area-inset-bottom, 0px);
 }
