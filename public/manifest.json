@@ -1,7 +1,7 @@
 {
     "theme_color": "#2E3B4E",
     "background_color": "#ffffff",
-    "display": "fullscreen",
+    "display": "standalone",
     "scope": "/",
     "start_url": "/login",
     "name": "Truth Sleuth Local",
