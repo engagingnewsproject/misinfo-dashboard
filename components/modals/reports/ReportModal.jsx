@@ -203,6 +203,9 @@ const ReportModal = ({
 	const [tagLabelMap, setTagLabelMap] = useState({})
 	const [lightboxIndex, setLightboxIndex] = useState(null)
 	const [brokenImageIndexes, setBrokenImageIndexes] = useState(() => new Set())
+	// Delay Dialog open one tick: MT Dialog + Floating UI 0.19 logs aria-hidden
+	// "not contained inside body" when mounting with open={true} immediately.
+	const [dialogOpen, setDialogOpen] = useState(false)
 
 	const reportImages = Array.isArray(report.images)
 		? report.images.filter(Boolean)
@@ -212,6 +215,11 @@ const ReportModal = ({
 		lightboxOpen ? reportImages[lightboxIndex] : null
 	const lightboxImageBroken =
 		lightboxOpen && brokenImageIndexes.has(lightboxIndex)
+
+	useEffect(() => {
+		const id = window.setTimeout(() => setDialogOpen(true), 0)
+		return () => window.clearTimeout(id)
+	}, [])
 
 	useEffect(() => {
 		setBrokenImageIndexes(new Set())
@@ -294,7 +302,7 @@ const ReportModal = ({
 	return (
 		<>
 			<Dialog
-				open
+				open={dialogOpen}
 				handler={handleClose}
 				size="xl"
 				className="report-modal rounded-md"
