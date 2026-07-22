@@ -34,7 +34,6 @@ import {
 	IoHelpCircleOutline,
 	IoBusinessOutline,
 	IoClose,
-	IoMenu,
 	IoChatboxEllipsesOutline,
 	IoDocumentTextOutline,
 } from 'react-icons/io5'
@@ -43,6 +42,7 @@ import { Tooltip } from 'react-tooltip'
 import HelpModal from '../modals/common/HelpModal'
 import ContactHelpModal from '../modals/ContactHelpModal'
 import { useAuth } from '../../context/AuthContext'
+import { useMobileNav } from '../../context/MobileNavContext'
 import { useTranslation } from 'next-i18next'
 
 /**
@@ -97,11 +97,9 @@ const Navbar = ({
 	
 	// Authentication context
 	const { customClaims, setCustomClaims } = useAuth()
-	
-	// Drawer open/close state
-	const [open, setOpen] = useState(false)
-	const openDrawer = () => setOpen(true)
-	const closeDrawer = () => setOpen(false)
+
+	// Drawer open/close from shared mobile nav context (Headbar triggers open)
+	const { open, closeDrawer } = useMobileNav()
 
 	/**
 	 * Effect hook to handle window resize events.
@@ -190,16 +188,6 @@ const Navbar = ({
 
 	return (
 		<>
-			{/* Mobile menu button */}
-			<div className="absolute">
-				<IconButton
-					variant="text"
-					onClick={openDrawer}
-					className="top-8 left-4 z-10 sm:hidden tooltip-menu">
-					<IoMenu size={40} />
-				</IconButton>
-			</div>
-			
 			{/* Navigation drawer */}
 			<Drawer
 				open={windowSize[0] > 640 ? true : open}

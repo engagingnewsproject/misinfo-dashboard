@@ -21,6 +21,7 @@
 import React, { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import { useAuth } from "../context/AuthContext"
+import { MobileNavProvider } from "../context/MobileNavContext"
 // Components 
 import Navbar from "../components/layout/Navbar"
 import Headbar from "../components/layout/Headbar"
@@ -122,7 +123,7 @@ const Report = () => {
   const style = {
 		button: 'w-80 self-center mt-4 shadow bg-blue-600 hover:bg-gray-100 text-sm text-white py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
 		pageContainer: 'md:h-full w-full md:pt-4',
-		container: 'pl-2 sm:pl-12',
+		container: 'w-full pl-2 sm:pl-16',
 		wrapper: 'w-full h-full flex flex-col py-5',
 		content: 'w-full md:h-full flex flex-col px-3 md:px-12 py-5 md:py-0 mb-5 overflow-y-auto'
 	}
@@ -132,52 +133,54 @@ const Report = () => {
 			<Head>
 				<title>Report | Truth Sleuth Local</title>
 			</Head>
-			<div className={style.pageContainer}>
-				<Navbar
-					tab={tab}
-					setTab={setTab}
-					onReportTabClick={handleReportTabClick}
-					reportSystem={reportSystem}
-				/>
-				<div className={style.container}>
-					<div className={style.wrapper}>
-						<Headbar />
-						<div className={style.content}>
-							{tab == 0 && reportSystem == 0 && (
-								<ReportLanding
-									onReportStartClick={handleReportStartClick}
-									reportSystem={reportSystem}
-									setReportSystem={setReportSystem}
-									setReminderShow={setReminderShow}
-									reminderShow={reminderShow}
-									reportView={reportView}
-									setReportView={setReportView}
-									onChangeCheckbox={handleChangeCheckbox}
-									onReminderStart={handleReminderStart}
-									onReportSystemPrevStep={handleReportSystemPrevStep}
-									disableReminder={disableReminder}
-								/>
-							)}
-							{tab == 0 && reportSystem >= 0 && (
-								<ReportSystem
-									reportSystem={reportSystem}
-									setReportSystem={setReportSystem}
-									setReminderShow={setReminderShow}
-									onChangeCheckbox={handleChangeCheckbox}
-									onReminderStart={handleReminderStart}
-									onReportSystemPrevStep={handleReportSystemPrevStep}
-									disableReminder={disableReminder}
-									reminderShow={reminderShow}
-								/>
-							)}
-							{tab == 1 && <Profile />}
-							{locationModal && (
-								<LocationModal setLocationModal={setLocationModal} />
-							)}
+			<MobileNavProvider>
+				<div className={style.pageContainer}>
+					<Navbar
+						tab={tab}
+						setTab={setTab}
+						onReportTabClick={handleReportTabClick}
+						reportSystem={reportSystem}
+					/>
+					<div className={style.container}>
+						<div className={style.wrapper}>
+							<Headbar />
+							<div className={style.content}>
+								{tab == 0 && reportSystem == 0 && (
+									<ReportLanding
+										onReportStartClick={handleReportStartClick}
+										reportSystem={reportSystem}
+										setReportSystem={setReportSystem}
+										setReminderShow={setReminderShow}
+										reminderShow={reminderShow}
+										reportView={reportView}
+										setReportView={setReportView}
+										onChangeCheckbox={handleChangeCheckbox}
+										onReminderStart={handleReminderStart}
+										onReportSystemPrevStep={handleReportSystemPrevStep}
+										disableReminder={disableReminder}
+									/>
+								)}
+								{tab == 0 && reportSystem >= 0 && (
+									<ReportSystem
+										reportSystem={reportSystem}
+										setReportSystem={setReportSystem}
+										setReminderShow={setReminderShow}
+										onChangeCheckbox={handleChangeCheckbox}
+										onReminderStart={handleReminderStart}
+										onReportSystemPrevStep={handleReportSystemPrevStep}
+										disableReminder={disableReminder}
+										reminderShow={reminderShow}
+									/>
+								)}
+								{tab == 1 && <Profile />}
+								{locationModal && (
+									<LocationModal setLocationModal={setLocationModal} />
+								)}
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
+			</MobileNavProvider>
 		</>
 	)
 }

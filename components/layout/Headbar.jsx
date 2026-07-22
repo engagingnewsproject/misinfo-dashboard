@@ -1,203 +1,152 @@
 /**
  * @fileoverview Headbar - Application Header Component
- * 
+ *
  * This component displays the main header bar of the application, including
- * the agency logo, title, and search functionality. It dynamically shows
- * different content based on the user's role (admin, agency, or regular user)
- * and fetches agency-specific branding from Firestore.
- * 
+ * the agency logo, title, and (on mobile) the menu button that opens the nav drawer.
+ * It dynamically shows different content based on the user's role (admin, agency, or
+ * regular user) and fetches agency-specific branding from Firestore.
+ *
  * @module components/Headbar
- * @requires react
- * @requires react-icons/ai
- * @requires react-icons/gi
- * @requires firebase/firestore
- * @requires ../context/AuthContext
- * @requires ../config/firebase
- * @requires next/image
  */
 
 import React, { useState, useEffect } from 'react'
+import { IconButton } from '@material-tailwind/react'
 import { AiOutlineSearch } from 'react-icons/ai'
-import { GiMagnifyingGlass } from "react-icons/gi";
+import { GiMagnifyingGlass } from 'react-icons/gi'
+import { IoMenu } from 'react-icons/io5'
 import { collection, getDocs, getDoc, doc, query, where } from 'firebase/firestore'
 import { useAuth } from '../../context/AuthContext'
-import { db } from "../../config/firebase"
+import { useMobileNav } from '../../context/MobileNavContext'
+import { db } from '../../config/firebase'
 import Image from 'next/image'
 
 /**
  * Headbar - Main application header component.
- * 
- * This component renders the top navigation bar with agency branding,
- * user role-specific titles, and search functionality. It automatically
- * fetches agency information for agency users and displays appropriate
- * branding and titles based on user permissions.
- * 
- * @param {Object} props - Component props
- * @param {string} props.search - Current search query value
- * @param {Function} props.setSearch - Function to update search query
- * @returns {JSX.Element} Header bar with branding and navigation
- * @example
- * <Headbar 
- *   search="query"
- *   setSearch={setSearchQuery}
- * />
+ *
+ * @param {Object} props
+ * @param {string} [props.search] - Current search query value
+ * @param {Function} [props.setSearch] - Function to update search query
+ * @returns {JSX.Element}
  */
-const Headbar = ({ search, setSearch}) => {
-    const { user, customClaims } = useAuth()
-    const [agencyLogo, setAgencyLogo] = useState('')
-    const [title, setTitle] = useState('')
+const Headbar = ({ search, setSearch }) => {
+	const { user, customClaims } = useAuth()
+	const { openDrawer } = useMobileNav()
+	const [agencyLogo, setAgencyLogo] = useState('')
+	const [title, setTitle] = useState('')
 
-    /**
-     * Fetches agency data from Firestore for the current user.
-     * 
-     * This function queries the 'agency' collection to find the agency
-     * that the current user belongs to, then sets the agency name and
-     * logo for display in the header.
-     * 
-     * @returns {Promise<void>} Resolves when agency data is fetched and set
-     * @throws {Error} When Firestore query fails
-     */
-    const getData = async () => {
-        const applyAgencyDoc = (agencyData) => {
-            if (!agencyData) return
-            setTitle(agencyData.name || '')
-            const logo = agencyData.logo
-            if (Array.isArray(logo) && logo[0]) {
-                setAgencyLogo(logo[0])
-            }
-        }
+	const getData = async () => {
+		const applyAgencyDoc = (agencyData) => {
+			if (!agencyData) return
+			setTitle(agencyData.name || '')
+			const logo = agencyData.logo
+			if (Array.isArray(logo) && logo[0]) {
+				setAgencyLogo(logo[0])
+			}
+		}
 
-        try {
-            if (customClaims?.agencyId) {
-                const agencySnap = await getDoc(doc(db, 'agency', customClaims.agencyId))
-                if (agencySnap.exists()) {
-                    applyAgencyDoc(agencySnap.data())
-                    return
-                }
-            }
+		try {
+			if (customClaims?.agencyId) {
+				const agencySnap = await getDoc(doc(db, 'agency', customClaims.agencyId))
+				if (agencySnap.exists()) {
+					applyAgencyDoc(agencySnap.data())
+					return
+				}
+			}
 
-            // Agency claim without agencyId: wait for AuthContext refresh; do not
-            // run collection-wide agencyUsers queries (denied by scoped rules).
-            if (customClaims?.agency && !customClaims?.agencyId) {
-                return
-            }
+			if (customClaims?.agency && !customClaims?.agencyId) {
+				return
+			}
 
-            // Legacy tokens without agencyId: membership lookup
-            if (!user?.email) return
-            const agencyCollection = collection(db, 'agency')
-            const q = query(
-                agencyCollection,
-                where('agencyUsers', 'array-contains', user.email),
-            )
-            const querySnapshot = await getDocs(q)
-            querySnapshot.forEach((agencyDoc) => {
-                applyAgencyDoc(agencyDoc.data())
-            })
-        } catch (error) {
-            console.error(error)
-        }
-    }
-    
-    /**
-     * Handles search form submission.
-     * 
-     * @param {Event} e - Form submission event
-     */
-    const handleSearch = (e) => {
-        e.preventDefault()
-        if (search.length == 0) return
-        // TODO: Implement search functionality
-        // console.log(search)
-    }
+			if (!user?.email) return
+			const agencyCollection = collection(db, 'agency')
+			const q = query(
+				agencyCollection,
+				where('agencyUsers', 'array-contains', user.email),
+			)
+			const querySnapshot = await getDocs(q)
+			querySnapshot.forEach((agencyDoc) => {
+				applyAgencyDoc(agencyDoc.data())
+			})
+		} catch (error) {
+			console.error(error)
+		}
+	}
 
-    /**
-     * Handles search input changes.
-     * 
-     * @param {Event} e - Input change event
-     */
-    const handleChange = (e) => {
-        setSearch(e.target.value)
-    }
-    
-    /**
-     * Effect hook to fetch agency data when component mounts.
-     * 
-     * This effect runs once when the component is first rendered
-     * to load the user's agency information for display.
-     */
-    useEffect(() => {
-        getData()
-    }, [customClaims?.agencyId, user?.email])
+	const handleSearch = (e) => {
+		e.preventDefault()
+		if (search.length == 0) return
+	}
 
-    /**
-     * Renders the appropriate title and subtitle based on user role.
-     * 
-     * @returns {JSX.Element} Role-specific title and subtitle
-     */
-    const renderTitle = () => {
-        if (customClaims.admin) {
-            return (
-                <>
-                    Truth Sleuth Local
-                    <div className='text-sm font-normal'>ADMIN DASHBOARD</div>
-                </>
-            )
-        } else if (customClaims.agency && !customClaims.admin) {
-            return (
-                <>
-                    {title}
-                    <div className='text-sm font-normal'>Agency Dashboard</div>
-                </>
-            )
-        } else {
-            return <>Truth Sleuth Local</>
-        }
-    }
+	const handleChange = (e) => {
+		setSearch(e.target.value)
+	}
 
-    /**
-     * Renders the appropriate logo based on user role and agency data.
-     * 
-     * @returns {JSX.Element} Agency logo or default icon
-     */
-    const renderLogo = () => {
-        if (customClaims.agency && agencyLogo) {
-            return (
-                <Image 
-                    src={agencyLogo} 
-                    width={55} 
-                    height={55} 
-                    alt="agency logo" 
-                    className="h-[55px] w-[55px] object-contain"
-                />
-            )
-        } else {
-            return (
-                <div className='bg-brand p-3 rounded-full'>
-                    <GiMagnifyingGlass className='fill-white' />
-                </div>
-            )
-        }
-    }
+	useEffect(() => {
+		getData()
+	}, [customClaims?.agencyId, user?.email])
 
-    return (
-        <div className="w-full grid grid-cols-12 pb-5 md:flex md:flex-row md:px-12 md:justify-between md:items-center">
-            {/* Main header content with logo and title */}
-            <div className="col-start-3 col-span-9 md:col-start-1 flex items-center">
-                {/* Agency logo or default icon */}
-                <div className="flex justify-center">
-                    {renderLogo()}
-                </div>
-                
-                {/* Application title and subtitle */}
-                <div className="text-md font-semibold px-4 tracking-wide">
-                    {renderTitle()}
-                </div>
-            </div>
-            
-            {/* Search functionality (currently disabled) */}
-            {/* {(customClaims.admin || customClaims.agency) &&
-            <form className="col-start-3 col-span-8 mt-5 flex relative md:w-2/4 lg:w-1/4 lg:max-w-xs" onChange={handleChange} onSubmit={handleSearch}>
-               
+	const renderTitle = () => {
+		if (customClaims.admin) {
+			return (
+				<>
+					Truth Sleuth Local
+					<div className="text-sm font-normal">ADMIN DASHBOARD</div>
+				</>
+			)
+		} else if (customClaims.agency && !customClaims.admin) {
+			return (
+				<>
+					{title}
+					<div className="text-sm font-normal">Agency Dashboard</div>
+				</>
+			)
+		} else {
+			return <>Truth Sleuth Local</>
+		}
+	}
+
+	const renderLogo = () => {
+		if (customClaims.agency && agencyLogo) {
+			return (
+				<Image
+					src={agencyLogo}
+					width={55}
+					height={55}
+					alt="agency logo"
+					className="h-[40px] w-[40px] md:h-[55px] md:w-[55px] object-contain"
+				/>
+			)
+		}
+		return (
+			<div className="bg-brand p-2.5 md:p-3 rounded-full shrink-0">
+				<GiMagnifyingGlass className="fill-white" />
+			</div>
+		)
+	}
+
+	return (
+		<div className="w-full flex flex-row items-center gap-1 pb-5 px-3 sm:px-4 md:px-12 md:justify-between">
+			<div className="flex items-center min-w-0 flex-1">
+				{typeof openDrawer === 'function' && (
+					<IconButton
+						variant="text"
+						onClick={openDrawer}
+						className="sm:hidden shrink-0 text-brand hover:bg-brand/10 mr-1"
+						aria-label="Open menu">
+						<IoMenu size={36} />
+					</IconButton>
+				)}
+
+				<div className="flex justify-center shrink-0">{renderLogo()}</div>
+
+				<div className="text-md font-semibold px-3 md:px-4 tracking-wide min-w-0 truncate">
+					{renderTitle()}
+				</div>
+			</div>
+
+			{/* Search functionality (currently disabled) */}
+			{/* {(customClaims.admin || customClaims.agency) &&
+            <form className="mt-5 flex relative md:w-2/4 lg:w-1/4 lg:max-w-xs" onChange={handleChange} onSubmit={handleSearch}>
                 <input
                     className="shadow border-none rounded-md w-full p-3 pr-11 text-xs text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                     id="search"
@@ -205,15 +154,15 @@ const Headbar = ({ search, setSearch}) => {
                     placeholder="Search"
                     onChange={handleChange}
                     value={search} />
-                <button 
-                className="py-1 px-1 mt-1 mr-1 absolute right-0 top-0 bg-blue-600 text-white rounded-md" 
+                <button
+                className="py-1 px-1 mt-1 mr-1 absolute right-0 top-0 bg-blue-600 text-white rounded-md"
                 type='submit'>
                     <AiOutlineSearch size={25}/>
                 </button>
             </form>
             }  */}
-        </div>
-    )
+		</div>
+	)
 }
 
 export default Headbar
