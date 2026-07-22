@@ -27,10 +27,13 @@ import { Button } from '@material-tailwind/react'
  * @param {Object} props
  * @param {string} props.viewVal - The current view ("overview" or "comparison")
  * @param {Function} props.setViewVal - Setter function to update the view
+ * @param {string} [props.className] - Optional extra classes on the wrapper
  * @returns {JSX.Element} The rendered toggle UI
  */
-const Toggle = ({ viewVal, setViewVal }) => (
-	<div data-component="Toggle" className="flex justify-center md:block">
+const Toggle = ({ viewVal, setViewVal, className = '' }) => (
+	<div
+		data-component="Toggle"
+		className={`flex justify-center md:justify-end ${className}`.trim()}>
 		<Button
 			id="overview"
 			size="sm"

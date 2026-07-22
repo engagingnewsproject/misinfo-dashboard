@@ -1,13 +1,13 @@
 /**
  * @fileoverview Navbar - Side Navigation Component
  *
- * Responsive drawer: icon rail on mobile / collapsed desktop; icon + label when
- * desktop-expanded. Expand toggle lives at the bottom (desktop only).
+ * Responsive drawer: brand + expand at top; icon rail / labels; logout at bottom.
  */
 
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/router'
+import Image from 'next/image'
 import {
 	Drawer,
 	IconButton,
@@ -30,12 +30,16 @@ import {
 	IoDocumentTextOutline,
 	IoChevronBackOutline,
 	IoChevronForwardOutline,
+	IoLogOutOutline,
 } from 'react-icons/io5'
+import { GiMagnifyingGlass } from 'react-icons/gi'
 import { HiOutlineDocumentPlus } from 'react-icons/hi2'
 import { Tooltip } from 'react-tooltip'
 import HelpModal from '../modals/common/HelpModal'
 import ContactHelpModal from '../modals/ContactHelpModal'
+import ConfirmModal from '../modals/common/ConfirmModal'
 import { useAuth } from '../../context/AuthContext'
+import { useNavBranding } from '../../hooks/useNavBranding'
 import {
 	NAV_COLLAPSED_WIDTH,
 	NAV_EXPANDED_MAX_WIDTH,
@@ -81,7 +85,7 @@ function NavItem({
 	tooltipClass,
 	ariaLabel,
 }) {
-	const navIconClass = `my-4 mx-2 ${tooltipClass}${active ? ' bg-brand/10' : ''}`
+	const navIconClass = `my-2 mx-2 ${tooltipClass}${active ? ' bg-brand/10' : ''}`
 
 	if (!expanded) {
 		return (
@@ -114,12 +118,57 @@ function NavItem({
 	)
 }
 
+function NavBrandMark({ agencyLogo, isAgency, compact }) {
+	if (isAgency && agencyLogo) {
+		return (
+			<Image
+				src={agencyLogo}
+				width={compact ? 36 : 40}
+				height={compact ? 36 : 40}
+				alt="agency logo"
+				className={`${compact ? 'h-9 w-9' : 'h-10 w-10'} object-contain shrink-0`}
+			/>
+		)
+	}
+	return (
+		<div
+			className={`bg-brand rounded-full shrink-0 ${
+				compact ? 'p-2' : 'p-2.5'
+			}`}>
+			<GiMagnifyingGlass className="fill-white" size={compact ? 16 : 18} />
+		</div>
+	)
+}
+
+function NavBrandTitle({ customClaims, agencyName }) {
+	if (customClaims?.admin) {
+		return (
+			<div className="text-sm font-semibold tracking-wide truncate min-w-0">
+				Truth Sleuth Local
+			</div>
+		)
+	}
+	if (customClaims?.agency && !customClaims?.admin) {
+		return (
+			<div className="text-sm font-semibold tracking-wide truncate min-w-0">
+				{agencyName || 'Agency'}
+			</div>
+		)
+	}
+	return (
+		<div className="text-sm font-semibold tracking-wide truncate min-w-0">
+			Truth Sleuth Local
+		</div>
+	)
+}
+
 const Navbar = ({
 	tab,
 	setTab,
 	handleNewReportClick,
 	onReportTabClick,
 }) => {
+	const router = useRouter()
 	const [windowSize, setWindowSize] = useState([
 		typeof window !== 'undefined' ? window.innerWidth : 1024,
 		typeof window !== 'undefined' ? window.innerHeight : 768,
@@ -128,9 +177,11 @@ const Navbar = ({
 	const [disableOverlay, setDisableOverlay] = useState(true)
 	const [helpModal, setHelpModal] = useState(false)
 	const [contactHelpModal, setContactHelpModal] = useState(false)
+	const [logoutModal, setLogoutModal] = useState(false)
 
-	const router = useRouter()
-	const { customClaims } = useAuth()
+	const { logout } = useAuth()
+	const { agencyLogo, agencyName, customClaims: claims } = useNavBranding()
+	const customClaims = claims || {}
 	const {
 		open,
 		closeDrawer,
@@ -164,7 +215,6 @@ const Navbar = ({
 		}
 	}, [windowSize])
 
-	// Keep page offset in sync with the content-sized expanded drawer.
 	useLayoutEffect(() => {
 		if (!isDesktop || !desktopExpanded) return
 		const el = drawerRef.current
@@ -215,7 +265,238 @@ const Navbar = ({
 		closeDrawer()
 	}
 
-	const icon = (Node) => <Node size={showLabels ? 22 : 30} />
+	const handleLogout = () => {
+		logout().then(() => {
+			router.push('/login')
+		})
+	}
+
+	const icon = (Node) => <Node size={showLabels ? 22 : 25} />
+	const isAgencyUser = Boolean(customClaims?.agency)
+
+	const primaryNavExpanded = (
+		<List className="p-0 !min-w-0 w-max max-w-full">
+			{(customClaims.admin || customClaims.agency) && (
+				<NavItem
+					expanded
+					icon={icon(IoHomeOutline)}
+					label="Home"
+					active={tab === 0}
+					onClick={() => handleTabNavigation(0)}
+					tooltipClass="tooltip-home"
+				/>
+			)}
+			{customClaims.admin && (
+				<NavItem
+					expanded
+					icon={icon(IoBusinessOutline)}
+					label="Agencies"
+					active={tab === 4}
+					onClick={() => handleTabNavigation(4)}
+					tooltipClass="tooltip-agencies"
+				/>
+			)}
+			{(customClaims.agency || customClaims.admin) && (
+				<NavItem
+					expanded
+					icon={icon(IoPricetagsOutline)}
+					label="Tagging Systems"
+					active={tab === 2}
+					onClick={() => handleTabNavigation(2)}
+					tooltipClass="tooltip-tags"
+				/>
+			)}
+			{customClaims.agency && (
+				<NavItem
+					expanded
+					icon={icon(IoAddCircleOutline)}
+					label="New Report"
+					onClick={handleAgencyNewReport}
+					tooltipClass="tooltip-new-report"
+				/>
+			)}
+			{customClaims.admin && (
+				<NavItem
+					expanded
+					icon={icon(IoPeopleOutline)}
+					label="Users"
+					active={tab === 3}
+					onClick={() => handleTabNavigation(3)}
+					tooltipClass="tooltip-users"
+				/>
+			)}
+			{!customClaims.admin && !customClaims.agency && (
+				<NavItem
+					expanded
+					icon={icon(HiOutlineDocumentPlus)}
+					label="Create Report"
+					onClick={handleGeneralUserReport}
+					tooltipClass="tooltip-create-report"
+				/>
+			)}
+			{customClaims.admin && (
+				<NavItem
+					expanded
+					icon={icon(IoDocumentTextOutline)}
+					label="Help Requests"
+					active={tab === 5}
+					onClick={() => handleTabNavigation(5)}
+					tooltipClass="tooltip-help-requests"
+				/>
+			)}
+		</List>
+	)
+
+	const primaryNavCollapsed = (
+		<>
+			{(customClaims.admin || customClaims.agency) && (
+				<NavItem
+					expanded={false}
+					icon={icon(IoHomeOutline)}
+					label="Home"
+					active={tab === 0}
+					onClick={() => handleTabNavigation(0)}
+					tooltipClass="tooltip-home"
+				/>
+			)}
+			{customClaims.admin && (
+				<NavItem
+					expanded={false}
+					icon={icon(IoBusinessOutline)}
+					label="Agencies"
+					active={tab === 4}
+					onClick={() => handleTabNavigation(4)}
+					tooltipClass="tooltip-agencies"
+				/>
+			)}
+			{(customClaims.agency || customClaims.admin) && (
+				<NavItem
+					expanded={false}
+					icon={icon(IoPricetagsOutline)}
+					label="Tagging Systems"
+					active={tab === 2}
+					onClick={() => handleTabNavigation(2)}
+					tooltipClass="tooltip-tags"
+				/>
+			)}
+			{customClaims.agency && (
+				<NavItem
+					expanded={false}
+					icon={icon(IoAddCircleOutline)}
+					label="New Report"
+					onClick={handleAgencyNewReport}
+					tooltipClass="tooltip-new-report"
+				/>
+			)}
+			{customClaims.admin && (
+				<NavItem
+					expanded={false}
+					icon={icon(IoPeopleOutline)}
+					label="Users"
+					active={tab === 3}
+					onClick={() => handleTabNavigation(3)}
+					tooltipClass="tooltip-users"
+				/>
+			)}
+			{!customClaims.admin && !customClaims.agency && (
+				<NavItem
+					expanded={false}
+					icon={icon(HiOutlineDocumentPlus)}
+					label="Create Report"
+					onClick={handleGeneralUserReport}
+					tooltipClass="tooltip-create-report"
+				/>
+			)}
+			{customClaims.admin && (
+				<NavItem
+					expanded={false}
+					icon={icon(IoDocumentTextOutline)}
+					label="Help Requests"
+					active={tab === 5}
+					onClick={() => handleTabNavigation(5)}
+					tooltipClass="tooltip-help-requests"
+				/>
+			)}
+		</>
+	)
+
+	const secondaryNavExpanded = (
+		<List className="p-0 !min-w-0 w-max max-w-full">
+			{customClaims.admin && (
+				<NavItem
+					expanded
+					icon={icon(IoSettingsOutline)}
+					label="Appearance"
+					active={tab === 6}
+					onClick={() => handleTabNavigation(6)}
+					tooltipClass="tooltip-appearance"
+				/>
+			)}
+			{(customClaims.admin || customClaims.agency) && (
+				<NavItem
+					expanded
+					icon={icon(IoHelpCircleOutline)}
+					label="Help"
+					onClick={handleHelpModal}
+					tooltipClass="tooltip-help"
+				/>
+			)}
+			<NavItem
+				expanded
+				icon={icon(IoChatboxEllipsesOutline)}
+				label="Contact for Help"
+				onClick={handleContactHelpModal}
+				tooltipClass="tooltip-contact-us-for-help"
+			/>
+			<NavItem
+				expanded
+				icon={icon(IoPersonOutline)}
+				label="Profile"
+				active={tab === 1}
+				onClick={() => handleTabNavigation(1)}
+				tooltipClass="tooltip-profile"
+			/>
+		</List>
+	)
+
+	const secondaryNavCollapsed = (
+		<>
+			{customClaims.admin && (
+				<NavItem
+					expanded={false}
+					icon={icon(IoSettingsOutline)}
+					label="Appearance"
+					active={tab === 6}
+					onClick={() => handleTabNavigation(6)}
+					tooltipClass="tooltip-appearance"
+				/>
+			)}
+			{(customClaims.admin || customClaims.agency) && (
+				<NavItem
+					expanded={false}
+					icon={icon(IoHelpCircleOutline)}
+					label="Help"
+					onClick={handleHelpModal}
+					tooltipClass="tooltip-help"
+				/>
+			)}
+			<NavItem
+				expanded={false}
+				icon={icon(IoChatboxEllipsesOutline)}
+				label="Contact for Help"
+				onClick={handleContactHelpModal}
+				tooltipClass="tooltip-contact-us-for-help"
+			/>
+			<NavItem
+				expanded={false}
+				icon={icon(IoPersonOutline)}
+				label="Profile"
+				active={tab === 1}
+				onClick={() => handleTabNavigation(1)}
+				tooltipClass="tooltip-profile"
+			/>
+		</>
+	)
 
 	return (
 		<>
@@ -233,265 +514,94 @@ const Navbar = ({
 					className={`flex h-full flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] ${
 						showLabels ? 'w-max max-w-full' : 'w-full'
 					}`}>
-					<div className={`shrink-0 ${showLabels ? 'px-1 pt-2' : ''}`}>
-						{showLabels ? (
-							<List className="p-0 !min-w-0 w-max max-w-full">
-								{(customClaims.admin || customClaims.agency) && (
-									<NavItem
-										expanded
-										icon={icon(IoHomeOutline)}
-										label="Home"
-										active={tab === 0}
-										onClick={() => handleTabNavigation(0)}
-										tooltipClass="tooltip-home"
-									/>
-								)}
-								{customClaims.admin && (
-									<NavItem
-										expanded
-										icon={icon(IoBusinessOutline)}
-										label="Agencies"
-										active={tab === 4}
-										onClick={() => handleTabNavigation(4)}
-										tooltipClass="tooltip-agencies"
-									/>
-								)}
-								{(customClaims.agency || customClaims.admin) && (
-									<NavItem
-										expanded
-										icon={icon(IoPricetagsOutline)}
-										label="Tagging Systems"
-										active={tab === 2}
-										onClick={() => handleTabNavigation(2)}
-										tooltipClass="tooltip-tags"
-									/>
-								)}
-								{customClaims.agency && (
-									<NavItem
-										expanded
-										icon={icon(IoAddCircleOutline)}
-										label="New Report"
-										onClick={handleAgencyNewReport}
-										tooltipClass="tooltip-new-report"
-									/>
-								)}
-								{customClaims.admin && (
-									<NavItem
-										expanded
-										icon={icon(IoPeopleOutline)}
-										label="Users"
-										active={tab === 3}
-										onClick={() => handleTabNavigation(3)}
-										tooltipClass="tooltip-users"
-									/>
-								)}
-								{!customClaims.admin && !customClaims.agency && (
-									<NavItem
-										expanded
-										icon={icon(HiOutlineDocumentPlus)}
-										label="Create Report"
-										onClick={handleGeneralUserReport}
-										tooltipClass="tooltip-create-report"
-									/>
-								)}
-								{customClaims.admin && (
-									<NavItem
-										expanded
-										icon={icon(IoDocumentTextOutline)}
-										label="Help Requests"
-										active={tab === 5}
-										onClick={() => handleTabNavigation(5)}
-										tooltipClass="tooltip-help-requests"
-									/>
-								)}
-							</List>
-						) : (
-							<>
-								<IconButton
-									variant="text"
-									onClick={closeDrawer}
-									className="my-4 mx-2 tooltip-close sm:hidden"
-									aria-label="Close menu">
-									<IoClose size={30} />
-								</IconButton>
+					{/* Top: brand + expand (desktop) / close (mobile) */}
+					<div
+						className={`shrink-0 flex items-center gap-1 border-b border-blue-gray-50 ${
+							showLabels ? 'px-2 py-3' : 'px-1 py-2 flex-col'
+						}`}>
+						{!isDesktop && (
+							<IconButton
+								variant="text"
+								onClick={closeDrawer}
+								className="my-1 mx-2 tooltip-close sm:hidden self-start"
+								aria-label="Close menu">
+								<IoClose size={30} />
+							</IconButton>
+						)}
 
-								{(customClaims.admin || customClaims.agency) && (
-									<NavItem
-										expanded={false}
-										icon={icon(IoHomeOutline)}
-										label="Home"
-										active={tab === 0}
-										onClick={() => handleTabNavigation(0)}
-										tooltipClass="tooltip-home"
-									/>
+						<div
+							className={`flex items-center min-w-0 flex-1 ${
+								showLabels ? 'gap-2' : 'justify-center w-full'
+							}`}>
+							<NavBrandMark
+								agencyLogo={agencyLogo}
+								isAgency={isAgencyUser}
+								compact={!showLabels}
+							/>
+							{showLabels && (
+								<NavBrandTitle
+									customClaims={customClaims}
+									agencyName={agencyName}
+								/>
+							)}
+						</div>
+
+						{isDesktop && (
+							<IconButton
+								variant="text"
+								onClick={toggleDesktopExpanded}
+								className={`shrink-0 text-[#2E3B4E] hover:bg-brand/10 ${
+									showLabels ? '' : 'my-1 mx-2 tooltip-expand-nav'
+								}`}
+								aria-label={showLabels ? 'Collapse sidebar' : 'Expand sidebar'}>
+								{showLabels ? (
+									<IoChevronBackOutline size={22} />
+								) : (
+									<IoChevronForwardOutline size={26} />
 								)}
-								{customClaims.admin && (
-									<NavItem
-										expanded={false}
-										icon={icon(IoBusinessOutline)}
-										label="Agencies"
-										active={tab === 4}
-										onClick={() => handleTabNavigation(4)}
-										tooltipClass="tooltip-agencies"
-									/>
-								)}
-								{(customClaims.agency || customClaims.admin) && (
-									<NavItem
-										expanded={false}
-										icon={icon(IoPricetagsOutline)}
-										label="Tagging Systems"
-										active={tab === 2}
-										onClick={() => handleTabNavigation(2)}
-										tooltipClass="tooltip-tags"
-									/>
-								)}
-								{customClaims.agency && (
-									<NavItem
-										expanded={false}
-										icon={icon(IoAddCircleOutline)}
-										label="New Report"
-										onClick={handleAgencyNewReport}
-										tooltipClass="tooltip-new-report"
-									/>
-								)}
-								{customClaims.admin && (
-									<NavItem
-										expanded={false}
-										icon={icon(IoPeopleOutline)}
-										label="Users"
-										active={tab === 3}
-										onClick={() => handleTabNavigation(3)}
-										tooltipClass="tooltip-users"
-									/>
-								)}
-								{!customClaims.admin && !customClaims.agency && (
-									<NavItem
-										expanded={false}
-										icon={icon(HiOutlineDocumentPlus)}
-										label="Create Report"
-										onClick={handleGeneralUserReport}
-										tooltipClass="tooltip-create-report"
-									/>
-								)}
-								{customClaims.admin && (
-									<NavItem
-										expanded={false}
-										icon={icon(IoDocumentTextOutline)}
-										label="Help Requests"
-										active={tab === 5}
-										onClick={() => handleTabNavigation(5)}
-										tooltipClass="tooltip-help-requests"
-									/>
-								)}
-							</>
+							</IconButton>
+						)}
+						{isDesktop && !showLabels && (
+							<NavTooltip tooltipClass="tooltip-expand-nav">Expand</NavTooltip>
 						)}
 					</div>
 
-					<div className={`mt-auto shrink-0 ${showLabels ? 'px-1' : ''}`}>
-						{showLabels ? (
-							<List className="p-0 !min-w-0 w-max max-w-full">
-								{customClaims.admin && (
-									<NavItem
-										expanded
-										icon={icon(IoSettingsOutline)}
-										label="Appearance"
-										active={tab === 6}
-										onClick={() => handleTabNavigation(6)}
-										tooltipClass="tooltip-appearance"
-									/>
-								)}
-								{(customClaims.admin || customClaims.agency) && (
-									<NavItem
-										expanded
-										icon={icon(IoHelpCircleOutline)}
-										label="Help"
-										onClick={handleHelpModal}
-										tooltipClass="tooltip-help"
-									/>
-								)}
-								<NavItem
-									expanded
-									icon={icon(IoChatboxEllipsesOutline)}
-									label="Contact for Help"
-									onClick={handleContactHelpModal}
-									tooltipClass="tooltip-contact-us-for-help"
-								/>
-								<NavItem
-									expanded
-									icon={icon(IoPersonOutline)}
-									label="Profile"
-									active={tab === 1}
-									onClick={() => handleTabNavigation(1)}
-									tooltipClass="tooltip-profile"
-								/>
-							</List>
-						) : (
-							<>
-								{customClaims.admin && (
-									<NavItem
-										expanded={false}
-										icon={icon(IoSettingsOutline)}
-										label="Appearance"
-										active={tab === 6}
-										onClick={() => handleTabNavigation(6)}
-										tooltipClass="tooltip-appearance"
-									/>
-								)}
-								{(customClaims.admin || customClaims.agency) && (
-									<NavItem
-										expanded={false}
-										icon={icon(IoHelpCircleOutline)}
-										label="Help"
-										onClick={handleHelpModal}
-										tooltipClass="tooltip-help"
-									/>
-								)}
-								<NavItem
-									expanded={false}
-									icon={icon(IoChatboxEllipsesOutline)}
-									label="Contact for Help"
-									onClick={handleContactHelpModal}
-									tooltipClass="tooltip-contact-us-for-help"
-								/>
-								<NavItem
-									expanded={false}
-									icon={icon(IoPersonOutline)}
-									label="Profile"
-									active={tab === 1}
-									onClick={() => handleTabNavigation(1)}
-									tooltipClass="tooltip-profile"
-								/>
-							</>
-						)}
+					<div className={`shrink-0 overflow-y-auto ${showLabels ? 'px-1 pt-2' : ''}`}>
+						{showLabels ? primaryNavExpanded : primaryNavCollapsed}
+					</div>
 
-						{/* Desktop expand / collapse */}
-						<div className="hidden sm:block border-t border-blue-gray-50 mt-1">
+					<div className={`mt-auto shrink-0 ${showLabels ? 'px-1' : ''}`}>
+						{showLabels ? secondaryNavExpanded : secondaryNavCollapsed}
+
+						{/* Logout — last item */}
+						<div className="border-t border-blue-gray-50 mt-1">
 							{showLabels ? (
 								<ListItem
-									onClick={toggleDesktopExpanded}
+									onClick={() => setLogoutModal(true)}
 									className="mx-1 rounded-md py-2"
-									aria-label="Collapse sidebar">
-									<ListItemPrefix className="mr-3">
-										<IoChevronBackOutline size={22} />
+									aria-label="Log out">
+									<ListItemPrefix className="mr-3 shrink-0">
+										<IoLogOutOutline size={22} />
 									</ListItemPrefix>
 									<Typography
 										variant="small"
 										className="font-medium text-[#2E3B4E] whitespace-nowrap">
-										Collapse
+										Log out
 									</Typography>
 								</ListItem>
 							) : (
 								<>
 									<IconButton
 										variant="text"
-										onClick={toggleDesktopExpanded}
-										className="my-4 mx-2 tooltip-expand-nav"
-										aria-label="Expand sidebar">
-										<IoChevronForwardOutline size={30} />
+										onClick={() => {
+											setLogoutModal(true)
+											closeDrawer()
+										}}
+										className="my-4 mx-2 tooltip-logout"
+										aria-label="Log out">
+										<IoLogOutOutline size={30} />
 									</IconButton>
-									<NavTooltip tooltipClass="tooltip-expand-nav">
-										Expand
-									</NavTooltip>
+									<NavTooltip tooltipClass="tooltip-logout">Log out</NavTooltip>
 								</>
 							)}
 						</div>
@@ -504,6 +614,15 @@ const Navbar = ({
 				open={contactHelpModal}
 				setContactHelpModal={setContactHelpModal}
 			/>
+			{logoutModal && (
+				<ConfirmModal
+					func={handleLogout}
+					title="Are you sure?"
+					subtitle=""
+					CTA="Log out"
+					closeModal={setLogoutModal}
+				/>
+			)}
 		</>
 	)
 }

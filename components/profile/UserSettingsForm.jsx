@@ -2,7 +2,7 @@
  * @fileoverview User account settings section for the profile page.
  *
  * View mode is read-only; one Edit reveals email/password actions and
- * location editors. Logout lives outside this card.
+ * location editors.
  */
 import React, { useRef, useState } from 'react'
 import { Button, Typography } from '@material-tailwind/react'

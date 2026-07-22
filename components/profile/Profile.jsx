@@ -8,12 +8,12 @@
  * - Image upload and preview for agency logos
  * - Role-based access and UI (admin, agency, user)
  * - Language switching and localization
- * - Account deletion and logout with confirmation modals
+ * - Account deletion with confirmation modal
  * - Integration with Firebase Auth, Firestore, and Storage
  * - Responsive design and accessibility
  *
  * Integrates with:
- * - UpdatePwModal, UpdateEmailModal, ConfirmModal, DeleteModal
+ * - UpdatePwModal, UpdateEmailModal, DeleteModal
  * - LocationUpdate form
  * - LanguageSwitcher
  *
@@ -26,7 +26,6 @@ import UpdatePwModal from '../modals/profile/UpdatePwModal'
 import UpdateEmailModal from '../modals/profile/UpdateEmailModal'
 import { useAuth } from '../../context/AuthContext'
 // import { auth } from 'firebase-admin';
-import ConfirmModal from '../modals/common/ConfirmModal'
 import DeleteModal from '../modals/common/DeleteModal'
 import { useRouter } from 'next/router'
 import LanguageSwitcher from '../layout/LanguageSwitcher'
@@ -59,11 +58,10 @@ import UserSettingsForm from './UserSettingsForm'
  * @returns {JSX.Element} The rendered profile management interface
  */
 const Profile = ({ customClaims }) => {
-  const { user, logout, verifyRole, disableUser } = useAuth()
+  const { user, verifyRole, disableUser } = useAuth()
   const { t } = useTranslation('Profile')
   const [openModal, setOpenModal] = useState(false)
   const [emailModal, setEmailModal] = useState(false)
-  const [logoutModal, setLogoutModal] = useState(false)
   const [deleteModal, setDeleteModal] = useState(false)
   const [agency, setAgency] = useState([])
   const [agencyName, setAgencyName] = useState('')
@@ -389,16 +387,6 @@ const Profile = ({ customClaims }) => {
   }
 
   /**
-   * Handles the logout action.
-   */
-  const handleLogout = () => {
-    logout().then(() => {
-      router.push('/login')
-      // console.log('Logged out successfully')
-    })
-  }
-
-  /**
    * Handles the account deletion action.
    */
   const handleDelete = async () => {
@@ -451,21 +439,12 @@ const Profile = ({ customClaims }) => {
 
   // todo: change to "Disable account"
   /**
-   * Renders language (when shown) + logout/delete in one bottom card.
+   * Renders language (when shown) + delete account in one bottom card.
    * @returns {JSX.Element}
    */
   const accountActions = () => (
     <section className="mt-auto mb-8 p-6 bg-white rounded-md">
       {!isAgency && !isAdmin && languageToggle()}
-      <div className="flex justify-between tracking-normal items-center mb-4">
-        <div className="font-light">{t('logout')}</div>
-        <Button
-          variant="outlined"
-          color="blue"
-          onClick={() => setLogoutModal(true)}>
-          {t('logout')}
-        </Button>
-      </div>
       <div className="flex justify-between tracking-normal items-center">
         <div className="font-light mr-4">{t('delete')}</div>
         <Button
@@ -525,15 +504,6 @@ const Profile = ({ customClaims }) => {
 
       {openModal && <UpdatePwModal setOpenModal={setOpenModal} />}
       {emailModal && <UpdateEmailModal setEmailModal={setEmailModal} />}
-      {logoutModal && (
-        <ConfirmModal
-          func={handleLogout}
-          title={t('areyousure')}
-          subtitle=""
-          CTA={t('logout')}
-          closeModal={setLogoutModal}
-        />
-      )}
       {deleteModal && (
         <DeleteModal
           func={handleDelete}

@@ -29,9 +29,9 @@ const globalStyles = {
       black: 'text-2xl font-extrabold text-slate-200 tracking-wider'
     },
     h2: {
-      blue: 'text-xl block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-brand',
+      blue: 'text-2xl block font-sans antialiased font-extrabold leading-relaxed tracking-normal text-brand',
       black:
-        'text-xl block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-black-600'
+        'text-2xl block font-sans text-base antialiased font-extrabold leading-relaxed tracking-normal text-black-600'
     },
     h3: {
       blue: 'text-brand text-lg block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal',

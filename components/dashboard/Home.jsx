@@ -11,6 +11,7 @@
 import React, { useState, useMemo } from 'react'
 import ReportsSection from '../reports/ReportsSection'
 import TagGraph from './TagGraph'
+import Toggle from '../common/Toggle'
 import { useAuth } from '../../context/AuthContext'
 import globalStyles from '../../styles/globalStyles'
 
@@ -21,9 +22,17 @@ import globalStyles from '../../styles/globalStyles'
  * @param {boolean} props.newReportSubmitted
  * @param {Function} props.handleNewReportSubmit
  * @param {Function} props.handleNewReportClick
+ * @param {string} props.viewVal - Graph view ("overview" | "comparison")
+ * @param {Function} props.setViewVal
  * @returns {JSX.Element}
  */
-const Home = ({ newReportSubmitted, handleNewReportSubmit, handleNewReportClick }) => {
+const Home = ({
+	newReportSubmitted,
+	handleNewReportSubmit,
+	handleNewReportClick,
+	viewVal,
+	setViewVal,
+}) => {
 	const [search, setSearch] = useState('')
 	const { customClaims } = useAuth()
 
@@ -34,7 +43,11 @@ const Home = ({ newReportSubmitted, handleNewReportSubmit, handleNewReportClick 
 	return (
 		<div data-component="Home" className="w-full h-full flex flex-col">
 			<div className={globalStyles.page.wrap} id="scrollableDiv">
-				<TagGraph />
+				{/* Mobile: toggle above graphs; desktop toggle lives in Headbar */}
+				<div className="md:hidden mb-3">
+					<Toggle viewVal={viewVal} setViewVal={setViewVal} />
+				</div>
+				<TagGraph viewVal={viewVal} />
 				<ReportsSection
 					search={memoizedSearch}
 					newReportSubmitted={newReportSubmitted}
