@@ -26,7 +26,9 @@ import Profile from '../components/profile/Profile'
 import Settings from '../components/admin/Settings'
 import Users from '../components/admin/Users'
 import Navbar from '../components/layout/Navbar'
+import Headbar from '../components/layout/Headbar'
 import { useAuth } from '../context/AuthContext'
+import { MobileNavProvider } from '../context/MobileNavContext'
 import Agencies from '../components/admin/Agencies'
 import AgencyReportModal from '../components/modals/reports/AgencyReportModal'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
@@ -161,45 +163,47 @@ const Dashboard = () => {
 			<Head>
 				<title>Dashboard | Truth Sleuth Local</title>
 			</Head>
-			<div data-component="dashboard" className="w-full">
-				<Navbar
-					tab={tab}
-					setTab={setTab}
-					handleNewReportSubmit={handleNewReportSubmit}
-					handleNewReportClick={handleNewReportClick}
-					customClaims={customClaims}
-				/>
-				<div className="sm:pl-16">
-					{tab == 0 && (customClaims.admin || customClaims.agency) && (
-						<Home
-							newReportSubmitted={newReportSubmitted}
+			<MobileNavProvider>
+				<div data-component="dashboard" className="w-full">
+					<Navbar
+						tab={tab}
+						setTab={setTab}
+						handleNewReportSubmit={handleNewReportSubmit}
+						handleNewReportClick={handleNewReportClick}
+						customClaims={customClaims}
+					/>
+					<div className="sm:pl-16 flex flex-col py-5">
+						<Headbar />
+						{tab == 0 && (customClaims.admin || customClaims.agency) && (
+							<Home
+								newReportSubmitted={newReportSubmitted}
+								handleNewReportSubmit={handleNewReportSubmit}
+								handleNewReportClick={handleNewReportClick}
+								customClaims={customClaims}
+							/>
+						)}
+						{tab == 1 && <Profile customClaims={customClaims} />}
+						{tab == 2 && (customClaims.admin || customClaims.agency) && (
+							<Settings customClaims={customClaims} />
+						)}
+						{tab == 3 && customClaims.admin && (
+							<Users customClaims={customClaims} />
+						)}
+						{tab == 4 && customClaims.admin && (
+							<Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />
+						)}
+						{tab == 5 && customClaims.admin && <HelpRequests />}
+						{tab == 6 && customClaims.admin && <Appearance />}
+					</div>
+					{newReportModal && (
+						<AgencyReportModal
+							open={newReportModal}
+							setNewReportModal={setNewReportModal}
 							handleNewReportSubmit={handleNewReportSubmit}
-							handleNewReportClick={handleNewReportClick}
-							customClaims={customClaims}
 						/>
 					)}
-					{tab == 1 && <Profile customClaims={customClaims} />}
-					{tab == 2 && (customClaims.admin || customClaims.agency) && (
-						<Settings customClaims={customClaims} />
-					)}
-					{tab == 3 && customClaims.admin && (
-						<Users customClaims={customClaims} />
-					)}
-					{tab == 4 && customClaims.admin && (
-						<Agencies handleAgencyUpdateSubmit={handleAgencyUpdateSubmit} />
-					)}
-					{tab == 5 && customClaims.admin && <HelpRequests />}
-					{tab == 6 && customClaims.admin && <Appearance />}
 				</div>
-				{/* Render the AgencyReportModal */}
-				{newReportModal && (
-					<AgencyReportModal
-						open={newReportModal}
-						setNewReportModal={setNewReportModal}
-						handleNewReportSubmit={handleNewReportSubmit}
-					/>
-				)}
-			</div>
+			</MobileNavProvider>
 		</>
 	)
 }
