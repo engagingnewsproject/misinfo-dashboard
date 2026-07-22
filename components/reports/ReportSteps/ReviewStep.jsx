@@ -14,6 +14,7 @@ import React from 'react'
 import { Typography, Button } from '@material-tailwind/react'
 import { useTranslation } from 'next-i18next'
 import globalStyles from '../../../styles/globalStyles'
+import ImageLightboxGallery from '../../ui/ImageLightboxGallery'
 
 /**
  * ReviewStep Component
@@ -56,23 +57,12 @@ const ReviewStep = ({
   const renderImages = () => {
     if (reportData.images && reportData.images.length > 0) {
       return (
-        <div className="flex max-w-full min-w-0 flex-wrap gap-2">
-          {reportData.images.map((image, index) => (
-            <a
-              key={`${image}-${index}`}
-              href={image}
-              target="_blank"
-              rel="noreferrer"
-              className="shrink-0">
-              {/* Plain img: next/image optimizer can 401 Firebase Storage URLs */}
-              <img
-                src={image}
-                alt={`Uploaded image ${index + 1}`}
-                className="h-[100px] w-[100px] rounded object-cover"
-              />
-            </a>
-          ))}
-        </div>
+        <ImageLightboxGallery
+          images={reportData.images}
+          altPrefix="Uploaded image"
+          listClassName="flex max-w-full min-w-0 flex-wrap gap-2"
+          thumbnailClassName="h-[100px] w-[100px] rounded object-cover"
+        />
       )
     } else {
       return <Typography>{t("noImages")}</Typography>

@@ -12,13 +12,13 @@
  * @requires next-i18next
  */
 
-import React,{ useState,useEffect,useRef } from 'react'
+import React,{ useState,useEffect } from 'react'
 import { IoMdArrowRoundBack } from 'react-icons/io'
 import { doc, onSnapshot } from "firebase/firestore"
 import { db } from '../../config/firebase'
-import Image from 'next/image'
 import {  useTranslation } from 'next-i18next'
 import { formatCityState } from '../../utils/format-location'
+import ImageLightboxGallery from '../ui/ImageLightboxGallery'
 
 /**
  * ReportView Component
@@ -53,11 +53,6 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 	 * @type {Array} data - Report data fetched from Firestore
 	 */
 	const [data,setData] = useState([])
-	
-	/**
-	 * @type {Object} imageErrors - Object tracking image loading errors by index
-	 */
-	const [imageErrors, setImageErrors] = useState({});
 	
 	/**
 	 * Translation hook for internationalization
@@ -104,20 +99,6 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 	useEffect(() => {
 		getData()
 	},[])
-  
-  /**
-   * Handles image loading errors by updating the imageErrors state
-   * 
-   * @function handleImageError
-   * @param {number} index - Index of the image that failed to load
-   * 
-   * @example
-   * // Called when an image fails to load
-   * handleImageError(0)
-   */
-  const handleImageError = (index) => {
-    setImageErrors((prevErrors) => ({ ...prevErrors, [index]: true }));
-  };
 
 	// //
 	// Styles
@@ -171,36 +152,19 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 				</div>
 				
 				{/* Report Images Section */}
-				{data['images'] && data['images'][0] ?
+				{data['images'] && data['images'][0] ? (
 					<div className={style.inputSingle}>
-						<div className='grid grid-cols-4 gap-4'>
-							<div className='col-span-full'>
-								<div className={style.sectionH2}>
-									{t('image_text')}
-								</div>
-							</div>
-							 {data.images.map((image, i) => {
-                return (
-                  <div className="grid-cols-subgrid" key={i}>
-                    {imageErrors[i] ? (
-                      <div className="text-red-500">{t('imageError')}</div>
-                    ) : (
-                      <Image
-                        src={image}
-                        alt="image"
-                        width={200}
-                        height={200}
-                        className="object-cover w-auto"
-                        onError={() => handleImageError(i)}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-						</div>
-					</div> :
+						<div className={style.sectionH2}>{t('image_text')}</div>
+						<ImageLightboxGallery
+							images={data.images}
+							altPrefix="Report image"
+							listClassName="grid grid-cols-4 gap-4 w-full"
+							thumbnailClassName="h-auto w-full object-cover"
+						/>
+					</div>
+				) : (
 					<div className={style.inputSingle}>{t('noImages')}</div>
-				}
+				)}
 				
 				{/* Report Details Section */}
 				<div className={style.inputSingle}>
