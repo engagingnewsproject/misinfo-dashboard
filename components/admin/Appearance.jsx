@@ -84,7 +84,7 @@ const Appearance = () => {
 	}
 
 	return (
-		<div className="p-6 max-w-3xl">
+		<div data-component="Appearance" className="p-6 max-w-3xl">
 			<Typography variant="h4" color="blue" className="mb-2">
 				Appearance
 			</Typography>

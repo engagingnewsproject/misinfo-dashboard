@@ -331,7 +331,7 @@ const TagGraph = () => {
 	}, [loading])
 	
 	return (
-		<div className="w-full">
+		<div data-component="TagGraph" className="w-full">
 			{/* View toggle controls */}
 			<Toggle viewVal={viewVal} setViewVal={setViewVal} />
 			

@@ -700,7 +700,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 * @returns {JSX.Element} The agencies management component
 	 */
 	return (
-		<div className={style.section_container}>
+		<div data-component="Agencies" className={style.section_container}>
 			<div className={style.section_wrapper}>
 				<div className={style.section_header}>
 					<div className={style.section_title}>Agencies</div>

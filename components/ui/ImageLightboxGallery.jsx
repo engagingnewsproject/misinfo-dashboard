@@ -102,7 +102,7 @@ const ImageLightboxGallery = ({
 
 	return (
 		<>
-			<div className={listClassName}>
+			<div data-component="ImageLightboxGallery" className={listClassName}>
 				{reportImages.map((image, i) => (
 					<div className="grid-cols-subgrid shrink-0" key={`${image}-${i}`}>
 						{brokenImageIndexes.has(i) ? (

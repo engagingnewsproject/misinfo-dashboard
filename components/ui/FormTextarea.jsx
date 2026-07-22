@@ -123,7 +123,7 @@ const FormTextarea = ({
   if (!resizable) return textarea
 
   return (
-    <div className="relative w-full">
+    <div data-component="FormTextarea" className="relative w-full">
       {textarea}
       <div
         role="separator"

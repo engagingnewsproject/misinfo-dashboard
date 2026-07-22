@@ -62,7 +62,7 @@ const LanguageSwitcher = () => {
 
 
   return (
-      <div className="flex items-center gap-1">
+      <div data-component="LanguageSwitcher" className="flex items-center gap-1">
         <span className={router.locale== "en" ? active :nonactive }>English</span>
         <Switch value={router.locale== "en" ? false : true} 					
         checked={router.locale == "en" ? false : true}

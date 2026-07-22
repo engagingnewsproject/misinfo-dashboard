@@ -23,7 +23,7 @@ const FormSelect = ({
   const floated = focused || !!value
 
   return (
-    <div
+    <div data-component="FormSelect"
       className={`relative w-full min-w-[200px] ${focused ? 'z-30' : 'z-0'} ${className}`}
     >
       {label && (

@@ -39,7 +39,7 @@ const NewLabelModal = ({ existingLabels, onClose, onAdd }) => {
 	}
 
 	return (
-		<Dialog
+		<Dialog data-component="NewLabelModal"
 			open
 			handler={onClose}
 			size="xs"

@@ -175,7 +175,7 @@ const Settings = () => {
   }, [agencyID])
   
   return (
-    <div>
+    <div data-component="Settings">
       {tagSystem == 0 ?
       <div className="z-0 flex-col p-16">
         {customClaims.admin && <TagDefaultsSettings />}

@@ -132,7 +132,7 @@ const Report = () => {
 			<Head>
 				<title>Report | Truth Sleuth Local</title>
 			</Head>
-			<div className={style.pageContainer}>
+			<div data-component="report" className={style.pageContainer}>
 				<Navbar
 					tab={tab}
 					setTab={setTab}

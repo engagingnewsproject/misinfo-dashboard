@@ -41,7 +41,7 @@ const FormInput = ({
         (defaultValue !== undefined && defaultValue !== '')
 
   return (
-    <Input
+    <Input data-component="FormInput"
       variant={variant}
       color={color}
       size={size}

@@ -125,7 +125,7 @@ const ReportView = ({ reportView,setReportView,reportSystem,setReportSystem,repo
 
 	return (
 		<>
-			<div className={style.viewWrapper}>
+			<div data-component="ReportView" className={style.viewWrapper}>
 				{/* Back Button Section */}
 				<div className={style.sectionWrapper}>
 					<button onClick={() => setReportView(0)} className={style.buttonBack}>

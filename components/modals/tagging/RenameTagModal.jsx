@@ -77,7 +77,7 @@ const RenameTagModal = ({
 	}
 
 	return (
-		<Dialog
+		<Dialog data-component="RenameTagModal"
 			open
 			handler={handleClose}
 			size="sm"
@@ -113,7 +113,6 @@ const RenameTagModal = ({
 						type="text"
 						label="Label (ES)"
 						value={labelEs}
-						required
 						maxLength={TAG_LABEL_MAX_LENGTH}
 						onChange={(e) => setLabelEs(e.target.value)}
 					/>

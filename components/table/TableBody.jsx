@@ -38,7 +38,7 @@ const TableBody = ({
     investigationHighlight?.hover || DEFAULT_INVESTIGATION_ROW.hover
 
   return (
-    <tbody>
+    <tbody data-component="TableBody">
       {loadedReports.length === 0 ? (
         <tr>
           <td colSpan={columns.length} className="text-center">

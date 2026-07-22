@@ -63,7 +63,7 @@ const DetailsStep = ({
   const { t } = useTranslation('NewReport')
 
   return (
-    <div className='flex flex-col gap-6 mb-1'>
+    <div data-component="DetailsStep" className='flex flex-col gap-6 mb-1'>
       <div className='block'>
         <Typography variant='h5'>{t("share")}</Typography>
         <Typography

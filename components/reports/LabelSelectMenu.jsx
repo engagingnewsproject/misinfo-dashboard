@@ -45,7 +45,7 @@ const LabelSelectMenu = ({
 	}
 
 	return (
-		<Menu open={openMenu} handler={setOpenMenu} placement="bottom-start">
+		<Menu data-component="LabelSelectMenu" open={openMenu} handler={setOpenMenu} placement="bottom-start">
 			<MenuHandler>
 				<Button
 					id={id}

@@ -47,7 +47,7 @@ const UpdateEmailModal = ({ setEmailModal }) => {
 	}
 
 	return (
-		<Dialog
+		<Dialog data-component="UpdateEmailModal"
 			open
 			handler={handleClose}
 			size="xs"

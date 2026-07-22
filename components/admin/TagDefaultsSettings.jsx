@@ -420,14 +420,14 @@ const TagDefaultsSettings = () => {
 
 	if (loading) {
 		return (
-			<div className="mb-8 p-6 bg-white rounded-lg border border-blue-gray-100">
+			<div data-component="TagDefaultsSettings" className="mb-8 p-6 bg-white rounded-lg border border-blue-gray-100">
 				<Typography>Loading global tag defaults…</Typography>
 			</div>
 		)
 	}
 
 	return (
-		<div className="mb-8 p-6 bg-white rounded-lg border border-blue-gray-100">
+		<div data-component="TagDefaultsSettings" className="mb-8 p-6 bg-white rounded-lg border border-blue-gray-100">
 			<div className={globalStyles.heading.h1.blue}>Global Tag Defaults</div>
 			<p className="text-sm text-gray-600 mb-4">
 				These Topic and Source tags are required for every newsroom. Agencies

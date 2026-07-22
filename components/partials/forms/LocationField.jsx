@@ -61,7 +61,7 @@ const LocationField = ({
 }) => {
   if (!isEditing) {
     return (
-      <div>
+      <div data-component="LocationField">
         <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
           <div className="flex-1 min-w-0">
             <FormInput
@@ -94,7 +94,7 @@ const LocationField = ({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div data-component="LocationField" className="flex flex-col gap-3">
       <div className="flex flex-col sm:flex-row gap-4 items-start">
         <div className="flex-1 w-full min-w-0">
           <FormSelect

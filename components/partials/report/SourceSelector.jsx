@@ -22,7 +22,7 @@ const SourceSelector = ({
 	const list = useMemo(() => dedupeTagList(sources || []), [sources])
 
 	return (
-		<>
+		<div data-component="SourceSelector" className="contents">
 			{list.map((source) => (
 				<ListItem
 					id="source"
@@ -59,7 +59,7 @@ const SourceSelector = ({
 					</Typography>
 				</div>
 			)}
-		</>
+		</div>
 	)
 }
 

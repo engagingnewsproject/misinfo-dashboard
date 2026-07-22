@@ -53,7 +53,7 @@ const UserSettingsForm = ({
   }
 
   return (
-    <section className="user-settings-form mb-8 p-6 bg-white rounded-md">
+    <section data-component="UserSettingsForm" className="mb-8 p-6 bg-white rounded-md">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <Typography variant="h2" color="blue" className="mt-0 mb-0">
           {t('account')}

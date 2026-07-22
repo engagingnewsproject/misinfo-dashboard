@@ -61,7 +61,7 @@ const AgencySettingsForm = ({
     : 'No agency logo'
 
   return (
-    <section className="mb-8 p-6 bg-white rounded-lg border border-blue-gray-100">
+    <section data-component="AgencySettingsForm" className="mb-8 p-6 bg-white rounded-lg border border-blue-gray-100">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <Typography variant="h2" className="mt-0 mb-0 text-brand">
           Agency Settings

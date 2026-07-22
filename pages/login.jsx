@@ -159,7 +159,7 @@ const Login = () => {
 			<Head>
 				<title>Login | Truth Sleuth Local</title>
 			</Head>
-			<div className="w-screen h-screen overflow-auto flex justify-center items-start py-12 pb-8">
+			<div data-component="login" className="w-screen h-screen overflow-auto flex justify-center items-start py-12 pb-8">
 				<div className="w-full max-w-md font-light bg-white rounded-md p-6">
 					<div className="flex flex-col items-center justify-center h-auto mb-2">
 						<div className="bg-blue-600 p-7 rounded-full mb-2">

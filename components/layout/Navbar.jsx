@@ -207,7 +207,9 @@ const Navbar = ({
 				size={65}
 				overlay={disableOverlay}
 				className="z-[9997] !h-full">
-				<div className="flex h-full w-full flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+				<div
+					data-component="Navbar"
+					className="flex h-full w-full flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
 						{/* Top section - Main navigation items */}
 						<div className="shrink-0">
 							{/* Close button (mobile only) */}

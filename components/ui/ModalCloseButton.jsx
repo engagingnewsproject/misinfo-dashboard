@@ -3,7 +3,7 @@ import { IoClose } from 'react-icons/io5'
 
 export default function ModalCloseButton({ onClick, ...props }) {
   return (
-    <Button
+    <Button data-component="ModalCloseButton"
       type="button"
       variant="text"
       onClick={onClick}

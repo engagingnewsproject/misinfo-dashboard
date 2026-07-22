@@ -62,7 +62,7 @@ const ShareReportModal = ({ reportId, reportTitle = '', closeModal }) => {
 	}
 
 	return (
-		<Dialog
+		<Dialog data-component="ShareReportModal"
 			open
 			handler={handleClose}
 			size="xs"

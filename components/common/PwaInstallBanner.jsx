@@ -107,7 +107,7 @@ export default function PwaInstallBanner() {
 		: 'Install for a faster, full-screen experience.'
 
 	return (
-		<div
+		<div data-component="PwaInstallBanner"
 			className="fixed inset-x-0 bottom-0 z-[100] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 pointer-events-none"
 			role="region"
 			aria-label="Install app"

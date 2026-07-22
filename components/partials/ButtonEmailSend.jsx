@@ -11,7 +11,7 @@ import { BsShareFill } from 'react-icons/bs'
  */
 const ButtonEmailSend = ({ onButtonEmailSendClick }) => {
 	return (
-		<Button
+		<Button data-component="ButtonEmailSend"
 			type="button"
 			variant="outlined"
 			className="flex flex-row items-center gap-2 normal-case mb-4 tooltip-share-report"

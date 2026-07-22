@@ -508,7 +508,6 @@ export function validateLabeledTag(entry) {
 		typeof entry?.labels?.es === 'string' ? entry.labels.es.trim() : ''
 	if (!id) return { ok: false, error: 'English id is required.' }
 	if (!en) return { ok: false, error: 'English label is required.' }
-	if (!es) return { ok: false, error: 'Spanish label is required.' }
 	if (id.length > TAG_ID_MAX_LENGTH) {
 		return {
 			ok: false,

@@ -1299,7 +1299,7 @@ const Users = () => {
 	}, [update])
 
 	return (
-		<div className={style.section_container}>
+		<div data-component="Users" className={style.section_container}>
 			<div className={style.section_wrapper}>
 				<div className={style.section_header}>
 					<div className={style.section_title}>

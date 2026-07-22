@@ -750,7 +750,7 @@ const EditUserModal = ({
 	}
 
 	return (
-		<Dialog
+		<Dialog data-component="EditUserModal"
 			open
 			handler={attemptCloseModal}
 			size="xl"

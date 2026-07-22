@@ -186,7 +186,7 @@ export function TableDropdownMenu({
 	}
 
 	return (
-		<div className='flex flex-row gap-2'>
+		<div data-component="TableDropdownMenu" className='flex flex-row gap-2'>
 			{onAgencyChange && (
 				<Menu open={openAgencyMenu} handler={setOpenAgencyMenu}>
 					<MenuHandler>

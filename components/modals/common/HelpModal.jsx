@@ -11,7 +11,7 @@ const HelpModal = ({ open, setHelpModal }) => {
 	const handleClose = () => setHelpModal(false)
 
 	return (
-		<Dialog open={open} handler={handleClose} size="lg" className="rounded-md">
+		<Dialog data-component="HelpModal" open={open} handler={handleClose} size="lg" className="rounded-md">
 			<DialogHeader className="justify-between gap-4">
 				<Typography variant="h2" color="blue" className="mt-0 mb-0">
 					Help and Documentation

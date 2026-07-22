@@ -164,29 +164,31 @@ const LocationUpdate = ({
   const stateName = userData?.state?.name || ''
 
   return (
-    <LocationField
-      idPrefix="user"
-      label={t('editLocation')}
-      isEditing={isEditing}
-      displayValue={
-        cityName || stateName ? `${cityName}, ${stateName}` : ''
-      }
-      country="US"
-      stateValue={userLocation?.state ?? null}
-      cityValue={userLocation?.city ?? null}
-      errors={errors}
-      onToggleEdit={handleToggleEdit}
-      onStateChange={handleUserStateChange}
-      onCityChange={handleUserCityChange}
-      stateLabel={t('NewReport:state_text')}
-      cityLabel={t('NewReport:city_text')}
-      cancelLabel={t('cancelChanges')}
-      showEditButton={showFieldActions}
-      showCancelButton={showFieldActions}
-      onSave={showFieldActions ? handleSubmit : undefined}
-      saveLabel={t('updateLocation')}
-      successMessage={showUserMessage ? t('location') : null}
-    />
+    <div data-component="LocationUpdate" className="contents">
+      <LocationField
+        idPrefix="user"
+        label={t('editLocation')}
+        isEditing={isEditing}
+        displayValue={
+          cityName || stateName ? `${cityName}, ${stateName}` : ''
+        }
+        country="US"
+        stateValue={userLocation?.state ?? null}
+        cityValue={userLocation?.city ?? null}
+        errors={errors}
+        onToggleEdit={handleToggleEdit}
+        onStateChange={handleUserStateChange}
+        onCityChange={handleUserCityChange}
+        stateLabel={t('NewReport:state_text')}
+        cityLabel={t('NewReport:city_text')}
+        cancelLabel={t('cancelChanges')}
+        showEditButton={showFieldActions}
+        showCancelButton={showFieldActions}
+        onSave={showFieldActions ? handleSubmit : undefined}
+        saveLabel={t('updateLocation')}
+        successMessage={showUserMessage ? t('location') : null}
+      />
+    </div>
   )
 }
 

@@ -70,7 +70,7 @@ const ReviewStep = ({
   }
 
   return (
-    <div className={`review-step ${globalStyles.form.viewWrapper}`}>
+    <div data-component="ReviewStep" className={`review-step ${globalStyles.form.viewWrapper}`}>
       <Typography variant='h5'>{t("review")}</Typography>
       <div className="py-6">
         <div className="space-y-4">

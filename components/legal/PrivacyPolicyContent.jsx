@@ -10,7 +10,7 @@ import Link from 'next/link'
  */
 export default function PrivacyPolicyContent() {
 	return (
-		<div className="flex flex-col overflow-y-auto bg-white rounded-md py-6 px-6 md:px-10">
+		<div data-component="PrivacyPolicyContent" className="flex flex-col overflow-y-auto bg-white rounded-md py-6 px-6 md:px-10">
 			<Typography variant="h2" color="blue" className="mt-0 mb-2 border-b-4">
 				Privacy Policy
 			</Typography>

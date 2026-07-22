@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
 			<Head>
 				<title>Privacy Policy | Truth Sleuth</title>
 			</Head>
-			<div className="min-h-screen bg-[#D3D3D3] py-8 px-4">
+			<div data-component="privacy-policy" className="min-h-screen bg-[#D3D3D3] py-8 px-4">
 				<div className="max-w-3xl mx-auto shadow-lg">
 					<PrivacyPolicyContent />
 					<div className="bg-white border-t px-6 py-4 text-center text-sm text-gray-600 rounded-b-2xl">

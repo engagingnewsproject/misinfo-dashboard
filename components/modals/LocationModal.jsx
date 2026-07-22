@@ -54,7 +54,7 @@ const LocationModal = ({ setLocationModal }) => {
 	}
 
 	return (
-		<Dialog
+		<Dialog data-component="LocationModal"
 			open
 			handler={handleClose}
 			size="xs"

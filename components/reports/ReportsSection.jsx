@@ -49,6 +49,7 @@ import {
 import {
 	buildLabelOptions,
 	DEFAULT_REPORT_LABEL,
+	isCustomLabel,
 	OTHER_LABEL,
 	validateCustomLabel,
 } from '../../config/labels'
@@ -1040,6 +1041,10 @@ const ReportsSection = ({
 						keys.forEach((key) => {
 							value = value[key] !== undefined ? value[key] : '' // Safely access nested values
 						})
+						
+						if (header === 'label' && typeof value === 'string' && isCustomLabel(value)) {
+							value = `Other(${value})`
+						}
 
 						// Handle commas and newlines in CSV fields
 						if (typeof value === 'string') {
@@ -1430,7 +1435,7 @@ const ReportsSection = ({
 
 	return (
 		<>
-			<Card className="reports-section-card w-full mt-4">
+			<Card data-component="ReportsSection" className="reports-section-card w-full mt-4">
 				<CardHeader floated={false} shadow={false} className="rounded-none md:mt-0 pt-4">
 					<div className="card-header--top flex items-center justify-between gap-8 mb-4">
 						<Typography variant="h3" className="mt-0 mb-0 text-brand">

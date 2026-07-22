@@ -17,7 +17,7 @@ const TableHead = ({ columns, handleSorting, sortable }) => {
   };
 
   return (
-    <thead>
+    <thead data-component="TableHead">
       <tr className="bg-gray-100">
         {columns.map(({ label, accessor, sortable }) => {
           return (

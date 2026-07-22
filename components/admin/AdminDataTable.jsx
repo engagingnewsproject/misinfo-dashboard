@@ -12,7 +12,7 @@ import adminSectionStyles from '../../styles/adminSectionStyles'
  * @returns {JSX.Element}
  */
 const AdminDataTable = ({ columns, children }) => (
-	<table className={adminSectionStyles.table_main}>
+	<table data-component="AdminDataTable" className={adminSectionStyles.table_main}>
 		<thead className={adminSectionStyles.table_thead}>
 			<tr>
 				{columns.map((column) => {

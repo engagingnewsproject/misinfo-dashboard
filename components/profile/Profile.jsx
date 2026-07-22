@@ -480,6 +480,7 @@ const Profile = ({ customClaims }) => {
 
   return (
     <div
+      data-component="Profile"
       className={`${
         customClaims === null
           ? globalStyles.page.wrap

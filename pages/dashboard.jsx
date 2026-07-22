@@ -160,7 +160,7 @@ const Dashboard = () => {
 			<Head>
 				<title>Dashboard | Truth Sleuth Local</title>
 			</Head>
-			<div className="w-full">
+			<div data-component="dashboard" className="w-full">
 				<Navbar
 					tab={tab}
 					setTab={setTab}

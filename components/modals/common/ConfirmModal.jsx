@@ -93,7 +93,7 @@ const ConfirmModal = ({ func, title, subtitle, CTA, closeModal }) => {
 	}
 
 	return (
-		<Dialog
+		<Dialog data-component="ConfirmModal"
 			open
 			handler={handleCancel}
 			size="xs"

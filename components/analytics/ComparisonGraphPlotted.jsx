@@ -467,7 +467,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   }
 
   return (
-    <div>
+    <div data-component="ComparisonGraphPlotted">
           {/* Once user selects the topics and date range, graph of topic reports will be plotted. */}
           <div className="bg-white rounded-md mt-6 py-5 px-3">
           <ComparisonGraphMenu dateRange={dateRange} setDateRange={setDateRange} 

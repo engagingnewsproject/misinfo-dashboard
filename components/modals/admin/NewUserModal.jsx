@@ -22,7 +22,7 @@ const NewUserModal = ({
 	const handleClose = () => setNewUserModal(false)
 
 	return (
-		<Dialog
+		<Dialog data-component="NewUserModal"
 			open
 			handler={handleClose}
 			size="md"

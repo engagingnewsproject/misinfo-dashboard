@@ -92,7 +92,7 @@ const ReportLanding = ({
 	 */
 	const userEmail = auth.currentUser.email
 	return (
-		<div className={style.container}>
+		<div data-component="ReportLanding" className={style.container}>
 			{/* Headbar */}
 			<div className={style.headerWrap}>
 				<h2 className={style.header}>{t("hello")}</h2>

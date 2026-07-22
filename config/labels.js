@@ -44,7 +44,7 @@ export const DEFAULT_AGENCY_LABELS = [...APP_WIDE_LABELS]
  * @returns {boolean}
  */
 export function canManageAgencyLabels(customClaims) {
-  return Boolean(customClaims?.agency || customClaims?.admin)
+  return Boolean(customClaims?.admin)
 }
 
 /**

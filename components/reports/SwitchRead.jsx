@@ -89,7 +89,7 @@ export default function SwitchRead({ setReportModalId }) {
 	return (
 		<>
 			{/* Toggle read/unread icon on switch change */}
-			<div className="font-semibold self-center pr-4">
+			<div data-component="SwitchRead" className="font-semibold self-center pr-4">
 				{reportRead ? (
 					<span className="flex gap-2">
 						<MdMarkEmailRead size={20} />

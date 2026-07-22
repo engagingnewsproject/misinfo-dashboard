@@ -60,7 +60,7 @@ const Home = ({ newReportSubmitted, handleNewReportSubmit, handleNewReportClick 
 	}, [search])
 
 	return (
-		<div className="w-full h-full flex flex-col py-5">
+		<div data-component="Home" className="w-full h-full flex flex-col py-5">
 			{/* Header bar with search functionality and user controls */}
 			<Headbar
 				search={memoizedSearch}

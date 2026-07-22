@@ -28,7 +28,7 @@ const DeleteModal = ({ func, title, subtitle, CTA, closeModal }) => {
 	}
 
 	return (
-		<Dialog
+		<Dialog data-component="DeleteModal"
 			open
 			handler={handleCancel}
 			size="xs"
