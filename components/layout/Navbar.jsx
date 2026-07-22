@@ -206,11 +206,10 @@ const Navbar = ({
 				onClose={closeDrawer}
 				size={65}
 				overlay={disableOverlay}
-				className="z-[9997]">
-				<div className="flex-col h-full max-h-[81vh] md:h-screen md:max-h-screen">
-					<div className="grid grid-rows-2 justify-between w-full h-full">
+				className="z-[9997] !h-full">
+				<div className="flex h-full w-full flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
 						{/* Top section - Main navigation items */}
-						<div className="row-span-1">
+						<div className="shrink-0">
 							{/* Close button (mobile only) */}
 							<IconButton
 								variant="text"
@@ -355,7 +354,7 @@ const Navbar = ({
 						</div>
 						
 						{/* Bottom section - Appearance, Help and Profile */}
-						<div className="self-end">
+						<div className="mt-auto shrink-0">
 							{/* Appearance - Admin only */}
 							{customClaims.admin && (
 								<>
@@ -424,7 +423,6 @@ const Navbar = ({
 								Profile
 							</Tooltip>
 						</div>
-					</div>
 				</div>
 			</Drawer>
 			
