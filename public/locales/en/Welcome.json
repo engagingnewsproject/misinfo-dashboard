@@ -27,5 +27,14 @@
     "login_network_live": "Could not reach Firebase (network). Check your connection, VPN, and App Check / debug token setup.",
     "phone": "Phone number (optional)",
     "contact": "I agree that my local newsroom can contact me to follow-up on the reports I share",
-    "password_error": "Passwords don’t match."
+    "password_error": "Passwords don’t match.",
+    "verifyEmailPageTitle": "Verify Email | Truth Sleuth Local",
+    "verifyEmailHeading": "Email Verification",
+    "verifyEmailAgencyIntro": "Upon creating an account, you will be asked to verify your email.",
+    "verifyEmailAgencyStep1": "Click the link in the verification email.",
+    "verifyEmailAgencyStep2": "Log in to the dashboard using your new account information.",
+    "verifyEmailAgencyStep3": "If needed, you can change your agency name and location under your profile.",
+    "verifyEmailUserPrompt": "Check your inbox to verify your email in order to log in.",
+    "verifyEmailResend": "Resend email",
+    "verifyEmailSent": "New verification email sent."
   }
