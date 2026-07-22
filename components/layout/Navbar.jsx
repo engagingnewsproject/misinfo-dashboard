@@ -1,34 +1,25 @@
 /**
  * @fileoverview Navbar - Side Navigation Component
- * 
- * This component provides the main navigation sidebar for the application,
- * displaying different navigation options based on user roles (admin, agency, or regular user).
- * It includes a responsive drawer that adapts to mobile and desktop views,
- * with tooltips for better user experience and role-based access control.
- * 
- * @module components/Navbar
- * @requires react
- * @requires @material-tailwind/react
- * @requires next/router
- * @requires react-icons/io5
- * @requires react-icons/hi2
- * @requires react-tooltip
- * @requires ../modals/reports/AgencyReportModal
- * @requires ../modals/HelpModal
- * @requires ../modals/ContactHelpModal
- * @requires ../context/AuthContext
- * @requires next-i18next
+ *
+ * Responsive drawer: icon rail on mobile / collapsed desktop; icon + label when
+ * desktop-expanded. Expand toggle lives at the bottom (desktop only).
  */
 
-import React, { useState, useEffect } from 'react'
-import { Drawer, IconButton } from '@material-tailwind/react'
-import { useRouter } from 'next/router'
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
+import {
+	Drawer,
+	IconButton,
+	List,
+	ListItem,
+	ListItemPrefix,
+	Typography,
+} from '@material-tailwind/react'
 import {
 	IoHomeOutline,
 	IoSettingsOutline,
 	IoAddCircleOutline,
 	IoPricetagsOutline,
-	IoLogOutOutline,
 	IoPeopleOutline,
 	IoPersonOutline,
 	IoHelpCircleOutline,
@@ -36,96 +27,122 @@ import {
 	IoClose,
 	IoChatboxEllipsesOutline,
 	IoDocumentTextOutline,
+	IoChevronBackOutline,
+	IoChevronForwardOutline,
 } from 'react-icons/io5'
 import { HiOutlineDocumentPlus } from 'react-icons/hi2'
 import { Tooltip } from 'react-tooltip'
 import HelpModal from '../modals/common/HelpModal'
 import ContactHelpModal from '../modals/ContactHelpModal'
 import { useAuth } from '../../context/AuthContext'
-import { useMobileNav } from '../../context/MobileNavContext'
-import { useTranslation } from 'next-i18next'
+import {
+	NAV_COLLAPSED_WIDTH,
+	NAV_EXPANDED_MAX_WIDTH,
+	useMobileNav,
+} from '../../context/MobileNavContext'
+
+/** Tooltip outside the drawer so overflow / motion transforms can't clip it. */
+function NavTooltip({ tooltipClass, children }) {
+	if (typeof document === 'undefined') return null
+	return createPortal(
+		<Tooltip
+			anchorSelect={`.${tooltipClass}`}
+			place="right"
+			delayShow={500}
+			positionStrategy="fixed"
+			style={{ zIndex: 10050 }}>
+			{children}
+		</Tooltip>,
+		document.body,
+	)
+}
 
 /**
- * Navbar - Main navigation sidebar component.
- * 
- * This component renders a responsive navigation drawer with role-based
- * navigation options. It automatically adapts to screen size, showing
- * a hamburger menu on mobile and a persistent sidebar on desktop.
- * Navigation items are filtered based on user permissions and include
- * tooltips for better accessibility.
- * 
- * @param {Object} props - Component props
- * @param {number} props.tab - Currently active tab index
- * @param {Function} props.setTab - Function to change the active tab
- * @param {Function} props.handleNewReportSubmit - Handler for new report submission
- * @param {Function} props.handleNewReportClick - Handler for new report button click
- * @param {Function} props.onReportTabClick - Handler for report tab click
- * @param {boolean} props.isOpen - Whether the navbar is open (legacy prop)
- * @returns {JSX.Element} Navigation sidebar with role-based menu items
- * @example
- * <Navbar
- *   tab={0}
- *   setTab={setActiveTab}
- *   handleNewReportSubmit={handleSubmit}
- *   handleNewReportClick={handleNewReport}
- *   onReportTabClick={handleReportTab}
- *   isOpen={false}
- * />
+ * Single nav control: icon-only (with tooltip) or MT ListItem with label.
  */
+function NavItem({
+	icon,
+	label,
+	active = false,
+	onClick,
+	expanded,
+	tooltipClass,
+	ariaLabel,
+}) {
+	const navIconClass = `my-4 mx-2 ${tooltipClass}${active ? ' bg-brand/10' : ''}`
+
+	if (!expanded) {
+		return (
+			<>
+				<IconButton
+					variant="text"
+					onClick={onClick}
+					className={navIconClass}
+					aria-label={ariaLabel || label}>
+					{icon}
+				</IconButton>
+				<NavTooltip tooltipClass={tooltipClass}>{label}</NavTooltip>
+			</>
+		)
+	}
+
+	return (
+		<ListItem
+			selected={active}
+			onClick={onClick}
+			className={`mx-1 rounded-md py-2 ${active ? 'bg-brand/10' : ''}`}
+			aria-label={ariaLabel || label}>
+			<ListItemPrefix className="mr-3 shrink-0">{icon}</ListItemPrefix>
+			<Typography
+				variant="small"
+				className="font-medium text-[#2E3B4E] whitespace-nowrap">
+				{label}
+			</Typography>
+		</ListItem>
+	)
+}
+
 const Navbar = ({
 	tab,
 	setTab,
-	handleNewReportSubmit,
 	handleNewReportClick,
 	onReportTabClick,
-	isOpen,
 }) => {
-	const { t } = useTranslation('Navbar')
-	
-	// Window size state for responsive behavior
 	const [windowSize, setWindowSize] = useState([
-		window.innerWidth,
-		window.innerHeight,
+		typeof window !== 'undefined' ? window.innerWidth : 1024,
+		typeof window !== 'undefined' ? window.innerHeight : 768,
 	])
-	
-	// Controls overlay display on mobile vs desktop
+
 	const [disableOverlay, setDisableOverlay] = useState(true)
-	
-	// Modal states
 	const [helpModal, setHelpModal] = useState(false)
 	const [contactHelpModal, setContactHelpModal] = useState(false)
-	
-	// Authentication context
-	const { customClaims, setCustomClaims } = useAuth()
 
-	// Drawer open/close from shared mobile nav context (Headbar triggers open)
-	const { open, closeDrawer } = useMobileNav()
+	const { customClaims } = useAuth()
+	const {
+		open,
+		closeDrawer,
+		desktopExpanded,
+		toggleDesktopExpanded,
+		setMeasuredDrawerWidth,
+	} = useMobileNav()
 
-	/**
-	 * Effect hook to handle window resize events.
-	 * 
-	 * This effect sets up a listener for window resize events to update
-	 * the windowSize state, which is used for responsive behavior.
-	 */
+	const drawerRef = useRef(null)
+	const isDesktop = windowSize[0] > 640
+	const showLabels = isDesktop && desktopExpanded
+	const drawerSize = isDesktop
+		? showLabels
+			? NAV_EXPANDED_MAX_WIDTH
+			: NAV_COLLAPSED_WIDTH
+		: NAV_COLLAPSED_WIDTH
+
 	useEffect(() => {
 		const handleWindowResize = () => {
 			setWindowSize([window.innerWidth, window.innerHeight])
 		}
-
 		window.addEventListener('resize', handleWindowResize)
-
-		return () => {
-			window.removeEventListener('resize', handleWindowResize)
-		}
+		return () => window.removeEventListener('resize', handleWindowResize)
 	}, [])
 
-	/**
-	 * Effect hook to control overlay behavior based on screen size.
-	 * 
-	 * This effect ensures that the drawer overlay is only displayed
-	 * on mobile screens (width < 640px), since the navbar is always
-	 * visible on desktop screens.
-	 */
 	useEffect(() => {
 		if (windowSize && windowSize[0] < 640) {
 			setDisableOverlay(true)
@@ -134,287 +151,330 @@ const Navbar = ({
 		}
 	}, [windowSize])
 
-	/**
-	 * Handles navigation to a specific tab.
-	 * 
-	 * @param {number} tabIndex - The tab index to navigate to
-	 */
+	// Keep page offset in sync with the content-sized expanded drawer.
+	useLayoutEffect(() => {
+		if (!isDesktop || !desktopExpanded) return
+		const el = drawerRef.current
+		if (!el) return
+
+		const report = () => {
+			const width = el.getBoundingClientRect().width
+			setMeasuredDrawerWidth(width)
+		}
+		report()
+		const ro = new ResizeObserver(report)
+		ro.observe(el)
+		return () => ro.disconnect()
+	}, [isDesktop, desktopExpanded, showLabels, setMeasuredDrawerWidth])
+
 	const handleTabNavigation = (tabIndex) => {
 		setTab(tabIndex)
 		closeDrawer()
 	}
 
-	/**
-	 * Shared nav IconButton: MT text + brand channel; selected tabs keep bg-brand/10.
-	 */
-	const navIconClass = (tooltipClass, isActive = false) =>
-		`my-4 mx-2 ${tooltipClass}${isActive ? ' bg-brand/10' : ''}`
-
-	/**
-	 * Handles new report creation for agency users.
-	 * 
-	 * @param {Event} e - Click event
-	 */
 	const handleAgencyNewReport = (e) => {
 		handleNewReportClick(e)
 		closeDrawer()
 	}
 
-	/**
-	 * Handles report creation for general users.
-	 * 
-	 * @param {Event} e - Click event
-	 */
 	const handleGeneralUserReport = (e) => {
 		onReportTabClick(e)
 		closeDrawer()
 	}
 
-	/**
-	 * Handles opening the help modal.
-	 */
 	const handleHelpModal = () => {
 		setHelpModal(true)
 		closeDrawer()
 	}
 
-	/**
-	 * Handles opening the contact help modal.
-	 */
 	const handleContactHelpModal = () => {
 		setContactHelpModal(true)
 		closeDrawer()
 	}
 
+	const icon = (Node) => <Node size={showLabels ? 22 : 30} />
+
 	return (
 		<>
-			{/* Navigation drawer */}
 			<Drawer
-				open={windowSize[0] > 640 ? true : open}
+				ref={drawerRef}
+				open={isDesktop ? true : open}
 				onClose={closeDrawer}
-				size={65}
+				size={drawerSize}
 				overlay={disableOverlay}
-				className="z-[9997] !h-full">
-				<div className="flex h-full w-full flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-						{/* Top section - Main navigation items */}
-						<div className="shrink-0">
-							{/* Close button (mobile only) */}
-							<IconButton
-								variant="text"
-								onClick={closeDrawer}
-								className={`${navIconClass('tooltip-close')} sm:hidden`}
-								aria-label="Close menu">
-								<IoClose size={30} />
-							</IconButton>
-							
-							{/* Home/Reports view - Admin and Agency users */}
-							{(customClaims.admin || customClaims.agency) && (
-								<>
-									<IconButton
-										variant="text"
+				className={`z-[9997] !h-full transition-[max-width] duration-200 ease-in-out${
+					showLabels ? ' !w-max overflow-x-hidden' : ''
+				}`}>
+				<div
+					className={`flex h-full flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] ${
+						showLabels ? 'w-max max-w-full' : 'w-full'
+					}`}>
+					<div className={`shrink-0 ${showLabels ? 'px-1 pt-2' : ''}`}>
+						{showLabels ? (
+							<List className="p-0 !min-w-0 w-max max-w-full">
+								{(customClaims.admin || customClaims.agency) && (
+									<NavItem
+										expanded
+										icon={icon(IoHomeOutline)}
+										label="Home"
+										active={tab === 0}
 										onClick={() => handleTabNavigation(0)}
-										className={navIconClass('tooltip-home', tab === 0)}
-										aria-label="Home">
-										<IoHomeOutline size={30} />
-									</IconButton>
-									<Tooltip
-										anchorSelect=".tooltip-home"
-										place="bottom"
-										delayShow={500}>
-										Home
-									</Tooltip>
-								</>
-							)}
-							
-							{/* Agencies - Admin only */}
-							{customClaims.admin && (
-								<>
-									<IconButton
-										variant="text"
+										tooltipClass="tooltip-home"
+									/>
+								)}
+								{customClaims.admin && (
+									<NavItem
+										expanded
+										icon={icon(IoBusinessOutline)}
+										label="Agencies"
+										active={tab === 4}
 										onClick={() => handleTabNavigation(4)}
-										className={navIconClass('tooltip-agencies', tab === 4)}
-										aria-label="Agencies">
-										<IoBusinessOutline size={30} />
-									</IconButton>
-									<Tooltip
-										anchorSelect=".tooltip-agencies"
-										place="bottom"
-										delayShow={500}>
-										Agencies
-									</Tooltip>
-								</>
-							)}
-							
-							{/* Tagging Systems - Agency and Admin users */}
-							{(customClaims.agency || customClaims.admin) && (
-								<>
-									<IconButton
-										variant="text"
+										tooltipClass="tooltip-agencies"
+									/>
+								)}
+								{(customClaims.agency || customClaims.admin) && (
+									<NavItem
+										expanded
+										icon={icon(IoPricetagsOutline)}
+										label="Tagging Systems"
+										active={tab === 2}
 										onClick={() => handleTabNavigation(2)}
-										className={navIconClass('tooltip-tags', tab === 2)}
-										aria-label="Tagging Systems">
-										<IoPricetagsOutline size={30} />
-									</IconButton>
-									<Tooltip
-										anchorSelect=".tooltip-tags"
-										place="bottom"
-										delayShow={500}>
-										Tagging Systems
-									</Tooltip>
-								</>
-							)}
-							
-							{/* New Report - Agency users only */}
-							{customClaims.agency && (
-								<>
-									<IconButton
-										variant="text"
+										tooltipClass="tooltip-tags"
+									/>
+								)}
+								{customClaims.agency && (
+									<NavItem
+										expanded
+										icon={icon(IoAddCircleOutline)}
+										label="New Report"
 										onClick={handleAgencyNewReport}
-										className={navIconClass('tooltip-new-report')}
-										aria-label="New Report">
-										<IoAddCircleOutline size={30} />
-									</IconButton>
-									<Tooltip
-										anchorSelect=".tooltip-new-report"
-										place="bottom"
-										delayShow={500}>
-										New Report
-									</Tooltip>
-								</>
-							)}
-							
-							{/* Users - Admin only */}
-							{customClaims.admin && (
-								<>
-									<IconButton
-										variant="text"
+										tooltipClass="tooltip-new-report"
+									/>
+								)}
+								{customClaims.admin && (
+									<NavItem
+										expanded
+										icon={icon(IoPeopleOutline)}
+										label="Users"
+										active={tab === 3}
 										onClick={() => handleTabNavigation(3)}
-										className={navIconClass('tooltip-users', tab === 3)}
-										aria-label="Users">
-										<IoPeopleOutline size={30} />
-									</IconButton>
-									<Tooltip
-										anchorSelect=".tooltip-users"
-										place="bottom"
-										delayShow={500}>
-										Users
-									</Tooltip>
-								</>
-							)}
-							
-							{/* Create Report - General users only */}
-							{!customClaims.admin && !customClaims.agency && (
-								<>
-									<IconButton
-										variant="text"
+										tooltipClass="tooltip-users"
+									/>
+								)}
+								{!customClaims.admin && !customClaims.agency && (
+									<NavItem
+										expanded
+										icon={icon(HiOutlineDocumentPlus)}
+										label="Create Report"
 										onClick={handleGeneralUserReport}
-										className={navIconClass('tooltip-create-report')}
-										aria-label="Create Report">
-										<HiOutlineDocumentPlus size={30} />
-									</IconButton>
-									<Tooltip
-										anchorSelect=".tooltip-create-report"
-										place="bottom"
-										delayShow={500}>
-										Create Report
-									</Tooltip>
-								</>
-							)}
-							
-							{/* Help Requests - Admin only */}
-							{customClaims.admin && (
-								<>
-									<IconButton
-										variant="text"
+										tooltipClass="tooltip-create-report"
+									/>
+								)}
+								{customClaims.admin && (
+									<NavItem
+										expanded
+										icon={icon(IoDocumentTextOutline)}
+										label="Help Requests"
+										active={tab === 5}
 										onClick={() => handleTabNavigation(5)}
-										className={navIconClass('tooltip-help-requests', tab === 5)}
-										aria-label="Help Requests">
-										<IoDocumentTextOutline size={30} />
-									</IconButton>
-									<Tooltip
-										anchorSelect=".tooltip-help-requests"
-										place="bottom"
-										delayShow={500}>
-										Help Requests
-									</Tooltip>
-								</>
-							)}
-						</div>
-						
-						{/* Bottom section - Appearance, Help and Profile */}
-						<div className="mt-auto shrink-0">
-							{/* Appearance - Admin only */}
-							{customClaims.admin && (
-								<>
-									<IconButton
-										variant="text"
-										onClick={() => handleTabNavigation(6)}
-										className={navIconClass('tooltip-appearance', tab === 6)}
-										aria-label="Appearance">
-										<IoSettingsOutline size={30} />
-									</IconButton>
-									<Tooltip
-										anchorSelect=".tooltip-appearance"
-										place="bottom"
-										delayShow={500}>
-										Appearance
-									</Tooltip>
-								</>
-							)}
+										tooltipClass="tooltip-help-requests"
+									/>
+								)}
+							</List>
+						) : (
+							<>
+								<IconButton
+									variant="text"
+									onClick={closeDrawer}
+									className="my-4 mx-2 tooltip-close sm:hidden"
+									aria-label="Close menu">
+									<IoClose size={30} />
+								</IconButton>
 
-							{/* Help - Admin and Agency users */}
-							{(customClaims.admin || customClaims.agency) && (
+								{(customClaims.admin || customClaims.agency) && (
+									<NavItem
+										expanded={false}
+										icon={icon(IoHomeOutline)}
+										label="Home"
+										active={tab === 0}
+										onClick={() => handleTabNavigation(0)}
+										tooltipClass="tooltip-home"
+									/>
+								)}
+								{customClaims.admin && (
+									<NavItem
+										expanded={false}
+										icon={icon(IoBusinessOutline)}
+										label="Agencies"
+										active={tab === 4}
+										onClick={() => handleTabNavigation(4)}
+										tooltipClass="tooltip-agencies"
+									/>
+								)}
+								{(customClaims.agency || customClaims.admin) && (
+									<NavItem
+										expanded={false}
+										icon={icon(IoPricetagsOutline)}
+										label="Tagging Systems"
+										active={tab === 2}
+										onClick={() => handleTabNavigation(2)}
+										tooltipClass="tooltip-tags"
+									/>
+								)}
+								{customClaims.agency && (
+									<NavItem
+										expanded={false}
+										icon={icon(IoAddCircleOutline)}
+										label="New Report"
+										onClick={handleAgencyNewReport}
+										tooltipClass="tooltip-new-report"
+									/>
+								)}
+								{customClaims.admin && (
+									<NavItem
+										expanded={false}
+										icon={icon(IoPeopleOutline)}
+										label="Users"
+										active={tab === 3}
+										onClick={() => handleTabNavigation(3)}
+										tooltipClass="tooltip-users"
+									/>
+								)}
+								{!customClaims.admin && !customClaims.agency && (
+									<NavItem
+										expanded={false}
+										icon={icon(HiOutlineDocumentPlus)}
+										label="Create Report"
+										onClick={handleGeneralUserReport}
+										tooltipClass="tooltip-create-report"
+									/>
+								)}
+								{customClaims.admin && (
+									<NavItem
+										expanded={false}
+										icon={icon(IoDocumentTextOutline)}
+										label="Help Requests"
+										active={tab === 5}
+										onClick={() => handleTabNavigation(5)}
+										tooltipClass="tooltip-help-requests"
+									/>
+								)}
+							</>
+						)}
+					</div>
+
+					<div className={`mt-auto shrink-0 ${showLabels ? 'px-1' : ''}`}>
+						{showLabels ? (
+							<List className="p-0 !min-w-0 w-max max-w-full">
+								{customClaims.admin && (
+									<NavItem
+										expanded
+										icon={icon(IoSettingsOutline)}
+										label="Appearance"
+										active={tab === 6}
+										onClick={() => handleTabNavigation(6)}
+										tooltipClass="tooltip-appearance"
+									/>
+								)}
+								{(customClaims.admin || customClaims.agency) && (
+									<NavItem
+										expanded
+										icon={icon(IoHelpCircleOutline)}
+										label="Help"
+										onClick={handleHelpModal}
+										tooltipClass="tooltip-help"
+									/>
+								)}
+								<NavItem
+									expanded
+									icon={icon(IoChatboxEllipsesOutline)}
+									label="Contact for Help"
+									onClick={handleContactHelpModal}
+									tooltipClass="tooltip-contact-us-for-help"
+								/>
+								<NavItem
+									expanded
+									icon={icon(IoPersonOutline)}
+									label="Profile"
+									active={tab === 1}
+									onClick={() => handleTabNavigation(1)}
+									tooltipClass="tooltip-profile"
+								/>
+							</List>
+						) : (
+							<>
+								{customClaims.admin && (
+									<NavItem
+										expanded={false}
+										icon={icon(IoSettingsOutline)}
+										label="Appearance"
+										active={tab === 6}
+										onClick={() => handleTabNavigation(6)}
+										tooltipClass="tooltip-appearance"
+									/>
+								)}
+								{(customClaims.admin || customClaims.agency) && (
+									<NavItem
+										expanded={false}
+										icon={icon(IoHelpCircleOutline)}
+										label="Help"
+										onClick={handleHelpModal}
+										tooltipClass="tooltip-help"
+									/>
+								)}
+								<NavItem
+									expanded={false}
+									icon={icon(IoChatboxEllipsesOutline)}
+									label="Contact for Help"
+									onClick={handleContactHelpModal}
+									tooltipClass="tooltip-contact-us-for-help"
+								/>
+								<NavItem
+									expanded={false}
+									icon={icon(IoPersonOutline)}
+									label="Profile"
+									active={tab === 1}
+									onClick={() => handleTabNavigation(1)}
+									tooltipClass="tooltip-profile"
+								/>
+							</>
+						)}
+
+						{/* Desktop expand / collapse */}
+						<div className="hidden sm:block border-t border-blue-gray-50 mt-1">
+							{showLabels ? (
+								<ListItem
+									onClick={toggleDesktopExpanded}
+									className="mx-1 rounded-md py-2"
+									aria-label="Collapse sidebar">
+									<ListItemPrefix className="mr-3">
+										<IoChevronBackOutline size={22} />
+									</ListItemPrefix>
+									<Typography
+										variant="small"
+										className="font-medium text-[#2E3B4E] whitespace-nowrap">
+										Collapse
+									</Typography>
+								</ListItem>
+							) : (
 								<>
 									<IconButton
 										variant="text"
-										onClick={handleHelpModal}
-										className={navIconClass('tooltip-help')}
-										aria-label="Help">
-										<IoHelpCircleOutline size={30} />
+										onClick={toggleDesktopExpanded}
+										className="my-4 mx-2 tooltip-expand-nav"
+										aria-label="Expand sidebar">
+										<IoChevronForwardOutline size={30} />
 									</IconButton>
-									<Tooltip
-										anchorSelect=".tooltip-help"
-										place="bottom"
-										delayShow={500}>
-										Help
-									</Tooltip>
+									<NavTooltip tooltipClass="tooltip-expand-nav">
+										Expand
+									</NavTooltip>
 								</>
 							)}
-							
-							{/* Contact for Help - All users */}
-							<IconButton
-								variant="text"
-								onClick={handleContactHelpModal}
-								className={navIconClass('tooltip-contact-us-for-help')}
-								aria-label="Contact for Help">
-								<IoChatboxEllipsesOutline size={30} />
-							</IconButton>
-							<Tooltip
-								anchorSelect=".tooltip-contact-us-for-help"
-								place="bottom"
-								delayShow={500}>
-								Contact for Help
-							</Tooltip>
-							
-							{/* Profile - All users */}
-							<IconButton
-								variant="text"
-								onClick={() => handleTabNavigation(1)}
-								className={navIconClass('tooltip-profile', tab === 1)}
-								aria-label="Profile">
-								<IoPersonOutline size={30} />
-							</IconButton>
-							<Tooltip
-								anchorSelect=".tooltip-profile"
-								place="bottom"
-								delayShow={500}>
-								Profile
-							</Tooltip>
 						</div>
+					</div>
 				</div>
 			</Drawer>
-			
-			{/* Modal components */}
+
 			<HelpModal open={helpModal} setHelpModal={setHelpModal} />
 			<ContactHelpModal
 				open={contactHelpModal}
