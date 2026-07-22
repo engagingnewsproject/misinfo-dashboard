@@ -483,16 +483,21 @@ const ReportSystem = ({
 
 	/**
 	 * Handles image upload to Firebase Storage
+	 * @returns {Promise<string[]>} Download URLs (empty if nothing to upload)
 	 */
 	const handleUpload = async () => {
 		if (images.length === 0) {
-			return // No images to upload
+			return []
 		}
 
-		const uploadPromises = images.map((image) => {
+		const stamp = Date.now()
+		const uploadPromises = images.map((image, index) => {
+			// Include index so parallel uploads in the same ms never share a Storage path
+			const safeName =
+				(image?.name || 'image').replace(/[^a-zA-Z0-9._-]/g, '_') || 'image'
 			const storageRef = ref(
 				storage,
-				`reports/${user.accountId}_${new Date().getTime().toString()}.png`
+				`reports/${user.accountId}_${stamp}_${index}_${safeName}`,
 			)
 			const uploadTask = uploadBytesResumable(storageRef, image)
 			return new Promise((resolve, reject) => {
@@ -509,12 +514,9 @@ const ReportSystem = ({
 			})
 		})
 
-		try {
-			const urls = await Promise.all(uploadPromises)
-			setImageURLs(urls)
-		} catch (error) {
-			console.error("Error uploading images:", error)
-		}
+		const urls = await Promise.all(uploadPromises)
+		setImageURLs(urls)
+		return urls
 	}
 
 	/**
@@ -555,9 +557,18 @@ const ReportSystem = ({
 			return
 		}
 
-		// Upload images if any are selected
+		// Upload images if any are selected; keep URLs in state before leaving this step
 		if (images.length > 0) {
-			await handleUpload()
+			try {
+				await handleUpload()
+			} catch (error) {
+				console.error("Error uploading images:", error)
+				setErrors((prev) => ({
+					...prev,
+					images: "Failed to upload images. Please try again.",
+				}))
+				return
+			}
 		}
 
 		// Move to review step

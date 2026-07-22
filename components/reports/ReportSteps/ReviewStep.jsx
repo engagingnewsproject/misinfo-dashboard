@@ -11,11 +11,10 @@
  */
 
 import React from 'react'
-import { Typography, Card, Button } from '@material-tailwind/react'
+import { Typography, Button } from '@material-tailwind/react'
 import { useTranslation } from 'next-i18next'
 import globalStyles from '../../../styles/globalStyles'
-import Image from 'next/image'
-import Link from 'next/link'
+import ImageLightboxGallery from '../../ui/ImageLightboxGallery'
 
 /**
  * ReviewStep Component
@@ -58,21 +57,12 @@ const ReviewStep = ({
   const renderImages = () => {
     if (reportData.images && reportData.images.length > 0) {
       return (
-        <div className="flex w-full overflow-y-auto gap-2">
-          {reportData.images.map((image, index) => (
-            <div key={index} className="flex-shrink-0">
-              <Link href={image} target="_blank">
-                <Image
-                  src={image}
-                  width={100}
-                  height={100}
-                  alt={`Uploaded image ${index + 1}`}
-                  className="object-cover rounded"
-                />
-              </Link>
-            </div>
-          ))}
-        </div>
+        <ImageLightboxGallery
+          images={reportData.images}
+          altPrefix="Uploaded image"
+          listClassName="flex max-w-full min-w-0 flex-wrap gap-2"
+          thumbnailClassName="h-[100px] w-[100px] rounded object-cover"
+        />
       )
     } else {
       return <Typography>{t("noImages")}</Typography>

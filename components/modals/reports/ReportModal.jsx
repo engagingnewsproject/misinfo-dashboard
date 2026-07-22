@@ -7,7 +7,7 @@
  * 
  * Key Features:
  * - Detailed report information display (title, description, links, metadata)
- * - Image gallery with external link support
+ * - Image gallery with lightbox preview
  * - Role-based editing (admin vs agency restrictions)
  * - Read/unread status management
  * - Label assignment and management
@@ -41,18 +41,19 @@ import ButtonEmailSend from "../../partials/ButtonEmailSend"
 import ShareReportModal from "../../partials/modals/ShareReportModal"
 import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"
 import Link from "next/link"
-import Image from "next/image"
 import {Tooltip} from "react-tooltip";
 // icons
 import { RiMessage2Fill } from "react-icons/ri"
 import { BiEditAlt } from "react-icons/bi"
-// import { BsShareFill } from "react-icons/bs"
 import { BiLinkExternal } from "react-icons/bi";
 import { AiOutlineFieldTime, AiOutlineUser } from "react-icons/ai"
-// import { MdOutlineLocalPhone } from "react-icons/md";
-
-import { IoTrash, IoLocation, IoBusinessOutline } from "react-icons/io5"
+import {
+	IoTrash,
+	IoLocation,
+	IoBusinessOutline,
+} from "react-icons/io5"
 import ModalCloseButton from "../../ui/ModalCloseButton"
+import ImageLightboxGallery from "../../ui/ImageLightboxGallery"
 import {
 	CUSTOM_LABEL_MAX_LENGTH,
 	DEFAULT_REPORT_LABEL,
@@ -194,6 +195,19 @@ const ReportModal = ({
 	const [images,setImages] = useState([]) // Image gallery state
 	const [shareReportModal, setShareReportModal] = useState(false) // Share modal visibility
 	const [tagLabelMap, setTagLabelMap] = useState({})
+	const [lightboxOpen, setLightboxOpen] = useState(false)
+	// Delay Dialog open one tick: MT Dialog + Floating UI 0.19 logs aria-hidden
+	// "not contained inside body" when mounting with open={true} immediately.
+	const [dialogOpen, setDialogOpen] = useState(false)
+
+	const reportImages = Array.isArray(report.images)
+		? report.images.filter(Boolean)
+		: []
+
+	useEffect(() => {
+		const id = window.setTimeout(() => setDialogOpen(true), 0)
+		return () => window.clearTimeout(id)
+	}, [])
 
 	useEffect(() => {
 		let cancelled = false
@@ -219,14 +233,14 @@ const ReportModal = ({
 	return (
 		<>
 			<Dialog
-				open
+				open={dialogOpen}
 				handler={handleClose}
 				size="xl"
 				className="report-modal rounded-md"
 				dismiss={{
-					escapeKey: !shareReportModal,
+					escapeKey: !shareReportModal && !lightboxOpen,
 					outsidePress: (event) => {
-						if (shareReportModal) return false
+						if (shareReportModal || lightboxOpen) return false
 						const target = event.target
 						if (!(target instanceof Element)) return true
 						// Nested share overlay / MT Menu portals sit outside Dialog
@@ -253,7 +267,7 @@ const ReportModal = ({
 				</DialogHeader>
 				<DialogBody className="dialog-body overflow-y-auto max-h-[calc(100dvh-8rem)] pt-2">
 					<form onSubmit={onFormSubmit}>
-						<div className='grid md:grid-cols-2 md:gap-10 lg:gap-15'>
+						<div className='grid md:grid-cols-2 md:gap-10 lg:gap-15 md:items-start'>
 							{/* Left Column - Report Content */}
 							<div className='left-side'>
 								<>
@@ -317,7 +331,7 @@ const ReportModal = ({
 							{/* END left side */}
 							
 							{/* Right Column - Metadata and Actions */}
-							<div className='right-side flex flex-col justify-between'>
+							<div className='right-side flex flex-col'>
 								<div>
 									<List className="p-0 mb-5">
 										<ReportMetaItem
@@ -392,36 +406,21 @@ const ReportModal = ({
 									</List>
 
 									{/* Image Gallery */}
-									<div className='images mb-12'>
+									<div className={`images ${reportImages.length > 0 ? 'mb-12' : 'mb-4'}`}>
 										<Typography variant="h5" color="blue" className="mt-0 mb-4">
 											Images
 										</Typography>
-										<div className='grid grid-cols-4 gap-4 w-full overflow-y-auto'>
-											{report.images ?
-												report.images.map((image, i) => {
-													return (
-														<div className='grid-cols-subgrid' key={i}>
-															{image ? (
-																<Link href={image} target='_blank'>
-																	<Image
-																		src={image}
-																		width={400}
-																		height={400}
-																		alt='image'
-																		className="w-auto"
-																	/>
-																</Link>
-															) : (
-																<span className='italic font-light'>
-																	Image not found
-																</span>
-															)}
-														</div>
-													)
-												}) :
-												`No images uploaded`
-											}
-										</div>
+										{reportImages.length > 0 ? (
+											<ImageLightboxGallery
+												images={reportImages}
+												altPrefix="Report image"
+												onLightboxChange={setLightboxOpen}
+											/>
+										) : (
+											<Typography variant="small" className="italic" color="gray">
+												No images for this report
+											</Typography>
+										)}
 									</div>
 								</div>
 							</div>

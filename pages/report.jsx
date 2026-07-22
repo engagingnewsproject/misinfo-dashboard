@@ -73,7 +73,6 @@ const Report = () => {
 	}
 
 	const handleReportSystemPrevStep = () => {
-		
 			if (reminderShow == false && reportSystem <= 2) {
 				setReportSystem(reportSystem == 0)         
 			} else{
