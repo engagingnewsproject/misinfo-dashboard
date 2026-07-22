@@ -30,7 +30,7 @@ const EditLabelModal = ({ labelName, currentColor, onSave, onClose }) => {
 	}
 
 	return (
-		<Dialog
+		<Dialog data-component="EditLabelModal"
 			open
 			handler={onClose}
 			size="xs"

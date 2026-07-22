@@ -22,7 +22,7 @@ const TopicSelector = ({
 	const list = useMemo(() => dedupeTagList(topics || []), [topics])
 
 	return (
-		<>
+		<div data-component="TopicSelector" className="contents">
 			{list.map((topic) => (
 				<ListItem
 					id="topic"
@@ -59,7 +59,7 @@ const TopicSelector = ({
 					</Typography>
 				</div>
 			)}
-		</>
+		</div>
 	)
 }
 

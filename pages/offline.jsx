@@ -11,7 +11,7 @@ const Offline = () => {
 			<Head>
 				<title>Offline | Truth Sleuth Local</title>
 			</Head>
-			<div className="w-screen min-h-screen flex justify-center items-center bg-[#D3D3D3] px-4">
+			<div data-component="offline" className="w-screen min-h-screen flex justify-center items-center bg-[#D3D3D3] px-4">
 				<div className="w-full max-w-sm text-center">
 					<div className="flex flex-col items-center justify-center mb-6">
 						<div className="bg-blue-600 p-7 rounded-full mb-2">

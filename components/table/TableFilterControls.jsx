@@ -12,7 +12,7 @@ const TableFilterControls = ({
 	onIncludeArchivedChange,
 }) => {
   return (
-    <div className="flex items-center gap-4">
+    <div data-component="TableFilterControls" className="flex items-center gap-4">
       <Tabs value={readFilter} className="w-full md:w-max">
         <TabsHeader>
           {['all', 'true', 'false'].map((value) => (

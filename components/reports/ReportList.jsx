@@ -124,7 +124,7 @@ const ReportList = ({reportView, setReportView}) => {
   }, [user])
 
   return (
-    <>
+    <div data-component="ReportList" className="contents">
       {/* Report List View (reportView === 0) */}
       {reportView == 0 &&
         <ul className="bg-white p-4 rounded-lg mt-2 flex flex-col divide-y divide-gray-100">
@@ -161,7 +161,7 @@ const ReportList = ({reportView, setReportView}) => {
           setReportId={setReportId} 
         />
       }
-    </>
+    </div>
   )
 }
 

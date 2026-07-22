@@ -1435,7 +1435,7 @@ const ReportsSection = ({
 
 	return (
 		<>
-			<Card className="reports-section-card w-full mt-4">
+			<Card data-component="ReportsSection" className="reports-section-card w-full mt-4">
 				<CardHeader floated={false} shadow={false} className="rounded-none md:mt-0 pt-4">
 					<div className="card-header--top flex items-center justify-between gap-8 mb-4">
 						<Typography variant="h3" className="mt-0 mb-0 text-brand">

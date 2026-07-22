@@ -162,7 +162,7 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
   const canProceedToGraph = isValidDateRange()
 
   return (
-    <div className="relative h-full lg:h-1/2">
+    <div data-component="ComparisonGraphSetup" className="relative h-full lg:h-1/2">
       <Typography variant="h4" color="blue" className="text-center tracking-wider">
         Compare Topic Reports
       </Typography>

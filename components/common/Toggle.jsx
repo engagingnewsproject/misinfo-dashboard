@@ -30,7 +30,7 @@ import { Button } from '@material-tailwind/react'
  * @returns {JSX.Element} The rendered toggle UI
  */
 const Toggle = ({ viewVal, setViewVal }) => (
-	<div className="flex justify-center md:block">
+	<div data-component="Toggle" className="flex justify-center md:block">
 		<Button
 			id="overview"
 			size="sm"

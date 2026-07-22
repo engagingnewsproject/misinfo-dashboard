@@ -57,7 +57,7 @@ export default function Custom404() {
 			<Head>
 				<title>Not Found | Truth Sleuth Local</title>
 			</Head>
-			<div className="flex flex-col gap-2 items-center justify-center h-screen">
+			<div data-component="404" className="flex flex-col gap-2 items-center justify-center h-screen">
 				<Typography variant="h2">404 - Page Not Found</Typography>
 				<Link href={homeLink} passHref>
 					<Button>Return to home</Button>

@@ -44,7 +44,7 @@ const SourceSelectionStep = ({
 	const sourceList = useMemo(() => dedupeTagList(sources || []), [sources])
 
 	return (
-		<div className={globalStyles.form.viewWrapper}>
+		<div data-component="SourceSelectionStep" className={globalStyles.form.viewWrapper}>
 			<Typography variant="h5">{t('where')}</Typography>
 			<Card>
 				<List>

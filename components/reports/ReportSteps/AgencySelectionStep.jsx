@@ -41,7 +41,7 @@ const AgencySelectionStep = ({
   const { t } = useTranslation('NewReport')
 
   return (
-    <div className={globalStyles.form.viewWrapper}>
+    <div data-component="AgencySelectionStep" className={globalStyles.form.viewWrapper}>
       <Typography variant='h5'>{t("which_agency")}</Typography>
       <Card>
         <List>

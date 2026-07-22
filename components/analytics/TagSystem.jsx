@@ -450,7 +450,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 	const selectedIsCustom = isLabelsMode && isCustomLabel(selected)
 
 	return (
-		<div
+		<div data-component="TagSystem"
 			className="z-0 flex flex-col p-4 sm:p-16 h-full"
 			onClick={(e) => {
 				if (e.target === e.currentTarget) {

@@ -232,7 +232,7 @@ const ReportModal = ({
 
 	return (
 		<>
-			<Dialog
+			<Dialog data-component="ReportModal"
 				open={dialogOpen}
 				handler={handleClose}
 				size="xl"

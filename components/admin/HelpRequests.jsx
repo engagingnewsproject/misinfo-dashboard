@@ -195,7 +195,7 @@ const HelpRequests = () => {
 
 	return (
 		<>
-			<div className={style.section_container}>
+			<div data-component="HelpRequests" className={style.section_container}>
 				<div className={style.section_wrapper}>
 					<div className={style.section_header}>
 						<div className={style.section_title}>Help Requests</div>

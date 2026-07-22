@@ -180,7 +180,7 @@ const Headbar = ({ search, setSearch}) => {
     }
 
     return (
-        <div className="w-full grid grid-cols-12 pb-5 md:flex md:flex-row md:px-12 md:justify-between md:items-center">
+        <div data-component="Headbar" className="w-full grid grid-cols-12 pb-5 md:flex md:flex-row md:px-12 md:justify-between md:items-center">
             {/* Main header content with logo and title */}
             <div className="col-start-3 col-span-9 md:col-start-1 flex items-center">
                 {/* Agency logo or default icon */}

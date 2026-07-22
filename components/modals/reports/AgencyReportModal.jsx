@@ -1242,7 +1242,7 @@ const AgencyReportModal = ({
 
 	return (
 		<>
-			<Dialog
+			<Dialog data-component="AgencyReportModal"
 				open={open}
 				handler={handleNewReportModalClose}
 				size="xl"

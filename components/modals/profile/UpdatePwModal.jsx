@@ -53,7 +53,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
 	}
 
 	return (
-		<Dialog
+		<Dialog data-component="UpdatePwModal"
 			open
 			handler={handleClose}
 			size="xs"

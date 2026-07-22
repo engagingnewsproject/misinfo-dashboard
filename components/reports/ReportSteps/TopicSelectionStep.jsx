@@ -44,7 +44,7 @@ const TopicSelectionStep = ({
 	const topics = useMemo(() => dedupeTagList(allTopicsArr || []), [allTopicsArr])
 
 	return (
-		<div className={globalStyles.form.viewWrapper}>
+		<div data-component="TopicSelectionStep" className={globalStyles.form.viewWrapper}>
 			<Typography variant="h5">{t('about')}</Typography>
 			<Card>
 				<List>

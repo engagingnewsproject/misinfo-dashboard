@@ -29,7 +29,7 @@ const NewAgencyModal = ({
 	const handleClose = () => setNewAgencyModal(false)
 
 	return (
-		<Dialog
+		<Dialog data-component="NewAgencyModal"
 			open
 			handler={handleClose}
 			size="md"

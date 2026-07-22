@@ -6,7 +6,7 @@
  */
 export default function LoadingSpinner({ className = 'h-10 w-10 text-[#2E3B4E]' }) {
 	return (
-		<svg
+		<svg data-component="LoadingSpinner"
 			aria-hidden="true"
 			className={`animate-spin ${className}`}
 			viewBox="0 0 100 101"

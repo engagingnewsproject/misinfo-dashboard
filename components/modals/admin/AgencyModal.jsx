@@ -56,7 +56,7 @@ const AgencyModal = ({
 
 	return (
 		<>
-			<Dialog
+			<Dialog data-component="AgencyModal"
 				open
 				handler={handleClose}
 				size="xl"

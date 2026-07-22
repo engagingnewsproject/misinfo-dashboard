@@ -77,7 +77,7 @@ const RenameTagModal = ({
 	}
 
 	return (
-		<Dialog
+		<Dialog data-component="RenameTagModal"
 			open
 			handler={handleClose}
 			size="sm"

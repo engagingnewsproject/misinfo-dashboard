@@ -18,7 +18,7 @@ const ThankYouModal = ({ setContactHelpModal, setContactSent }) => {
 	}
 
 	return (
-		<Dialog
+		<Dialog data-component="ThankYouModal"
 			open
 			handler={handleClose}
 			size="xs"

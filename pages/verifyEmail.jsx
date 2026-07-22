@@ -100,7 +100,7 @@ const VerifyEmail = () => {
 			<Head>
 				<title>{t('verifyEmailPageTitle')}</title>
 			</Head>
-			<div className="w-screen h-screen flex justify-center items-center">
+			<div data-component="verifyEmail" className="w-screen h-screen flex justify-center items-center">
 				<div className="w-full max-w-md font-light bg-white rounded-md p-6">
 					{/* Logo/branding section */}
 					<div className="flex flex-col items-center justify-center mb-4">

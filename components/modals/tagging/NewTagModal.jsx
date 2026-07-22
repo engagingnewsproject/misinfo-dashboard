@@ -68,7 +68,7 @@ const NewTagModal = ({
 	}
 
 	return (
-		<Dialog
+		<Dialog data-component="NewTagModal"
 			open
 			handler={handleClose}
 			size="sm"

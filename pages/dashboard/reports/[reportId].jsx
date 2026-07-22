@@ -257,7 +257,7 @@ const ReportDetails = () => {
 	}, [info])
 
 	return (
-		<div className="p-16">
+		<div data-component="reportId" className="p-16">
 			<div className="flex justify-between w-full mb-5">
 				<div className="text-2xl font-bold text-[#2E3B4E] tracking-wider mb-8">
 				{/* Temp link back to Dashboard for testing */}

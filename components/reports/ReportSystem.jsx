@@ -728,7 +728,7 @@ const ReportSystem = ({
 	)
 
 	return (
-		<div className={globalStyles.sectionContainer} key={key}>
+		<div data-component="ReportSystem" className={globalStyles.sectionContainer} key={key}>
 			{/* Reminder Step */}
 			{reminderShow !== false && reportSystem === 1 && (
 				<div className={globalStyles.viewWrapperCenter}>

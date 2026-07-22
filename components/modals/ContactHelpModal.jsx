@@ -140,7 +140,7 @@ const ContactHelpModal = ({ open, setContactHelpModal }) => {
 	}
 
 	return (
-		<Dialog
+		<Dialog data-component="ContactHelpModal"
 			open={open}
 			handler={handleClose}
 			size="lg"

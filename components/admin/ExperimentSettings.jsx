@@ -231,14 +231,14 @@ const ExperimentSettings = () => {
 
 	if (!config) {
 		return (
-			<div className="mb-8 p-4 bg-white rounded-lg">
+			<div data-component="ExperimentSettings" className="mb-8 p-4 bg-white rounded-lg">
 				<Typography>Loading experiment settings…</Typography>
 			</div>
 		)
 	}
 
 	return (
-		<div className="experiment-settings mb-8 p-6 bg-white rounded-lg border border-blue-gray-100">
+		<div data-component="ExperimentSettings" className="experiment-settings mb-8 p-6 bg-white rounded-lg border border-blue-gray-100">
 			<Typography variant="h5" color="blue" className="mb-4">
 				Experiment &amp; archive
 			</Typography>

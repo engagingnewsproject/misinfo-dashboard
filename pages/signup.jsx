@@ -346,7 +346,7 @@ const SignUp = () => {
 			<Head>
 				<title>Signup | Truth Sleuth Local</title>
 			</Head>
-			<div className="w-screen h-screen overflow-auto flex justify-center items-start pt-12 pb-8">
+			<div data-component="signup" className="w-screen h-screen overflow-auto flex justify-center items-start pt-12 pb-8">
 				<div className="w-full max-w-sm font-light">
 					{/* Logo and branding section */}
 					<div className="flex flex-col items-center justify-center mb-2">

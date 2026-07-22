@@ -127,7 +127,7 @@ const MediaUploadField = ({
 		lightboxIndex !== null ? previews[lightboxIndex] : null
 
 	return (
-		<div>
+		<div data-component="MediaUploadField">
 			<input
 				ref={ref}
 				id={id}

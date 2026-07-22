@@ -18,7 +18,7 @@ const ViewReport = ({
 
 	return (
 		<>
-			<Card
+			<Card data-component="ViewReport"
 				className={`${globalStyles.form.view} ${reportSystem === 7 ? '' : 'hidden'}`}>
 				{/* Title */}
 				<div className="mb-6 p-0">

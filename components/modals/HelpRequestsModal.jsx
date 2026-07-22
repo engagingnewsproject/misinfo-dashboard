@@ -18,7 +18,7 @@ const formatLabel = (label) => label.replace(/([a-z])([A-Z])/g, '$1 $2')
  */
 const HelpRequestsModal = ({ helpRequestInfo, handleClose, mailtoLink }) => {
 	return (
-		<Dialog
+		<Dialog data-component="HelpRequestsModal"
 			open
 			handler={handleClose}
 			size="lg"

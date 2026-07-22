@@ -80,7 +80,7 @@ const ResetPassword = () => {
 				<title>Reset Password | Truth Sleuth Local</title>
 			</Head>
 
-			<div className="w-screen h-screen flex justify-center items-center">
+			<div data-component="resetPassword" className="w-screen h-screen flex justify-center items-center">
 				<div className="w-full max-w-sm font-light">
 					<div className="grid justify-items-center mb-4">
 						<Image

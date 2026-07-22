@@ -161,7 +161,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
 
   return (
   <>
-    <div className="relative flex justify-stretch lg:justify-between flex-wrap gap-2">
+    <div data-component="ComparisonGraphMenu" className="relative flex justify-stretch lg:justify-between flex-wrap gap-2">
       <div className="flex flex-wrap items-center gap-1">
         {/* Calendar allows user to change date range. */}
         <Tooltip content={showCalendar == 0 ? 'Select Dates' : 'Close Calendar'}>
