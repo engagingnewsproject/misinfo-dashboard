@@ -179,15 +179,15 @@ const Settings = () => {
       {tagSystem == 0 ?
       <div className="z-0 flex-col p-16">
         {customClaims.admin && <TagDefaultsSettings />}
-        <div className="mb-8 p-6 bg-white rounded-lg border border-blue-gray-100">
+        <div className="mb-8 p-6 bg-white rounded-md border border-blue-gray-100">
           <div className={globalStyles.heading.h1.blue}>Tagging Systems</div>
           {agencyClaimsStatus === 'pending' && (
-            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
+            <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
               Loading agency access…
             </div>
           )}
           {agencyClaimsStatus === 'missing' && (
-            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
               Agency access is incomplete (missing agency ID on your account).
               Refresh the page, or ask an admin to re-run agency claims backfill.
             </div>

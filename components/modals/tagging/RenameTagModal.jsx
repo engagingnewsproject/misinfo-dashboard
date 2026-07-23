@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import FormInput from '../../ui/FormInput'
 import ModalCloseButton from '../../ui/ModalCloseButton'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -19,7 +20,8 @@ import {
 /**
  * Modal to rename/edit a custom agency tag id and EN/ES labels.
  *
- * Mount when visible; Dialog is always open while mounted.
+ * Mount when visible; Dialog opens one tick later to avoid Floating UI
+ * aria-hidden warnings when mounting with open={true} immediately.
  *
  * @param {{
  *   replaceTag: (entry: { id: string, labels: { en: string, es: string } }) => void,
@@ -44,6 +46,7 @@ const RenameTagModal = ({
 	const [labelEn, setLabelEn] = useState(existingLabels?.en || selected || '')
 	const [labelEs, setLabelEs] = useState(existingLabels?.es || '')
 	const [error, setError] = useState('')
+	const dialogOpen = useDelayedDialogOpen()
 
 	const handleClose = () => setRenameTagModal(false)
 
@@ -78,7 +81,7 @@ const RenameTagModal = ({
 
 	return (
 		<Dialog data-component="RenameTagModal"
-			open
+			open={dialogOpen}
 			handler={handleClose}
 			size="sm"
 			className="rename-tag-modal rounded-md">

@@ -19,6 +19,7 @@ import { RiDeleteBin2Fill } from 'react-icons/ri'
 import { BiLogOut } from 'react-icons/bi'
 import { IoMdRefresh } from 'react-icons/io'
 import { useTranslation } from 'next-i18next'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -35,8 +36,8 @@ import {
  * Reset Report) with appropriate icons. The modal includes both confirm and
  * cancel buttons, with the confirm action being triggered on form submission.
  *
- * Mount when visible (`{show && <ConfirmModal ... />}`); Dialog is always open
- * while mounted, matching existing call sites.
+ * Mount when visible (`{show && <ConfirmModal ... />}`); Dialog opens one tick
+ * later to avoid Floating UI aria-hidden warnings.
  *
  * @param {Object} props - Component props
  * @param {Function} props.func - Function to execute when user confirms the action
@@ -56,6 +57,7 @@ import {
  */
 const ConfirmModal = ({ func, title, subtitle, CTA, closeModal }) => {
 	const { t } = useTranslation('Profile')
+	const dialogOpen = useDelayedDialogOpen()
 
 	/**
 	 * Handles form submission when user confirms the action.
@@ -94,7 +96,7 @@ const ConfirmModal = ({ func, title, subtitle, CTA, closeModal }) => {
 
 	return (
 		<Dialog data-component="ConfirmModal"
-			open
+			open={dialogOpen}
 			handler={handleCancel}
 			size="xs"
 			className="confirm-modal-root confirm-modal rounded-md">

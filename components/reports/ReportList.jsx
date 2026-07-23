@@ -127,7 +127,7 @@ const ReportList = ({reportView, setReportView}) => {
     <div data-component="ReportList" className="contents">
       {/* Report List View (reportView === 0) */}
       {reportView == 0 &&
-        <ul className="bg-white p-4 rounded-lg mt-2 flex flex-col divide-y divide-gray-100">
+        <ul className="bg-white p-4 rounded-md mt-2 flex flex-col divide-y divide-gray-100">
           {reports.map((reportObj, i) => {
             const report = Object.values(reportObj)[0] // Extract report data
             const reportId = Object.keys(reportObj)[0] // Extract report ID
@@ -140,7 +140,7 @@ const ReportList = ({reportView, setReportView}) => {
               <li 
                 onClick={() => handleReportView(Object.keys(reportObj)[0])} 
                 key={i} 
-                className="flex gap-4 py-5 pl-4 text-left rounded-lg hover:bg-slate-100 cursor-pointer"
+                className="flex gap-4 py-5 pl-4 text-left rounded-md hover:bg-slate-100 cursor-pointer"
               >
                 <div>{posted}</div> {/* Display formatted date */}
                 <div>{report.title}</div> {/* Display report title */}

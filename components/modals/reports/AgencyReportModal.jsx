@@ -4,6 +4,7 @@ import ModalCloseButton from '../../ui/ModalCloseButton'
 import { useAuth } from '../../../context/AuthContext'
 import moment from 'moment'
 import { db } from '../../../config/firebase'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	fetchExperimentConfig,
 	getActiveExperimentId,
@@ -141,6 +142,7 @@ const AgencyReportModal = ({
 	setNewReportModal,
 	handleNewReportSubmit,
 }) => {
+	const dialogOpen = useDelayedDialogOpen(open)
 	const dbInstance = collection(db, 'reports')
 	const { user, customClaims, refreshCustomClaims } = useAuth()
 	// useStates
@@ -1243,7 +1245,7 @@ const AgencyReportModal = ({
 	return (
 		<>
 			<Dialog data-component="AgencyReportModal"
-				open={open}
+				open={dialogOpen}
 				handler={handleNewReportModalClose}
 				size="xl"
 				className="agency-report-modal rounded-md"
@@ -1276,7 +1278,7 @@ const AgencyReportModal = ({
 						{hasFieldErrors && (
 							<div
 								role="alert"
-								className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+								className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
 								{t('formErrorsSummary', {
 									defaultValue:
 										'Please fix the highlighted fields below.',

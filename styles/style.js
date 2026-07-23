@@ -143,16 +143,90 @@ const style = {
 		},
 	},
 	// Switch reads theme.switch (the package exports this key as switchButton).
+	// Hide @tailwindcss/forms checked ✓ — Switch is a checkbox under the hood;
+	// forms paints a white checkmark onto the track. Checkboxes keep their icon.
 	switch: {
 		defaultProps: {
 			color: 'blue',
 		},
 		styles: {
+			base: {
+				input: {
+					// All colors (blue, red, …) — not only the brand override below
+					backgroundImage: 'checked:[background-image:none]',
+				},
+			},
 			colors: {
 				blue: {
-					input: 'checked:bg-brand',
+					input:
+						'checked:bg-brand checked:[background-image:none]',
 					circle: 'peer-checked:border-brand',
 					before: 'peer-checked:before:bg-brand',
+				},
+				red: {
+					input: 'checked:bg-red-500 checked:[background-image:none]',
+					circle: 'peer-checked:border-red-500',
+					before: 'peer-checked:before:bg-red-500',
+				},
+			},
+		},
+	},
+	// Align panel radius with app containers (rounded-md). MT defaults:
+	// Dialog container → rounded-lg; Card → rounded-xl.
+	// Size tiers: replace MT % widths with w-full + hard max-w so wide
+	// viewports don't stretch lg/xl panels. xxl stays fullscreen (unused).
+	dialog: {
+		styles: {
+			base: {
+				container: {
+					borderRadius: 'rounded-md',
+				},
+			},
+			sizes: {
+				xs: {
+					width: 'w-full',
+					minWidth: 'min-w-0',
+					maxWidth: 'max-w-md',
+				},
+				sm: {
+					width: 'w-full',
+					minWidth: 'min-w-0',
+					maxWidth: 'max-w-lg',
+				},
+				md: {
+					width: 'w-full',
+					minWidth: 'min-w-0',
+					maxWidth: 'max-w-xl',
+				},
+				lg: {
+					width: 'w-full',
+					minWidth: 'min-w-0',
+					maxWidth: 'max-w-3xl',
+				},
+				xl: {
+					width: 'w-full',
+					minWidth: 'min-w-0',
+					maxWidth: 'max-w-5xl',
+				},
+			},
+		},
+	},
+	card: {
+		styles: {
+			base: {
+				initial: {
+					borderRadius: 'rounded-md',
+				},
+			},
+		},
+	},
+	// MT default text-blue-gray-500 is ~4.13:1 on white (fails WCAG AA for normal text).
+	// blue-gray-600 is ~5.1:1 and keeps the same muted body tone.
+	dialogBody: {
+		styles: {
+			base: {
+				initial: {
+					color: 'text-blue-gray-600',
 				},
 			},
 		},

@@ -1,6 +1,7 @@
 import FormInput from '../../ui/FormInput'
 import ModalCloseButton from '../../ui/ModalCloseButton'
 import React from 'react'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -10,7 +11,8 @@ import {
 } from '@material-tailwind/react'
 
 /**
- * Mount when visible; Dialog is always open while mounted.
+ * Mount when visible; Dialog opens one tick later to avoid Floating UI
+ * aria-hidden warnings when mounting with open={true} immediately.
  */
 const NewUserModal = ({
 	setNewUserModal,
@@ -20,16 +22,17 @@ const NewUserModal = ({
 	errors,
 }) => {
 	const handleClose = () => setNewUserModal(false)
+	const dialogOpen = useDelayedDialogOpen()
 
 	return (
 		<Dialog data-component="NewUserModal"
-			open
+			open={dialogOpen}
 			handler={handleClose}
 			size="md"
 			className="new-user-modal rounded-md">
 			<DialogHeader className="justify-between gap-4">
-				<Typography variant="h3" color="blue" className="mt-0 mb-0">
-					Add new agency user
+				<Typography variant="h2" color="blue" className="mt-0 mb-0">
+					Invite user
 				</Typography>
 				<ModalCloseButton onClick={handleClose} />
 			</DialogHeader>
@@ -38,7 +41,7 @@ const NewUserModal = ({
 					<FormInput
 						id="userEmail"
 						type="email"
-						label="Agency user email"
+						label="Email to invite"
 						value={newUserEmail}
 						onChange={onNewUserEmail}
 						autoComplete="email"
@@ -48,7 +51,7 @@ const NewUserModal = ({
 						<p className="error text-red-500 text-sm font-light">{errors.email}</p>
 					)}
 					<Button type="submit" id="userNew">
-						Add User
+						Send invite
 					</Button>
 				</form>
 			</DialogBody>

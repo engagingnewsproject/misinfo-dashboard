@@ -14,6 +14,7 @@ import FormInput from '../ui/FormInput'
 import FormTextarea from '../ui/FormTextarea'
 import MediaUploadField from '../ui/MediaUploadField'
 import ModalCloseButton from '../ui/ModalCloseButton'
+import { useDelayedDialogOpen } from '../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -24,6 +25,7 @@ import {
 
 const ContactHelpModal = ({ open, setContactHelpModal }) => {
 	const { t } = useTranslation('Navbar')
+	const dialogOpen = useDelayedDialogOpen(open)
 	const dbInstance = collection(db, 'helpRequests')
 	const { user } = useAuth()
 	const storage = getStorage()
@@ -141,7 +143,7 @@ const ContactHelpModal = ({ open, setContactHelpModal }) => {
 
 	return (
 		<Dialog data-component="ContactHelpModal"
-			open={open}
+			open={dialogOpen}
 			handler={handleClose}
 			size="lg"
 			className="contact-help-modal rounded-md">

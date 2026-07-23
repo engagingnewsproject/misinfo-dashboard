@@ -1458,12 +1458,12 @@ const ReportsSection = ({
 						</div>
 					</div>
 					{agencyClaimsStatus === 'pending' && (
-						<div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
+						<div className="mb-3 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
 							Loading agency access…
 						</div>
 					)}
 					{agencyClaimsStatus === 'missing' && (
-						<div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+						<div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
 							Agency access is incomplete (missing agency ID on your account).
 							Refresh the page, or ask an admin to re-run agency claims backfill.
 						</div>

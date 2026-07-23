@@ -1,5 +1,6 @@
 import React from 'react'
 import ModalCloseButton from '../ui/ModalCloseButton'
+import { useDelayedDialogOpen } from '../../hooks/useDelayedDialogOpen'
 import {
 	Dialog,
 	DialogBody,
@@ -8,10 +9,13 @@ import {
 } from '@material-tailwind/react'
 
 /**
- * Mount when visible; Dialog is always open while mounted.
- * Closes contact-help flow via setContactHelpModal / setContactSent when provided.
+ * Mount when visible; Dialog opens one tick later to avoid Floating UI
+ * aria-hidden warnings. Closes contact-help flow via setContactHelpModal /
+ * setContactSent when provided.
  */
 const ThankYouModal = ({ setContactHelpModal, setContactSent }) => {
+	const dialogOpen = useDelayedDialogOpen()
+
 	const handleClose = () => {
 		setContactHelpModal?.(false)
 		setContactSent?.(false)
@@ -19,7 +23,7 @@ const ThankYouModal = ({ setContactHelpModal, setContactSent }) => {
 
 	return (
 		<Dialog data-component="ThankYouModal"
-			open
+			open={dialogOpen}
 			handler={handleClose}
 			size="xs"
 			className="thank-you-modal rounded-md">

@@ -1,6 +1,7 @@
 import React from 'react'
 import { RiDeleteBin2Fill } from 'react-icons/ri'
 import { useTranslation } from 'next-i18next'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -12,11 +13,12 @@ import {
 /**
  * Delete confirmation dialog (Material Tailwind Dialog).
  *
- * Mount when visible (`{show && <DeleteModal ... />}`); Dialog is always open
- * while mounted, matching existing call sites.
+ * Mount when visible (`{show && <DeleteModal ... />}`); Dialog opens one tick
+ * later to avoid Floating UI aria-hidden warnings.
  */
 const DeleteModal = ({ func, title, subtitle, CTA, closeModal }) => {
 	const { t } = useTranslation('Profile')
+	const dialogOpen = useDelayedDialogOpen()
 
 	const handleSubmit = (e) => {
 		e.preventDefault()
@@ -29,7 +31,7 @@ const DeleteModal = ({ func, title, subtitle, CTA, closeModal }) => {
 
 	return (
 		<Dialog data-component="DeleteModal"
-			open
+			open={dialogOpen}
 			handler={handleCancel}
 			size="xs"
 			className="delete-modal rounded-md">

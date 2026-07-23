@@ -209,8 +209,8 @@ export function useUsersPagination({
       prevFilters.orderField !== orderField ||
       prevFilters.orderDirection !== orderDirection;
 
-    if (filtersChanged && users.length > 0) {
-      // Filters changed, reset pagination
+    if (filtersChanged) {
+      // Filters changed, reset pagination (including empty lists so new filters refetch)
       reset();
     }
 

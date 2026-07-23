@@ -29,10 +29,10 @@ const FormSelect = ({
       {label && (
         <label
           htmlFor={id}
-          className={`pointer-events-none absolute left-3 z-[1] bg-white px-1 transition-all duration-200 ${
+          className={`pointer-events-none absolute left-3 z-[1] bg-white px-1 font-normal transition-all duration-200 ${
             floated
-              ? '-top-2 text-[11px] leading-tight text-gray-900'
-              : 'top-2.5 text-sm text-blue-gray-500'
+              ? `-top-2 text-[11px] leading-tight ${focused ? 'text-gray-900' : 'text-gray-500'}`
+              : 'top-2.5 text-sm leading-tight text-blue-gray-500'
           }`}
         >
           {label}

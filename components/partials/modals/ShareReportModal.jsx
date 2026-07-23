@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'next-i18next'
 import FormInput from '../../ui/FormInput'
 import ModalCloseButton from '../../ui/ModalCloseButton'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -19,7 +20,8 @@ import {
 /**
  * Modal for sharing a report by email or by copying its dashboard link.
  *
- * Mount when visible; Dialog is always open while mounted.
+ * Mount when visible; Dialog opens one tick later to avoid Floating UI
+ * aria-hidden warnings when mounting with open={true} immediately.
  *
  * @param {Object} props
  * @param {string} props.reportId - Report document id used to build the share URL
@@ -31,6 +33,7 @@ const ShareReportModal = ({ reportId, reportTitle = '', closeModal }) => {
 	const [email, setEmail] = useState('')
 	const [copied, setCopied] = useState(false)
 	const [copyError, setCopyError] = useState(false)
+	const dialogOpen = useDelayedDialogOpen()
 	const shareUrl = buildReportShareUrl(reportId)
 
 	const handleClose = () => closeModal(false)
@@ -63,7 +66,7 @@ const ShareReportModal = ({ reportId, reportTitle = '', closeModal }) => {
 
 	return (
 		<Dialog data-component="ShareReportModal"
-			open
+			open={dialogOpen}
 			handler={handleClose}
 			size="xs"
 			className="share-report-modal rounded-md">

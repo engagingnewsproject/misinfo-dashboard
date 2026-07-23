@@ -10,16 +10,20 @@ import Image from 'next/image'
 import Link from 'next/link'
 import React, { Fragment } from 'react'
 import ModalCloseButton from '../ui/ModalCloseButton'
+import { useDelayedDialogOpen } from '../../hooks/useDelayedDialogOpen'
 
 const formatLabel = (label) => label.replace(/([a-z])([A-Z])/g, '$1 $2')
 
 /**
- * Mount when visible; Dialog is always open while mounted.
+ * Mount when visible; Dialog opens one tick later to avoid Floating UI
+ * aria-hidden warnings when mounting with open={true} immediately.
  */
 const HelpRequestsModal = ({ helpRequestInfo, handleClose, mailtoLink }) => {
+	const dialogOpen = useDelayedDialogOpen()
+
 	return (
 		<Dialog data-component="HelpRequestsModal"
-			open
+			open={dialogOpen}
 			handler={handleClose}
 			size="lg"
 			className="help-requests-modal rounded-md">

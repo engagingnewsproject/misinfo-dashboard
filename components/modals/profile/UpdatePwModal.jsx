@@ -5,6 +5,7 @@ import { auth } from '../../../config/firebase'
 import { MdOutlineRemoveRedEye } from 'react-icons/md'
 import FormInput from '../../ui/FormInput'
 import ModalCloseButton from '../../ui/ModalCloseButton'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -14,11 +15,12 @@ import {
 } from '@material-tailwind/react'
 
 /**
- * Mount when visible (`{openModal && <UpdatePwModal ... />}`); Dialog is always open
- * while mounted, matching existing call sites.
+ * Mount when visible (`{openModal && <UpdatePwModal ... />}`); Dialog opens one
+ * tick later to avoid Floating UI aria-hidden warnings.
  */
 const UpdatePwModal = ({ setOpenModal }) => {
 	const { t } = useTranslation('Profile')
+	const dialogOpen = useDelayedDialogOpen()
 
 	const { user, updateUserPassword } = useAuth()
 	const [updateSuccess, setUpdateSuccess] = useState(false)
@@ -54,7 +56,7 @@ const UpdatePwModal = ({ setOpenModal }) => {
 
 	return (
 		<Dialog data-component="UpdatePwModal"
-			open
+			open={dialogOpen}
 			handler={handleClose}
 			size="xs"
 			className="update-pw-modal rounded-md">

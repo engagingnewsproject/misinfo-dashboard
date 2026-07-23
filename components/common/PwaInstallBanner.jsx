@@ -112,7 +112,7 @@ export default function PwaInstallBanner() {
 			role="region"
 			aria-label="Install app"
 		>
-			<div className="pointer-events-auto mx-auto max-w-md rounded-xl bg-[#2E3B4E] text-white shadow-lg ring-1 ring-black/10">
+			<div className="pointer-events-auto mx-auto max-w-md rounded-md bg-[#2E3B4E] text-white shadow-lg ring-1 ring-black/10">
 				<div className="flex items-start gap-3 p-4">
 					<div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600">
 						<MdInstallMobile size={22} aria-hidden />
