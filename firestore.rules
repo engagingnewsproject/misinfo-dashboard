@@ -1,10 +1,121 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Allow only authenticated users to read and write
-    match /{document=**} {
-    	allow read, write: if request.auth != null;
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.get('admin', false) == true;
+    }
+
+    function isAgencyUser() {
+      return isSignedIn()
+        && request.auth.token.get('agency', false) == true
+        && request.auth.token.get('agencyId', '') is string
+        && request.auth.token.get('agencyId', '').size() > 0;
+    }
+
+    function sameAgency() {
+      return isAgencyUser()
+        && resource.data.agencyId == request.auth.token.agencyId;
+    }
+
+    function sameAgencyOnCreate() {
+      return isAgencyUser()
+        && request.resource.data.agencyId == request.auth.token.agencyId;
+    }
+
+    function hasValidAgencyId() {
+      return request.resource.data.agencyId is string
+        && request.resource.data.agencyId.size() > 0;
+    }
+
+    function archiveFieldsChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(['archived', 'archivedAt', 'archivedBy']);
+    }
+
+    match /settings/experiment {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /settings/appearance {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /tagSystems/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /locations/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Community/public submitters need to list agencies for /report.
+    // Agency-claim users may only read their own agency doc (avoids cross-agency agencyUsers leaks).
+    // Agency users may update their own profile fields (name/logo/location), not membership lists.
+    match /agency/{agencyId} {
+      allow read: if isAdmin()
+        || (isAgencyUser() && agencyId == request.auth.token.agencyId)
+        || (isSignedIn() && request.auth.token.get('agency', false) != true);
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (
+          isAgencyUser()
+          && agencyId == request.auth.token.agencyId
+          && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['agencyUsers'])
+        );
+    }
+
+    match /tags/{agencyDocId} {
+      // Public /report loads the selected agency's Topic/Source pickers.
+      allow read: if isSignedIn();
+      allow write: if isAdmin()
+        || (isAgencyUser() && agencyDocId == request.auth.token.agencyId);
+    }
+
+    match /mobileUsers/{userId} {
+      // Agency triage needs reporter profiles; community users only their own doc.
+      allow read: if isAdmin()
+        || isAgencyUser()
+        || (isSignedIn() && request.auth.uid == userId);
+      allow create, update: if isAdmin()
+        || (isSignedIn() && request.auth.uid == userId);
+      allow delete: if isAdmin();
+    }
+
+    match /helpRequests/{requestId} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /reports/{reportId} {
+      allow read: if isAdmin()
+        || sameAgency()
+        || (isSignedIn() && resource.data.userID == request.auth.uid);
+
+      allow create: if isSignedIn()
+        && request.resource.data.archived == false
+        && request.resource.data.experimentId is string
+        && request.resource.data.experimentId.size() > 0
+        && hasValidAgencyId()
+        && (
+          isAdmin()
+          || sameAgencyOnCreate()
+          || request.auth.token.get('agency', false) != true
+        );
+
+      allow update: if isAdmin()
+        || (sameAgency() && !archiveFieldsChanged());
+
+      allow delete: if isAdmin() || sameAgency();
     }
   }
 }

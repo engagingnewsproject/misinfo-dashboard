@@ -3,6 +3,12 @@ import globalStyles from '../../styles/globalStyles'
 import { Tooltip, Typography, Switch } from '@material-tailwind/react'
 import { IoTrash } from 'react-icons/io5'
 import MemoizedTooltipContent from './MemoizedTooltipContent'
+import {
+  displayLabel,
+  getLabelBadgeStyle,
+  isInvestigationPending,
+} from '../../config/labels'
+import { DEFAULT_INVESTIGATION_ROW } from '../../utils/appearance-config'
 
 const TableBody = ({
   loadedReports,
@@ -10,18 +16,32 @@ const TableBody = ({
   onReportModalShow,
   onRowChangeRead,
   onReportDelete,
-  reportsReadState
+  reportsReadState,
+  agencyLabelColors = {},
+  agencyLabelColorsByAgency = {},
+  investigationHighlight = DEFAULT_INVESTIGATION_ROW,
 }) => {
   function trimToWordCount(str, wordCount) {
     const words = str.split(' ')
     return words.length <= wordCount ? str : words.slice(0, wordCount).join(' ') + '...'
   }
 
+  const getColorsForReport = (report) => {
+    if (agencyLabelColors && Object.keys(agencyLabelColors).length > 0) {
+      return agencyLabelColors
+    }
+    return agencyLabelColorsByAgency[report.agency] || {}
+  }
+
+  const highlightBg = investigationHighlight?.bg || DEFAULT_INVESTIGATION_ROW.bg
+  const highlightHover =
+    investigationHighlight?.hover || DEFAULT_INVESTIGATION_ROW.hover
+
   return (
-    <tbody>
+    <tbody data-component="TableBody">
       {loadedReports.length === 0 ? (
         <tr>
-          <td colSpan="7" className="text-center">
+          <td colSpan={columns.length} className="text-center">
             No reports
           </td>
         </tr>
@@ -29,6 +49,8 @@ const TableBody = ({
         loadedReports.map((report) => {
           const details = trimToWordCount(report.detail || '',25)
           const title = report.title
+          const isArchived = report.archived === true
+          const needsInvestigation = isInvestigationPending(report.label)
           const formattedDate = new Date(report['createdDate'].seconds * 1000).toLocaleString(
             'en-US',
             {
@@ -45,20 +67,42 @@ const TableBody = ({
             <tr
               key={report.reportID}
               onClick={() => onReportModalShow(report.reportID)}
-              className={`${globalStyles.table.tr} cursor-pointer`}>
+              className={`p-4 border-b border-blue-gray-50 cursor-pointer ${
+                needsInvestigation ? '' : 'hover:bg-gray-100'
+              }`}
+              style={
+                needsInvestigation ? { backgroundColor: highlightBg } : undefined
+              }
+              onMouseEnter={
+                needsInvestigation
+                  ? (e) => {
+                      e.currentTarget.style.backgroundColor = highlightHover
+                    }
+                  : undefined
+              }
+              onMouseLeave={
+                needsInvestigation
+                  ? (e) => {
+                      e.currentTarget.style.backgroundColor = highlightBg
+                    }
+                  : undefined
+              }>
               {columns.map(({ accessor }) => {
                 let tData
                 if (accessor === 'createdDate') {
                   tData = <Typography>{formattedDate}</Typography>
                 } else if (accessor === 'label') {
+                  const badgeStyle = getLabelBadgeStyle(
+                    report.label,
+                    getColorsForReport(report),
+                  )
                   tData = (
                     <Typography
-                      className={`${globalStyles.label.default} ${
-                        report.label === 'Flagged' && 'bg-orange-200'
-                      } ${report.label === 'Important' && 'bg-yellow-400'}`}
+                      className={`${globalStyles.label.default} px-5 py-1 rounded-md`}
+                      style={badgeStyle}
                       data-tip="Change label"
                       data-for="labelTooltip">
-                      {report[accessor] || 'None'}
+                      {displayLabel(report.label)}
                     </Typography>
                   )
                 } else if (accessor === 'read') {
@@ -83,7 +127,14 @@ const TableBody = ({
                   // Apply the tooltip specifically to the detail column
                   tData = (
                     <Tooltip content={<MemoizedTooltipContent details={details} />} placement="bottom-end">
-                      <Typography>{title}</Typography>
+                      <Typography className="flex items-center gap-2">
+                        {title}
+                        {isArchived && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-gray-200 text-gray-700">
+                            Archived
+                          </span>
+                        )}
+                      </Typography>
                     </Tooltip>
                   )
                 } else {

@@ -1,6 +1,5 @@
 {
   "reminder": "Aviso",
-  
   "description":
     "Este sistema es solamente para reportar información posiblemente errónea a nivel local o estatal.",
   "example": "Ejemplo:",
@@ -19,7 +18,6 @@
   "linkFirst": "Enlace",
   "links": "Enlaces",
   "image_text": "Imágenes",
-  "linkSecond":"Enlace",
   "image": "Subir imagen",
   "imageBtn": "Subir imagen(es)",
   "noLinks": "No se agregaron enlaces.",
@@ -40,6 +38,11 @@
   "title_text": "Título",
   "alertTitle":"Alerta",
   "atLeast":"Necesitamos al menos uno de los siguientes: un enlace, una foto o una descripción detallada.",
+  "formErrorsSummary":"Corrija los campos resaltados a continuación.",
+  "saveFailed":"No se pudo guardar el reporte. Inténtelo de nuevo.",
+  "discardReportTitle":"¿Descartar este informe?",
+  "discardReportSubtitle":"Tiene cambios sin guardar. Si cierra ahora, perderá su trabajo.",
+  "discardReportCTA":"Descartar",
   "briefly":"Describa brevemente",
   "createReport": "Crea",
   "location_text": "Lugar",
@@ -58,8 +61,10 @@
   "add_title" : "Agregar un título de informe",
   "custom_source": "Fuente personalizada",
   "custom_topic": "Tema personalizado",
-  "specify_topic": "Por favor especifica el tema",
+  "specify_topic": "Por favor especifica el tema (máx. {{max}} caracteres)",
+  "specify_source": "Por favor especifica la fuente (máx. {{max}} caracteres)",
   "second_link": "Segundo enlace",
+  "invalidLink": "Ingrese un enlace válido (p. ej. https://example.com).",
   "source_title": "Fuente",
   "choose_files": "Seleccionar archivos",
   "info": "Denunciar información",
@@ -71,19 +76,31 @@
   "upload": "Puedes subir capturas de pantalla o fotografías de la información potencialmente incorrecta.",
   "agency":"Agencia",
   "topic": "Tema",
-  "noAgencies":"There are no participating newsrooms in this area.",
+  "label": "Etiqueta",
+  "label_optional": "Etiqueta (opcional)",
+  "custom_label": "Especifique la etiqueta (máx. {{max}} caracteres)",
+  "noAgencies":"No hay redacciones participantes en esta área.",
   "topics": {
     "Health": "Salud",
     "Weather": "Clima",
     "Other": "Otro",
-    "Politics":"Política"
+    "Politics": "Política",
+    "Voting": "Votación",
+    "Senate": "Senado",
+    "Gubernatorial": "Gobernatura",
+    "Mayoral": "Alcaldía",
+    "Election (general)": "Elección (general)",
+    "News": "Noticias"
   },
   "sources": {
-  "Social": "Social",
-  "Newspaper": "Periódico",
-  "Website": "Sitio web",
-  "Other": "Otro"
+    "Social": "Social",
+    "Newspaper": "Periódico",
+    "Website": "Sitio web",
+    "Television": "Televisión",
+    "Radio": "Radio",
+    "Podcast": "Podcast",
+    "Other": "Otro"
   },
+  "review": "Revisar",
   "thanksText": "Investigamos tantas denuncias como sea posible, aunque no siempre podemos llegar a todas."
-
 }

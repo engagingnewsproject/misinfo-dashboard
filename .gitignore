@@ -4,7 +4,6 @@
 /node_modules
 /.pnp
 .pnp.js
-package-lock.json
 
 # testing
 /coverage
@@ -31,6 +30,7 @@ pglite-debug.log
 # local env files
 .env*.local
 .env
+.env.login
 
 # vercel
 .vercel
@@ -41,15 +41,20 @@ firestore-debug.log
 firebase-debug.log
 functions/firestore-debug.log
 ui-debug.log
+.firebase/
 
 # Auto Generated PWA files
 **/public/workbox-*.js
 public/workbox-*.js.map
+**/public/workbox-*.js.map
 public/worker-*.js
 public/worker-*.js.map
 **/public/sw.js
 public/sw.js.map
+**/public/swe-worker-*.js
+public/swe-worker-*.js
 **/public/fallback-*.js
+!/public/robots.txt
 
 # Local Netlify folder
 .netlify
@@ -66,8 +71,14 @@ functions/sendgrid.env
 
 # Sentry Config File
 .env.sentry-build-plugin
-misinfo-dashboard.code-workspace
 .runtimeconfig.json
 functions/.env.default
 functions/.eslintrc.js
 misinfo-5d004-firebase-adminsdk-*.json
+*.code-workspace
+netlify.toml
+
+# Local docs folder (organizational only — not part of this repo)
+# Wiki clone lives at docs/misinfo-dashboard.wiki/; use that repo's git remote to push wiki changes.
+/docs/
+firepit-log.txt

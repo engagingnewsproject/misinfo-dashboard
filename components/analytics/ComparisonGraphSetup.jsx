@@ -13,6 +13,7 @@
  * Integrates with:
  * - ComparisonGraphPlotted (for rendering the comparison graph)
  * - react-date-range and react-select for UI controls
+ * - @material-tailwind/react for typography, buttons, and alerts
  * - Firebase Firestore for topic data
  *
  * @author Misinformation Dashboard Team
@@ -24,7 +25,7 @@ import { DateRange } from 'react-date-range';
 
 import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css'; // theme css file
-import { startOfDay, subDays } from 'date-fns'
+import { subDays } from 'date-fns'
 import { getDoc, doc } from "firebase/firestore";
 import { db } from '../../config/firebase'
 import {
@@ -32,11 +33,13 @@ import {
   IoIosArrowBack,
 } from "react-icons/io";
 import ComparisonGraphPlotted from './ComparisonGraphPlotted'
-import { Tooltip } from "react-tooltip";
+import {
+  Alert,
+  Button,
+  Typography,
+} from '@material-tailwind/react'
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
-import _ from "lodash";
-import globalStyles from '../../styles/globalStyles';
 import firebaseHelper from '../../firebase/FirebaseHelper'
 /**
  * ComparisonGraphSetup Component
@@ -56,8 +59,6 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
   const [listTopicChoices, setTopicChoices] = useState([]) // List of available topics for selection
 
   // --- Date range state ---
-  const defaultStartDay = startOfDay(new Date())
-  defaultStartDay.setHours(-24 * 6, 0, 0, 0)
   const [dateRange, setDateRange] = useState([
     {
       startDate: subDays(new Date(), 7),
@@ -73,8 +74,14 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
   const [topicError, setTopicError] = useState(false) // Error state for topic selection
   const [dateError, setDateError] = useState(false) // Error state for date selection
 
-  // --- Styling for graph setting buttons ---
-  const basicStyle = "flex p-2 my-6 mx-2 text-gray-500 hover:bg-blue-100 rounded-lg"
+  const getDaysSelected = (range = dateRange[0]) =>
+    ((range.endDate - range.startDate) / (1000 * 60 * 60 * 24)) + 1
+
+  // Valid comparison window: 3–30 days inclusive (matches graph refresh rules).
+  const isValidDateRange = (range = dateRange[0]) => {
+    const daysSelected = getDaysSelected(range)
+    return daysSelected > 2 && daysSelected < 31
+  }
 
   /**
    * Handles the selection of a new date range.
@@ -83,12 +90,8 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
    */
   const handleDateSelection = (item) => {
     if (item.selection.endDate !== item.selection.startDate) {
-      console.log(item)
       setDateRange([item.selection])
-      const daysSelected = ((item.selection.endDate  - item.selection.startDate)/(1000*60*60*24)) + 1
-      if (daysSelected > 2 && daysSelected < 31) {
-        setDateError(false)
-      }
+      setDateError(!isValidDateRange(item.selection))
     } 
   }
 
@@ -106,10 +109,7 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
    * Sets error state if invalid.
    */
   const handleGraphChange = () => {
-    console.log("date range before plotting " + dateRange)
-    const daysSelected = ((dateRange[0].endDate - dateRange[0].startDate)/(1000*60*60*24)) + 1
-    if (daysSelected > 2 && daysSelected < 31) {
-      console.log(dateRange[0])
+    if (isValidDateRange()) {
       setTab(4)
       setDateError(false)
     } else {
@@ -122,7 +122,6 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
    * Sets error state if none selected.
    */
   const handleTopicSelection = () => {
-    console.log(selectedTopics)
     if (selectedTopics.length < 1) {
       setTopicError(true)
     } else  {
@@ -159,16 +158,29 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
 
   const animatedComponents = makeAnimated();
 
+  const canProceedToDates = selectedTopics.length > 0
+  const canProceedToGraph = isValidDateRange()
+
   return (
-    <div className="relative h-full lg:h-1/2">
-      <h1 className={`${globalStyles.heading.h1.blue} text-center`}>Compare Topic Reports</h1>
+    <div data-component="ComparisonGraphSetup" className="relative h-full lg:h-1/2">
+      <Typography variant="h4" color="blue" className="text-center tracking-wider">
+        Compare Topic Reports
+      </Typography>
               {/* Initial screen that appears when user selects the comparison view. Allows user to select three topics. */}
             {tab == 0 && 
-              <div className="flex items-center justify-center md:ml-12">
-              <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 h-auto">
-                <h2 className={`${globalStyles.heading.h2.blue} text-center py-4`}>Select topics to compare. </h2>
-                <h1 className="pl-3 pb-4 text-center">Choose at least one topic to view the number of reports.</h1>
-                {topicError && <h1 className="pl-3 pb-4 text-center text-red-500">You must choose at least one topic to compare.</h1>}
+              <div className="flex items-center justify-center gap-3 md:ml-12 flex-wrap">
+              <div className="bg-white rounded-md mt-6 py-5 px-4 h-auto w-full max-w-xl">
+                <Typography variant="h5" color="blue" className="text-center py-2">
+                  Select topics to compare.
+                </Typography>
+                <Typography variant="paragraph" className="pb-4 text-center text-gray-700">
+                  Choose at least one topic to view the number of reports.
+                </Typography>
+                {topicError && (
+                  <Alert color="red" className="mb-3 py-2 text-sm">
+                    You must choose at least one topic to compare.
+                  </Alert>
+                )}
                 <Select options={listTopicChoices} components={animatedComponents}
                 isMulti 
                 onChange={item => setSelectedTopics(item)}
@@ -176,36 +188,47 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
                 value={selectedTopics}
                 />
               </div>
-              <button
-                onClick={() => handleTopicSelection()}
-                className={`${basicStyle} tooltip-next`}>
-                <IoIosArrowForward size={25} />
-                <Tooltip anchorSelect=".tooltip-next" place="top" delayShow={500}>Next</Tooltip>
-              </button>
+              {canProceedToDates &&
+                <Button
+                  size="sm"
+                  variant="outlined"
+                  color="blue"
+                  className="flex items-center gap-2 mt-6"
+                  onClick={handleTopicSelection}
+                >
+                  Next
+                  <IoIosArrowForward size={18} />
+                </Button>
+              }
             </div>
             }
             {/* Second screen that appears when user selects the comparison view. Allows user to select date range. */}
 
             {tab == 1 &&
-              <div className="flex flex-wrap lg:items-center lg:justify-center">
-                <button
+              <div className="flex flex-wrap lg:items-center lg:justify-center gap-3">
+                <Button
+                  size="sm"
+                  variant="outlined"
+                  color="blue"
+                  className="flex items-center gap-1 ml-[35%] lg:ml-0 mt-6"
                   onClick={() => setTab(0)}
-                  className={`${basicStyle} ml-[35%] lg:ml-0 tooltip-previous`}>
-                  <IoIosArrowBack size={25} />
-                  <Tooltip anchorSelect=".tooltip-previous" place="top" delayShow={500}>Previous</Tooltip>
-                </button>
-                                <div className="bg-white rounded-xl mt-6 py-5 pl-3 pr-3 w-full lg:w-1/3 overflow-x-auto order-first lg:order-none">
-                  <h1 className="text-2xl font-bold text-blue-600 pt-6 tracking-wider text-center ">Select dates</h1>
-                  <h1 className="pl-3 text-center">Select a date range to collect the number of reports for the selected topics. </h1>
-                  {dateError && <h1 className="pl-3 pb-4 text-center text-red-500">You must select a date range of at least three days and no more than three weeks.</h1>}
+                >
+                  <IoIosArrowBack size={18} />
+                  Back
+                </Button>
+                                <div className="bg-white rounded-md mt-6 py-5 px-4 w-full lg:w-1/3 overflow-x-auto order-first lg:order-none">
+                  <Typography variant="h5" color="blue" className="pt-2 tracking-wider text-center">
+                    Select dates
+                  </Typography>
+                  <Typography variant="paragraph" className="text-center text-gray-700">
+                    Select a date range to collect the number of reports for the selected topics.
+                  </Typography>
+                  {dateError && (
+                    <Alert color="red" className="my-3 py-2 text-sm">
+                      You must select a date range of at least three days and no more than three weeks.
+                    </Alert>
+                  )}
                   
-                    {/* <DateRangePicker
-                    onChange={item => handleDateSelection(item)}
-                    showSelectionPreview={true}
-                    moveRangeOnFirstSelection={false}
-                    maxDate={new Date()}
-                    ranges={dateRange}
-                    direction="horizontal"/> */}
                   {/* TODO: fix resizing on mobile screen and choose one of these calendar views*/}
                     <div className="flex items-center justify-center pt-3">
                         <DateRange
@@ -220,33 +243,33 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
                     </div>
                    
                 </div>
-                <button
-                  onClick={() => handleGraphChange()}
-                  className={`${basicStyle} tooltip-display-graph`}>
-                  <IoIosArrowForward size={25} />
-                  <Tooltip anchorSelect=".tooltip-display-graph" place="top" delayShow={500}>Display Graph</Tooltip>
-                </button>
+                {canProceedToGraph &&
+                  <Button
+                    size="sm"
+                    variant="outlined"
+                    color="blue"
+                    className="flex items-center gap-2 mt-6"
+                    onClick={handleGraphChange}
+                  >
+                    Next
+                    <IoIosArrowForward size={18} />
+                  </Button>
+                }
               </div>
             }
           
         {/* Once user selects the topics and date range, graph of topic reports will be plotted. */}
         {tab == 4 && dateRange && selectedTopics && 
-          <div className="bg-white rounded-xl mt-6 py-5">
-            <ComparisonGraphPlotted 
-              dateRange={dateRange} 
-              setDateRange={setDateRange} 
-              selectedTopics={selectedTopics} 
-              setSelectedTopics={setSelectedTopics}
-              topicList={listTopicChoices} 
-              tab={tab} 
-              setTab={setTab} />
-          </div>
+          <ComparisonGraphPlotted 
+            dateRange={dateRange} 
+            setDateRange={setDateRange} 
+            selectedTopics={selectedTopics} 
+            setSelectedTopics={setSelectedTopics}
+            topicList={listTopicChoices} 
+            tab={tab} 
+            setTab={setTab} />
         }
     </div>
   )
 }
 export default ComparisonGraphSetup
-
-
-
-

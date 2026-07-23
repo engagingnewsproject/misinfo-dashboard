@@ -19,17 +19,21 @@
  * @version 1.0.0
  * @since 2024
  */
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import TagSystem from '../analytics/TagSystem';
+import ExperimentSettings from './ExperimentSettings';
+import TagDefaultsSettings from './TagDefaultsSettings';
 import { useAuth } from '../../context/AuthContext'
+import { canManageAgencyLabels } from '../../config/labels'
+import { seedAgencyTagsDoc } from '../../utils/tag-defaults'
 import globalStyles from '../../styles/globalStyles';
-import { collection, query, where, setDoc, getDoc, getDocs, doc } from "firebase/firestore"; 
+import { collection, getDoc, getDocs, doc } from "firebase/firestore"; 
 import { db, auth } from "../../config/firebase"
 import {List,ListItem} from "@material-tailwind/react"
-import Select from 'react-select';
+import FormSelect from '../ui/FormSelect';
+import PageTitle from '../layout/PageTitle'
+import adminSectionStyles from '../../styles/adminSectionStyles'
 import { Country, State, City } from 'country-state-city';
-
-export const tagSystems = ['default', 'Topic', 'Source', 'Labels'];
 
 /**
  * Settings Component
@@ -46,45 +50,28 @@ const Settings = () => {
   const [tagSystem, setTagSystem] = useState(0) // 0 = main menu, 1 = Topics, 2 = Sources, 3 = Labels
 
   // --- Auth and user claims ---
-  const { user, customClaims, setCustomClaims } = useAuth() // Auth context and role claims
+  const { customClaims, refreshCustomClaims } = useAuth() // Auth context and role claims
 
   // --- Agency selection and management ---
   const [agencyID, setAgencyID] = useState() // Selected agency ID (admin or agency user)
   const [agency, setSelectedAgency] = useState() // Selected agency name (admin or agency user)
   const [agencies, setAgencies] = useState([]) // List of agencies for admin selection
+  const [agencyClaimsStatus, setAgencyClaimsStatus] = useState(
+    /** @type {'ok' | 'pending' | 'missing'} */ ('ok'),
+  )
+  const agencyClaimsRefreshAttempted = useRef(false)
 
   // --- State/city selection for admin filtering ---
   const [stateSelected, setStateSelected] = useState({ country: 'US', state: null, city: null }) // Selected state/city for agency filtering
 
 
   /**
-   * Initializes default tag documents for a new agency in Firestore.
-   * Creates default Topics, Sources, and Labels lists for the agency.
+   * Initializes tag documents for a new agency from global Topic/Source defaults.
    * @param {string} agencyID - The Firestore document ID of the agency
    * @returns {Promise<void>}
    */
   const setData = async (agencyID) => {
-    const defaultTopics = ["Health","Other","Politics","Weather"] // tag system 1
-    const defaultSources = ["Newspaper", "Other/Otro","Social","Website"] // tag system 2
-    const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"] // tag system 3
-
-    // create topics collection for the new agency
-    setDoc(doc(db, "tags", agencyID), {
-        Labels: {
-          list: defaultLabels,
-          active: defaultLabels
-        },
-        Source: {
-          list: defaultSources,
-          active: defaultSources
-        },
-        Topic: {
-          list: defaultTopics,
-          active: defaultTopics
-        }
-        
-    })
-     
+    await seedAgencyTagsDoc(agencyID)
   }
 
   /**
@@ -138,26 +125,33 @@ const Settings = () => {
   }, [agency])
   // Effect: On mount or tagSystem change, determine agency for agency users or prompt admin to select
   useEffect(() => {
-    // If current user is an agency, determine which agency
-    if (!customClaims.admin) {
-      const agencyCollection = collection(db,"agency")
-
-      const q = query(agencyCollection, where('agencyUsers', "array-contains", user.email));
-      let agencyId;
-
-      // TODO: FIX THIS
-      getDocs(q).then((querySnapshot) => {
-        querySnapshot.forEach((doc) => { // Set initial values
-          // console.log(doc.id)
-          agencyId = doc.id
-          setAgencyID(doc.id)
-        })
-        
-    
-    })
+    // Agency users: prefer claim agencyId (doc id); do not query agencyUsers under scoped rules.
+    if (customClaims.admin) {
+      setAgencyClaimsStatus('ok')
+      return
     }
-    // Otherwise, have the admin member select which agency tags they went 
-  }, [tagSystem])
+    if (customClaims?.agencyId) {
+      setAgencyClaimsStatus('ok')
+      agencyClaimsRefreshAttempted.current = false
+      setAgencyID(customClaims.agencyId)
+      if (customClaims.agencyName) {
+        setSelectedAgency(customClaims.agencyName)
+      }
+      return
+    }
+    // Agency claim without agencyId: refresh once, then surface missing state.
+    if (customClaims?.agency) {
+      setAgencyClaimsStatus('pending')
+      if (!agencyClaimsRefreshAttempted.current && refreshCustomClaims) {
+        agencyClaimsRefreshAttempted.current = true
+        refreshCustomClaims()
+          .then((next) => {
+            if (!next?.agencyId) setAgencyClaimsStatus('missing')
+          })
+          .catch(() => setAgencyClaimsStatus('missing'))
+      }
+    }
+  }, [tagSystem, customClaims?.agencyId, customClaims?.agencyName, customClaims?.agency, customClaims?.admin])
 
   // Effect: When agencyID changes, ensure tag document exists for the agency
   useEffect(() => {
@@ -183,99 +177,99 @@ const Settings = () => {
   }, [agencyID])
   
   return (
-    <div>
+    <div data-component="Settings" className={adminSectionStyles.section_container}>
       {tagSystem == 0 ?
-      <div className="z-0 flex-col p-16">
-        <div className={globalStyles.heading.h1.blue}>Tagging Systems</div>
-        {customClaims.admin && 
-        <div>
-            <div className={globalStyles.heading.h2.blue}>Agency Location</div>
+      <div className="z-0 flex flex-col">
+        {customClaims.admin && <TagDefaultsSettings />}
+        <div className="mb-8 rounded-md border border-blue-gray-100 bg-white p-6 shadow-md md:shadow-none">
+          <PageTitle mobileOnly={false} gutter={false} className="mb-4">
+            Tagging Systems
+          </PageTitle>
+          {agencyClaimsStatus === 'pending' && (
+            <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
+              Loading agency access…
+            </div>
+          )}
+          {agencyClaimsStatus === 'missing' && (
+            <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              Agency access is incomplete (missing agency ID on your account).
+              Refresh the page, or ask an admin to re-run agency claims backfill.
+            </div>
+          )}
+          {customClaims.admin && 
+          <div>
+              <div className={globalStyles.heading.h2.blue}>Agency Location</div>
 
-            <Select
-            className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="state"
-            type="text"
-            required
-            placeholder="State"
+              <FormSelect
+              id="state"
+              required
+              label="State"
+              value={stateSelected.state }
+              options={State.getStatesOfCountry('US')}
+              getOptionLabel={(options) => options['name']}
+              getOptionValue={(options) => options['name']}
+              onChange={handleStateChange}
+            />
+            <div className={globalStyles.heading.h2.blue}>Agencies</div>
 
-            value={stateSelected.state }
-            options={State.getStatesOfCountry('US')}
-            getOptionLabel={(options) => {
-              return options['name'];
-            }}
-            getOptionValue={(options) => {
-              return options['name'];
-            }}
-            label="state"
-            onChange={handleStateChange}
-          />
-          <div className={globalStyles.heading.h2.blue}>Agencies</div>
-
-          <Select
-            className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            options={agencies}
-            placeholder="Agency Name"
-
-            getOptionLabel={(options) => {
-              return options['name']
-            }}
-            getOptionValue={(options) => {
-              return options['name'];
-            }}
-            onChange={handleAgencyChange}/>
-          {customClaims.admin && <div className={globalStyles.heading.h2.blue}>Tags</div>}
-          {agencyID == null &&        
-            <div>
-                Select an agency to view and edit their tags.
-            </div> }
-        </div>
-        }
-        {agencyID && 
-      <div>
-        <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
-            <div className="font-light">Topic Tags</div>
-            <button
-                onClick={() => setTagSystem(1)}
-                className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                Edit Topics
-            </button>
-        </div>
-        <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
-            <div className="font-light">Source Tags</div>
-            <button
-                onClick={() => setTagSystem(2)}
-                className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                Edit Sources
-            </button>
-        </div>
-        {customClaims.admin &&
-          <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
-            <div className="font-light">Labels</div>
-            <button
-                onClick={() => setTagSystem(3)}
-                className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                Edit Labels
-            </button>
+            <FormSelect
+              options={agencies}
+              label="Agency Name"
+              getOptionLabel={(options) => options['name']}
+              getOptionValue={(options) => options['name']}
+              onChange={handleAgencyChange}/>
+            {customClaims.admin && <div className={globalStyles.heading.h2.blue}>Tags</div>}
+            {agencyID == null &&        
+              <div>
+                  Select an agency to view and edit their tags.
+              </div> }
           </div>
-        }
-        {/* <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
-            <div className="font-light">Customized Labels</div>
-            <button
-                onClick={() => setTagSystem(3)}
-                className="bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl">
-                Edit Labels
-            </button>
-        </div> */}
-      </div> 
-      }
+          }
+          {agencyID && 
+            <div>
+              <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
+                  <div className="font-light">Topic Tags</div>
+                  <button
+                      onClick={() => setTagSystem(1)}
+                      className="bg-[#D3D3D3] hover:bg-[#ebebeb] text-[#2E3B4E] font-normal py-2 px-6 border border-[#868686] rounded-md">
+                      Edit Topics
+                  </button>
+              </div>
+              <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
+                  <div className="font-light">Source Tags</div>
+                  <button
+                      onClick={() => setTagSystem(2)}
+                      className="bg-[#D3D3D3] hover:bg-[#ebebeb] text-[#2E3B4E] font-normal py-2 px-6 border border-[#868686] rounded-md">
+                      Edit Sources
+                  </button>
+              </div>
+              {canManageAgencyLabels(customClaims) &&
+                <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
+                  <div className="font-light">Labels</div>
+                  <button
+                      onClick={() => setTagSystem(3)}
+                      className="bg-[#D3D3D3] hover:bg-[#ebebeb] text-[#2E3B4E] font-normal py-2 px-6 border border-[#868686] rounded-md">
+                      Edit Labels
+                  </button>
+                </div>
+              }
+              {/* <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
+                  <div className="font-light">Customized Labels</div>
+                  <button
+                      onClick={() => setTagSystem(3)}
+                      className="bg-[#D3D3D3] hover:bg-[#ebebeb] text-[#2E3B4E] font-normal py-2 px-6 border border-[#868686] rounded-md">
+                      Edit Labels
+                  </button>
+              </div> */}
+            </div> 
+          }
+        </div>
+        {customClaims.admin && <ExperimentSettings />}
       </div>
-      
-    
     :
-        <TagSystem tagSystem={tagSystem} setTagSystem={setTagSystem} agencyID={agencyID} stateSelected={stateSelected} agency={agency} />}
+      <TagSystem tagSystem={tagSystem} setTagSystem={setTagSystem} agencyID={agencyID} stateSelected={stateSelected} agency={agency} />}
       {/* TODO: add "custom tags section for approval" */}
     </div>
-
   )
 }
 

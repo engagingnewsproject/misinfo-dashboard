@@ -11,11 +11,10 @@
  */
 
 import React from 'react'
-import { Typography, Card, Button } from '@material-tailwind/react'
+import { Typography, Button } from '@material-tailwind/react'
 import { useTranslation } from 'next-i18next'
 import globalStyles from '../../../styles/globalStyles'
-import Image from 'next/image'
-import Link from 'next/link'
+import ImageLightboxGallery from '../../ui/ImageLightboxGallery'
 
 /**
  * ReviewStep Component
@@ -50,7 +49,7 @@ const ReviewStep = ({
     } else if (reportData.secondLink) {
       return <Typography>{reportData.secondLink}</Typography>
     } else {
-      return <Typography>No links provided</Typography>
+      return <Typography>{t("noLinks")}</Typography>
     }
   }
 
@@ -58,59 +57,50 @@ const ReviewStep = ({
   const renderImages = () => {
     if (reportData.images && reportData.images.length > 0) {
       return (
-        <div className="flex w-full overflow-y-auto gap-2">
-          {reportData.images.map((image, index) => (
-            <div key={index} className="flex-shrink-0">
-              <Link href={image} target="_blank">
-                <Image
-                  src={image}
-                  width={100}
-                  height={100}
-                  alt={`Uploaded image ${index + 1}`}
-                  className="object-cover rounded"
-                />
-              </Link>
-            </div>
-          ))}
-        </div>
+        <ImageLightboxGallery
+          images={reportData.images}
+          altPrefix="Uploaded image"
+          listClassName="flex max-w-full min-w-0 flex-wrap gap-2"
+          thumbnailClassName="h-[100px] w-[100px] rounded object-cover"
+        />
       )
     } else {
-      return <Typography>No images uploaded</Typography>
+      return <Typography>{t("noImages")}</Typography>
     }
   }
 
   return (
-    <div className={globalStyles.form.viewWrapper}>
+    <div data-component="ReviewStep" className={`review-step ${globalStyles.form.viewWrapper}`}>
       <Typography variant='h5'>{t("review")}</Typography>
-      <Card className="p-6">
+      <div className="py-6">
         <div className="space-y-4">
           {/* Agency */}
           <div>
-            <Typography variant="h6" color="blue">Agency</Typography>
+            <Typography variant="h6" color="blue">{t("agency")}</Typography>
             <Typography>{reportData.selectedAgency}</Typography>
           </div>
           
           {/* Topic */}
           <div>
-            <Typography variant="h6" color="blue">Topic</Typography>
+            <Typography variant="h6" color="blue">{t("topic")}</Typography>
             <Typography>{reportData.selectedTopic}</Typography>
           </div>
           
           {/* Source */}
           <div>
-            <Typography variant="h6" color="blue">Source</Typography>
+            <Typography variant="h6" color="blue">{t("source_title")}</Typography>
             <Typography>{reportData.selectedSource}</Typography>
           </div>
           
           {/* Title */}
           <div>
-            <Typography variant="h6" color="blue">Title</Typography>
+            <Typography variant="h6" color="blue">{t("title_text")}</Typography>
             <Typography>{reportData.title}</Typography>
           </div>
           
           {/* Links */}
           <div>
-            <Typography variant="h6" color="blue">Links</Typography>
+            <Typography variant="h6" color="blue">{t("links")}</Typography>
             <div className="space-y-1">
               {renderLinks()}
             </div>
@@ -118,28 +108,25 @@ const ReviewStep = ({
           
           {/* Images */}
           <div>
-            <Typography variant="h6" color="blue">Images</Typography>
+            <Typography variant="h6" color="blue">{t("image_text")}</Typography>
             {renderImages()}
           </div>
           
           {/* Description */}
           <div>
-            <Typography variant="h6" color="blue">Description</Typography>
+            <Typography variant="h6" color="blue">{t("detailed")}</Typography>
             <Typography>
-              {reportData.detail || 'No description provided'}
+              {reportData.detail || t("noDescription")}
             </Typography>
           </div>
         </div>
         
-        <div className="flex justify-between mt-6">
-          <Button color="gray" onClick={onBack}>
-            {t("back")}
-          </Button>
-          <Button color="blue" onClick={onSubmit}>
+        <div className="flex justify-center mt-6">
+          <Button color="blue" className="w-full" onClick={onSubmit}>
             {t("submit")}
           </Button>
         </div>
-      </Card>
+      </div>
     </div>
   )
 }

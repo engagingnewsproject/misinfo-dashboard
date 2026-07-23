@@ -39,8 +39,23 @@ import {
 } from "firebase/storage"
 import { useAuth } from "../../context/AuthContext"
 import { db } from "../../config/firebase"
+import {
+	fetchExperimentConfig,
+	getActiveExperimentId,
+	newReportAgencyFields,
+	newReportExperimentFields,
+} from "../../utils/reports-queries"
+import {
+	fetchTagDefaults,
+	getFallbackTagDefaults,
+	getRequiredIds,
+	buildTagLabelMap,
+	buildMergedAgencyTagLabelMap,
+	isOtherTagName,
+} from "../../utils/tag-defaults"
+import { CUSTOM_OTHER_TAG_MAX_LENGTH } from "../../config/tagSystems"
+import { formatLocationPart } from "../../utils/format-location"
 import { State, City } from "country-state-city"
-import Link from "next/link"
 import moment from "moment"
 import Image from "next/image"
 import { useTranslation } from "next-i18next"
@@ -59,6 +74,7 @@ import {
 import { logEvent } from "firebase/analytics"
 import { analytics } from "../../config/firebase"
 import { useLocalStorage } from "../../hooks/useLocalStorage"
+import { DEFAULT_AGENCY_LABELS, DEFAULT_REPORT_LABEL } from "../../config/labels"
 
 // Import step components
 import {
@@ -68,6 +84,7 @@ import {
 	DetailsStep,
 	ReviewStep
 } from "./ReportSteps"
+import ViewReport from "../partials/report/ViewReport"
 
 /**
  * ReportSystem Component - Multi-step form orchestrator
@@ -144,6 +161,7 @@ const ReportSystem = ({
 	const [selectedTopic, setSelectedTopic] = useState("")
 	const [sources, setSources] = useState([])
 	const [selectedSource, setSelectedSource] = useState("")
+	const [tagLabelMap, setTagLabelMap] = useState({})
 	
 	// Form validation and UI state
 	const [errors, setErrors] = useState({})
@@ -168,11 +186,6 @@ const ReportSystem = ({
 		useState(false)
 	const [isInitialLoad, setIsInitialLoad] = useState(true)
 	const [hasRestored, setHasRestored] = useState(false)
-
-	// Default tag systems for categorization
-	const defaultTopics = ["Health","Other","Politics","Weather"]
-	const defaultSources = ["Newspaper", "Other","Social","Website"]
-	const defaultLabels = ["To Investigate", "Investigated: Flagged", "Investigated: Benign"]
 
 	// Initialize user data on component mount and check for persisted data
 	useEffect(() => {
@@ -202,6 +215,11 @@ const ReportSystem = ({
 			setHasRestored(false) // Reset restoration flag
 		}
 	}, [reportSystem, isInitialLoad])
+
+	// Prefer the selected agency's active tags; fall back to global defaults
+	useEffect(() => {
+		loadTagsForAgency(selectedAgency || "")
+	}, [selectedAgency])
 
 	// Reset form when component unmounts (cleanup)
 	useEffect(() => {
@@ -266,8 +284,12 @@ const ReportSystem = ({
 					setSelectedAgency(formData.selectedAgency || '')
 					setSelectedTopic(formData.selectedTopic || '')
 					setSelectedSource(formData.selectedSource || '')
-					setOtherTopic(formData.otherTopic || '')
-					setOtherSource(formData.otherSource || '')
+					setOtherTopic(
+						(formData.otherTopic || '').slice(0, CUSTOM_OTHER_TAG_MAX_LENGTH),
+					)
+					setOtherSource(
+						(formData.otherSource || '').slice(0, CUSTOM_OTHER_TAG_MAX_LENGTH),
+					)
 					setTitle(formData.title || '')
 					setLink(formData.link || '')
 					setSecondLink(formData.secondLink || '')
@@ -333,9 +355,8 @@ const ReportSystem = ({
 				await getAgencies(mobileRef.data().state.name)
 			}
 			
-			// Fetch topics and sources
-			await getTopics()
-			await getSources()
+			// Global defaults until an agency is chosen
+			await loadTagsForAgency("")
 		} catch (error) {
 			console.error("Error fetching user data:", error)
 		}
@@ -358,30 +379,53 @@ const ReportSystem = ({
 	}
 
 	/**
-	 * Fetches available topics from Firestore
+	 * Loads Topic/Source pickers from the selected agency's active tags,
+	 * falling back to global admin defaults when no agency is selected.
+	 *
+	 * @param {string} agencyName
 	 */
-	const getTopics = async () => {
+	const loadTagsForAgency = async (agencyName) => {
+		const fallback = getFallbackTagDefaults()
 		try {
-			const topicsDoc = await getDoc(doc(db, "tagSystems", "topic"))
-			const topics = topicsDoc.data()?.tags || defaultTopics
-			setAllTopicsArr(topics)
-		} catch (error) {
-			console.error("Error fetching topics:", error)
-			setAllTopicsArr(defaultTopics)
-		}
-	}
+			const defaults = await fetchTagDefaults()
+			setTagLabelMap(buildTagLabelMap(defaults))
+			const topicIds = getRequiredIds(defaults, 'Topic')
+			const sourceIds = getRequiredIds(defaults, 'Source')
+			if (!agencyName) {
+				setSelectedAgencyID("")
+				setAllTopicsArr(topicIds)
+				setSources(sourceIds)
+				return
+			}
 
-	/**
-	 * Fetches available sources from Firestore
-	 */
-	const getSources = async () => {
-		try {
-			const sourcesDoc = await getDoc(doc(db, "tagSystems", "source"))
-			const sources = sourcesDoc.data()?.tags || defaultSources
-			setSources(sources)
+			const agencyCollection = collection(db, "agency")
+			const q = query(agencyCollection, where("name", "==", agencyName))
+			const querySnapshot = await getDocs(q)
+			if (querySnapshot.empty) {
+				setAllTopicsArr(topicIds)
+				setSources(sourceIds)
+				return
+			}
+
+			const agencyId = querySnapshot.docs[0].id
+			setSelectedAgencyID(agencyId)
+			const tagsSnap = await getDoc(doc(db, "tags", agencyId))
+			if (tagsSnap.exists()) {
+				const data = tagsSnap.data()
+				const topicActive = data?.Topic?.active || topicIds
+				const sourceActive = data?.Source?.active || sourceIds
+				setAllTopicsArr(topicActive)
+				setSources(sourceActive)
+				setTagLabelMap(buildMergedAgencyTagLabelMap(defaults, data))
+			} else {
+				setAllTopicsArr(topicIds)
+				setSources(sourceIds)
+			}
 		} catch (error) {
-			console.error("Error fetching sources:", error)
-			setSources(defaultSources)
+			console.error("Error loading tags for agency:", error)
+			setTagLabelMap(buildTagLabelMap(fallback))
+			setAllTopicsArr(getRequiredIds(fallback, 'Topic'))
+			setSources(getRequiredIds(fallback, 'Source'))
 		}
 	}
 
@@ -390,17 +434,17 @@ const ReportSystem = ({
 	 */
 	const handleTopicChange = (topic) => {
 		setSelectedTopic(topic)
-		setShowOtherTopic(topic === "Other")
-		if (topic !== "Other") {
+		setShowOtherTopic(isOtherTagName(topic))
+		if (!isOtherTagName(topic)) {
 			setOtherTopic("")
 		}
 	}
 
 	/**
-	 * Handles custom topic input
+	 * Handles custom topic input (capped for public Other submissions).
 	 */
 	const handleOtherTopicChange = (e) => {
-		setOtherTopic(e.target.value)
+		setOtherTopic(e.target.value.slice(0, CUSTOM_OTHER_TAG_MAX_LENGTH))
 	}
 
 	/**
@@ -408,43 +452,52 @@ const ReportSystem = ({
 	 */
 	const handleSourceChange = (source) => {
 		setSelectedSource(source)
-		setShowOtherSource(source === "Other")
-		if (source !== "Other") {
+		setShowOtherSource(isOtherTagName(source))
+		if (!isOtherTagName(source)) {
 			setOtherSource("")
 		}
 	}
 
 	/**
-	 * Handles custom source input
+	 * Handles custom source input (capped for public Other submissions).
 	 */
 	const handleOtherSourceChange = (e) => {
-		setOtherSource(e.target.value)
+		setOtherSource(e.target.value.slice(0, CUSTOM_OTHER_TAG_MAX_LENGTH))
 	}
 
 	/**
 	 * Handles image file selection
 	 */
 	const handleImageChange = (e) => {
-		const selectedImages = []
 		for (let i = 0; i < e.target.files.length; i++) {
-			selectedImages.push(e.target.files[i])
+			const newImage = e.target.files[i]
+			setImages((prevState) => [...prevState, newImage])
 		}
-		setImages(selectedImages)
 		// Don't trigger upload immediately - wait for Review button
+	}
+
+	const handleRemoveImage = (index) => {
+		setImages((prev) => prev.filter((_, i) => i !== index))
+		if (imgPicker.current) imgPicker.current.value = ''
 	}
 
 	/**
 	 * Handles image upload to Firebase Storage
+	 * @returns {Promise<string[]>} Download URLs (empty if nothing to upload)
 	 */
 	const handleUpload = async () => {
 		if (images.length === 0) {
-			return // No images to upload
+			return []
 		}
 
-		const uploadPromises = images.map((image) => {
+		const stamp = Date.now()
+		const uploadPromises = images.map((image, index) => {
+			// Include index so parallel uploads in the same ms never share a Storage path
+			const safeName =
+				(image?.name || 'image').replace(/[^a-zA-Z0-9._-]/g, '_') || 'image'
 			const storageRef = ref(
 				storage,
-				`reports/${user.accountId}_${new Date().getTime().toString()}.png`
+				`reports/${user.accountId}_${stamp}_${index}_${safeName}`,
 			)
 			const uploadTask = uploadBytesResumable(storageRef, image)
 			return new Promise((resolve, reject) => {
@@ -461,12 +514,9 @@ const ReportSystem = ({
 			})
 		})
 
-		try {
-			const urls = await Promise.all(uploadPromises)
-			setImageURLs(urls)
-		} catch (error) {
-			console.error("Error uploading images:", error)
-		}
+		const urls = await Promise.all(uploadPromises)
+		setImageURLs(urls)
+		return urls
 	}
 
 	/**
@@ -507,9 +557,18 @@ const ReportSystem = ({
 			return
 		}
 
-		// Upload images if any are selected
+		// Upload images if any are selected; keep URLs in state before leaving this step
 		if (images.length > 0) {
-			await handleUpload()
+			try {
+				await handleUpload()
+			} catch (error) {
+				console.error("Error uploading images:", error)
+				setErrors((prev) => ({
+					...prev,
+					images: "Failed to upload images. Please try again.",
+				}))
+				return
+			}
 		}
 
 		// Move to review step
@@ -521,20 +580,43 @@ const ReportSystem = ({
 	 */
 	const saveReport = async () => {
 		try {
+			const experimentConfig = await fetchExperimentConfig()
+			const experimentId = getActiveExperimentId(experimentConfig)
+			if (!agencyID) {
+				console.error("Cannot save report without agencyId")
+				setErrors((prev) => ({
+					...prev,
+					agency: "Agency is required",
+				}))
+				return
+			}
+			// Snapshot reporter location from their profile (public flow has no city/state picker)
+			const city =
+				formatLocationPart(userData?.city) || 'N/A'
+			const state = formatLocationPart(userData?.state)
 			const reportData = {
 				userID: user.accountId,
 				email: user.email,
-				agency: selectedAgency,
-				topic: selectedTopic === "Other" ? otherTopic : selectedTopic,
-				source: selectedSource === "Other" ? otherSource : selectedSource,
+				...newReportAgencyFields({
+					agencyName: selectedAgency,
+					agencyId: agencyID,
+				}),
+				topic: isOtherTagName(selectedTopic) ? otherTopic : selectedTopic,
+				// `hearFrom` matches the established schema: tags.{agency}.Source.active -> reports.hearFrom.
+				hearFrom: isOtherTagName(selectedSource) ? otherSource : selectedSource,
+				// `origin` marks the submission channel; ReportSystem is the public /report flow.
+				origin: 'public',
 				title: title,
 				link: link,
 				secondLink: secondLink,
 				detail: detail,
 				images: imageURLs,
+				city,
+				...(state ? { state } : {}),
 				createdDate: moment().toDate(),
 				read: false,
-				label: "To Investigate"
+				label: DEFAULT_REPORT_LABEL,
+				...newReportExperimentFields(experimentId),
 			}
 
 			const docRef = await addDoc(collection(db, "reports"), reportData)
@@ -545,6 +627,7 @@ const ReportSystem = ({
 				logEvent(analytics, 'report_submitted', {
 					user_id: user.accountId,
 					agency: selectedAgency,
+					agencyId: agencyID,
 					topic: selectedTopic
 				})
 			}
@@ -645,7 +728,7 @@ const ReportSystem = ({
 	)
 
 	return (
-		<div className={globalStyles.sectionContainer} key={key}>
+		<div data-component="ReportSystem" className={globalStyles.sectionContainer} key={key}>
 			{/* Reminder Step */}
 			{reminderShow !== false && reportSystem === 1 && (
 				<div className={globalStyles.viewWrapperCenter}>
@@ -659,7 +742,7 @@ const ReportSystem = ({
 					<Typography variant='h5' color='blue'>
 						{t("reminder")}
 					</Typography>
-					<Typography>{t("description")}</Typography>
+					<Typography className='text-center'>{t("description")}</Typography>
 					<Typography>{t("example")}</Typography>
 					<List>
 						<ListItem disabled={true} className='opacity-100'>
@@ -691,10 +774,10 @@ const ReportSystem = ({
 
 			{/* Main Form Steps */}
 			{reportSystem >= 2 && reportSystem <= 6 && (
-				<div className={globalStyles.form.wrap}>
+				<div className={`report-form-wrap ${globalStyles.form.wrap} w-full`}>
 					<form
 						onChange={handleChange}
-						className={globalStyles.form.element}
+						className={`report-form ${globalStyles.form.element}`}
 						ref={formRef}
 						id={key}>
 						
@@ -720,6 +803,7 @@ const ReportSystem = ({
 								handleOtherTopicChange={handleOtherTopicChange}
 								errors={errors}
 								onNext={() => setReportSystem(4)}
+								labelMap={tagLabelMap}
 							/>
 						)}
 
@@ -734,6 +818,7 @@ const ReportSystem = ({
 								handleOtherSourceChange={handleOtherSourceChange}
 								errors={errors}
 								onNext={() => setReportSystem(5)}
+								labelMap={tagLabelMap}
 							/>
 						)}
 
@@ -751,6 +836,7 @@ const ReportSystem = ({
 								setDetail={setDetail}
 								detailError={detailError}
 								handleImageChange={handleImageChange}
+								handleRemoveImage={handleRemoveImage}
 								imgPicker={imgPicker}
 								handleSubmitClick={handleReviewStep}
 								selectedImages={images}
@@ -762,8 +848,8 @@ const ReportSystem = ({
 							<ReviewStep
 								reportData={{
 									selectedAgency,
-									selectedTopic: selectedTopic === "Other" ? otherTopic : selectedTopic,
-									selectedSource: selectedSource === "Other" ? otherSource : selectedSource,
+									selectedTopic: isOtherTagName(selectedTopic) ? otherTopic : selectedTopic,
+									selectedSource: isOtherTagName(selectedSource) ? otherSource : selectedSource,
 									title,
 									link,
 									secondLink,
@@ -819,70 +905,15 @@ const ReportSystem = ({
 						</div>
 					)}
 					
-					{/* View Report */}
-					{reportSystem === 7 && (
-					<div className={globalStyles.form.view}>
-							{/* Title */}
-							<div className='mb-6 p-0'>
-								<Typography variant='h6' color='blue'>
-									{t("title_text")}
-								</Typography>
-								<Typography>{title}</Typography>
-							</div>
-							{/* Links */}
-							<div className='mb-6 p-0'>
-								<Typography variant='h6' color='blue'>
-									{t("links")}
-								</Typography>
-								<Typography>
-									{link || secondLink !== "" ? (
-										<>
-											{link}
-											<br></br>
-											{secondLink}
-										</>
-									) : (
-										t("noLinks")
-									)}
-								</Typography>
-							</div>
-							{/* Image upload */}
-							<div className='mb-6 p-0'>
-								<Typography variant='h6' color='blue'>
-									{t("image")}
-								</Typography>
-								<div className='flex w-full overflow-y-auto'>
-									{imageURLs.map((image, i = self.crypto.randomUUID()) => {
-										return (
-											<div className='flex mr-2' key={i}>
-												<Link href={image} target='_blank'>
-													<Image
-														src={image}
-														width={100}
-														height={100}
-														alt='image'
-														className='object-cover w-auto'
-													/>
-												</Link>
-											</div>
-										)
-									})}
-								</div>
-							</div>
-							{/* Details */}
-							<div className='mb-6 p-0'>
-								<Typography variant='h6' color='blue'>
-									{t("detailed")}
-								</Typography>
-								<Typography>
-									{detail ? detail : `No description provided.`}
-								</Typography>
-							</div>
-							<Button color='blue' onClick={() => setReportSystem(0)}>
-								{t("backReports")}
-							</Button>
-					</div>
-					)}
+					<ViewReport
+						title={title}
+						link={link}
+						secondLink={secondLink}
+						imageURLs={imageURLs}
+						detail={detail}
+						reportSystem={reportSystem}
+						setReportSystem={setReportSystem}
+					/>
 				</div>
 			)}
 

@@ -20,7 +20,7 @@
  * @since 2024
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import Papa from 'papaparse'
 import firebaseHelper from '../../firebase/FirebaseHelper'
@@ -37,6 +37,34 @@ import {
 	where,
 } from 'firebase/firestore'
 import { db } from '../../config/firebase'
+import {
+	buildActiveReportsQuery,
+	fetchAdminReportsList,
+	fetchExperimentConfig,
+	fetchReportsFromQuery,
+	getActiveExperimentId,
+	newReportAgencyFields,
+	newReportExperimentFields,
+} from '../../utils/reports-queries'
+import {
+	buildLabelOptions,
+	DEFAULT_REPORT_LABEL,
+	isCustomLabel,
+	OTHER_LABEL,
+	validateCustomLabel,
+} from '../../config/labels'
+import {
+	addAgencyCustomLabel,
+	fetchAgencyActiveLabels,
+	fetchAgencyLabelColors,
+	resolveAgencyIdByName,
+	resolveAgencyIdForReport,
+} from '../../utils/label-tags'
+import { formatLocationPart } from '../../utils/format-location'
+import {
+	DEFAULT_INVESTIGATION_ROW,
+	getAppearanceConfig,
+} from '../../utils/appearance-config'
 // Icons
 import {
 	Button,
@@ -75,7 +103,7 @@ const columns = [
 	{ label: 'Date/Time', accessor: 'createdDate', sortable: true },
 	// { label: 'Candidates', accessor: 'candidates', sortable: false },
 	{ label: 'Topic Tags', accessor: 'topic', sortable: true },
-	{ label: 'Sources', accessor: 'hearFrom', sortable: false },
+	// { label: 'Sources', accessor: 'hearFrom', sortable: false },
 	{ label: 'Labels', accessor: 'label', sortable: false },
 	{ label: 'Read/Unread', accessor: 'read', sortable: true },
 ]
@@ -89,6 +117,80 @@ const readValues = [
 	{ label: 'Read', value: 'true' },
 	{ label: 'Unread', value: 'false' },
 ]
+
+/**
+ * Detects a full email address so we can resolve the submitter via Auth / Firestore
+ * instead of substring-matching the literal string in report text fields.
+ *
+ * @param {string} value - Raw search input
+ * @returns {boolean} True when the term looks like user@domain.tld
+ */
+function isSubmitterEmailSearch(value) {
+	const trimmed = String(value || '').trim()
+	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)
+}
+
+/** Firestore Timestamp or legacy `{ seconds }` shape. */
+function getReportCreatedDate(report) {
+	const cd = report?.createdDate
+	if (!cd) return null
+	if (typeof cd.toDate === 'function') return cd.toDate()
+	if (typeof cd.seconds === 'number') return new Date(cd.seconds * 1000)
+	return null
+}
+
+/**
+ * Normalizes a report field for table sorting. Dates use epoch ms; strings stay strings.
+ *
+ * @param {object} report
+ * @param {string} field - Column accessor from `columns`
+ * @returns {number|string|null}
+ */
+function getReportSortComparable(report, field) {
+	if (field === 'createdDate') {
+		const date = getReportCreatedDate(report)
+		return date ? date.getTime() : null
+	}
+	const value = report?.[field]
+	if (value == null) return null
+	if (typeof value === 'boolean') return value ? 1 : 0
+	if (typeof value === 'number') return value
+	if (value instanceof Date) return value.getTime()
+	if (typeof value.toDate === 'function') return value.toDate().getTime()
+	if (typeof value.seconds === 'number') return value.seconds * 1000
+	return String(value)
+}
+
+function toSearchableString(value) {
+	if (value == null) return ''
+	if (Array.isArray(value)) {
+		return value.map(toSearchableString).filter(Boolean).join(' ')
+	}
+	if (typeof value === 'object') return ''
+	return String(value)
+}
+
+/** Lowercase blob of fields matched by the reports table search box. */
+function getReportSearchText(report) {
+	return [
+		report.title,
+		report.detail,
+		formatLocationPart(report.city),
+		formatLocationPart(report.state),
+		report.label,
+		report.topic,
+		report.email,
+		report.hearFrom,
+		report.source,
+		report.agency,
+		report.note,
+		report.reportID,
+	]
+		.map(toSearchableString)
+		.filter(Boolean)
+		.join(' ')
+		.toLowerCase()
+}
 
 /**
  * ReportsSection Component
@@ -124,12 +226,25 @@ const ReportsSection = ({
 	
 	// Filtering state
 	const [reportWeek, setReportWeek] = useState('4') // Week filter (4 weeks by default)
+	const [customDateStart, setCustomDateStart] = useState('')
+	const [customDateEnd, setCustomDateEnd] = useState('')
 	const [readFilter, setReadFilter] = useState('all') // Read status filter
 	const [reportTitle, setReportTitle] = useState('') // Report title filter
 	const [agencyName, setAgencyName] = useState('') // Agency name for display
+	const [agencyId, setAgencyId] = useState('') // Agency Firestore ID
 	const [isAgency, setIsAgency] = useState(null) // User role flag
-	const { user, customClaims } = useAuth() // Authentication context
+	const { user, customClaims, getUserByEmail, refreshCustomClaims } = useAuth() // Authentication context
+	/** Agency claim present but agencyId not yet on token (refresh race / incomplete provision). */
+	const [agencyClaimsStatus, setAgencyClaimsStatus] = useState(
+		/** @type {'ok' | 'pending' | 'missing'} */ ('ok'),
+	)
+	const agencyClaimsRefreshAttempted = useRef(false)
 	const [search, setSearch] = useState('') // Search term
+	/** When search is an email: loading + resolved Firebase UID (matches report.userID) */
+	const [emailSearchStatus, setEmailSearchStatus] = useState({
+		loading: false,
+		uid: null,
+	})
 	const [agencyFilter, setAgencyFilter] = useState('all') // Agency filter
 	const [typeFilter, setTypeFilter] = useState('all') // Type/source filter
 	const [agencies, setAgencies] = useState([]) // List of agencies for filter dropdown
@@ -139,9 +254,8 @@ const ReportsSection = ({
 	const [currentPage, setCurrentPage] = useState(1) // Current page number
 	const [filteredReports, setFilteredReports] = useState([]) // Reports after filtering
 	const [loadedReports, setLoadedReports] = useState([]) // Reports for current page
+	const [tableSort, setTableSort] = useState({ field: null, order: 'asc' })
 
-	// Calculate pagination values
-	const totalPages = Math.ceil(filteredReports.length / rowsPerPage)
 	const VISIBLE_PAGES = 5 // Number of page buttons to display
 
 	// Report modal state management
@@ -159,9 +273,17 @@ const ReportsSection = ({
 	const [info, setInfo] = useState({}) // Additional report info
 	const [selectedLabel, setSelectedLabel] = useState('') // Selected label
 	const [activeLabels, setActiveLabels] = useState([]) // Available labels
+	const [modalAgencyLabels, setModalAgencyLabels] = useState([]) // Labels for modal's agency
+	const [modalAgencyId, setModalAgencyId] = useState('') // Agency ID for open modal
+	const [otherLabelDraft, setOtherLabelDraft] = useState('')
+	const [otherLabelError, setOtherLabelError] = useState('')
 	const [changeStatus, setChangeStatus] = useState('') // Status change tracking
+	const [agencyLabelColors, setAgencyLabelColors] = useState({})
+	const [agencyLabelColorsByAgency, setAgencyLabelColorsByAgency] = useState({})
+	const [investigationHighlight, setInvestigationHighlight] = useState(
+		DEFAULT_INVESTIGATION_ROW,
+	)
 	const [postedDate, setPostedDate] = useState('') // Formatted posted date
-	const [reportLocation, setReportLocation] = useState('') // Report location
 	const [update, setUpdate] = useState(false) // Update trigger
 	const [deleteModal, setDeleteModal] = useState(false) // Delete modal visibility
 
@@ -170,75 +292,215 @@ const ReportsSection = ({
 	const [refresh, setRefresh] = useState(false) // Refresh loading state
 	const [showCheckmark, setShowCheckmark] = useState(false) // Success indicator
 	const [open, setOpen] = useState(true) // Section open/close state
+	const [includeArchived, setIncludeArchived] = useState(false)
+	const [activeExperimentId, setActiveExperimentId] = useState('2026-main')
+	/** Ignores stale getData responses when a newer fetch has already started. */
+	const getDataRequestIdRef = useRef(0)
+
+	/** Reports after text search or full-email submitter filter; pagination slices from this. */
+	const reportsMatchingSearch = useMemo(() => {
+		const term = search.trim()
+		if (isSubmitterEmailSearch(term)) {
+			if (emailSearchStatus.loading) {
+				return []
+			}
+			if (!emailSearchStatus.uid) {
+				return []
+			}
+			return filteredReports.filter(
+				(r) => String(r.userID || '') === emailSearchStatus.uid,
+			)
+		}
+		if (!term) {
+			return filteredReports
+		}
+		const tokens = term.toLowerCase().split(/\s+/).filter(Boolean)
+		return filteredReports.filter((report) => {
+			const searchableText = getReportSearchText(report)
+			return tokens.every((token) => searchableText.includes(token))
+		})
+	}, [filteredReports, search, emailSearchStatus])
+
+	const displayedReports = useMemo(() => {
+		const { field, order } = tableSort
+		if (!field) return reportsMatchingSearch
+		const direction = order === 'asc' ? 1 : -1
+		return [...reportsMatchingSearch].sort((a, b) => {
+			const aValue = getReportSortComparable(a, field)
+			const bValue = getReportSortComparable(b, field)
+			if (aValue == null && bValue == null) return 0
+			if (aValue == null) return 1
+			if (bValue == null) return -1
+			if (typeof aValue === 'number' && typeof bValue === 'number') {
+				return (aValue - bValue) * direction
+			}
+			return (
+				String(aValue).localeCompare(String(bValue), 'en', {
+					numeric: true,
+				}) * direction
+			)
+		})
+	}, [reportsMatchingSearch, tableSort])
+
+	const totalPages = Math.ceil(displayedReports.length / rowsPerPage) || 1
+
+	const labelOptions = useMemo(() => {
+		if (!reportModalShow) return []
+		const currentLabel = report?.label || DEFAULT_REPORT_LABEL
+		return buildLabelOptions(modalAgencyLabels, currentLabel)
+	}, [reportModalShow, modalAgencyLabels, report?.label])
+
+	const modalLabelColors = useMemo(() => {
+		if (agencyLabelColors && Object.keys(agencyLabelColors).length > 0) {
+			return agencyLabelColors
+		}
+		return agencyLabelColorsByAgency[report?.agency] || {}
+	}, [agencyLabelColors, agencyLabelColorsByAgency, report?.agency])
+
+	/**
+	 * Apply an empty reports table state (used when agency scope cannot be resolved).
+	 *
+	 * @param {string} [resolvedAgencyId]
+	 */
+	const applyEmptyReportsState = (resolvedAgencyId = '') => {
+		setReports([])
+		setFilteredReports([])
+		setIsDataFetched(true)
+		setReportsReadState({})
+		setAgencies([])
+		setAgencyId(resolvedAgencyId)
+		setActiveLabels([])
+		setAgencyLabelColors({})
+	}
 
 	/**
 	 * Fetches reports data from Firestore based on user role and permissions
-	 * Handles both agency-specific and admin data fetching patterns
-	 * 
+	 * Handles both agency-specific and admin data fetching patterns.
+	 * Waits until isAgency is resolved so agency users never briefly (or permanently)
+	 * load the unscoped admin list via a null-role race.
+	 *
 	 * @async
 	 * @function getData
 	 * @returns {Promise<void>}
 	 */
 	const getData = async () => {
+		// Role not resolved yet — never fall through to the admin (all agencies) path
+		if (isAgency === null) return
+
+		const requestId = ++getDataRequestIdRef.current
+		const isStale = () => requestId !== getDataRequestIdRef.current
+
 		let reportArr = []
-		let agencyName = ''
-		let agencyId = ''
+		let resolvedAgencyName = ''
+		let resolvedAgencyId = ''
 		let agencyTags = []
-		
-		if (isAgency) {
-			// Agency user: fetch reports for their specific agency
-			const agencyQuery = query(
-				collection(db, 'agency'),
-				where('agencyUsers', 'array-contains', user.email),
-			)
-			const agencySnapshot = await getDocs(agencyQuery)
-			agencySnapshot.forEach((doc) => {
-				agencyName = doc.data().name
-				agencyId = doc.id
-			})
-			
-			// Fetch reports for the agency
-			const reportsQuery = query(
-				collection(db, 'reports'),
-				where('agency', '==', agencyName),
-			)
-			const reportSnapshot = await getDocs(reportsQuery)
-			reportSnapshot.forEach((doc) => {
-				const data = doc.data()
-				data.reportID = doc.id
-				reportArr.push(data)
-			})
-			
-			// Fetch agency-specific tags
-			const tagsDocRef = doc(db, 'tags', agencyId)
-			const tagsDoc = await getDoc(tagsDocRef)
-			if (tagsDoc.exists()) {
-				agencyTags = tagsDoc.data()
+
+		try {
+			const experimentConfig = await fetchExperimentConfig()
+			const experimentId = getActiveExperimentId(experimentConfig)
+			if (isStale()) return
+			setActiveExperimentId(experimentId)
+
+			if (isAgency) {
+				// Wait for claim agencyId — never wipe the table to "empty" during refresh races.
+				if (!customClaims?.agencyId) {
+					if (customClaims?.agency) {
+						return
+					}
+					console.error(
+						'Agency user missing email/agencyId; refusing unscoped report fetch',
+					)
+					if (!isStale()) applyEmptyReportsState()
+					return
+				}
+
+				// Prefer Auth claim agencyId (server-stamped)
+				resolvedAgencyId = customClaims.agencyId
+				resolvedAgencyName = customClaims.agencyName || ''
+				if (!resolvedAgencyName) {
+					const agencyDoc = await getDoc(doc(db, 'agency', resolvedAgencyId))
+					if (isStale()) return
+					if (agencyDoc.exists()) {
+						resolvedAgencyName = agencyDoc.data()?.name || ''
+					}
+				}
+
+				// Empty agency id would skip the Firestore agency constraint and return all reports
+				if (!resolvedAgencyId) {
+					console.error(
+						'Agency user has no agency membership; refusing unscoped report fetch',
+					)
+					if (!isStale()) applyEmptyReportsState()
+					return
+				}
+
+				if (!resolvedAgencyName) {
+					resolvedAgencyName = resolvedAgencyId
+				}
+
+				reportArr = await fetchReportsFromQuery(
+					buildActiveReportsQuery({
+						agencyId: resolvedAgencyId,
+						activeExperimentId: experimentId,
+						includeArchived: false,
+					}),
+				)
+				if (isStale()) return
+
+				const tagsDocRef = doc(db, 'tags', resolvedAgencyId)
+				const tagsDoc = await getDoc(tagsDocRef)
+				if (isStale()) return
+
+				if (tagsDoc.exists()) {
+					agencyTags = tagsDoc.data()
+				}
+				setActiveLabels(agencyTags?.Labels?.active || [])
+				setAgencyLabelColors(agencyTags?.Labels?.colors || {})
+				setAgencyId(resolvedAgencyId)
+			} else {
+				reportArr = await fetchAdminReportsList({ includeArchived })
+				if (isStale()) return
 			}
-			setActiveLabels(agencyTags.Labels.active)
-		} else {
-			// Admin user: fetch all reports
-			const reportSnapshot = await getDocs(collection(db, 'reports'))
-			reportSnapshot.forEach((doc) => {
-				const data = doc.data()
-				data.reportID = doc.id
-				reportArr.push(data)
-			})
+
+			if (!isAgency) {
+				const uniqueAgencyNames = [
+					...new Set(reportArr.map((report) => report.agency).filter(Boolean)),
+				]
+				const colorsByAgency = {}
+				await Promise.all(
+					uniqueAgencyNames.map(async (name) => {
+						const id = await resolveAgencyIdByName(name)
+						if (id) {
+							colorsByAgency[name] = await fetchAgencyLabelColors(id)
+						}
+					}),
+				)
+				if (isStale()) return
+				setAgencyLabelColorsByAgency(colorsByAgency)
+				setAgencyLabelColors({})
+			}
+
+			if (isStale()) return
+
+			setReports(reportArr)
+			setIsDataFetched(true)
+			setFilteredReports(applyCombinedFilters(reportArr))
+			setReportsReadState(
+				reportArr.reduce((acc, report) => {
+					acc[report.reportID] = report.read
+					return acc
+				}, {}),
+			)
+			setAgencies(
+				Array.from(
+					new Set(
+						reportArr.map((r) => (r.agency ? r.agency : '')).filter(Boolean),
+					),
+				),
+			)
+		} catch (error) {
+			console.error('Error fetching reports:', error)
 		}
-		
-		// Update state with fetched data
-		setReports(reportArr)
-		setIsDataFetched(true)
-		setLoadedReports(reportArr.slice(0, endIndex))
-		setEndIndex(endIndex)
-		
-		// Initialize read states for all reports
-		setReportsReadState(
-			reportArr.reduce((acc, report) => {
-				acc[report.reportID] = report.read
-				return acc
-			}, {}),
-		)
 	}
 
 	// Helper to apply combined filters (date range, read status, reporter)
@@ -250,12 +512,26 @@ const ReportsSection = ({
 			filteredArr = filteredArr.filter((r) => (r.agency ? r.agency : '') === agency)
 		}
 
-		if (week !== '100') {
+		if (week === 'custom') {
+			if (customDateStart || customDateEnd) {
+				const start = customDateStart ? new Date(customDateStart) : null
+				const end = customDateEnd ? new Date(customDateEnd) : null
+				if (start) start.setHours(0, 0, 0, 0)
+				if (end) end.setHours(23, 59, 59, 999)
+				filteredArr = filteredArr.filter((report) => {
+					const reportDate = getReportCreatedDate(report)
+					if (!reportDate) return false
+					if (start && reportDate < start) return false
+					if (end && reportDate > end) return false
+					return true
+				})
+			}
+		} else if (week !== '100') {
 			const filterDate = new Date()
 			filterDate.setDate(filterDate.getDate() - week * 7)
 			filteredArr = filteredArr.filter((report) => {
-				if (!report.createdDate) return false
-				const reportDate = report.createdDate.toDate()
+				const reportDate = getReportCreatedDate(report)
+				if (!reportDate) return false
 				return reportDate >= filterDate
 			})
 		}
@@ -267,7 +543,16 @@ const ReportsSection = ({
 
 		if (type && type !== 'all') {
 			filteredArr = filteredArr.filter((report) => {
-				return report.source === type
+				// Channel filter: prefer the explicit `origin` written by current code paths.
+				// Legacy docs predating `origin` are disambiguated by which user-source field is present:
+				// AgencyReportModal (agency) has always written `hearFrom`; ReportSystem (community) used to write `source`.
+				// Legacy scraped docs were deleted, so no `scrape` heuristic is needed.
+				const reportOrigin =
+					report.origin
+					?? (report.hearFrom != null ? 'agency'
+						: report.source != null ? 'public'
+						: 'public')
+				return reportOrigin === type
 			})
 		}
 
@@ -314,7 +599,8 @@ const ReportsSection = ({
 			filterDate.setDate(filterDate.getDate() - selectedWeek * 7)
 
 			filteredArr = reports.filter((report) => {
-				const reportDate = report.createdDate.toDate()
+				const reportDate = getReportCreatedDate(report)
+				if (!reportDate) return false
 				return reportDate >= filterDate
 			})
 		}
@@ -344,21 +630,6 @@ const ReportsSection = ({
 	}
 
 	/**
-	 * Opens default email client with pre-filled report information
-	 * 
-	 * @function handleUserSendEmail
-	 * @param {string} reportURI - URI/link to the report
-	 */
-	const handleUserSendEmail = (reportURI) => {
-		const subject = 'Misinfo Report'
-		const body = `Link to report:\n${reportURI}`
-		const uri = `mailto:?subject=${encodeURIComponent(
-			subject,
-		)}&body=${encodeURIComponent(body)}`
-		window.open(uri)
-	}
-
-	/**
 	 * Opens the report modal and fetches detailed report data
 	 * Sets report as read for agency users, fetches submitter information
 	 * 
@@ -370,13 +641,43 @@ const ReportsSection = ({
 		// Fetch report document from Firestore
 		const docRef = await getDoc(doc(db, 'reports', reportId))
 		const reportData = docRef.data()
+		const reportLabel = reportData.label || DEFAULT_REPORT_LABEL
 		setReport({ id: reportId, ...reportData })
 		setNote(docRef.data().note)
 		setReportTitle(docRef.data().title)
 		setDetail(docRef.data().detail)
-		setSelectedLabel(docRef.data().selectedLabel)
+		setSelectedLabel(reportLabel)
+		setOtherLabelDraft('')
+		setOtherLabelError('')
+		setChangeStatus('')
 		setInfo(docRef.data())
 		setReportModalId(reportId)
+
+		let resolvedAgencyId =
+			(typeof reportData.agencyId === 'string' && reportData.agencyId.trim()) ||
+			agencyId ||
+			customClaims?.agencyId ||
+			''
+		if (!resolvedAgencyId && reportData.agency) {
+			try {
+				resolvedAgencyId =
+					(await resolveAgencyIdForReport(reportData, customClaims?.agencyId)) ||
+					''
+			} catch (err) {
+				console.error(err)
+			}
+		}
+		setModalAgencyId(resolvedAgencyId || '')
+
+		if (resolvedAgencyId) {
+			const labels = await fetchAgencyActiveLabels(resolvedAgencyId)
+			setModalAgencyLabels(labels)
+			if (isAgency) {
+				setActiveLabels(labels)
+			}
+		} else {
+			setModalAgencyLabels([])
+		}
 		
 		// Only set report as read if an agency user clicks
 		// Admin users should not be changing the read status
@@ -384,12 +685,18 @@ const ReportsSection = ({
 			await handleChangeReadModal(reportId, true)
 		}
 
-		// Fetch submitter information from mobileUsers collection
-		const mUserRef = doc(db, 'mobileUsers', docRef.data().userID)
-		const docSnap = await getDoc(mUserRef)
-
-		if (docSnap.exists()) {
-			setReportSubmitBy(docSnap.data())
+		// Fetch submitter information from mobileUsers (skip if no userID, e.g. legacy rows)
+		const submitterUid = docRef.data()?.userID
+		if (submitterUid) {
+			const mUserRef = doc(db, 'mobileUsers', submitterUid)
+			const docSnap = await getDoc(mUserRef)
+			if (docSnap.exists()) {
+				setReportSubmitBy(docSnap.data())
+			} else {
+				setReportSubmitBy({})
+			}
+		} else {
+			setReportSubmitBy({})
 		}
 		setReportModalShow(true)
 	}
@@ -484,12 +791,13 @@ const ReportsSection = ({
 	 * @param {Event} e - Input change event
 	 */
 	const handleNoteChange = async (e) => {
-		e.preventDefault()
+		const newNote = e.target.value
+		setNote(newNote)
 		let reportId = reportModalId
-		if (e.target.value !== report['note']) {
+		if (newNote !== report['note']) {
 			const docRef = doc(db, 'reports', reportId)
-			await updateDoc(docRef, { note: e.target.value })
-			setUpdate(e.target.value)
+			await updateDoc(docRef, { note: newNote })
+			setUpdate(newNote)
 		} else {
 			setUpdate('')
 		}
@@ -507,19 +815,75 @@ const ReportsSection = ({
 		const newLabel = e.target.value
 		const reportId = reportModalId
 
-		// Check if the label has actually changed
-		if (newLabel !== report['label']) {
-			try {
-				const docRef = doc(db, 'reports', reportId)
-				// Update the label in the Firestore document
-				await updateDoc(docRef, { label: newLabel })
-				setSelectedLabel(newLabel) // Update the selectedLabel state
-				setUpdate(newLabel) // Trigger any necessary updates
-			} catch (error) {
-				console.error('Error updating label:', error)
+		if (newLabel === OTHER_LABEL) {
+			setSelectedLabel(OTHER_LABEL)
+			setOtherLabelDraft('')
+			setOtherLabelError('')
+			return
+		}
+
+		const currentLabel = report['label'] || DEFAULT_REPORT_LABEL
+		if (newLabel === currentLabel) {
+			setUpdate('')
+			setOtherLabelDraft('')
+			setOtherLabelError('')
+			return
+		}
+
+		try {
+			const docRef = doc(db, 'reports', reportId)
+			await updateDoc(docRef, { label: newLabel })
+			setSelectedLabel(newLabel)
+			setReport((prev) => ({ ...prev, label: newLabel }))
+			setOtherLabelDraft('')
+			setOtherLabelError('')
+			setChangeStatus('Label saved')
+			setUpdate(newLabel)
+		} catch (error) {
+			console.error('Error updating label:', error)
+		}
+	}
+
+	const handleOtherLabelChange = (e) => {
+		setOtherLabelDraft(e.target.value)
+		if (otherLabelError) {
+			setOtherLabelError('')
+		}
+	}
+
+	const handleOtherLabelCommit = async () => {
+		const error = validateCustomLabel(otherLabelDraft)
+		if (error) {
+			setOtherLabelError(error)
+			return
+		}
+
+		const customText = otherLabelDraft.trim()
+		const reportId = reportModalId
+		const resolvedAgencyId = modalAgencyId || agencyId
+
+		try {
+			const docRef = doc(db, 'reports', reportId)
+			await updateDoc(docRef, { label: customText })
+
+			if (resolvedAgencyId) {
+				await addAgencyCustomLabel(resolvedAgencyId, customText)
+				const refreshed = await fetchAgencyActiveLabels(resolvedAgencyId)
+				setModalAgencyLabels(refreshed)
+				if (isAgency) {
+					setActiveLabels(refreshed)
+				}
 			}
-		} else {
-			setUpdate('') // Reset the update state if the label didn't change
+
+			setSelectedLabel(customText)
+			setReport((prev) => ({ ...prev, label: customText }))
+			setOtherLabelDraft('')
+			setOtherLabelError('')
+			setChangeStatus('Label saved')
+			setUpdate(customText)
+		} catch (err) {
+			console.error('Error saving custom label:', err)
+			setOtherLabelError('Could not save label. Please try again.')
 		}
 	}
 	/**
@@ -565,23 +929,8 @@ const ReportsSection = ({
 	 * @param {string} sortOrder - Sort order ('asc' or 'desc')
 	 */
 	const handleSorting = (sortField, sortOrder) => {
-		const sortedReports = [...filteredReports].sort((a, b) => {
-			const aValue = a[sortField]
-			const bValue = b[sortField]
-
-			// Handle null/undefined values
-			if (aValue === null || aValue === undefined) return 1
-			if (bValue === null || bValue === undefined) return -1
-			if (aValue === null && bValue === null) return 0
-
-			return (
-				aValue.toString().localeCompare(bValue.toString(), 'en', {
-					numeric: true,
-				}) * (sortOrder === 'asc' ? 1 : -1)
-			)
-		})
-
-		setLoadedReports(sortedReports)
+		setTableSort({ field: sortField, order: sortOrder })
+		setCurrentPage(1)
 	}
 
 	/**
@@ -692,6 +1041,10 @@ const ReportsSection = ({
 						keys.forEach((key) => {
 							value = value[key] !== undefined ? value[key] : '' // Safely access nested values
 						})
+						
+						if (header === 'label' && typeof value === 'string' && isCustomLabel(value)) {
+							value = `Other(${value})`
+						}
 
 						// Handle commas and newlines in CSV fields
 						if (typeof value === 'string') {
@@ -719,7 +1072,7 @@ const ReportsSection = ({
 	 * @function downloadCSV
 	 */
 	const downloadCSV = async () => {
-		const csvData = await convertToCSV(reports)
+		const csvData = await convertToCSV(reportsMatchingSearch)
 		const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
 		const url = URL.createObjectURL(blob)
 
@@ -753,6 +1106,7 @@ const ReportsSection = ({
 
 				for (const row of data) {
 					let agencyName = ''
+					let matchedAgencyId = ''
 					if (row.state && row.agency) {
 						const agencyQuery = query(
 							collection(db, 'agency'),
@@ -761,25 +1115,36 @@ const ReportsSection = ({
 						const agencySnapshot = await getDocs(agencyQuery)
 
 						// Find agency with a name containing the CSV agency name (case-insensitive)
-						agencySnapshot.forEach((doc) => {
-							const fullAgencyName = doc.data().name.toLowerCase()
+						agencySnapshot.forEach((agencyDoc) => {
+							const fullAgencyName = agencyDoc.data().name.toLowerCase()
 							const csvAgencyName = row.agency.toLowerCase()
 
 							if (fullAgencyName.includes(csvAgencyName)) {
-								agencyName = doc.data().name // Use the full agency name from Firestore
+								agencyName = agencyDoc.data().name // Use the full agency name from Firestore
+								matchedAgencyId = agencyDoc.id
 							}
 						})
 
-						if (!agencyName) {
+						if (!agencyName || !matchedAgencyId) {
 							console.warn(
 								`No matching agency found for state: ${row.state} and partial name: ${row.agency}`,
 							)
 						}
 					}
 
-					// Format row with correct types, and assign matched agency name
+					if (!matchedAgencyId) {
+						console.warn(
+							`Skipping CSV row without agencyId (title: ${row.title || 'untitled'})`,
+						)
+						continue
+					}
+
+					// Format row with correct types, and assign matched agency name + id
 					const formattedRow = {
-						agency: agencyName, // Full agency name if found, otherwise empty string
+						...newReportAgencyFields({
+							agencyName,
+							agencyId: matchedAgencyId,
+						}),
 						city: String(row.city || ''),
 						createdDate: row.createdDate
 							? Timestamp.fromDate(new Date(row.createdDate))
@@ -792,7 +1157,7 @@ const ReportsSection = ({
 								? row.images.split(',')
 								: [],
 						isApproved: row.isApproved === 'true' || row.isApproved === true,
-						label: String(row.label || ''),
+						label: String(row.label || DEFAULT_REPORT_LABEL),
 						link: String(row.link || ''),
 						read: row.read === 'true' || row.read === true,
 						secondLink: String(row.secondLink || ''),
@@ -800,6 +1165,7 @@ const ReportsSection = ({
 						title: String(row.title || ''),
 						topic: String(row.topic || ''),
 						userID: user.uid, // Set userID to current user’s UID
+						...newReportExperimentFields(activeExperimentId),
 					}
 
 					try {
@@ -815,26 +1181,7 @@ const ReportsSection = ({
 		})
 	}
 
-	// Data fetching effect - triggers when update state changes
-	useEffect(() => {
-		getData()
-	}, [update])
-
-	// Agency data fetching effect - fetches agency name for agency users
-	useEffect(() => {
-		if (isAgency && user.email) {
-			firebaseHelper.fetchAgencyByUserEmail(user.email, (response) => {
-				if (response.isSuccess) {
-					const agencyData = response.response.data()
-					setAgencyName(agencyData.name)
-				} else {
-					console.error(response.message) // Handle the error or no agency found
-				}
-			})
-		}
-	}, [isAgency, user.email])
-
-	// User role determination effect - sets isAgency based on custom claims
+	// User role determination — must run before any report fetch
 	useEffect(() => {
 		if (customClaims.admin) {
 			setIsAgency(false)
@@ -843,6 +1190,65 @@ const ReportsSection = ({
 		}
 	}, [customClaims])
 
+	// Shared appearance (investigation row highlight, etc.)
+	useEffect(() => {
+		let cancelled = false
+		getAppearanceConfig(db)
+			.then((config) => {
+				if (cancelled) return
+				setInvestigationHighlight(config.reportTable.investigationRow)
+			})
+			.catch((err) => {
+				console.error(err)
+			})
+		return () => {
+			cancelled = true
+		}
+	}, [])
+
+	// Agency display name for agency users (prefer claim; avoid agencyUsers collection query)
+	useEffect(() => {
+		if (!isAgency) return
+		if (customClaims?.agencyName) {
+			setAgencyName(customClaims.agencyName)
+			return
+		}
+		if (customClaims?.agencyId) {
+			getDoc(doc(db, 'agency', customClaims.agencyId))
+				.then((agencySnap) => {
+					if (agencySnap.exists()) {
+						setAgencyName(agencySnap.data()?.name || '')
+					}
+				})
+				.catch((err) => console.error(err))
+		}
+	}, [isAgency, customClaims?.agencyId, customClaims?.agencyName])
+
+	// Single fetch trigger — only after role is known (avoids admin-list race for agency users)
+	useEffect(() => {
+		if (isAgency === null) return
+
+		// Agency users need agencyId before scoped queries. Refresh token once if missing.
+		if (isAgency && !customClaims?.agencyId) {
+			setAgencyClaimsStatus('pending')
+			if (!agencyClaimsRefreshAttempted.current && refreshCustomClaims) {
+				agencyClaimsRefreshAttempted.current = true
+				refreshCustomClaims()
+					.then((next) => {
+						if (!next?.agencyId) {
+							setAgencyClaimsStatus('missing')
+						}
+					})
+					.catch(() => setAgencyClaimsStatus('missing'))
+			}
+			return
+		}
+
+		setAgencyClaimsStatus('ok')
+		agencyClaimsRefreshAttempted.current = false
+		getData()
+	}, [update, newReportSubmitted, isAgency, includeArchived, customClaims?.agencyId])
+
 	// Report modal state management effect - handles modal data setup and read status
 	useEffect(() => {
 		// Only proceed if reportModalShow is true
@@ -850,7 +1256,7 @@ const ReportsSection = ({
 			// When a report's modal opens set the report as read
 			handleRowChangeRead(reportModalId, true)
 		}
-		// Set the date, label, and location for the report when the modal is shown
+		// Set the date and label for the report when the modal is shown
 		if (reportModalShow && report) {
 			if (report.createdDate) {
 				const options = {
@@ -868,49 +1274,63 @@ const ReportsSection = ({
 						.replace('at', ''),
 				)
 			}
-			setSelectedLabel(report['label'] || '')
-
-			const location = [report['city'], report['state']]
-				.filter(Boolean)
-				.join(', ')
-			setReportLocation(location)
+			setSelectedLabel(report['label'] || DEFAULT_REPORT_LABEL)
 		}
 	}, [reportModalShow, reportModalId, customClaims.agency, report]) // this effect runs when the report modal is opened/closed
 
-	// Fetch data when new report is submitted or isAgency is set
+	// Resolve Auth UID when the search box contains a full email (matches report.userID from ReportSystem)
 	useEffect(() => {
-		// Ensure isAgency is set before fetching data:
-		if (isAgency !== null) {
-			getData()
+		const term = search.trim()
+		if (!isSubmitterEmailSearch(term)) {
+			setEmailSearchStatus({ loading: false, uid: null })
+			return
 		}
-	}, [newReportSubmitted, isAgency])
+		let cancelled = false
+		setEmailSearchStatus({ loading: true, uid: null })
 
-	// New Filtering Hooks
-	// Search
+		;(async () => {
+			try {
+				const res = await getUserByEmail({ email: term })
+				const uid = res?.data?.uid
+				if (!cancelled && uid) {
+					setEmailSearchStatus({ loading: false, uid })
+					return
+				}
+			} catch (err) {
+				console.warn('getUserByEmail failed, trying Firestore', err)
+			}
+			try {
+				const snap = await getDocs(
+					query(collection(db, 'mobileUsers'), where('email', '==', term)),
+				)
+				if (cancelled) return
+				if (!snap.empty) {
+					setEmailSearchStatus({ loading: false, uid: snap.docs[0].id })
+					return
+				}
+				const lower = term.toLowerCase()
+				const snap2 = await getDocs(
+					query(collection(db, 'mobileUsers'), where('email', '==', lower)),
+				)
+				if (cancelled) return
+				setEmailSearchStatus({
+					loading: false,
+					uid: snap2.empty ? null : snap2.docs[0].id,
+				})
+			} catch (err) {
+				console.error(err)
+				if (!cancelled) setEmailSearchStatus({ loading: false, uid: null })
+			}
+		})()
+
+		return () => {
+			cancelled = true
+		}
+	}, [search, getUserByEmail])
+
 	useEffect(() => {
-		if (search === '') {
-			setLoadedReports(filteredReports.slice(0, ITEMS_PER_PAGE)) // No search term, use filteredReports
-		} else {
-			const searchFilteredReports = filteredReports.filter((report) => {
-				// Define searchable fields within each report
-				const searchableText = [
-					report.title,
-					report.detail,
-					report.city,
-					report.state,
-					report.label,
-					report.topic,
-				]
-					.filter(Boolean) // Remove undefined or null values
-					.join(' ') // Concatenate to create one searchable string
-					.toLowerCase()
-				return searchableText.includes(search.toLowerCase())
-			})
-
-			setLoadedReports(searchFilteredReports.slice(0, ITEMS_PER_PAGE))
-		}
-		setCurrentPage(1) // Reset pagination on new search
-	}, [search, filteredReports])
+		setCurrentPage(1)
+	}, [search])
 
 	// Date Filtering
 	useEffect(() => {
@@ -919,50 +1339,30 @@ const ReportsSection = ({
 			setFilteredReports(combined)
 			setCurrentPage(1)
 		}
-	}, [reportWeek, reports, isDataFetched, agencyFilter, typeFilter])
-
-	// Read Filter - applies to already date-filtered reports
-	useEffect(() => {
-		const readFiltered = filteredReports.filter((report) => {
-			if (readFilter === 'all') return true // Show all if no read filter
-			return report.read === (readFilter === 'true') // Filter by read status
-		})
-
-		setLoadedReports(readFiltered.slice(0, ITEMS_PER_PAGE)) // Paginate the filtered data
-		setCurrentPage(1) // Reset to the first page
-	}, [readFilter, filteredReports])
-
-	// Pagination on filteredReports
-	useEffect(() => {
-		const paginated = filteredReports.slice(
-			(currentPage - 1) * ITEMS_PER_PAGE,
-			currentPage * ITEMS_PER_PAGE,
-		)
-		setLoadedReports(paginated)
-	}, [filteredReports, currentPage])
-
-	// Search Filter - applies on top of both date and read filters
-	useEffect(() => {
-		if (search === '') {
-			setLoadedReports(filteredReports.slice(0, ITEMS_PER_PAGE)) // Reset to paginated filtered reports
-		} else {
-			const searchFiltered = filteredReports.filter((report) => {
-				// Implement your existing search logic here
-				// Example for filtering based on a search term
-				return report.title.toLowerCase().includes(search.toLowerCase())
-			})
-
-			setLoadedReports(searchFiltered.slice(0, ITEMS_PER_PAGE)) // Paginate the search results
-		}
-		setCurrentPage(1) // Reset to the first page on new search
-	}, [search, filteredReports])
+	}, [
+		reportWeek,
+		customDateStart,
+		customDateEnd,
+		reports,
+		isDataFetched,
+		agencyFilter,
+		typeFilter,
+	])
 
 	// Read Filter
 	useEffect(() => {
 		const combined = applyCombinedFilters(reports, { read: readFilter, week: reportWeek })
 		setFilteredReports(combined)
 		setCurrentPage(1)
-	}, [readFilter, reports, reportWeek, agencyFilter, typeFilter])
+	}, [
+		readFilter,
+		reports,
+		reportWeek,
+		customDateStart,
+		customDateEnd,
+		agencyFilter,
+		typeFilter,
+	])
 
 	// Reset loadedReports on refresh
 	useEffect(() => {
@@ -970,18 +1370,19 @@ const ReportsSection = ({
 			const combined = applyCombinedFilters(reports)
 			setFilteredReports(combined)
 			setSearch('')
+			setEmailSearchStatus({ loading: false, uid: null })
 			setCurrentPage(1) // Reset pagination on refresh
 		}
 	}, [refresh, reports, typeFilter, agencyFilter])
 
-	// Pagination logic, triggered only when currentPage, rowsPerPage, or filteredReports change
+	// Pagination: slice the list that already includes text or email-submitter search
 	useEffect(() => {
-		const paginatedReports = filteredReports.slice(
+		const paginatedReports = displayedReports.slice(
 			(currentPage - 1) * rowsPerPage,
 			currentPage * rowsPerPage,
 		)
 		setLoadedReports(paginatedReports)
-	}, [filteredReports, currentPage, rowsPerPage])
+	}, [displayedReports, currentPage, rowsPerPage])
 
 	/**
 	 * Navigates to the previous page in pagination
@@ -1034,64 +1435,67 @@ const ReportsSection = ({
 
 	return (
 		<>
-			<Card className="w-full mt-4">
-				<CardHeader floated={false} shadow={false} className="rounded-none">
-					<div className="flex items-center justify-between gap-8 mb-8">
-						<Typography variant="h5" color="blue" className="basis-1/3">
+			<Card data-component="ReportsSection" className="reports-section-card w-full mt-4">
+				<CardHeader floated={false} shadow={false} className="rounded-none md:mt-0 pt-4">
+					<div className="card-header--top flex items-center justify-between gap-8 mb-4">
+						<Typography variant="h3" className="mt-0 mb-0 text-brand">
 							List of Reports
-						</Typography>
-						<Typography
-							className="flex-initial text-center basis-1/3"
-							variant="small">
-							{loadedReports.length}{' '}
-							{loadedReports.length == 1 ? 'report' : 'reports'}
-						</Typography>
-						<div className="flex flex-row justify-end gap-1 basis-1/3">
-							{!isAgency && (
-								<>
-									{/* Export Button */}
-									<Tooltip content="Export Reports" placement="bottom-start">
-										<Button
-											size="sm"
-											variant="outlined"
-											onClick={downloadCSV}
-											className="flex items-center gap-2"
-											ripple={true}>
-											<FaFileExport />
-											Export
-										</Button>
-									</Tooltip>
-
-									{/* Import Button */}
-									<Tooltip
-										content="Import Reports CSV"
-										placement="bottom-start">
-										<Button
-											size="sm"
-											variant="outlined"
-											ripple={true}
-											onClick={() =>
-												document.getElementById('csvImportInput').click()
-											}
-											className="flex items-center gap-2">
-											<FaFileImport />
-											Import
-										</Button>
-									</Tooltip>
-
-									{/* Hidden file input for CSV upload */}
-									<input
-										id="csvImportInput"
-										type="file"
-										accept=".csv"
-										style={{ display: 'none' }}
-										onChange={(e) => {
-											const file = e.target.files[0]
-											if (file) handleCSVImport(file)
-										}}
-									/>
-								</>
+							{customClaims.admin && activeExperimentId && (
+								<Typography variant="small" className="text-gray-500">
+									Table: all study waves · graphs use {activeExperimentId}
+								</Typography>
 							)}
+						</Typography>
+						<div className="flex flex-row justify-end gap-1 items-center">
+							<div className="w-full md:w-72 min-w-[200px]">
+								<Input
+									label="Search"
+									icon={<HiMagnifyingGlass className="w-5 h-5" />}
+									value={search}
+									onChange={(e) => setSearch(e.target.value)}
+								/>
+							</div>
+						</div>
+					</div>
+					{agencyClaimsStatus === 'pending' && (
+						<div className="mb-3 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
+							Loading agency access…
+						</div>
+					)}
+					{agencyClaimsStatus === 'missing' && (
+						<div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+							Agency access is incomplete (missing agency ID on your account).
+							Refresh the page, or ask an admin to re-run agency claims backfill.
+						</div>
+					)}
+					<div className="card-header--bottom flex items-center justify-between gap-8">
+						<TableFilterControls
+							readFilter={readFilter}
+							onReadFilterChange={setReadFilter}
+							onRefresh={handleRefresh}
+							refresh={refresh}
+							showCheckmark={showCheckmark}
+							includeArchived={includeArchived}
+							onIncludeArchivedChange={
+								customClaims.admin ? setIncludeArchived : undefined
+							}
+						/>
+						<div className="flex flex-row items-center gap-2">
+							<TableDropdownMenu
+								reportWeek={reportWeek}
+								onChange={(value) => setReportWeek(value)} // Update `reportWeek` based on selection
+								customDateStart={customDateStart}
+								customDateEnd={customDateEnd}
+								onCustomDateStartChange={setCustomDateStart}
+								onCustomDateEndChange={setCustomDateEnd}
+								rowsPerPage={rowsPerPage}
+								setRowsPerPage={(value) => setRowsPerPage(value)} // Update rows per page
+								setCurrentPage={(page) => setCurrentPage(page)} // Reset page to 1 when rows per page changes
+								onTypeChange={(val) => setTypeFilter(val)}
+								agencies={!isAgency ? agencies : undefined}
+								agencyFilter={agencyFilter}
+								onAgencyChange={!isAgency ? setAgencyFilter : undefined}
+							/>
 							<Tooltip content="New Report" placement="bottom-start">
 								<Button
 									ripple={true}
@@ -1104,44 +1508,10 @@ const ReportsSection = ({
 							</Tooltip>
 						</div>
 					</div>
-					<div className="flex items-center justify-between gap-8">
-						<TableFilterControls
-							readFilter={readFilter}
-							onReadFilterChange={setReadFilter}
-							onRefresh={handleRefresh}
-							refresh={refresh}
-							showCheckmark={showCheckmark}
-						/>
-							<div className="flex items-center gap-2 md:gap-4">
-								<select
-									value={agencyFilter}
-									onChange={(e) => setAgencyFilter(e.target.value)}
-									className="px-2 py-1 text-sm border rounded md:text-base">
-									<option value="all">All agencies</option>
-									{agencies.map((a) => (
-										<option key={a} value={a}>
-											{a}
-										</option>
-									))}
-								</select>
-							</div>
-						<div className="w-full md:w-72 basis-1/3">
-							<Input
-								label="Search"
-								icon={<HiMagnifyingGlass className="w-5 h-5" />}
-								value={search}
-								onChange={(e) => setSearch(e.target.value)}
-							/>
-						</div>
-						<TableDropdownMenu
-							reportWeek={reportWeek}
-							onChange={(value) => setReportWeek(value)} // Update `reportWeek` based on selection
-							rowsPerPage={rowsPerPage}
-							setRowsPerPage={(value) => setRowsPerPage(value)} // Update rows per page
-							setCurrentPage={(page) => setCurrentPage(page)} // Reset page to 1 when rows per page changes
-							onTypeChange={(val) => setTypeFilter(val)}
-						/>
-					</div>
+					<Typography className="w-full text-center mt-4" variant="small">
+						{loadedReports.length}{' '}
+						{loadedReports.length == 1 ? 'report' : 'reports'}
+					</Typography>
 				</CardHeader>
 				<CardBody className="px-0 pt-0 overflow-scroll">
 					<table className="w-full min-w-full mt-4 text-left table-fixed">
@@ -1154,6 +1524,9 @@ const ReportsSection = ({
 							onRowChangeRead={handleRowChangeRead}
 							onReportDelete={handleReportDelete}
 							reportsReadState={reportsReadState}
+							agencyLabelColors={agencyLabelColors}
+							agencyLabelColorsByAgency={agencyLabelColorsByAgency}
+							investigationHighlight={investigationHighlight}
 						/>
 					</table>
 
@@ -1174,13 +1547,16 @@ const ReportsSection = ({
 							onNoteChange={handleNoteChange}
 							onLabelChange={handleLabelChange}
 							selectedLabel={selectedLabel}
-							activeLabels={activeLabels}
+							labelOptions={labelOptions}
+							agencyLabelColors={modalLabelColors}
+							otherLabelDraft={otherLabelDraft}
+							onOtherLabelChange={handleOtherLabelChange}
+							onOtherLabelCommit={handleOtherLabelCommit}
+							otherLabelError={otherLabelError}
 							changeStatus={changeStatus}
 							onFormSubmit={handleFormSubmit}
 							onReportDelete={handleReportDelete}
 							postedDate={postedDate}
-							onUserSendEmail={handleUserSendEmail}
-							reportLocation={reportLocation}
 						/>
 					)}
 				</CardBody>
@@ -1243,6 +1619,44 @@ const ReportsSection = ({
 						Next
 					</Button>
 				</CardFooter>
+				{!isAgency && (
+					<div className="flex w-full justify-center gap-2 p-4 border-t border-blue-gray-50">
+						<Tooltip content="Export Reports" placement="top">
+							<Button
+								size="sm"
+								variant="outlined"
+								onClick={downloadCSV}
+								className="flex items-center gap-2"
+								ripple={true}>
+								<FaFileExport />
+								Export
+							</Button>
+						</Tooltip>
+						<Tooltip content="Import Reports CSV" placement="top">
+							<Button
+								size="sm"
+								variant="outlined"
+								ripple={true}
+								onClick={() =>
+									document.getElementById('csvImportInput').click()
+								}
+								className="flex items-center gap-2">
+								<FaFileImport />
+								Import
+							</Button>
+						</Tooltip>
+						<input
+							id="csvImportInput"
+							type="file"
+							accept=".csv"
+							style={{ display: 'none' }}
+							onChange={(e) => {
+								const file = e.target.files[0]
+								if (file) handleCSVImport(file)
+							}}
+						/>
+					</div>
+				)}
 			</Card>
 			{deleteModal && (
 				<ConfirmModal

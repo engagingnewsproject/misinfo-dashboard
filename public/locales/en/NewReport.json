@@ -33,6 +33,11 @@
   "titleRequired":"Title is required",
   "alertTitle":"Alert",
   "atLeast":"We need at least one of the following: a link, a photo, or a detailed description.",
+  "formErrorsSummary":"Please fix the highlighted fields below.",
+  "saveFailed":"Failed to save report. Please try again.",
+  "discardReportTitle":"Discard this report?",
+  "discardReportSubtitle":"You have unsaved changes. If you close now, your work will be lost.",
+  "discardReportCTA":"Discard",
   "briefly":"Briefly describe",
   "createReport": "Create",
   "backReports": "Back to all reports",
@@ -44,12 +49,14 @@
   "source": "Please enter a source.",
   "select_city": "Select the city.",
   "select_state" : "Select the state.",
-  "add_report" : "Add new report",
+  "add_report" : "Add New Report",
   "add_title" : "Add a report title",
   "custom_source": "Custom source",
   "custom_topic": "Custom topic",
-  "specify_topic": "Please specify the topic",
+  "specify_topic": "Please specify the topic (max {{max}} characters)",
+  "specify_source": "Please specify the source (max {{max}} characters)",
   "second_link": "Second link",
+  "invalidLink": "Please enter a valid link (e.g. https://example.com).",
   "source_title": "Source",
   "choose_files": "Choose files",
   "info": "Report Information",
@@ -61,6 +68,9 @@
   "upload": "You can upload screenshots or photos of the potentially inaccurate information",
   "agency":"Agency",
   "topic": "Topic",
+  "label": "Label",
+  "label_optional": "Label (optional)",
+  "custom_label": "Specify label (max {{max}} characters)",
   "date": "Date",
   "image_text": "Images",
   "location_text": "Location",
@@ -70,16 +80,23 @@
     "Health": "Health",
     "Weather": "Weather",
     "Other": "Other",
-    "Politics":"Politics"
+    "Politics": "Politics",
+    "Voting": "Voting",
+    "Senate": "Senate",
+    "Gubernatorial": "Gubernatorial",
+    "Mayoral": "Mayoral",
+    "Election (general)": "Election (general)",
+    "News": "News"
   },
   "sources": {
     "Social": "Social",
     "Newspaper": "Newspaper",
     "Website": "Website",
-    "Other": "Other"},
+    "Television": "Television",
+    "Radio": "Radio",
+    "Podcast": "Podcast",
+    "Other": "Other"
+  },
+  "review": "Review",
   "thanksText": "We investigate as many reports as possible, although we aren't always able to get to everything. When we're able, we'd love to share the results of our investigation."
-
-
-  
-
 }

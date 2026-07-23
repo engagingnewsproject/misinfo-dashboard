@@ -12,7 +12,7 @@ const AgencySelector = ({
 	const { t } = useTranslation("NewReport") // Use the translation hook
 	
 	return (
-		<>
+		<div data-component="AgencySelector" className="contents">
 			<Typography variant="h5" className="text-center mb-4">
 				{t('which_agency')}
 			</Typography>
@@ -33,7 +33,7 @@ const AgencySelector = ({
 					))}
 				</List>
 			</Card>
-		</>
+		</div>
 	)
 };
 

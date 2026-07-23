@@ -32,9 +32,11 @@
 import React, {
 	useState,
 	useEffect,
+	useLayoutEffect,
 	useContext,
 	useMemo,
 	useCallback,
+	useRef,
 } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import {
@@ -53,44 +55,58 @@ import {
 	GeoPoint,
 } from 'firebase/firestore'
 import { db, auth } from '../../config/firebase'
-import { Tooltip } from 'react-tooltip'
 import { IoTrash } from 'react-icons/io5'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import ConfirmModal from '../modals/common/ConfirmModal'
 import EditUserModal from '../modals/admin/EditUserModal'
 import NewUserModal from '../modals/admin/NewUserModal'
 import { FaPlus } from 'react-icons/fa'
-import globalStyles from '../../styles/globalStyles'
+import { HiChevronDown, HiChevronUp, HiMagnifyingGlass } from 'react-icons/hi2'
+import {
+	Card,
+	CardHeader,
+	CardBody,
+	CardFooter,
+	Typography,
+	Input,
+	Button,
+	IconButton,
+	Tooltip,
+	Tabs,
+	TabsHeader,
+	Tab,
+} from '@material-tailwind/react'
 import { useUsersPagination } from '../../hooks/useUsersPagination'
-import { searchUsers } from '../../utils/firebase-helpers'
+import { searchUsers, findMobileUsersByEmail } from '../../utils/firebase-helpers'
+import {
+	buildActiveReportsQuery,
+	fetchExperimentConfig,
+	getActiveExperimentId,
+} from '../../utils/reports-queries'
+import LoadingSpinner from '../ui/LoadingSpinner'
+import adminSectionStyles from '../../styles/adminSectionStyles'
+import PageTitle from '../layout/PageTitle'
 
 const dateOptions = {
 	day: '2-digit',
 	year: 'numeric',
 	month: 'short',
 }
-const tableHeading = {
-	default: 'px-3 py-1 text-sm font-semibold text-left tracking-wide',
-	default_center: 'text-center p-2 text-sm font-semibold tracking-wide',
-	small: '',
-}
-const column = {
-	data: 'whitespace-normal text-sm px-3 py-1',
-	data_center:
-		'whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 text-center',
-}
-const style = {
-	icon: 'hover:fill-cyan-700',
-	section_container:
-		'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
-	section_wrapper: 'flex flex-col h-full',
-	section_header: 'flex justify-between ml-10 md:mx-0 py-5',
-	section_title: 'text-xl font-extrabold text-blue-600 tracking-wider',
-	section_filtersWrap: 'p-0 px-4 md:p-4 md:py-0 md:px-4 flex items-center',
-	table_main: 'min-w-full bg-white rounded-xl p-1',
-	button:
-		'flex items-center shadow ml-auto bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
-}
+const tableTh =
+	'sticky top-0 z-10 border-y border-blue-gray-100 bg-blue-gray-50/80 p-4'
+const tableThCenter = `${tableTh} text-center`
+const tableTd = 'whitespace-normal p-4'
+const tableTdCenter =
+	'whitespace-normal md:whitespace-nowrap p-4 text-center'
+const style = adminSectionStyles
+
+/** Admin role filter tabs — values match Firestore `userRole` / EditUserModal. */
+const ROLE_TABS = [
+	{ label: 'All', value: 'all' },
+	{ label: 'Admin', value: 'Admin' },
+	{ label: 'Agency', value: 'Agency' },
+	{ label: 'User', value: 'User' },
+]
 
 /**
  * Retrieves the user's join date based on available data.
@@ -124,18 +140,77 @@ const getJoinedDate = (firestoreUser, authUser) => {
 	}
 }
 
+/** Stable id for a table row (Auth uid or Firestore mobileUsers doc id). */
+const getUserRowIdentifier = (row) => row?.uid || row?.mobileUserId || row?.id
+
+/** Returns a new list with the row matching `docId` shallow-merged with `partial`. */
+const patchUserRowInList = (prev, docId, partial) => {
+	if (!docId || !partial) return prev
+	return prev.map((row) =>
+		getUserRowIdentifier(row) === docId ? { ...row, ...partial } : row,
+	)
+}
+
 /**
- * Sorts an array of users by their join date in descending order.
+ * Maps agency membership emails → display names.
+ * Org association lives on `agency.agencyUsers`, not on `mobileUsers`.
  *
- * This function takes an array of user objects and sorts them based on their `joined` date.
- * The sorting is done in descending order, so users with the most recent join date will appear first.
- * The `joined` date is expected to be a string that can be converted into a Date object.
- *
- * @param {Array<Object>} users - An array of user objects, each containing a `joined` date field.
- * @returns {Array<Object>} The sorted array of users, with the most recently joined users first.
+ * @param {Array<{ name?: string, agencyUsers?: string[] }>} agencies
+ * @returns {Map<string, string>} lowercase email → agency name
  */
-const sortByJoinedDate = (users) => {
-	return users.sort((a, b) => new Date(b.joined) - new Date(a.joined))
+const buildEmailToAgencyNameMap = (agencies) => {
+	const map = new Map()
+	for (const agency of agencies || []) {
+		const name = typeof agency?.name === 'string' ? agency.name.trim() : ''
+		if (!name) continue
+		for (const raw of agency.agencyUsers || []) {
+			if (typeof raw !== 'string') continue
+			const email = raw.trim().toLowerCase()
+			if (email) map.set(email, name)
+		}
+	}
+	return map
+}
+
+/**
+ * Attaches `agencyName` onto user rows via email membership lookup.
+ *
+ * @param {Array<Object>} users
+ * @param {Map<string, string>} emailToAgencyName
+ * @param {boolean} [agenciesLoaded=false] - When true, clear names for emails not in any agency
+ * @returns {Array<Object>}
+ */
+const withAgencyNames = (users, emailToAgencyName, agenciesLoaded = false) => {
+	if (!users?.length) return users
+	if (!agenciesLoaded) return users
+	return users.map((user) => {
+		const email =
+			typeof user?.email === 'string' ? user.email.trim().toLowerCase() : ''
+		const fromMembership = email ? emailToAgencyName.get(email) : undefined
+		const nextName = fromMembership || ''
+		if ((user.agencyName ?? '') === nextName) return user
+		return { ...user, agencyName: nextName }
+	})
+}
+
+/**
+ * Sort by Firestore `joiningDate` (seconds), falling back to parsed `joined` string.
+ * Returns a new array (does not mutate the input).
+ *
+ * @param {Array<Object>} users
+ * @param {'asc' | 'desc'} [direction='desc'] - `desc` = newest first, `asc` = oldest first
+ * @returns {Array<Object>}
+ */
+const sortByJoinedDate = (users, direction = 'desc') => {
+	const joinTs = (user) => {
+		const raw = user?.joiningDate
+		if (typeof raw === 'number' && Number.isFinite(raw)) return raw
+		if (raw && typeof raw.seconds === 'number') return raw.seconds
+		const parsed = user?.joined ? Date.parse(user.joined) : NaN
+		return Number.isFinite(parsed) ? parsed / 1000 : 0
+	}
+	const dir = direction === 'asc' ? 1 : -1
+	return [...(users || [])].sort((a, b) => (joinTs(a) - joinTs(b)) * dir)
 }
 
 const describeFirestoreField = (fieldValue) => {
@@ -349,12 +424,18 @@ const Users = () => {
 		customClaims,
 		fetchUserRecord,
 		authGetUserList,
+		getUserByEmail,
+		functionsReady,
+		refreshCustomClaims,
 	} = useAuth()
 
 	// User data management state
 	const [userRole, setUserRole] = useState('') // Current user's role being edited
 	const [searchTerm, setSearchTerm] = useState('') // Search term for filtering users
 	const [roleFilter, setRoleFilter] = useState('all') // Role filter for users
+	const [joinDateSort, setJoinDateSort] = useState(
+		/** @type {'asc' | 'desc'} */ ('desc'),
+	) // Join Date column sort; default newest-first
 	const [deleteModal, setDeleteModal] = useState(false) // Delete confirmation modal
 	const [userEditing, setUserEditing] = useState([]) // User data being edited
 	const [name, setName] = useState('') // User name being edited
@@ -383,6 +464,10 @@ const Users = () => {
 	// State for agency-specific user management
 	const [agencyUsers, setAgencyUsers] = useState([]) // Users filtered by agency
 	const [agencyLoading, setAgencyLoading] = useState(false) // Loading state for agency users
+	const [agencyClaimsStatus, setAgencyClaimsStatus] = useState(
+		/** @type {'ok' | 'pending' | 'missing'} */ ('ok'),
+	)
+	const agencyClaimsRefreshAttempted = useRef(false)
 
 	// Initialize pagination hook for fetching users in batches
 	// For Admin users: fetches all users with pagination
@@ -396,6 +481,7 @@ const Users = () => {
 		loadMore,
 		reset: resetPagination,
 		refresh: refreshUsers,
+		patchUser: patchPaginatedUser,
 	} = useUsersPagination({
 		pageSize: 50,
 		userRole: roleFilter !== 'all' ? roleFilter : null,
@@ -403,18 +489,198 @@ const Users = () => {
 		orderField: 'joiningDate',
 		orderDirection: 'desc',
 	})
+	
+	// Auth-enriched list for admin (from enhanceWithAuthDetails)
+	const [enhancedPaginatedUsers, setEnhancedPaginatedUsers] = useState([])
+	const paginatedUsersRef = useRef(paginatedUsers)
+	paginatedUsersRef.current = paginatedUsers
+	// Skip update-effect on mount; mount effect already loads data
+	const skipUpdateRefreshOnMount = useRef(true)
+	/** Cached Auth user map (uid -> record). Fetched once — re-fetching on every page crashed scroll. */
+	const authUsersMapRef = useRef(/** @type {Map<string, object> | null} */ (null))
+	const authUsersFetchPromiseRef = useRef(/** @type {Promise<Map<string, object>> | null} */ (null))
+	/** Server/Auth email search hits; null = not in email-search mode */
+	const [remoteSearchHits, setRemoteSearchHits] = useState(
+		/** @type {null | Array<object>} */ (null),
+	)
+	const [remoteSearchLoading, setRemoteSearchLoading] = useState(false)
+	const searchActive = !!(searchTerm && searchTerm.trim())
+	const emailSearchActive = searchActive && searchTerm.includes('@')
 
-	// Processed users: combines pagination data with auth details and applies search
+	/** White table panel: fill down to 20px above the viewport bottom. */
+	const TABLE_VIEWPORT_BOTTOM_GAP = 20
+	const TABLE_FOOTER_RESERVE = 64
+	const tableHostRef = useRef(/** @type {HTMLDivElement | null} */ (null))
+	const [tableHostHeight, setTableHostHeight] = useState(560)
+
+	useLayoutEffect(() => {
+		const updateTableHeight = () => {
+			const el = tableHostRef.current
+			if (!el) return
+			const top = el.getBoundingClientRect().top
+			const next = Math.floor(
+				window.innerHeight - top - TABLE_VIEWPORT_BOTTOM_GAP,
+			)
+			setTableHostHeight(Math.max(240, next))
+		}
+		updateTableHeight()
+		window.addEventListener('resize', updateTableHeight)
+		return () => window.removeEventListener('resize', updateTableHeight)
+	}, [
+		agencyClaimsStatus,
+		paginationError,
+		customClaims?.agency,
+		customClaims?.admin,
+		searchActive,
+		remoteSearchLoading,
+	])
+
+	const getAuthUsersMap = useCallback(async () => {
+		if (authUsersMapRef.current) {
+			return authUsersMapRef.current
+		}
+		if (authUsersFetchPromiseRef.current) {
+			return authUsersFetchPromiseRef.current
+		}
+		authUsersFetchPromiseRef.current = (async () => {
+			const result = await authGetUserList()
+			const map = new Map()
+			;(result?.data?.users || []).forEach((authUser) => {
+				map.set(authUser.uid, authUser)
+			})
+			authUsersMapRef.current = map
+			return map
+		})()
+		try {
+			return await authUsersFetchPromiseRef.current
+		} finally {
+			authUsersFetchPromiseRef.current = null
+		}
+	}, [authGetUserList])
+
+	/** Email → agency display name from membership lists (for Agency column). */
+	const emailToAgencyName = useMemo(
+		() => buildEmailToAgencyNameMap(agenciesArray),
+		[agenciesArray],
+	)
+
+	// Processed users: combines pagination data with auth details and applies search.
+	// Ordered by joiningDate per Join Date header toggle (default newest-first).
 	const loadedMobileUsers = useMemo(() => {
-		const baseUsers = customClaims?.agency ? agencyUsers : paginatedUsers
+		let list
+		if (emailSearchActive) {
+			list = remoteSearchHits !== null ? remoteSearchHits : []
+		} else {
+			const usedEnhanced =
+				!!customClaims?.admin &&
+				enhancedPaginatedUsers.length === paginatedUsers.length
+			const baseUsers = customClaims?.agency
+				? agencyUsers
+				: usedEnhanced
+					? enhancedPaginatedUsers
+					: paginatedUsers
 
-		// Apply search filter if search term exists
-		if (searchTerm && searchTerm.trim()) {
-			return searchUsers(baseUsers, searchTerm)
+			list =
+				searchActive && !emailSearchActive
+					? searchUsers(baseUsers, searchTerm)
+					: baseUsers
 		}
 
-		return baseUsers
-	}, [paginatedUsers, agencyUsers, searchTerm, customClaims])
+		return sortByJoinedDate(
+			withAgencyNames(
+				list,
+				emailToAgencyName,
+				!!customClaims?.admin && agenciesArray.length > 0,
+			),
+			joinDateSort,
+		)
+	}, [
+		paginatedUsers,
+		agencyUsers,
+		enhancedPaginatedUsers,
+		searchTerm,
+		customClaims,
+		emailSearchActive,
+		searchActive,
+		remoteSearchHits,
+		joinDateSort,
+		emailToAgencyName,
+		agenciesArray.length,
+	])
+
+	/**
+	 * Debounced email search against Firestore + Auth (not just loaded pages).
+	 */
+	useEffect(() => {
+		const term = (searchTerm || '').trim()
+		if (!term || !term.includes('@')) {
+			setRemoteSearchHits(null)
+			setRemoteSearchLoading(false)
+			return
+		}
+
+		let cancelled = false
+		setRemoteSearchLoading(true)
+		const timer = setTimeout(async () => {
+			try {
+				const firestoreHits = await findMobileUsersByEmail(term)
+				let authUser = null
+				if (functionsReady && getUserByEmail) {
+					try {
+						const result = await getUserByEmail({ email: term })
+						authUser = result?.data?.uid ? result.data : null
+					} catch (err) {
+						console.warn('Email search Auth lookup failed:', err)
+					}
+				}
+
+				const authMap = authUsersMapRef.current
+				const byId = new Map()
+
+				for (const hit of firestoreHits) {
+					const auth =
+						authMap?.get(hit.id) ||
+						(authUser?.uid === hit.id ? authUser : null)
+					byId.set(hit.id, {
+						...(auth || {}),
+						...hit,
+						hasFirestoreDoc: true,
+						joined: getJoinedDate(hit, auth || null),
+						mobileUserId: hit.id,
+						disabled: auth?.disabled ?? hit.disabled ?? false,
+					})
+				}
+
+				// Auth-only user (missing mobileUsers doc) — still surface in email search
+				if (authUser?.uid && !byId.has(authUser.uid)) {
+					byId.set(authUser.uid, {
+						...authUser,
+						id: authUser.uid,
+						uid: authUser.uid,
+						email: authUser.email || term,
+						name: authUser.displayName || '',
+						hasFirestoreDoc: false,
+						joined: getJoinedDate(null, authUser),
+						mobileUserId: authUser.uid,
+						disabled: !!authUser.disabled,
+					})
+				}
+
+				const hits = [...byId.values()]
+				if (!cancelled) setRemoteSearchHits(hits)
+			} catch (error) {
+				console.error('Remote email search failed:', error)
+				if (!cancelled) setRemoteSearchHits([])
+			} finally {
+				if (!cancelled) setRemoteSearchLoading(false)
+			}
+		}, 300)
+
+		return () => {
+			cancelled = true
+			clearTimeout(timer)
+		}
+	}, [searchTerm, functionsReady, getUserByEmail])
 
 	/**
 	 * Fetches all agency documents from the Firestore 'agency' collection
@@ -429,66 +695,53 @@ const Users = () => {
 	 */
 	const fetchAgencies = async () => {
 		const snapshot = await getDocs(collection(db, 'agency'))
-		const agencies = snapshot.docs.map((doc) => ({
-			id: doc.id,
-			name: doc.data().name,
+		const agencies = snapshot.docs.map((docSnap) => ({
+			id: docSnap.id,
+			name: docSnap.data().name,
+			agencyUsers: docSnap.data().agencyUsers || [],
 		}))
-		// console.log(agencies);
 		setAgenciesArray(agencies)
 	}
 
 	/**
-	 * Fetches the user IDs associated with a specific agency from the Firestore 'reports' collection.
+	 * Fetches reporter user IDs from active reports for an agency.
+	 * Prefer agencyId so the query matches scoped Firestore rules.
 	 *
-	 * This function queries the 'reports' collection in Firestore for documents where the 'agency'
-	 * field matches the provided agency name. It then maps each document to the user ID found in
-	 * the 'userID' field of the report and returns an array of these user IDs.
-	 *
-	 * @param {string} agencyName - The name of the agency for which to fetch user IDs.
-	 * @returns {Promise<string[]>} A promise that resolves to an array of user IDs associated with the specified agency.
+	 * @param {{ agencyId?: string, agencyName?: string }} agency
+	 * @returns {Promise<string[]>}
 	 */
-	const getAgencyUserIds = async (agencyName) => {
-		const reportQuery = query(
-			collection(db, 'reports'),
-			where('agency', '==', agencyName),
-		)
+	const getAgencyUserIds = async ({ agencyId, agencyName } = {}) => {
+		const experimentConfig = await fetchExperimentConfig()
+		const activeExperimentId = getActiveExperimentId(experimentConfig)
+		const reportQuery = buildActiveReportsQuery({
+			...(agencyId ? { agencyId } : { agency: agencyName }),
+			activeExperimentId,
+		})
 		const reportSnapshot = await getDocs(reportQuery)
 		const userIds = reportSnapshot.docs.map((doc) => doc.data().userID)
-		// console.log("User IDs from reports:", userIds); // Verify the IDs being captured
 		return userIds
 	}
 
 	/**
-	 * Filters the given list of users by the agency associated with the provided user email.
+	 * Filters users to those who submitted reports for the given agency.
+	 * Prefer claim agencyId (scoped report query); avoid agencyUsers collection queries.
 	 *
-	 * This function queries the 'agency' collection in Firestore to find an agency that
-	 * includes the provided user's email. It then retrieves the user IDs associated with
-	 * that agency and filters the input user list to include only those users whose
-	 * IDs match the retrieved agency user IDs.
-	 *
-	 * @param {Array} users - An array of user objects to be filtered. Each user object should contain a `mobileUserId` property.
-	 * @param {string} userEmail - The email of the user whose agency is being queried.
-	 * @returns {Promise<Array>} A promise that resolves to an array of filtered user objects associated with the user's agency.
+	 * @param {Array} users
+	 * @param {{ agencyId?: string, agencyName?: string }} agency
+	 * @returns {Promise<Array>}
 	 */
-	const filterUsersByAgency = async (users, userEmail) => {
-		const q = query(
-			collection(db, 'agency'),
-			where('agencyUsers', 'array-contains', userEmail),
-		)
-		const querySnapshot = await getDocs(q)
-		if (querySnapshot.docs.length > 0) {
-			const agencyName = querySnapshot.docs[0].data().name // Assuming the first result is the correct one
-
-			const userIds = await getAgencyUserIds(agencyName) // Retrieve user IDs for this agency
-			const filteredUsers = users.filter((user) =>
-				userIds.includes(user.mobileUserId),
-			)
-			// console.log("Filtered users:", filteredUsers); // Log the filtered users for debugging
-			return filteredUsers
-		} else {
+	const filterUsersByAgency = async (users, agency) => {
+		const agencyId =
+			typeof agency?.agencyId === 'string' ? agency.agencyId.trim() : ''
+		const agencyName =
+			typeof agency?.agencyName === 'string' ? agency.agencyName.trim() : ''
+		if (!agencyId && !agencyName) {
 			console.log('No agency found for this user.')
-			return [] // Return an empty array if no agency is found
+			return []
 		}
+
+		const userIds = await getAgencyUserIds({ agencyId, agencyName })
+		return users.filter((u) => userIds.includes(u.mobileUserId))
 	}
 
 	/**
@@ -534,11 +787,14 @@ const Users = () => {
 	 *
 	 * @async
 	 * @function
+	 * @param {{ agencyId?: string, agencyName?: string }} [agencyOverride]
+	 *        Freshly resolved agency values to use instead of React state
+	 *        (avoids reading stale agencyId/agencyName right after setState).
 	 * @returns {Promise<void>} This function does not return a value, but updates the component's state.
 	 *
 	 * @throws Will log an error to the console if the data fetching or processing fails.
 	 */
-	const getData = async () => {
+	const getData = async (agencyOverride) => {
 		try {
 			if (customClaims.agency) {
 				// Agency user is viewing Users table
@@ -563,20 +819,24 @@ const Users = () => {
 					}),
 				)
 
-				// Filter users by agency
-				const filteredUsers = await filterUsersByAgency(
-					mobileUsersArr,
-					user.email,
-				)
+				// Prefer explicit override (same tick as setState), then claims, then state
+				const filteredUsers = await filterUsersByAgency(mobileUsersArr, {
+					agencyId:
+						agencyOverride?.agencyId ||
+						customClaims?.agencyId ||
+						agencyId,
+					agencyName:
+						agencyOverride?.agencyName ||
+						customClaims?.agencyName ||
+						agencyName,
+				})
 
 				// Ensure filteredUsers is always an array
 				setAgencyUsers(sortByJoinedDate(filteredUsers) || [])
 				setAgencyLoading(false)
 			} else {
-				// Admin user - use pagination hook
-				// The pagination hook will handle the initial load
-				// We just need to trigger it
-				loadMore()
+				// Admin: replace list (do not append — avoids duplicate rows on refresh)
+				await resetPagination()
 			}
 		} catch (error) {
 			console.error('Failed to fetch or process user data:', error)
@@ -595,16 +855,7 @@ const Users = () => {
 			}
 
 			try {
-				// Get auth details for all users at once
-				// Note: This is an optimization opportunity - could be done in batches
-				const result = await authGetUserList()
-				const usersFromAuth = result.data.users
-
-				// Create a map of auth users by UID for quick lookup
-				const authUsersMap = new Map()
-				usersFromAuth.forEach((authUser) => {
-					authUsersMap.set(authUser.uid, authUser)
-				})
+				const authUsersMap = await getAuthUsersMap()
 
 				// Enhance paginated users with auth details
 				return users.map((firestoreUser) => {
@@ -631,8 +882,24 @@ const Users = () => {
 				return users
 			}
 		},
-		[customClaims, authGetUserList],
+		[customClaims, getAuthUsersMap],
 	)
+	
+	// For admin, enrich paginated users with Auth details when the list changes (only after Functions is ready)
+	useEffect(() => {
+		if (!customClaims?.admin || paginatedUsers.length === 0) {
+			setEnhancedPaginatedUsers([])
+			return
+		}
+		if (!functionsReady) return
+		let cancelled = false
+		const list = paginatedUsersRef.current
+		enhanceWithAuthDetails(list).then((result) => {
+			if (!cancelled) setEnhancedPaginatedUsers(result)
+		})
+		return () => { cancelled = true }
+	}, [paginatedUsers.length, customClaims?.admin, functionsReady, enhanceWithAuthDetails])
+	
 
 	/**
 	 * Handles the event when the "Add New User" button is clicked, opening the modal to add a new user.
@@ -666,62 +933,35 @@ const Users = () => {
 	}
 
 	/**
-	 * Handles the submission of the form to add a new user.
-	 *
-	 * This function is responsible for managing the entire process of adding a new user.
-	 * It first prevents the default form submission behavior and clears any existing errors.
-	 * The function then validates the new user's email address to ensure it meets the minimum
-	 * length requirement (at least 15 characters). If the email is valid, the function attempts
-	 * to send a sign-in link to the provided email address.
-	 *
-	 * After successfully sending the sign-in link, the function adds the new user's email to the
-	 * `agencyUsers` array in the corresponding Firestore agency document, provided that the
-	 * `agencyId` is valid. If any part of this process fails, the error is caught and handled by
-	 * updating the `errors` state with the appropriate message.
-	 *
-	 * Finally, if all operations succeed, the function triggers a state update to refresh the user list
-	 * and closes the modal.
+	 * Invites a public (non-admin, non-agency) user via passwordless email link.
+	 * They complete signup on /signup and are created as a regular User.
 	 *
 	 * @param {Event} e - The event object from the form submission.
-	 * @returns {Promise<void>} A promise that resolves after the sign-in email is sent, the user's email
-	 * is added to the Firestore agency document, and the modal is closed. If an error is encountered,
-	 * it is handled and displayed in the form.
+	 * @returns {Promise<void>}
 	 */
 	const handleAddNewUserFormSubmit = async (e) => {
 		e.preventDefault()
 		try {
-			// Clear previous errors
 			setErrors({})
 
-			// Validate the email length before sending the sign-in link
-			if (newUserEmail.length < 15) {
+			const trimmedEmail = newUserEmail.trim()
+			const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)
+			if (!emailOk) {
 				setErrors((prevErrors) => ({
 					...prevErrors,
-					// Error message shown to user
-					email: 'Email should be at least 15 characters long',
+					email: 'Enter a valid email address',
 				}))
-				return // Stop the form submission if there's a validation error
+				return
 			}
 
-			await sendSignIn(newUserEmail)
+			await sendSignIn(trimmedEmail)
 
-			// Add the new user's email to the agency's `agencyUsers` array in Firestore
-			// Validate agencyId before proceeding
-			if (!agencyId || agencyId.trim() === '') {
-				throw new Error('Invalid or missing agency ID')
-			}
-			const agencyRef = doc(db, 'agency', agencyId)
-			console.log(agencyRef)
-			await updateDoc(agencyRef, {
-				agencyUsers: arrayUnion(newUserEmail),
-			})
-
+			setNewUserEmail('')
 			setUpdate(!update)
 			setNewUserModal(false)
 		} catch (error) {
 			console.error('Error in handleAddNewUserFormSubmit:', error.message)
 
-			// Set the error message in the errors state
 			setErrors((prevErrors) => ({
 				...prevErrors,
 				email: error.message,
@@ -746,40 +986,57 @@ const Users = () => {
 	useEffect(() => {
 		const fetchInitialData = async () => {
 			if (customClaims.admin) {
-				// Admin: Fetch all agencies and user data
+				setAgencyClaimsStatus('ok')
 				await fetchAgencies()
 				await getData()
 			} else if (customClaims.agency) {
-				// Agency user: Fetch only the agency details and user data
-				const agencySnapshot = await getDocs(
-					query(
-						collection(db, 'agency'),
-						where('agencyUsers', 'array-contains', user.email.toLowerCase()),
-					),
-				)
-
-				if (!agencySnapshot.empty) {
-					const agencyDoc = agencySnapshot.docs[0]
-					const agencyId = agencyDoc.id
-					const agencyName = agencyDoc.data().name
-					console.log(agencyDoc)
-					console.log(agencyId)
-					console.log(agencyName)
-					// Store the agency ID and name in state or context
-					setAgencyId(agencyId)
-					setAgencyName(agencyName)
-
-					await getData()
-					// Fetch data relevant to this agency
-					// await getData(agencyId) // Pass the agencyId to fetch data for this agency
-				} else {
-					console.error('No agency found for the current user.')
+				const claimAgencyId =
+					typeof customClaims?.agencyId === 'string'
+						? customClaims.agencyId
+						: ''
+				// Agency claim without agencyId: refresh once, then surface missing state.
+				if (!claimAgencyId) {
+					setAgencyClaimsStatus('pending')
+					setAgencyLoading(true)
+					if (!agencyClaimsRefreshAttempted.current && refreshCustomClaims) {
+						agencyClaimsRefreshAttempted.current = true
+						try {
+							const next = await refreshCustomClaims()
+							if (!next?.agencyId) {
+								setAgencyClaimsStatus('missing')
+								setAgencyLoading(false)
+							}
+						} catch {
+							setAgencyClaimsStatus('missing')
+							setAgencyLoading(false)
+						}
+					}
+					return
 				}
+
+				setAgencyClaimsStatus('ok')
+				agencyClaimsRefreshAttempted.current = false
+				let resolvedName =
+					typeof customClaims?.agencyName === 'string'
+						? customClaims.agencyName
+						: ''
+				if (!resolvedName) {
+					const agencySnap = await getDoc(doc(db, 'agency', claimAgencyId))
+					if (agencySnap.exists()) {
+						resolvedName = agencySnap.data()?.name || ''
+					}
+				}
+				setAgencyId(claimAgencyId)
+				setAgencyName(resolvedName)
+				await getData({
+					agencyId: claimAgencyId,
+					agencyName: resolvedName,
+				})
 			}
 		}
 
 		fetchInitialData()
-	}, [])
+	}, [customClaims?.admin, customClaims?.agency, customClaims?.agencyId, customClaims?.agencyName])
 
 	/**
 	 * Triggers the delete user modal and sets the user ID for deletion.
@@ -819,6 +1076,10 @@ const Users = () => {
 	 * @param {string} userId - The ID of the user to be edited.
 	 */
 	const handleEditUser = async (userObj, userId) => {
+		if (userId == null || String(userId).trim() === '') {
+			console.warn('handleEditUser: missing or empty userId', userObj)
+			return
+		}
 		setUserId(userId)
 		const userRef = await getDoc(doc(db, 'mobileUsers', userId))
 		setUserEditing(userObj)
@@ -875,10 +1136,6 @@ const Users = () => {
 		if (userAgencyDoc) {
 			const userAgency = userAgencyDoc.id // Get the document ID
 			const agencyName = userAgencyDoc.data().name // Get the agency name from the document data
-
-			console.log('userAgency ID --> ', userAgency)
-			console.log('agencyName --> ', agencyName)
-
 			setSelectedAgency(userAgency)
 			setAgencyName(agencyName)
 		} else {
@@ -928,12 +1185,9 @@ const Users = () => {
 		e.preventDefault()
 		const selectedValue = e.target.value
 		setSelectedAgency(selectedValue)
-		// console.log(selectedAgency.name)
 		const selectedAgency = agenciesArray.find(
 			(agency) => agency.id === selectedValue,
 		)
-		// console.log(selectedAgency) // Additional debugging to verify the correct agency is selected
-
 		if (selectedAgency) {
 			try {
 				// Fetch the current data of the agency document to which the user is being added
@@ -962,12 +1216,34 @@ const Users = () => {
 						// Append the user's email to the new agency's agencyUsers array
 						const updatedNewAgencyUsers = [...newAgencyUsers, email]
 						await updateDoc(newDocRef, { agencyUsers: updatedNewAgencyUsers })
-						console.log('User successfully added to the new agency.')
+						// Refresh Auth claims so rules/queries see the new agencyId
+						try {
+							await addAgencyRole({
+								email,
+								agencyId: selectedAgency.id,
+							})
+						} catch (claimError) {
+							console.error(
+								'Agency membership updated but claim refresh failed:',
+								claimError,
+							)
+						}
 					} else {
-						console.log('User already exists in this agency.')
+						try {
+							await addAgencyRole({
+								email,
+								agencyId: selectedAgency.id,
+							})
+						} catch (claimError) {
+							console.error(
+								'Failed to refresh agency claims for existing membership:',
+								claimError,
+							)
+						}
 					}
+					setAgencyName(selectedAgency.name || '')
+					await fetchAgencies()
 				} else {
-					console.log('Agency document does not exist.')
 				}
 			} catch (error) {
 				console.error('Error updating agency documents:', error)
@@ -1023,8 +1299,14 @@ const Users = () => {
 	 *
 	 * @param {Event} e - The event object from the banned status toggle.
 	 */
-	const handleBannedChange = (e) => {
-		setBanned((prevBanned) => !prevBanned) // Use a function to toggle based on previous state
+	/**
+	 * Syncs banned status from EditUserModal Switch (`checked` boolean).
+	 * Must set the value — toggling cancels the modal's own setBanned(next).
+	 *
+	 * @param {boolean} checked - Next banned state from the Switch
+	 */
+	const handleBannedChange = (checked) => {
+		setBanned(Boolean(checked))
 	}
 
 	/**
@@ -1155,8 +1437,11 @@ const Users = () => {
 			} else if (userRole === 'Agency') {
 				// Call the addAgencyRole function
 				try {
-					// Switch user's mobileUsers/doc/userRole to "Agency"
-					await addAgencyRole({ email: email })
+					if (!selectedAgency) {
+						throw new Error('Select an agency before assigning the Agency role.')
+					}
+					// Stamp claims with agencyId first (callable accepts preferred agencyId)
+					await addAgencyRole({ email: email, agencyId: selectedAgency })
 					// Add user's email to the selected agency's document
 					await addUserToAgency(email, selectedAgency) // Ensure `selectedAgency` is the actual document ID of the agency
 				} catch (error) {
@@ -1176,26 +1461,37 @@ const Users = () => {
 			}
 		}
 
+		const resolvedAgencyName =
+			userRole === 'Agency'
+				? agenciesArray.find((a) => a.id === selectedAgency)?.name ||
+					agencyName ||
+					''
+				: ''
+		const optimisticPatch = {
+			...serializedAdditionalFields,
+			name,
+			email,
+			isBanned: banned,
+			userRole,
+			agencyName: resolvedAgencyName,
+		}
+		if (customClaims.admin) {
+			await fetchAgencies()
+		}
+		if (customClaims.agency) {
+			setAgencyUsers((prev) => patchUserRowInList(prev, userId, optimisticPatch))
+		} else if (customClaims.admin) {
+			patchPaginatedUser(userId, optimisticPatch)
+			setEnhancedPaginatedUsers((prev) =>
+				prev.length === 0
+					? prev
+					: patchUserRowInList(prev, userId, optimisticPatch),
+			)
+		}
+
 		// Close modal and trigger data refresh
 		setUserEditModal(false)
 		setUpdate(!update) // This will trigger getData() via useEffect, refreshing the user list
-		// Update the loadedMobileUsers state after successful update
-		setLoadedMobileUsers((prevUsers) =>
-			prevUsers.map((userObj) => {
-				const identifier = userObj?.uid || userObj?.mobileUserId || userObj?.id
-				if (identifier !== userId) {
-					return userObj
-				}
-				return {
-					...userObj,
-					...serializedAdditionalFields,
-					name: name,
-					email: email,
-					isBanned: banned,
-					userRole: userRole,
-				}
-			}),
-		)
 	}
 
 	/**
@@ -1207,194 +1503,344 @@ const Users = () => {
 	 * @dependency {boolean} update - The state that triggers the data fetching when it changes.
 	 */
 	useEffect(() => {
+		if (skipUpdateRefreshOnMount.current) {
+			skipUpdateRefreshOnMount.current = false
+			return
+		}
 		getData()
 	}, [update])
 
 	return (
-		<div className={style.section_container}>
-			<div className={style.section_wrapper}>
-				<div className={style.section_header}>
-					<div className={style.section_title}>
-						<div className={`${globalStyles.heading.h1.blue} leading-none`}>
-							Users
+		<div data-component="Users" className={style.section_container}>
+			<Card className="h-full w-full">
+				<CardHeader floated={false} shadow={false} data-element="users-card-header" className="mb-4">
+					<div className="mb-4 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+						<div>
+							<PageTitle mobileOnly={false} gutter={false}>
+								Users
+							</PageTitle>
 						</div>
+						<Button
+							className="flex items-center gap-3"
+							size="sm"
+							onClick={handleAddNewUserModal}>
+							<FaPlus className="h-3.5 w-3.5" /> Invite User
+						</Button>
+					</div>
+					<div className="flex flex-col items-center justify-between gap-4 md:flex-row">
 						{customClaims.admin ? (
-							<span className="text-xs">Admin: All Users</span>
+							<Tabs value={roleFilter} className="w-full md:w-max">
+								<TabsHeader>
+									{ROLE_TABS.map(({ label, value }) => (
+										<Tab
+											key={value}
+											value={value}
+											onClick={() => setRoleFilter(value)}>
+											&nbsp;&nbsp;{label}&nbsp;&nbsp;
+										</Tab>
+									))}
+								</TabsHeader>
+							</Tabs>
 						) : (
-							<span className="text-xs">All Agency</span>
+							<div className="hidden md:block" />
 						)}
+						<div className="w-full md:w-72">
+							<Input
+								label="Search"
+								value={searchTerm}
+								onChange={(e) => setSearchTerm(e.target.value)}
+								icon={<HiMagnifyingGlass className="h-5 w-5" />}
+							/>
+						</div>
 					</div>
-					<div className={style.section_filtersWrap}>
-						<input
-							type="text"
-							placeholder="Search users by name or email..."
-							value={searchTerm}
-							onChange={(e) => setSearchTerm(e.target.value)}
-							className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm mr-2"
-						/>
-						<button className={style.button} onClick={handleAddNewUserModal}>
-							<FaPlus className="text-blue-600 mr-2" size={12} />
-							Add User
-						</button>
-					</div>
-				</div>
-				{/* Error message for pagination issues */}
+				</CardHeader>
+
 				{paginationError && (
-					<div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm mb-2 text-red-700">
-						<div className="font-bold">Error:</div>
-						<div>{paginationError}</div>
+					<div className="mx-4 mb-2 flex items-center gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-red-700">
+						<Typography variant="small" className="font-bold">
+							Error:
+						</Typography>
+						<Typography variant="small">{paginationError}</Typography>
 					</div>
 				)}
-				{/* Data status legend for admins - shows data consistency issues */}
-				{!customClaims.agency && (
-					<div className="flex items-center gap-2 p-2 bg-white rounded-lg text-xs mb-2">
-						<div className="font-bold">Key: </div>
-						<div className="flex gap-1 items-center">
-							<div className="bg-red-50 p-1">Red:</div>
-							<div>Firestore 'mobileUsers' doc missing</div>
-						</div>
-						<div className="flex gap-1 items-center">
-							<div className="bg-yellow-100 p-1">Yellow:</div>
-							<div>User disabled in Firebase Auth</div>
-						</div>
+				{agencyClaimsStatus === 'pending' && (
+					<div className="mx-4 mb-2 flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-blue-800">
+						<Typography variant="small">Loading agency access…</Typography>
 					</div>
 				)}
-				<div className={style.table_main}>
-					<div className="flex flex-col h-full">
+				{agencyClaimsStatus === 'missing' && (
+					<div className="mx-4 mb-2 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-900">
+						<Typography variant="small">
+							Agency access is incomplete (missing agency ID on your account).
+							Refresh the page, or ask an admin to re-run agency claims
+							backfill.
+						</Typography>
+					</div>
+				)}
+				<div
+					ref={tableHostRef}
+					className="flex min-h-0 flex-col"
+					style={{ height: tableHostHeight }}>
+					<CardBody className="flex-1 overflow-hidden px-0 py-0">
 						<InfiniteScroll
 							className="overflow-x-auto"
+							height={Math.max(
+								200,
+								tableHostHeight - TABLE_FOOTER_RESERVE,
+							)}
 							dataLength={loadedMobileUsers.length}
-							next={loadMore}
-							hasMore={hasMore && !customClaims.agency}
+							next={() => {
+								if (searchActive) return
+								loadMore()
+							}}
+							hasMore={
+								hasMore && !customClaims.agency && !searchActive
+							}
 							loader={
-								<div className="text-center py-4">
-									<span className="text-gray-500">Loading more users...</span>
+								<div className="py-4 text-center">
+									<Typography
+										variant="small"
+										color="blue-gray"
+										className="font-normal opacity-70">
+										Loading more users...
+									</Typography>
 								</div>
 							}>
-							<table className="min-w-full bg-white rounded-xl p-1">
-								<thead className="border-b dark:border-indigo-100 bg-slate-100">
+							<table className="w-full min-w-max table-auto text-left">
+								<thead>
 									<tr>
-										<th scope="col" className={tableHeading.default}>
-											Name
+										<th
+											scope="col"
+											className={`${tableTh} cursor-pointer transition-colors hover:bg-blue-gray-100`}
+											onClick={() =>
+												setJoinDateSort((prev) =>
+													prev === 'desc' ? 'asc' : 'desc',
+												)
+											}
+											aria-sort={
+												joinDateSort === 'asc'
+													? 'ascending'
+													: 'descending'
+											}>
+											<Typography
+												variant="small"
+												color="blue-gray"
+												className="flex items-center gap-1 font-normal leading-none opacity-70">
+												Join Date
+												{joinDateSort === 'asc' ? (
+													<HiChevronUp
+														strokeWidth={1}
+														className="h-3.5 w-3.5"
+														aria-hidden
+													/>
+												) : (
+													<HiChevronDown
+														strokeWidth={1}
+														className="h-3.5 w-3.5"
+														aria-hidden
+													/>
+												)}
+											</Typography>
 										</th>
-										<th scope="col" className={tableHeading.default_center}>
-											Email
+										<th scope="col" className={tableTh}>
+											<Typography
+												variant="small"
+												color="blue-gray"
+												className="font-normal leading-none opacity-70">
+												Name
+											</Typography>
 										</th>
-										<th scope="col" className={tableHeading.default_center}>
-											Join Date
+										<th scope="col" className={tableThCenter}>
+											<Typography
+												variant="small"
+												color="blue-gray"
+												className="font-normal leading-none opacity-70">
+												Email
+											</Typography>
 										</th>
 										{customClaims.admin && (
-											<th scope="col" className={tableHeading.default_center}>
-												Agency
+											<th scope="col" className={tableThCenter}>
+												<Typography
+													variant="small"
+													color="blue-gray"
+													className="font-normal leading-none opacity-70">
+													Agency
+												</Typography>
 											</th>
 										)}
 										{customClaims.admin && (
-											<th scope="col" className={tableHeading.default_center}>
-												Role
+											<th scope="col" className={tableThCenter}>
+												<Typography
+													variant="small"
+													color="blue-gray"
+													className="font-normal leading-none opacity-70">
+													Role
+												</Typography>
 											</th>
 										)}
-										<th scope="col" className={tableHeading.default_center}>
-											Banned
+										<th scope="col" className={tableThCenter}>
+											<Typography
+												variant="small"
+												color="blue-gray"
+												className="font-normal leading-none opacity-70">
+												Banned
+											</Typography>
 										</th>
-										<th scope="col" className={tableHeading.default_center}>
-											Disabled
+										<th scope="col" className={tableThCenter}>
+											<Typography
+												variant="small"
+												color="blue-gray"
+												className="font-normal leading-none opacity-70">
+												Disabled
+											</Typography>
 										</th>
 										{customClaims.admin && (
 											<th
 												scope="col"
 												colSpan={2}
-												className={tableHeading.default_center}>
-												Delete
+												className={tableThCenter}>
+												<Typography
+													variant="small"
+													color="blue-gray"
+													className="font-normal leading-none opacity-70">
+													Delete
+												</Typography>
 											</th>
 										)}
 									</tr>
 								</thead>
 								<tbody>
-									{/* Loading state - shows spinner while fetching user data */}
 									{initialLoading ||
 									(isLoading && loadedMobileUsers.length === 0) ||
-									agencyLoading ? (
+									agencyLoading ||
+									remoteSearchLoading ? (
 										<tr>
 											<td colSpan="100%" className="text-center">
-												<div className="flex justify-center items-center h-32">
-													Loading...
+												<div className="flex h-40 flex-col items-center justify-center gap-2">
+													<LoadingSpinner className="h-10 w-10 text-[#2E3B4E]" />
+													<Typography
+														variant="small"
+														color="blue-gray"
+														className="font-normal">
+														Loading users…
+													</Typography>
 												</div>
 											</td>
 										</tr>
 									) : loadedMobileUsers.length === 0 ? (
 										<tr>
 											<td colSpan="100%" className="text-center">
-												<div className="flex justify-center items-center h-32">
-													No users found
+												<div className="flex h-32 items-center justify-center">
+													<Typography
+														variant="small"
+														color="blue-gray"
+														className="font-normal">
+														No users found
+													</Typography>
 												</div>
 											</td>
 										</tr>
 									) : (
-										// Render user rows with role-based conditional rendering
-										loadedMobileUsers.map((userObj, key) => {
-											// Extract user ID for operations
-											let userId = userObj.mobileUserId
-
+										loadedMobileUsers.map((userObj, index) => {
+											let userId =
+												userObj.mobileUserId ?? userObj.id ?? userObj.uid
+											const isLast =
+												index === loadedMobileUsers.length - 1
+											const cellClass = isLast
+												? tableTd
+												: `${tableTd} border-b border-blue-gray-50`
+											const cellClassCenter = isLast
+												? tableTdCenter
+												: `${tableTdCenter} border-b border-blue-gray-50`
 											return (
 												<tr
-													className={`border-b transition duration-300 ease-in-out dark:border-indigo-100 ${!customClaims.agency && !userObj.hasFirestoreDoc && 'bg-red-50'} ${userObj.disabled && 'bg-yellow-100'}`}
-													key={key}
+													className={`transition duration-300 ease-in-out ${!customClaims.agency && !userObj.hasFirestoreDoc && 'bg-red-50'} ${userObj.disabled && 'bg-yellow-100'} ${customClaims.admin ? 'cursor-pointer hover:bg-blue-gray-50/50' : ''}`}
+													key={
+														userId ??
+														userObj.email ??
+														`unknown-${index}`
+													}
 													onClick={
 														customClaims.admin
 															? () => handleEditUser(userObj, userId)
 															: undefined
 													}>
-													{/* User name column */}
-													<td scope="row" className={column.data}>
-														{userObj.name}
+													<td scope="row" className={cellClass}>
+														<Typography
+															variant="small"
+															color="blue-gray"
+															className="font-normal">
+															{userObj.joined ?? 'No Date'}
+														</Typography>
 													</td>
-													{/* User email column */}
-													<td className={column.data_center}>
-														{userObj.email}
+													<td className={cellClass}>
+														<Typography
+															variant="small"
+															color="blue-gray"
+															className="font-normal">
+															{userObj.name ?? ''}
+														</Typography>
 													</td>
-													{/* User join date column */}
-													<td className={column.data_center}>
-														{userObj.joined}
+													<td className={cellClassCenter}>
+														<Typography
+															variant="small"
+															color="blue-gray"
+															className="font-normal">
+															{userObj.email ?? ''}
+														</Typography>
 													</td>
-													{/* Agency column - only visible to admins */}
 													{customClaims.admin && (
-														<td className={column.data_center}>
-															{userObj.agencyName}
+														<td className={cellClassCenter}>
+															<Typography
+																variant="small"
+																color="blue-gray"
+																className="font-normal">
+																{userObj.agencyName ?? ''}
+															</Typography>
 														</td>
 													)}
-													{/* User role column - only visible to admins */}
 													{customClaims.admin && (
-														<td className={column.data_center}>
-															{userObj.userRole}
+														<td className={cellClassCenter}>
+															<Typography
+																variant="small"
+																color="blue-gray"
+																className="font-normal">
+																{userObj.userRole ?? ''}
+															</Typography>
 														</td>
 													)}
-													{/* User banned status column */}
-													<td className={column.data_center}>
-														{(userObj.isBanned && 'yes') || 'no'}
+													<td className={cellClassCenter}>
+														<Typography
+															variant="small"
+															color="blue-gray"
+															className="font-normal">
+															{(userObj.isBanned && 'yes') || 'no'}
+														</Typography>
 													</td>
-													{/* User disabled status column */}
-													<td className={column.data_center}>
-														{userObj.disabled ? 'Yes' : 'No'}
+													<td className={cellClassCenter}>
+														<Typography
+															variant="small"
+															color="blue-gray"
+															className="font-normal">
+															{userObj.disabled ? 'Yes' : 'No'}
+														</Typography>
 													</td>
-													{/* Delete action column - only visible to admins */}
 													{customClaims.admin && (
 														<td
-															className={column.data_center}
+															className={cellClassCenter}
 															onClick={(e) => e.stopPropagation()}>
-															<button
-																onClick={() => handleMobileUserDelete(userId)}
-																className={`${style.icon} tooltip-delete-user`}>
-																<IoTrash
-																	size={20}
-																	className="ml-4 fill-gray-400 hover:fill-red-600"
-																/>
-																<Tooltip
-																	anchorSelect=".tooltip-delete-user"
-																	place="top"
-																	delayShow={500}>
-																	Delete User
-																</Tooltip>
-															</button>
+															<Tooltip content="Delete User">
+																<IconButton
+																	variant="text"
+																	onClick={() =>
+																		handleMobileUserDelete(userId)
+																	}>
+																	<IoTrash
+																		size={20}
+																		className="fill-gray-400 hover:fill-red-600"
+																	/>
+																</IconButton>
+															</Tooltip>
 														</td>
 													)}
 												</tr>
@@ -1404,13 +1850,42 @@ const Users = () => {
 								</tbody>
 							</table>
 						</InfiniteScroll>
-						<div className="mt-2 self-end text-xs">
+					</CardBody>
+					<CardFooter className="flex shrink-0 flex-wrap items-center gap-2 rounded-b-md border-t border-blue-gray-50 bg-blue-gray-50/80 p-4">
+						{!customClaims.agency && (
+							<div className="flex flex-wrap items-center gap-2">
+								<Typography variant="small" className="font-bold">
+									Key:
+								</Typography>
+								<div className="flex items-center gap-1">
+									<Typography variant="small" className="bg-red-50 p-1">
+										Red:
+									</Typography>
+									<Typography variant="small">
+										Firestore &apos;mobileUsers&apos; doc missing
+									</Typography>
+								</div>
+								<div className="flex items-center gap-1">
+									<Typography
+										variant="small"
+										className="bg-yellow-100 p-1">
+										Yellow:
+									</Typography>
+									<Typography variant="small">
+										User disabled in Firebase Auth
+									</Typography>
+								</div>
+							</div>
+						)}
+						<Typography
+							variant="small"
+							color="blue-gray"
+							className="ml-auto font-normal">
 							Total users: {loadedMobileUsers.length}
-						</div>
-					</div>
+						</Typography>
+					</CardFooter>
 				</div>
-			</div>
-			{/* Delete confirmation modal */}
+			</Card>
 			{deleteModal && (
 				<ConfirmModal
 					func={handleDelete}
@@ -1420,53 +1895,38 @@ const Users = () => {
 					closeModal={setDeleteModal}
 				/>
 			)}
-			{/* User editing modal */}
 			{userEditModal && (
 				<EditUserModal
 					mobileUserDetails={mobileUserDetails}
 					onMobileFieldChange={handleMobileUserFieldChange}
 					mobileUserFieldTypes={mobileUserFieldTypes}
 					mobileFieldFormError={mobileFieldFormError}
-					// User
 					userId={userId}
 					userEditing={userEditing}
-					// Claims
 					customClaims={customClaims}
-					// Modal
 					setUserEditModal={toggleUserEditModal}
-					// Name
 					name={name}
 					onNameChange={handleNameChange}
-					// agency
 					agenciesArray={agenciesArray}
 					selectedAgency={selectedAgency}
 					agencyName={agencyName}
 					onAgencyChange={handleAgencyChange}
-					// Role
 					onRoleChange={handleRoleChange}
 					userRole={userRole}
 					setUserRole={setUserRole}
-					// Email
 					email={email}
 					onEmailChange={handleEmailChange}
-					// Banned
 					banned={banned}
 					setBanned={setBanned}
 					onBannedChange={handleBannedChange}
-					// Form submit
 					onFormSubmit={handleFormSubmit}
 				/>
 			)}
-			{/* New user creation modal */}
 			{newUserModal && (
 				<NewUserModal
 					setNewUserModal={setNewUserModal}
-					// newUserName={newUserName}
-					// onNewUserName={handleNewUserName}
 					newUserEmail={newUserEmail}
 					onNewUserEmail={handleNewUserEmail}
-					// onNewAgencyState={handleNewAgencyState}
-					// onNewAgencyCity={handleNewAgencyCity}
 					onFormSubmit={handleAddNewUserFormSubmit}
 					errors={errors}
 				/>

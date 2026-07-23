@@ -10,7 +10,7 @@
  * - Role-based registration (User vs Agency)
  * - Location selection (State/City)
  * - Password validation and visibility toggle
- * - Privacy policy modal
+ * - Privacy policy link (public page)
  * - Internationalization support
  * 
  * @author Truth Sleuth Local Team
@@ -24,9 +24,6 @@ import { useAuth } from '../context/AuthContext'
 import {
 	isSignInWithEmailLink,
 	signInWithEmailLink,
-	signOut,
-	createUserWithEmailAndPassword,
-	verifyEmail,
 } from 'firebase/auth'
 import {
 	doc,
@@ -37,7 +34,8 @@ import {
 	arrayUnion,
 } from 'firebase/firestore'
 import { db, auth } from '../config/firebase'
-import Select from 'react-select'
+import FormInput from '../components/ui/FormInput'
+import FormSelect from '../components/ui/FormSelect'
 // import PhoneInput from 'react-phone-input-2'
 import LanguageSwitcher from '../components/layout/LanguageSwitcher'
 import { useTranslation } from 'next-i18next'
@@ -50,7 +48,6 @@ import { RiContactsBookLine } from 'react-icons/ri'
 import { Button, Typography } from '@material-tailwind/react'
 import { GiMagnifyingGlass } from "react-icons/gi";
 import Head from 'next/head'
-import PrivacyPolicyModal from "../components/modals/PrivacyPolicyModal"
 
 /**
  * SignUp component for user registration
@@ -70,10 +67,23 @@ const SignUp = () => {
 	const [errors, setErrors] = useState({})
 	
 	// Authentication context
-	const { user, signup, verifyEmail, addAgencyRole, setPassword } = useAuth()
+	const { signup, addAgencyRole, setPassword } = useAuth()
 	
-	// Check if current user has agency invitation privilege
-	const isAgency = isSignInWithEmailLink(auth, window.location.href)
+	// Email-link invites: agency when continue URL has agency context; otherwise public User
+	const isEmailLinkInvite = isSignInWithEmailLink(auth, window.location.href)
+
+	const inviteAgencyName = (() => {
+		const raw = router.query?.agencyName
+		const value = Array.isArray(raw) ? raw[0] : raw
+		return typeof value === 'string' ? value.trim() : ''
+	})()
+	const inviteAgencyId = (() => {
+		const raw = router.query?.agencyId
+		const value = Array.isArray(raw) ? raw[0] : raw
+		return typeof value === 'string' ? value.trim() : ''
+	})()
+	const isAgencyInvite =
+		isEmailLinkInvite && (!!inviteAgencyName || !!inviteAgencyId)
 	
 	// Form data state
 	const [data, setData] = useState({
@@ -92,10 +102,6 @@ const SignUp = () => {
 	const [type, setType] = useState('password')
 	const [icon, setIcon] = useState(false)
 	
-	// Privacy policy modal state
-	const [showModal, setShowModal] = useState(false)
-	const openModal = () => setShowModal(true)
-	const closeModal = () => setShowModal(false)
 	
 	// console.log(isAgency);
 	
@@ -105,32 +111,59 @@ const SignUp = () => {
 	 * @param {string} privilege - User role ('User', 'Agency', or 'Admin')
 	 * @returns {Promise<void>}
 	 */
-	const addMobileUser = (privilege) => {
-		// Get user object
-		// console.log('addMobileUser start', privilege)
-		const user = auth.currentUser
-		// console.log(user)
-		if (user) {
-			// Set user uid
-			// console.log('adding mobile user')
-			// console.log(data)
-			const uid = user.uid
-			// create a new mobileUsers doc with signed in user's uid
-			setDoc(doc(db, 'mobileUsers', uid), {
-				name: data.name,
-				email: data.email,
-				// phone: data.phone ? data.phone : '',
-				joiningDate: moment().utc().unix(),
-				state: data.state,
-				city: data.city,
-				isBanned: false,
-				userRole: privilege,
-				contact: data.contact,
-			})
-			// console.log("user was added with uid" + uid)
-		} else {
-			console.log('no user')
+	const addMobileUser = async (privilege) => {
+		const currentUser = auth.currentUser
+		if (!currentUser) {
+			throw new Error('No signed-in user to create profile for')
 		}
+		const uid = currentUser.uid
+		await setDoc(doc(db, 'mobileUsers', uid), {
+			name: data.name,
+			email: data.email,
+			joiningDate: moment().utc().unix(),
+			state: data.state,
+			city: data.city,
+			isBanned: false,
+			userRole: privilege,
+			contact: data.contact,
+		})
+	}
+
+	/**
+	 * Completes email-link signup: sign in, set password, write mobileUsers.
+	 * Agency role is optional and must not block profile creation.
+	 *
+	 * @param {'User' | 'Agency'} privilege
+	 * @param {{ assignAgencyRole?: boolean }} [options]
+	 */
+	const completeEmailLinkSignup = async (
+		privilege,
+		{ assignAgencyRole = false } = {},
+	) => {
+		const result = await signInWithEmailLink(
+			auth,
+			data.email,
+			window.location.href,
+		)
+		await auth.updateCurrentUser(result.user)
+		await auth.currentUser.reload()
+		await setPassword(data.password)
+
+		if (assignAgencyRole) {
+			try {
+				await addAgencyRole({
+					email: data.email,
+					...(inviteAgencyId ? { agencyId: inviteAgencyId } : {}),
+				})
+			} catch (roleErr) {
+				// Do not block mobileUsers creation — Auth account already exists.
+				console.error('addAgencyRole failed after signup:', roleErr)
+			}
+		}
+
+		await addMobileUser(privilege)
+		setSignUpError('')
+		window.location.replace('/verifyEmail')
 	}
 
 	/**
@@ -167,125 +200,54 @@ const SignUp = () => {
 			}
 		}
 		setErrors(allErrors)
-		// console.log("should be given agency privilege " + isAgency)
-		try {
-			if (isAgency) {
-				console.log('DEV LOG - handleSignUp - Agency user')
-				// Sees if agency already exists -if it does, adds user to the agency's user list
-				signInWithEmailLink(auth, data.email, window.location.href)
-					.then((result) => {
-						const promise2 = addAgencyRole({ email: data.email }) // Asynchronously adds agency role to the user.
-						const promise1 = auth.updateCurrentUser(result.user) // Updates the current user in Firebase.
-						auth.currentUser.reload().then(() => {
-							// Reloads the current user information.
-							const promise3 = setPassword(data.password) // Asynchronously sets the new password.
-							Promise.all([promise1, promise2, promise3]).then((values) => {
-								// Waits for all promises to complete.
-								/**
-                  Add new Agency issue is here. When the agency user goes through the
-                  signup process they are not added as a `mobileUser` and therefore
-                  they have no real profile
-                  -- or at least that is what my testing has shown.
-                  1) Admin user adds a new agency
-                  2) user's email is sent email subject:"Sign in to MisInfo App requested"
-                  3) user clicks link in email
-                  4) signup.jsx page with "** Must be the email you were sent the invite." text under Email input.
-                  5) user submits
-                  6) user's email is sent "Verify your email for MisInfo App"
-                  7) user clicks link
-                  8) verifyEmail.jsx page
-                  9) user clicks link
-                  10) https://misinfo-5d004.firebaseapp.com/__/auth/action?0000 page
-                  11) user clicks "Continue" button
-                  12) login.jsx page to log in
-                  notes: where is the user assigned the 'Agency' custom claim?
-                  notes: firestore `mobileUsers` db is not added the new user's doc
-                */
-								if (verifyEmail(auth.currentUser)) {
-									// console.log('verifyEmail==> ', verifyEmail(auth.currentUser));
-									// console.log('auth.currentUser==> ', auth.currentUser);
-									// Verifies the email of the logged-in user.
-									setSignUpError('') // Clears any previous sign-up errors.
-									addMobileUser('Agency') // Adds the user to the 'mobileUsers' collection with 'Agency' role.
-									window.location.replace('/verifyEmail') // Redirects to the verify email page.
-								} else {
-									// console.log("if in else where addMobileUser('Agency') runs")
-									addMobileUser('Agency')
-									// console.log('else SEND TO VERIFY EMAIL PAGE');
-									window.location.replace('/verifyEmail')
-								}
-							})
-						})
-					})
-					.catch((err) => {
-						if (err.message == 'Firebase: Error (auth/invalid-action-code).') {
-							setSignUpError(
-								'Sign in link had expired. Please ask admin to send a new link to sign up.',
-							)
-						} else if (
-							err.message ==
-							'Firebase: The email provided does not match the sign-in email address. (auth/invalid-email).'
-						) {
-							// An error happened.
-							setSignUpError(
-								'Your email does not match up with the email address that the sign-in link was sent to.',
-							)
-						} else {
-							console.log(err)
-						}
-					})
-				// const userCredential = await auth.currentUser.linkWithCredential(
-				// 	result.credential,
-				// )
-				// verifyEmail(auth.currentUser).then((verified) => {
-				// 	// Handle email verification logic
-				// 	// ...
-				// })
+		if (Object.keys(allErrors).length > 0) return
+
+		const handleEmailLinkError = (err) => {
+			if (err.message == 'Firebase: Error (auth/invalid-action-code).') {
+				setSignUpError(
+					'Sign in link had expired. Please ask admin to send a new link to sign up.',
+				)
+			} else if (
+				err.message ==
+				'Firebase: The email provided does not match the sign-in email address. (auth/invalid-email).'
+			) {
+				setSignUpError(
+					'Your email does not match up with the email address that the sign-in link was sent to.',
+				)
 			} else {
-				console.log('DEV LOG - handleSignUp - not agency user')
-
-				// check if `mobileUsers` doc already exist with the user's email
-				/*
-                try {
-                  console.log('NEW CODE--> ', data.email);
-                  const mobileRef = getDoc(doc(db, 'mobileUsers', data.email))
-                  // setUserData(mobileRef.data())
-                  console.log(mobileRef);
-                } catch (err) {
-                  if (err.message == "Firebase: Error (firestore 'mobileUsers' doc already created).") {
-                      setSignUpError("An account has already been set up with this email. Please log in.")
-                  } else {
-                      setSignUpError(err.message)
-                  }
-                }
-                */
-
-				signup(data.name, data.email, data.password, data.state, data.city)
-					.then((userCredential) => {
-						setSignUpError('')
-						addMobileUser('User')
-						router.push('/verifyEmail')
-						// console.log(
-						// 	'sign up successful user credentials--> ',
-						// 	userCredential,
-						// )
-					})
-					.catch((error) => {
-						if (error.code === 'auth/email-already-in-use') {
-							setSignUpError('The entered email is already in use.')
-						} else {
-							setSignUpError(error.message)
-						}
-						console.error('Error in (non Agency) signup--> ', error)
-					})
+				console.log(err)
+				setSignUpError(err.message)
 			}
-			// analytics.logEvent('sign_up', { method: 'email' }); // Log 'login' event
+		}
+
+		try {
+			if (isAgencyInvite) {
+				console.log('DEV LOG - handleSignUp - Agency invite')
+				await completeEmailLinkSignup('Agency', { assignAgencyRole: true })
+			} else if (isEmailLinkInvite) {
+				console.log('DEV LOG - handleSignUp - Public user invite')
+				await completeEmailLinkSignup('User')
+			} else {
+				console.log('DEV LOG - handleSignUp - self signup')
+
+				await signup(data.name, data.email, data.password, data.state, data.city)
+				setSignUpError('')
+				await addMobileUser('User')
+				router.push('/verifyEmail')
+			}
 		} catch (err) {
-			if (err.message == 'Firebase: Error (auth/email-already-in-use).') {
+			if (isEmailLinkInvite || isAgencyInvite) {
+				handleEmailLinkError(err)
+				return
+			}
+			if (err.code === 'auth/email-already-in-use') {
+				setSignUpError('The entered email is already in use.')
+			} else if (err.message == 'Firebase: Error (auth/email-already-in-use).') {
 				setSignUpError('Email already in use. Please log in.')
 			} else {
 				setSignUpError(err.message)
 			}
+			console.error('Error in signup--> ', err)
 		}
 	}
 	
@@ -350,30 +312,37 @@ const SignUp = () => {
 			<Head>
 				<title>Signup | Truth Sleuth Local</title>
 			</Head>
-			<div className="w-screen h-screen overflow-auto flex justify-center items-start pt-12 pb-8">
-				<div className="w-full max-w-sm font-light">
+			<div data-component="signup" className="w-screen h-screen overflow-auto flex justify-center items-start pt-12 pb-8">
+				<div className="w-full max-w-sm font-light bg-white rounded-md p-6">
 					{/* Logo and branding section */}
 					<div className="flex flex-col items-center justify-center mb-2">
 						<div className="bg-blue-600 p-7 rounded-full mb-2">
 							<GiMagnifyingGlass size={30} className="fill-white" />
 						</div>
-						<Typography variant="small" className='text-xs font-semibold text-blue-600'>Truth Sleuth Local</Typography>
+						<Typography variant="small" className='text-xs font-semibold text-[#2E3B4E]'>Truth Sleuth Local</Typography>
 					</div>
 					
 					{/* Signup form */}
 					<form className="px-8 pt-6 pb-4 mb-4" onSubmit={handleSignUp}>
-						{/* Name input (hidden for agency users) */}
+						{isAgencyInvite && inviteAgencyName ? (
+							<div className="mb-4 rounded-md border border-blue-100 bg-blue-50 px-3 py-2">
+								<Typography variant="small" className="text-[#2E3B4E]">
+									You&apos;re joining{' '}
+									<span className="font-semibold">{inviteAgencyName}</span>
+								</Typography>
+							</div>
+						) : null}
+						{/* Name input (hidden for agency invites) */}
 						<div className="mb-4">
-							{!isAgency && (
-								<input
-									className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+							{!isAgencyInvite && (
+								<FormInput
 									id="name"
 									type="text"
-									placeholder={t('name')}
+									label={t('name')}
 									required
 									value={data.name}
 									onChange={handleChange}
-									autoComplete=""
+									autoComplete="name"
 								/>
 							)}
 						</div>
@@ -389,21 +358,14 @@ const SignUp = () => {
 						
 						{/* State selection dropdown */}
 						<div className="mb-4">
-							<Select
-								className="border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+							<FormSelect
 								id="state"
-								type="text"
 								required
-								placeholder={t('NewReport:state_text')}
+								label={t('NewReport:state_text')}
 								value={data.state}
 								options={State.getStatesOfCountry('US')}
-								getOptionLabel={(options) => {
-									return options['name']
-								}}
-								getOptionValue={(options) => {
-									return options['name']
-								}}
-								label="state"
+								getOptionLabel={(options) => options['name']}
+								getOptionValue={(options) => options['name']}
 								onChange={handleStateChange}
 							/>
 							{errors.state && data.state === null && (
@@ -413,39 +375,33 @@ const SignUp = () => {
 
 						{/* City selection dropdown */}
 						<div className="mb-4">
-							<Select
-								className="shadow border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+							<FormSelect
 								id="city"
-								type="text"
-								placeholder={t('NewReport:city_text')}
+								label={t('NewReport:city_text')}
 								value={data.city}
 								options={City.getCitiesOfState(
 									data.state?.countryCode,
 									data.state?.isoCode,
 								)}
-								getOptionLabel={(options) => {
-									return options['name']
-								}}
-								getOptionValue={(options) => {
-									return options['name']
-								}}
+								getOptionLabel={(options) => options['name']}
+								getOptionValue={(options) => options['name']}
 								onChange={handleCityChange}
 							/>
 						</div>
 						
 						{/* Email input */}
 						<div className="mb-4">
-							<input
-								className={`${isAgency && 'mb-1 '}shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
+							<FormInput
+								className={isEmailLinkInvite ? 'mb-1' : ''}
 								id="email"
-								type="text"
-								placeholder={t('email')}
+								type="email"
+								label={t('email')}
 								required
 								value={data.email}
 								onChange={handleChange}
 								autoComplete="email"
 							/>
-							{isAgency && (
+							{isEmailLinkInvite && (
 								<div className="mb-1 text-sm italic">
 									** Must be the email you were sent the invite.
 								</div>
@@ -454,27 +410,31 @@ const SignUp = () => {
 						
 						{/* Password input with visibility toggle */}
 						<>
-							{isAgency && (
+							{isEmailLinkInvite && (
 								<div className="mb-1 text-sm italic">
 									Create a secure password for your account.
 								</div>
 							)}
-							<div className="mb-1 flex">
-								<input
-									className={`${isAgency && 'mb-1 '}shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
+							<div className="mb-1">
+								<FormInput
+									className={isEmailLinkInvite ? 'mb-1' : ''}
 									id="password"
 									type={type}
-									placeholder={t('password')}
+									label={t('password')}
 									required
 									value={data.password}
 									onChange={handleChange}
 									autoComplete="new-password"
+									icon={
+										<button
+											type="button"
+											className="cursor-pointer"
+											onClick={handleTogglePass}
+											aria-label="Toggle password visibility">
+											<MdOutlineRemoveRedEye />
+										</button>
+									}
 								/>
-								<span
-									className="flex justify-around items-center"
-									onClick={handleTogglePass}>
-									<MdOutlineRemoveRedEye className="absolute mr-10" />
-								</span>
 							</div>
 						</>
 						
@@ -487,11 +447,10 @@ const SignUp = () => {
 						
 						{/* Confirm password input */}
 						<div className="mt-4 mb-1">
-							<input
-								className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+							<FormInput
 								id="confirmPW"
 								type={type}
-								placeholder={t('confirmPassword')}
+								label={t('confirmPassword')}
 								required
 								value={data.confirmPW}
 								onChange={handleChange}
@@ -543,23 +502,26 @@ const SignUp = () => {
 						{t('haveAccount')}
 						<Link
 							href="/login"
-							className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+							className="inline-block px-2 align-baseline font-bold text-sm text-[#2E3B4E] hover:text-blue-800">
 							{t('login_action')}
 						</Link>
 					</p>
 					
 					{/* Language switcher */}
 					<div className="flex justify-center items-center p-6 gap-1">
-						{/* <span className="text-blue-500 text-md uppercase font-bold py-2 px-2">{t("select")}</span> */}
+						{/* <span className="text-[#2E3B4E] text-md uppercase font-bold py-2 px-2">{t("select")}</span> */}
 						<LanguageSwitcher />
 					</div>
 					
 					{/* Privacy policy link */}
 					<div className="privacy_policy flex justify-center items-center">
-						<a className='cursor-pointer text-blue-600' onClick={openModal}>Privacy Policy</a>
+						<Link
+							href="/privacy-policy"
+							className="text-[#2E3B4E] font-semibold hover:underline">
+							Privacy Policy
+						</Link>
 					</div>
 				</div>
-				<PrivacyPolicyModal showModal={showModal} closeModal={closeModal} />
 			</div>
 		</>
 	)

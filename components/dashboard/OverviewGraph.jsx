@@ -19,6 +19,7 @@
 import React from 'react'
 import { Chart } from "react-google-charts";
 import globalStyles from '../../styles/globalStyles';
+import { Typography } from '@material-tailwind/react';
 /**
  * OverviewGraph Component
  *
@@ -48,9 +49,9 @@ const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayRepor
   // console.log(date)
   const options = {
     slices: {
-      0: { color: '#F6413A' },
-      1: { color: '#FFCA29' },
-      2: { color: '#2196F3'}
+      0: { color: '#071C2C' }, // Trapped Darkness — largest
+      1: { color: '#688390' }, // Blue Prince — middle
+      2: { color: '#A2AAA4' }, // Ginkgo Green — smallest
     },
     legend: {backgroundColor: 'white'},
     backgroundColor: 'none',
@@ -60,11 +61,11 @@ const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayRepor
     },
   };
   return (
-  <div>
-  <div className={`${globalStyles.heading.h1.blue} text-center`}>{getTodayDate()} Trending Topics</div>
+  <div data-component="OverviewGraph">
+  <Typography variant="h2" color="blue" className={`text-center`}>{getTodayDate()} Trending Topics</Typography>
     <div className="grid grid-cols-1 grid-rows-3 mt-3 gap-y-4 md:grid md:grid-cols-3 md:grid-rows-1 md:mt-3 md:gap-x-4">
-      <div className="col-span-1 bg-white rounded-xl mt-3 pr-2">
-        <h1 className="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Yesterday's Reports</h1>
+      <div className="col-span-1 bg-white rounded-md mt-3 pr-2">
+        <h1 className="text-m font-bold text-[#2E3B4E] pt-6 tracking-wider text-center">Yesterday's Reports</h1>
         {/* Pie chart for topics reported yesterday. */}
         {!loaded && <h1 className="py-24 text-center">Retrieving data...</h1>}
         {loaded && numTopics[0] == 0 && <h1 className="py-24 text-center">No topics reported.</h1>}
@@ -74,12 +75,12 @@ const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayRepor
           data={yesterdayReports}
           options={options}
           width={"100%"}
-          height={"300px"}
+          height={"240px"}
           />
         }
       </div>
-      <div className="col-span-1 bg-white rounded-xl mt-3 pr-2">
-        <h1 className="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Three Days Ago</h1>
+      <div className="col-span-1 bg-white rounded-md mt-3 pr-2">
+        <h1 className="text-m font-bold text-[#2E3B4E] pt-6 tracking-wider text-center">Three Days Ago</h1>
         
         {/* Pie chart for topics reported within the past three days. */}
         {!loaded && <h1 className="py-24 text-center">Retrieving data...</h1>}
@@ -90,11 +91,11 @@ const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayRepor
           data={threeDayReports}
           options={options}
           width={"100%"}
-          height={"300px"}
+          height={"240px"}
         />}
       </div>
-      <div className="col-span-1 bg-white rounded-xl mt-3 pr-2">
-        <h1 className="text-m font-bold text-blue-600 pt-6 tracking-wider text-center">Seven Days Ago</h1>
+      <div className="col-span-1 bg-white rounded-md mt-3 pr-2">
+        <h1 className="text-m font-bold text-[#2E3B4E] pt-6 tracking-wider text-center">Seven Days Ago</h1>
         
         {/* Pie chart for topics reported within the past seven days. */}
         {!loaded && <h1 className="py-24 text-center">Retrieving data...</h1>}
@@ -105,7 +106,7 @@ const OverviewGraph = ({loaded, yesterdayReports, threeDayReports, sevenDayRepor
             data={sevenDayReports}
             options={options}
             width={"100%"}
-            height={"300px"}
+            height={"240px"}
         />}
       </div>
     </div>

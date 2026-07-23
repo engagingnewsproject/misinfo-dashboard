@@ -13,40 +13,39 @@
  * @requires ../firebase/FirebaseHelper
  * @requires firebase/firestore
  * @requires ../config/firebase
- * @requires ./Toggle
  * @requires ./OverviewGraph
  * @requires ./ComparisonGraphSetup
  * @requires @material-tailwind/react
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useAuth } from "../../context/AuthContext"
 import FirebaseHelper from "../../firebase/FirebaseHelper"
-import { collection, query, where, getDocs, Timestamp, getDoc, doc } from "firebase/firestore";
+import { getDocs, Timestamp, getDoc, doc } from "firebase/firestore";
 import { db } from '../../config/firebase'
-import Toggle from '../common/Toggle'
+import {
+	buildActiveReportsQuery,
+	fetchExperimentConfig,
+	getActiveExperimentId,
+} from '../../utils/reports-queries'
 import OverviewGraph from './OverviewGraph'
 import ComparisonGraphSetup from '../analytics/ComparisonGraphSetup'
 import { Typography } from '@material-tailwind/react'
 
 /**
  * TagGraph - Main data visualization component for trending topics.
- * 
- * This component manages the display of trending topic data through
- * different visualization types (overview pie charts and comparison line graphs).
- * It handles data fetching, role-based filtering, and time period analysis
- * for report topics across the system.
- * 
- * @returns {JSX.Element} Component with toggle controls and data visualizations
- * @example
- * <TagGraph />
+ *
+ * View mode (overview vs comparison) is controlled by the parent so the toggle
+ * can live in the shared Headbar.
+ *
+ * @param {Object} props
+ * @param {string} props.viewVal - "overview" | "comparison"
+ * @returns {JSX.Element}
  */
-const TagGraph = () => {
-	const { user, verifyRole } = useAuth()
-	
-	// View state management
-	const [viewVal, setViewVal] = useState("overview")
-	
+const TagGraph = ({ viewVal = 'overview' }) => {
+	const { verifyRole, refreshCustomClaims, customClaims } = useAuth()
+	const agencyClaimsRefreshAttempted = useRef(false)
+
 	// Report data for different time periods
 	const [yesterdayReports, setYesterdayReports] = useState([])
 	const [threeDayReports, setThreeDayReports] = useState([])
@@ -108,23 +107,48 @@ const TagGraph = () => {
 	 */
 	const setRole = async () => {
 		try {
-			const result = await verifyRole()
-			
-			if (result.agency) {
-				// Fetch agency information for agency users
-				const agencyCollection = collection(db, "agency")
-				const q = query(agencyCollection, where('agencyUsers', "array-contains", user['email']))
-				const querySnapshot = await getDocs(q)
-				
-				querySnapshot.forEach((doc) => {
-					const agencyTempName = doc.data()['name']
-					const agencyTempId = doc.id
-					setAgencyName(agencyTempName)
-					setAgencyId(agencyTempId)
+			let result = await verifyRole()
+			let resolvedAgencyId =
+				typeof result?.agencyId === 'string' ? result.agencyId : ''
+			let resolvedAgencyName =
+				typeof result?.agencyName === 'string' ? result.agencyName : ''
+
+			if (result?.agency && !resolvedAgencyId && customClaims?.agencyId) {
+				resolvedAgencyId = customClaims.agencyId
+				resolvedAgencyName = customClaims.agencyName || resolvedAgencyName
+			}
+
+			if (result?.agency) {
+				if (!resolvedAgencyId && refreshCustomClaims && !agencyClaimsRefreshAttempted.current) {
+					agencyClaimsRefreshAttempted.current = true
+					const next = await refreshCustomClaims()
+					resolvedAgencyId =
+						typeof next?.agencyId === 'string' ? next.agencyId : ''
+					resolvedAgencyName =
+						typeof next?.agencyName === 'string'
+							? next.agencyName
+							: resolvedAgencyName
+				}
+
+				if (resolvedAgencyId) {
+					setAgencyId(resolvedAgencyId)
+					setAgencyName(resolvedAgencyName || resolvedAgencyId)
 					setPrivilege("Agency")
-				})
-			} else if (result.admin) {
-				// Set admin privileges
+					if (!resolvedAgencyName) {
+						const agencyDoc = await getDoc(doc(db, "agency", resolvedAgencyId))
+						if (agencyDoc.exists()) {
+							setAgencyName(agencyDoc.data()?.name || resolvedAgencyId)
+						}
+					}
+					return
+				}
+
+				// Agency claim without agencyId: wait for AuthContext; do not query agencyUsers.
+				setPrivilege("Agency")
+				return
+			}
+
+			if (result?.admin) {
 				setAgencyName("AdminName")
 				setAgencyId('AdminId')
 				setPrivilege("AdminPrivilege")
@@ -135,34 +159,48 @@ const TagGraph = () => {
 	}
 
 	/**
+	 * Reads createdDate from a report doc as epoch ms.
+	 * @param {unknown} created
+	 * @returns {number|null}
+	 */
+	const createdDateToMs = (created) => {
+		if (!created) return null
+		if (typeof created.toMillis === 'function') return created.toMillis()
+		if (typeof created.seconds === 'number') {
+			return (
+				created.seconds * 1000 +
+				Math.floor((created.nanoseconds || 0) / 1e6)
+			)
+		}
+		const ms = Number(created)
+		return Number.isFinite(ms) ? ms : null
+	}
+
+	/**
 	 * Fetches and processes topic report data for visualization.
-	 * 
-	 * This function retrieves report data from Firestore, filters by user role
-	 * and time periods, and processes the data to identify trending topics.
-	 * It handles both agency-specific and system-wide data aggregation.
-	 * 
+	 *
+	 * One range query for the past 7 days, then buckets counts client-side into
+	 * yesterday / 3-day / 7-day windows (avoids topics × 3 sequential reads).
+	 *
 	 * @returns {Promise<void>} Resolves when all data is processed
-	 * @throws {Error} When data fetching or processing fails
 	 */
 	async function getTopicReports() {
 		setLoading(true)
-		const reportsList = collection(db, "reports")
-		
+		const experimentConfig = await fetchExperimentConfig()
+		const activeExperimentId = getActiveExperimentId(experimentConfig)
+
 		// Fetch topics based on user privilege
 		let tempTopics = []
 		if (privilege === 'Agency') {
-			// Retrieve agency-specific topics
 			const topicDoc = doc(db, 'tags', agencyId)
 			const topicRef = await getDoc(topicDoc)
 			tempTopics = topicRef.get('Topic')['active']
 			setTopics(tempTopics)
 		} else {
 			try {
-				// Retrieve all system-wide topics
 				const tags = await FirebaseHelper.fetchAllRecordsOfCollection('tags')
 				const allActiveTopics = tags.map((tag) => tag.Topic.active)
 				const combinedTopics = allActiveTopics.flat()
-				// Remove duplicates
 				tempTopics = [...new Set(combinedTopics)]
 				setTopics(tempTopics)
 			} catch (error) {
@@ -174,108 +212,74 @@ const TagGraph = () => {
 			setLoading(false)
 			return
 		}
-		
-		// Initialize arrays for different time periods
-		const topicsYesterday = []
-		const topicsThreeDays = []
-		const topicsSevenDays = []
 
-		// Process each topic for different time periods
-		for (let index = 0; index < tempTopics.length; index++) {
-			// Query for yesterday's reports
-			let queryYesterday
-			if (privilege === "Agency") {
-				queryYesterday = query(
-					reportsList, 
-					where("topic", "==", tempTopics[index]), 
-					where("createdDate", ">=", getStartOfDay(1)),
-					where("createdDate", "<", getEndOfDay()), 
-					where("agency", "==", agencyName)
-				)
-			} else {
-				queryYesterday = query(
-					reportsList, 
-					where("topic", "==", tempTopics[index]), 
-					where("createdDate", ">=", getStartOfDay(1)),
-					where("createdDate", "<", getEndOfDay())
-				)
-			}
-			const dataYesterday = await getDocs(queryYesterday)
-			
-			// Query for past 3 days reports
-			let queryThreeDays
-			if (privilege === "Agency") {
-				queryThreeDays = query(
-					reportsList, 
-					where("topic", "==", tempTopics[index]), 
-					where("createdDate", ">=", getStartOfDay(3)),
-					where("createdDate", "<", getEndOfDay()), 
-					where("agency", "==", agencyName)
-				)
-			} else {
-				queryThreeDays = query(
-					reportsList, 
-					where("topic", "==", tempTopics[index]), 
-					where("createdDate", ">=", getStartOfDay(3)),
-					where("createdDate", "<", getEndOfDay())
-				)
-			}
-			const dataThreeDays = await getDocs(queryThreeDays)
+		const activeTopicSet = new Set(tempTopics)
+		const agencyIdFilter = privilege === 'Agency' ? agencyId : undefined
+		const rangeFrom = getStartOfDay(7)
+		const rangeTo = getEndOfDay()
+		const yesterdayFromMs = getStartOfDay(1).toMillis()
+		const threeDaysFromMs = getStartOfDay(3).toMillis()
+		const sevenDaysFromMs = rangeFrom.toMillis()
+		const rangeToMs = rangeTo.toMillis()
 
-			// Query for past 7 days reports
-			let querySevenDays
-			if (privilege === "Agency") {
-				querySevenDays = query(
-					reportsList, 
-					where("topic", "==", tempTopics[index]), 
-					where("createdDate", ">=", getStartOfDay(7)),
-					where("createdDate", "<", getEndOfDay()), 
-					where("agency", "==", agencyName)
-				)
-			} else {
-				querySevenDays = query(
-					reportsList, 
-					where("topic", "==", tempTopics[index]), 
-					where("createdDate", ">=", getStartOfDay(7)),
-					where("createdDate", "<", getEndOfDay())
-				)
-			}
-			const dataSevenDays = await getDocs(querySevenDays)
+		const countsYesterday = new Map()
+		const countsThreeDays = new Map()
+		const countsSevenDays = new Map()
 
-			// Add topics with reports to respective arrays
-			if (dataYesterday.size !== 0) {
-				topicsYesterday.push([tempTopics[index], dataYesterday.size])
-			}
-			if (dataThreeDays.size !== 0) {
-				topicsThreeDays.push([tempTopics[index], dataThreeDays.size])
-			}
-			if (dataSevenDays.size !== 0) {
-				topicsSevenDays.push([tempTopics[index], dataSevenDays.size])
-			}
+		const bump = (map, topic) => {
+			map.set(topic, (map.get(topic) || 0) + 1)
 		}
-		
+
+		try {
+			const rangeQuery = buildActiveReportsQuery({
+				dateFrom: rangeFrom,
+				dateTo: rangeTo,
+				agencyId: agencyIdFilter,
+				activeExperimentId,
+			})
+			const snapshot = await getDocs(rangeQuery)
+
+			for (const reportDoc of snapshot.docs) {
+				const data = reportDoc.data()
+				const topic = data?.topic
+				if (!topic || !activeTopicSet.has(topic)) continue
+
+				const ms = createdDateToMs(data?.createdDate)
+				if (ms === null || ms < sevenDaysFromMs || ms >= rangeToMs) continue
+
+				bump(countsSevenDays, topic)
+				if (ms >= threeDaysFromMs) bump(countsThreeDays, topic)
+				if (ms >= yesterdayFromMs) bump(countsYesterday, topic)
+			}
+		} catch (error) {
+			console.error('Overview graph range query failed:', error)
+		}
+
+		const toPairs = (map) =>
+			[...map.entries()].filter(([, count]) => count > 0)
+
+		const topicsYesterday = toPairs(countsYesterday)
+		const topicsThreeDays = toPairs(countsThreeDays)
+		const topicsSevenDays = toPairs(countsSevenDays)
+
 		// Determine number of trending topics to display (max 3)
-		const numTopics = []
-		const numTopicsYesterday = topicsYesterday.length > 2 ? 3 : topicsYesterday.length
-		numTopics.push(numTopicsYesterday)
-		const numTopicsThreeDays = topicsThreeDays.length > 2 ? 3 : topicsThreeDays.length
-		numTopics.push(numTopicsThreeDays)
-		const numTopicsSevenDays = topicsSevenDays.length > 2 ? 3 : topicsSevenDays.length
-		numTopics.push(numTopicsSevenDays)
-		
+		const numTopics = [
+			topicsYesterday.length > 2 ? 3 : topicsYesterday.length,
+			topicsThreeDays.length > 2 ? 3 : topicsThreeDays.length,
+			topicsSevenDays.length > 2 ? 3 : topicsSevenDays.length,
+		]
+
 		setNumTrendingTopics(numTopics)
-		
-		// Sort topics by report count (descending) and limit to top 3
+
 		const sortedYesterday = [...topicsYesterday].sort((a, b) => b[1] - a[1]).slice(0, numTopics[0])
 		const sortedThreeDays = [...topicsThreeDays].sort((a, b) => b[1] - a[1]).slice(0, numTopics[1])
 		const sortedSevenDays = [...topicsSevenDays].sort((a, b) => b[1] - a[1]).slice(0, numTopics[2])
-		
-		// Prepare data for visualization with header row
+
 		const trendingTopics = [["Topics", "Number Reports"]]
 		setYesterdayReports(trendingTopics.concat(sortedYesterday))
 		setThreeDayReports(trendingTopics.concat(sortedThreeDays))
 		setSevenDayReports(trendingTopics.concat(sortedSevenDays))
-		
+
 		setLoaded(true)
 		setLoading(false)
 	}
@@ -285,16 +289,17 @@ const TagGraph = () => {
 	 */
 	useEffect(() => {
 		setRole()
-	}, [])
+	}, [customClaims?.agencyId, customClaims?.agencyName])
 
 	/**
 	 * Effect hook to trigger data fetching after role verification.
 	 */
 	useEffect(() => {
-		if (privilege) {
-			setCheckRole(true)
-		}
-	}, [agencyName, privilege])
+		if (!privilege) return
+		// Agency users need agencyId before scoped tags/reports queries
+		if (privilege === 'Agency' && !agencyId) return
+		setCheckRole(true)
+	}, [agencyId, privilege])
 
 	/**
 	 * Effect hook to fetch topic reports after role verification.
@@ -319,10 +324,7 @@ const TagGraph = () => {
 	}, [loading])
 	
 	return (
-		<div className="w-full">
-			{/* View toggle controls */}
-			<Toggle viewVal={viewVal} setViewVal={setViewVal} />
-			
+		<div data-component="TagGraph" className="w-full">
 			{/* Loading state */}
 			{loading ? (
 				<div className='flex items-center justify-center p-5'>

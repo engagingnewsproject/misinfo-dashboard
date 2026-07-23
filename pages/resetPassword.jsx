@@ -25,6 +25,7 @@ import Link from 'next/link'
 import Image from "next/image"
 import { useAuth } from '../context/AuthContext'
 import Head from 'next/head'
+import FormInput from '../components/ui/FormInput'
 
 /**
  * ResetPassword Page
@@ -79,7 +80,7 @@ const ResetPassword = () => {
 				<title>Reset Password | Truth Sleuth Local</title>
 			</Head>
 
-			<div className="w-screen h-screen flex justify-center items-center">
+			<div data-component="resetPassword" className="w-screen h-screen flex justify-center items-center">
 				<div className="w-full max-w-sm font-light">
 					<div className="grid justify-items-center mb-4">
 						<Image
@@ -99,11 +100,10 @@ const ResetPassword = () => {
 						onSubmit={handleReset}>
 						{!emailSent && (
 							<div className="mb-4">
-								<input
-									className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+								<FormInput
 									id="email"
-									type="text"
-									placeholder="Email"
+									type="email"
+									label="Email"
 									required
 									value={email}
 									onChange={handleChange}
@@ -128,7 +128,7 @@ const ResetPassword = () => {
 						Already have an account?
 						<Link
 							href="/login"
-							className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+							className="inline-block px-2 align-baseline font-bold text-sm text-[#2E3B4E] hover:text-blue-800">
 							Log In
 						</Link>
 					</p>

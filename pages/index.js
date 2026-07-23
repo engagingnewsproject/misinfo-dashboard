@@ -30,7 +30,7 @@ export default function Home() {
 	 */
 
 	return (
-		<div className="w-screen h-screen flex justify-center items-center">
+		<div data-component="index" className="w-screen h-screen flex justify-center items-center">
 			<Spinner color="blue" />
 		</div>
 	)

@@ -1,242 +1,195 @@
-// components/LocationUpdate.js
-import React, { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../../../config/firebase';
-import { useTranslation } from 'next-i18next';
-import Select from 'react-select';
-import { State, City } from 'country-state-city';
-import { Button } from '@material-tailwind/react';
+/**
+ * @fileoverview User location update for the profile page.
+ *
+ * Loads/saves the signed-in user's city and state on mobileUsers, using
+ * the shared LocationField UI so it matches Agency Settings.
+ */
+import React, { useState, useEffect } from 'react'
+import { doc, getDoc, updateDoc } from 'firebase/firestore'
+import { db } from '../../../config/firebase'
+import { useTranslation } from 'next-i18next'
+import LocationField from './LocationField'
 
-const LocationUpdate = ({ user, userData, setUserData }) => {
-  const { t } = useTranslation('Profile');
+/**
+ * Manages user location edit state and Firestore persistence.
+ *
+ * @param {Object} props
+ * @param {Object} props.user - Auth user with accountId
+ * @param {Object|null} props.userData - Current mobileUsers profile
+ * @param {(data: Object|null) => void} props.setUserData
+ * @param {boolean} [props.isEditing] - When set, section owns edit mode
+ * @param {boolean} [props.showFieldActions=true] - Show per-field Edit/Cancel/Save
+ * @param {React.MutableRefObject<(() => Promise<boolean>)|null>} [props.saveRef]
+ * @returns {JSX.Element}
+ */
+const LocationUpdate = ({
+  user,
+  userData,
+  setUserData,
+  isEditing: isEditingProp,
+  showFieldActions = true,
+  saveRef,
+}) => {
+  const { t } = useTranslation('Profile')
+  const isControlled = isEditingProp !== undefined
 
-  // USER LOCATION
-  const [userLocation, setUserLocation] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [showUserMessage, setShowUserMessage] = useState(false);
-  const [update, setUpdate] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [userLocation, setUserLocation] = useState(null)
+  const [showForm, setShowForm] = useState(false)
+  const [showUserMessage, setShowUserMessage] = useState(false)
+  const [update, setUpdate] = useState(false)
+  const [errors, setErrors] = useState({})
 
-  // GET DATA
-  // Needs to be defined before any useEffect hooks
+  const isEditing = isControlled ? isEditingProp : showForm
+
+  const seedFromUserData = () => {
+    setUserLocation({
+      state: userData?.state ?? null,
+      city: userData?.city ?? null,
+    })
+  }
+
   const getData = async () => {
     try {
-      // Fetch mobile user data
-      const mobileRef = await getDoc(doc(db, 'mobileUsers', user.accountId));
-      // Update state after fetching data
-      setUserData(mobileRef.data());
-      // not really needed, we can extract what we need from above line (TODO)
-      setUserLocation({ state: userData?.state, city: userData?.city });
+      const mobileRef = await getDoc(doc(db, 'mobileUsers', user.accountId))
+      const data = mobileRef.data()
+      setUserData(data)
+      setUserLocation({
+        state: data?.state,
+        city: data?.city,
+      })
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching data:', error)
     }
-  };
+  }
 
   const handleSubmit = async (e) => {
-    // LOCATION CHANGE FOR USERS
-    e.preventDefault(); // prevents the page from refreshing
+    e?.preventDefault?.()
 
-    const allErrors = {};
-    // error logging
-    if (!userLocation?.state) {
-      console.log('state error');
-      allErrors.userState = 'Please enter a state.';
-    } else if (!userLocation?.city) {
-      console.log('city error');
-      allErrors.userCity = 'Please enter a city.';
-    } else {
-      try {
-        // where we update the firestore data
-        setUserData({
-          state: userLocation.state,
-          city: userLocation.city,
-        });
-        setUpdate(!update);
-        // Update Firestore data
-        const userDoc = doc(db, 'mobileUsers', user.accountId);
-        await updateDoc(userDoc, {
-          state: userLocation?.state,
-          city: userLocation?.city,
-        });
-        // Set state or do any necessary actions after successfully updating Firestore
-      } catch (error) {
-        console.error('Error updating user location:', error);
+    // Nothing selected and nothing saved yet — allow Done without writing
+    if (!userLocation?.state && !userLocation?.city) {
+      if (!userData?.state && !userData?.city) {
+        setErrors({})
+        return true
       }
     }
-    // set all errors
-    getData();
-    setErrors(allErrors);
-  };
 
-  const handleUserClickLocationChange = () => {
-    // handle when a user clicks the "Change Location" button
-    setShowForm(!showForm);
-    setUserLocation(null);
-  };
+    const allErrors = {}
+    if (!userLocation?.state) {
+      allErrors.state = 'Please enter a state.'
+    } else if (!userLocation?.city) {
+      allErrors.city = 'Please enter a city.'
+    }
 
-  const handleUserStateChange = (e) => {
-    // setShowUserMessage(false);
-    setUserLocation((data) => ({ ...data, state: e, city: null }));
-  };
+    if (Object.keys(allErrors).length > 0) {
+      setErrors(allErrors)
+      return false
+    }
 
-  const handleUserCityChange = (e) => {
-    // setShowUserMessage(false);
-    setUserLocation((data) => ({ ...data, city: e !== null ? e : null }));
-  };
+    try {
+      setUserData({
+        state: userLocation.state,
+        city: userLocation.city,
+      })
+      setUpdate((prev) => !prev)
+      const userDoc = doc(db, 'mobileUsers', user.accountId)
+      await updateDoc(userDoc, {
+        state: userLocation?.state,
+        city: userLocation?.city,
+      })
+      await getData()
+      setErrors({})
+      return true
+    } catch (error) {
+      console.error('Error updating user location:', error)
+      return false
+    }
+  }
 
-  const handleUserLocationReset = () => {
-    // handle location reset, delete changes for general users
-    setShowForm(false);
-    // setShowUserMessage(false);
-    getData(); // fetch data again
-    // reset to default firestore values
-    setUserLocation({ state: userData?.state, city: userData?.city });
-  };
+  useEffect(() => {
+    if (saveRef) {
+      saveRef.current = handleSubmit
+      return () => {
+        saveRef.current = null
+      }
+    }
+  })
 
-  // When user location updated we can set the user location change to false and it will close the form block
+  useEffect(() => {
+    if (!isControlled) return
+    if (isEditingProp) {
+      seedFromUserData()
+      setErrors({})
+    } else {
+      seedFromUserData()
+      setErrors({})
+    }
+  }, [isEditingProp])
+
+  const handleToggleEdit = (e) => {
+    e?.preventDefault?.()
+    if (showForm) {
+      setShowForm(false)
+      setErrors({})
+      seedFromUserData()
+      return
+    }
+    setShowForm(true)
+    seedFromUserData()
+  }
+
+  const handleUserStateChange = (state) => {
+    setUserLocation((data) => ({ ...data, state, city: null }))
+  }
+
+  const handleUserCityChange = (city) => {
+    setUserLocation((data) => ({
+      ...data,
+      city: city !== null ? city : null,
+    }))
+  }
 
   useEffect(() => {
     if (update) {
-      setShowUserMessage(true);
-      setShowForm(false);
+      setShowUserMessage(true)
+      if (!isControlled) setShowForm(false)
     }
     return () => {
       setTimeout(() => {
-        setShowUserMessage(false);
-      }, 3000);
-    };
-  }, [update]);
+        setShowUserMessage(false)
+      }, 3000)
+    }
+  }, [update, isControlled])
 
-  const style = {
-    sectionContainer: 'w-full h-full flex flex-col mb-5 overflow-visible',
-    sectionWrapper: 'flex flex-col',
-    button:
-      'bg-blue-600 col-start-3 self-end hover:bg-blue-700 text-sm text-white font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline',
-    buttonHollow:
-      'bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 border border-blue-600 rounded-xl',
-    input:
-      'text-md font-light bg-white rounded-xl p-4 border-none w-full focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none resize-none',
-    inputSelect:
-      'border-gray-300 col-span-1 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
-    buttonCancel:
-      ' col-start-3 border-solid border-red-500 self-end hover:bg-blue-700 text-sm text-red-500 font-semibold py-2 px-6 rounded-md focus:outline-none focus:shadow-outline',
-    fileUploadButton:
-      'block flex flex-col text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold  file:bg-sky-100 file:text-blue-500 hover:file:bg-blue-100 file:cursor-pointer',
-  };
+  const cityName = userData?.city?.name || ''
+  const stateName = userData?.state?.name || ''
 
   return (
-    <div className='m-6'>
-      <div className="text-xl font-extrabold text-blue-600">
-        {t('editLocation')}
-      </div>
-      {/* List the user's location information */}
-      <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
-        <div className="font-light">{t('city')}</div>
-        {/* check if user data has a value */}
-        {userData && userData.city && (
-          <div className="font-light">{userData.city.name}</div>
-        )}
-      </div>
-      <div className="flex justify-between mx-0 md:mx-6 my-6 tracking-normal items-center">
-        <div className="font-light">{t('state')}</div>
-        {userData && userData.state && (
-          <div className="font-light">{userData.state.name}</div>
-        )}
-      </div>
-      {/* show/hide change location fields */}
-      <>
-        <form
-          onSubmit={handleSubmit}
-          className={`${
-            showForm ? 'flex' : 'hidden'
-          } sm:mx-6 flex-col lg:flex-row lg:flex-auto gap-4`}>
-          {/* Need to wrap any form elements in a form tag */}
-          <div className="flex flex-col sm:flex-row lg:flex-auto lg:justify-end">
-            {/* These could be changed to the tailwindcss material design select elements */}
-            <Select
-              className="mb-2 sm:mb-0 lg:max-w-52 border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="state"
-              type="text"
-              placeholder={t('NewReport:state_text')}
-              value={userLocation?.state}
-              options={State.getStatesOfCountry('US')}
-              getOptionLabel={(options) => {
-                return options['name'];
-              }}
-              getOptionValue={(options) => {
-                return options['name'];
-              }}
-              label="state"
-              onChange={handleUserStateChange}
-            />
-            <Select
-              className="sm:pl-2 lg:max-w-52 border-white rounded-md w-full text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="city"
-              type="text"
-              placeholder={t('NewReport:city_text')}
-              value={userLocation?.city}
-              options={City.getCitiesOfState(
-                userLocation?.state?.countryCode,
-                userLocation?.state?.isoCode
-              )}
-              getOptionLabel={(options) => {
-                return options['name'];
-              }}
-              getOptionValue={(options) => {
-                return options['name'];
-              }}
-              onChange={handleUserCityChange}
-            />
-          </div>
-          <div className="flex flex-col md:flex-row md:items-start md:flex-none gap-2">
-            <Button
-              onClick={handleUserLocationReset}
-              color="blue"
-              fullWidth
-              className="text-white"
-              type="reset">
-              {t('cancelChanges')}
-            </Button>
-            <Button
-              color="blue"
-              fullWidth
-              className="text-white"
-              type="submit">
-              {t('updateLocation')}
-            </Button>
-          </div>
-        </form>
-        {/* Change location button */}
-        <div className="flex justify-end mx-0 md:mx-6 my-6 tracking-normal items-center">
-          {showUserMessage && (
-            <p className="text-green-800 transition-opacity opacity-100 mr-4">
-              {t('location')}
-            </p>
-          )}
-          {/* Error output */}
-          {errors.userState && !userLocation?.state && (
-            <div className="flex justify-center mr-4">
-              <span className="text-red-500">{errors.userState}</span>
-            </div>
-          )}
-          {errors.userCity && !userLocation?.city && (
-            <div className="flex justify-center mr-4">
-              <span className="text-red-500">{errors.userCity}</span>
-            </div>
-          )}
-          {/* if form is not visible show this button */}
-          {!showForm && (
-            <Button
-              variant="outlined"
-              color='blue'
-              onClick={() => handleUserClickLocationChange()}>
-              {t('changeLocation')}
-            </Button>
-          )}
-        </div>
-      </>
+    <div data-component="LocationUpdate" className="contents">
+      <LocationField
+        idPrefix="user"
+        label={t('editLocation')}
+        isEditing={isEditing}
+        displayValue={
+          cityName || stateName ? `${cityName}, ${stateName}` : ''
+        }
+        country="US"
+        stateValue={userLocation?.state ?? null}
+        cityValue={userLocation?.city ?? null}
+        errors={errors}
+        onToggleEdit={handleToggleEdit}
+        onStateChange={handleUserStateChange}
+        onCityChange={handleUserCityChange}
+        stateLabel={t('NewReport:state_text')}
+        cityLabel={t('NewReport:city_text')}
+        cancelLabel={t('cancelChanges')}
+        showEditButton={showFieldActions}
+        showCancelButton={showFieldActions}
+        onSave={showFieldActions ? handleSubmit : undefined}
+        saveLabel={t('updateLocation')}
+        successMessage={showUserMessage ? t('location') : null}
+      />
     </div>
-  );
-};
+  )
+}
 
-export default LocationUpdate;
+export default LocationUpdate

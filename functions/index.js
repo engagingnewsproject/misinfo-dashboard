@@ -16,7 +16,9 @@
  */
 
 require("dotenv").config();
-const functions = require("firebase-functions");
+// firebase-functions v7+ default export is v2; this codebase uses v1 APIs
+// (firestore.document, https.onCall, HttpsError).
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const {defineSecret} = require("firebase-functions/params");
 // All available logging functions
@@ -127,9 +129,10 @@ const postToSlack = async (
  * @example
  * // Triggered automatically when a new help request is created
  */
-exports.notifySlackOnNewHelpRequest = functions.firestore
-    .document("helpRequests/{requestId}")
-    .onCreate( async (snap) => {
+exports.notifySlackOnNewHelpRequest = functions
+    .runWith({secrets: [slackWebhook]})
+    .firestore.document("helpRequests/{requestId}")
+    .onCreate(async (snap) => {
       const newRequest = snap.data();
       const userID = newRequest.userID || "unknown user";
       let userName = "Unknown";
@@ -159,9 +162,9 @@ exports.notifySlackOnNewHelpRequest = functions.firestore
         newRequest.images[0] :
         "https://placehold.co/600x400";
 
-      // Access the secret and use it in the function
-      const slackHook = slackWebhook.value(); // Fetch the secret value
-      log(slackHook);
+      // Secret is mounted at runtime; runWith({ secrets }) grants the
+      // default compute SA secretAccessor on this secret during deploy.
+      const slackHook = slackWebhook.value();
       // Post the message to Slack using the Secret Webhook URL
       await postToSlack(
           userID,
@@ -241,81 +244,52 @@ exports.addAdminRole = functions.https.onCall((data, context) => {
   });
 });
 
+const agencyClaims = require("./agency-claims");
+
 /**
- * HTTP callable function to grant agency privileges to a user.
- * 
- * This function adds the 'agency' custom claim to a user, granting them
- * agency-level privileges for managing reports and content within their
- * assigned agency scope.
- * 
- * @param {Object} data - Function parameters
- * @param {string} data.email - The email address of the user to promote
- * @param {Object} context - Firebase function context
- * @returns {Promise<Object>} Success message or error
- * @throws {Error} When user lookup or claim update fails
+ * Grant agency privileges and stamp `agencyId` / `agencyName` on the Auth token.
+ * Optional `agencyId` lets admin promote before the email is in agencyUsers.
+ *
  * @example
- * const result = await addAgencyRole({ email: 'agency@example.com' });
+ * await addAgencyRole({ email: 'agency@example.com', agencyId: 'abc123' });
  */
-exports.addAgencyRole = functions.https.onCall(
-    (data, context) => {
-      // Validate email input before attempting to update auth
-      const email = typeof data?.email === "string" ? data.email.trim() : "";
-      if (!email) {
-        log("addAgencyRole skipped: email not provided");
-        return {
-          message: "No email provided. Skipping agency role assignment.",
-        };
-      }
+exports.addAgencyRole = agencyClaims.addAgencyRole;
 
-      // get user and add custom claim to user
-      return admin.auth().getUserByEmail(email).then((user) => {
-        // Once user object is retrieved, updates custom claim
-        return admin.auth().setCustomUserClaims(user.uid, {agency: true});
-
-        // callback for frontend if success
-      }).then(() => {
-        return {
-          message: `Success! ${email} has been made an agency admin`,
-        };
-
-        // callback if there is an error
-      }).catch((err) => {
-        return err;
-      });
-    });
+/**
+ * Admin-only: re-stamp agencyId/agencyName for every email in agencyUsers.
+ *
+ * @example
+ * await backfillAgencyClaims({ dryRun: true });
+ */
+exports.backfillAgencyClaims = agencyClaims.backfillAgencyClaims;
 
 /**
  * HTTP callable function to view a user's current role claims.
- * 
- * This function verifies an ID token and returns the user's current
- * custom claims, showing whether they have admin or agency privileges.
- * 
+ *
  * @param {Object} data - Function parameters
  * @param {string} data.id - The ID token to verify
- * @param {Object} context - Firebase function context
- * @returns {Promise<Object>} User's role claims
- * @throws {Error} When token verification fails
- * @example
- * const claims = await viewRole({ id: 'user-id-token' });
+ * @returns {Promise<Object>} User's role claims (admin/agency + agencyId when set)
  */
 exports.viewRole = functions.https.onCall((data, context) => {
-  // get user and add custom claim to user
   return admin
       .auth()
       .verifyIdToken(data.id)
       .then((decodedToken) => {
-        const claims = decodedToken.customClaims;
-        console.log(claims);
-        if (claims["admin"]) {
+        const claims = decodedToken;
+        if (claims.admin) {
           return {admin: true};
-        } else if (claims["agency"]) {
-          return {agency: true};
-        } else {
+        }
+        if (claims.agency) {
           return {
-            admin: false,
-            agency: false,
+            agency: true,
+            agencyId: claims.agencyId || null,
+            agencyName: claims.agencyName || null,
           };
         }
+        return {
+          admin: false,
+          agency: false,
+        };
       })
       .catch((error) => {
         console.log(error.code, error.message);
@@ -459,6 +433,16 @@ exports.getUserRecord = functions.https.onCall(async (data, context) => {
     );
   }
 });
+
+const experimentFunctions = require("./experiment");
+
+exports.setActiveExperiment = experimentFunctions.setActiveExperiment;
+exports.addExperiment = experimentFunctions.addExperiment;
+exports.backfillReportExperimentFields =
+  experimentFunctions.backfillReportExperimentFields;
+exports.previewBulkArchive = experimentFunctions.previewBulkArchive;
+exports.bulkArchiveReports = experimentFunctions.bulkArchiveReports;
+exports.getExperimentMetrics = experimentFunctions.getExperimentMetrics;
 
 exports.authGetUserList = functions.https.onCall(async (data, context) => {
   // Ensure that the user is authenticated

@@ -15,8 +15,8 @@
  * @version 1.0.0
  * @since 2024
  */
-import { roundToNearestMinutes } from 'date-fns/fp'
 import React from 'react'
+import { Button } from '@material-tailwind/react'
 
 /**
  * Toggle Component
@@ -27,36 +27,30 @@ import React from 'react'
  * @param {Object} props
  * @param {string} props.viewVal - The current view ("overview" or "comparison")
  * @param {Function} props.setViewVal - Setter function to update the view
+ * @param {string} [props.className] - Optional extra classes on the wrapper
  * @returns {JSX.Element} The rendered toggle UI
  */
-const Toggle = ({ viewVal, setViewVal }) => {   
-    
-    /**
-     * handleViewChanged - Handles button click to change the dashboard view.
-     * @param {Object} e - The click event object
-     */
-    const handleViewChanged = (e) => {
-        setViewVal(e.target.id)
-    }
-    
-    // Style settings used for the button that is active and the nonactive button 
-    const active = "bg-blue-600 text-white py-2 px-5 drop-shadow-lg text-sm font-light tracking-wide"
-    const rounded_right = " rounded-tr-lg rounded-br-lg"
-    const rounded_left = " rounded-tl-lg rounded-bl-lg"
-    const nonactive = "bg-white py-2 px-5 drop-shadow-lg text-sm font-light tracking-wide"
-    return (
-    <div className='flex justify-center md:block'>
-        <button id="overview"
-            onClick={handleViewChanged} 
-            className ={viewVal == "overview" ? active + rounded_left: nonactive + rounded_left}>
-            Overview
-        </button>
-        <button id="comparison"
-            onClick={handleViewChanged} 
-            className = {viewVal == "comparison" ? active + rounded_right : nonactive + rounded_right}>
-            Comparison View 
-        </button>
-    </div>
-    )
-}
+const Toggle = ({ viewVal, setViewVal, className = '' }) => (
+	<div
+		data-component="Toggle"
+		className={`flex justify-center md:justify-end ${className}`.trim()}>
+		<Button
+			id="overview"
+			size="sm"
+			variant={viewVal === 'overview' ? 'filled' : 'outlined'}
+			className="rounded-r-none"
+			onClick={() => setViewVal('overview')}>
+			Overview
+		</Button>
+		<Button
+			id="comparison"
+			size="sm"
+			variant={viewVal === 'comparison' ? 'filled' : 'outlined'}
+			className="rounded-l-none border-l-0"
+			onClick={() => setViewVal('comparison')}>
+			Comparison View
+		</Button>
+	</div>
+)
+
 export default Toggle

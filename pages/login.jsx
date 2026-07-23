@@ -7,7 +7,7 @@
  * - Email verification and resend logic
  * - Error handling and loading state
  * - Integration with next-i18next for translations
- * - Privacy policy modal and language switcher
+ * - Privacy policy link (public page) and language switcher
  *
  * Integrates with:
  * - AuthContext for authentication and role management
@@ -24,7 +24,6 @@ import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
-import { analytics } from '../config/firebase'
 import { db, auth } from '../config/firebase'
 import LanguageSwitcher from '../components/layout/LanguageSwitcher'
 import { useTranslation } from 'next-i18next';
@@ -33,16 +32,20 @@ import { MdOutlineRemoveRedEye } from "react-icons/md"; // <MdOutlineRemoveRedEy
 import {
 	collection,
 	getDocs,
-	getDoc,
 	query,
 	where,
-	updateDoc,
-	doc,
 } from "firebase/firestore"
 import { GiMagnifyingGlass } from "react-icons/gi";
 import Head from 'next/head';
-import { Typography } from '@material-tailwind/react'
-import PrivacyPolicyModal from '../components/modals/PrivacyPolicyModal'
+import { Button, Typography } from '@material-tailwind/react'
+import FormInput from '../components/ui/FormInput'
+
+// Dev-only UI: conditional require so production client bundles can tree-shake it away.
+const DevLoginShortcuts =
+	process.env.NODE_ENV === 'development'
+		? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+			require('../components/dev/DevLoginShortcuts').default
+		: null
 
 /**
  * Login Page
@@ -56,21 +59,17 @@ const Login = () => {
 
   const { t } = useTranslation('Welcome');
 
-  const { user, login, verifyEmail, addAgencyRole } = useAuth()
+  const { user, login, verifyEmail, addAgencyRole, refreshCustomClaims } = useAuth()
   const [data, setData] = useState({
     email: '',
     password: '',
   })
   const [error, setError] = useState(null)
-  const [errorMessage, setErrorMessage] = useState()
   const [loading, setLoading] = useState(false)
-	const [showModal, setShowModal] = useState(false)
-	const openModal = () => setShowModal(true)
-	const closeModal = () => setShowModal(false)
 	// password show/hide
-  const [password, setPassword] = useState("")
   const [type, setType] = useState('password')
   const [icon, setIcon] = useState(false)
+
   // handle the toggle between the hide password (eyeOff icon) and the show password (eye icon)
   const handleTogglePass = () => {
     if (type==='password'){
@@ -88,70 +87,87 @@ const Login = () => {
     router.prefetch('/dashboard')
   }, [router])
 
-  const handleLogin = async (e) => {
-    e.preventDefault()
-    setLoading(true) // Set loading state to true during login process
-    try {
-      await login(data.email, data.password)
-      // Login successful, check if email is verified
-      if (auth.currentUser?.emailVerified) {
-        const idTokenResult = await auth.currentUser.getIdTokenResult()
-        // console.log("Claims:", idTokenResult.claims)
-        
-        const dbInstance = collection(db, 'agency');
-        const q = query(dbInstance, where("agencyUsers", "array-contains", data.email));
-        const querySnapshot = await getDocs(q)
+	/**
+	 * Sign in and role-based redirect. Shared by the form and local-dev shortcuts.
+	 * @param {string} email
+	 * @param {string} password
+	 */
+	const signInAndRedirect = async (email, password) => {
+		await login(email, password)
+		if (auth.currentUser?.emailVerified) {
+			const idTokenResult = await auth.currentUser.getIdTokenResult(true)
 
-        // adds agency role to current user if their email is in an agency users array
-        if (!querySnapshot.empty && !idTokenResult.claims.agency) {
-          await addAgencyRole({ email: data.email })
-					console.log(`${ data.email } has been made an agency user`)
-        }
-        
-        // Redirect user based on their role
-        if (idTokenResult.claims.admin || idTokenResult.claims.agency) {
+			// Agency/admin users must not run a collection-wide agencyUsers query:
+			// new rules only allow reading their own agency doc (or all for admin).
+			// Prefer token claims; only probe membership when the user has no agency claim yet.
+			if (!idTokenResult.claims.admin && !idTokenResult.claims.agency) {
+				const dbInstance = collection(db, 'agency')
+				const q = query(
+					dbInstance,
+					where('agencyUsers', 'array-contains', email),
+				)
+				const querySnapshot = await getDocs(q)
 
-          // console.log("Redirecting to dashboard...")
-          await router.push("/dashboard")
-        } else {
-          // console.log("Redirecting to report page...")
-          await router.push("/report")
-        }
-      } else {
-        // Email not verified, send verification email and redirect
-        // console.log("Email not verified. Sending verification email...")
-        await verifyEmail(auth.currentUser)
-        const isLocalhost = window.location.hostname === 'localhost';
-        const verifyEmailRoute = isLocalhost ? "http://localhost:3000/verifyEmail" : "/verifyEmail";
+				if (!querySnapshot.empty) {
+					const agencyId = querySnapshot.docs[0].id
+					await addAgencyRole({ email, agencyId })
+					await refreshCustomClaims()
+					console.log(`${email} has been made an agency user`)
+					await router.push('/dashboard')
+					return
+				}
 
-        await router.push(verifyEmailRoute);
-      }
+				await router.push('/report')
+				return
+			}
 
-    } catch (error) {
-      // Login error occurred, handle and display it
-      // console.error("Login error:", error)
-      if (error.code === "auth/user-not-found") {
-        setError(t("not_found"))
-      } else if (error.code === "auth/wrong-password") {
-        setError(t("incorrect"))
-      } else {
-        console.log(error)
-        setError(t("error"))
-      }
-    }
-    setLoading(false)
-  }
+			await router.push('/dashboard')
+		} else {
+			await verifyEmail(auth.currentUser)
+			await router.push('/verifyEmail')
+		}
+	}
+
+	const mapLoginError = (err) => {
+		if (err.code === 'auth/user-not-found') {
+			setError(t('not_found'))
+		} else if (err.code === 'auth/wrong-password') {
+			setError(t('incorrect'))
+		} else if (err.code === 'auth/network-request-failed') {
+			setError(
+				process.env.NEXT_PUBLIC_USE_EMULATORS === 'true'
+					? t('login_network_emulator')
+					: t('login_network_live'),
+			)
+		} else {
+			console.log(err)
+			setError(err?.message || t('error'))
+		}
+	}
+
+	const completeLogin = async (email, password) => {
+		setLoading(true)
+		setError(null)
+		try {
+			await signInAndRedirect(email, password)
+		} catch (err) {
+			mapLoginError(err)
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	const handleLogin = async (e) => {
+		e.preventDefault()
+		await completeLogin(data.email, data.password)
+	}
 
   const handleChange = (e) => {
-    // console.log("Before state update:", data); // Log state before update
-    setPassword(e.target.value)
-    // setData({ ...data, [e.target.id]: e.target.value})
-    const { id, value } = e.target;
-    setData(prevData => ({
+    const { id, value } = e.target
+    setData((prevData) => ({
       ...prevData,
-      [id]: value
-    }));
-    // console.log("After state update:", data); // Log state after update
+      [id]: value,
+    }))
   }
 
 
@@ -160,112 +176,115 @@ const Login = () => {
 			<Head>
 				<title>Login | Truth Sleuth Local</title>
 			</Head>
-			<div className="w-screen h-screen overflow-auto flex justify-center items-start py-12 pb-8">
-				<div className="w-full max-w-sm font-light">
+			<div data-component="login" className="w-screen h-screen overflow-auto flex justify-center items-start py-12 pb-8">
+				<div className="w-full max-w-md font-light bg-white rounded-md p-6">
 					<div className="flex flex-col items-center justify-center h-auto mb-2">
 						<div className="bg-blue-600 p-7 rounded-full mb-2">
 							<GiMagnifyingGlass size={30} className="fill-white" />
 						</div>
-						<Typography variant="small" className='text-xs font-semibold text-blue-600'>Truth Sleuth Local</Typography>
+						<Typography variant="small" className='text-xs font-semibold text-[#2E3B4E]'>Truth Sleuth Local</Typography>
 					</div>
+					{process.env.NEXT_PUBLIC_USE_EMULATORS === 'true' && (
+						<div
+							className="mx-8 mb-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs text-amber-950"
+							role="status">
+							{t('emulator_mode_banner')}
+						</div>
+					)}
 					<form className="px-8 pt-6 pb-4 mb-4" onSubmit={handleLogin}>
 						<div className="mb-4">
-							<input
-								className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+							<FormInput
 								id="email"
 								type="text"
-								placeholder={t('email')}
+								label={t('email')}
 								required
 								value={data.email}
 								onChange={handleChange}
 								autoComplete="username"
 							/>
 						</div>
-						<div className="mb-1 flex">
-							<input
-								className="shadow border-white rounded-md w-full py-3 px-3 text-sm text-gray-700 mb-1 leading-tight focus:outline-none focus:shadow-outline"
+						<div className="mb-1">
+							<FormInput
 								id="password"
 								type={type}
 								name="password"
-								placeholder={t('password')}
+								label={t('password')}
 								required
 								value={data.password}
 								onChange={handleChange}
 								autoComplete="current-password"
+								icon={
+									<button
+										type="button"
+										className="cursor-pointer"
+										onClick={handleTogglePass}
+										aria-label="Toggle password visibility">
+										<MdOutlineRemoveRedEye />
+									</button>
+								}
 							/>
-							<span
-								className="flex justify-around items-center"
-								onClick={handleTogglePass}>
-								<MdOutlineRemoveRedEye className="absolute mr-10" />
-							</span>
 						</div>
 						{error && (
 							<span className="text-red-500 text-sm font-light">{error}</span>
 						)}
 						<div className="mt-5 flex-col items-center content-center">
-							<button
-								className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-4 px-6 rounded focus:outline-none focus:shadow-outline"
-								type="submit">
-								{loading ? (
-									<svg
-										aria-hidden="true"
-										className="m-auto h-4 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
-										viewBox="0 0 100 101"
-										fill="none"
-										xmlns="http://www.w3.org/2000/svg">
-										<path
-											d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-											fill="currentColor"
-										/>
-										<path
-											d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-											fill="currentFill"
-										/>
-									</svg>
-								) : (
-									t('loginButton')
-								)}
-							</button>
-							<div className="flex items-center justify-between">
+							<Button type="submit" fullWidth loading={loading}>
+								{t('loginButton')}
+							</Button>
+							<div className="flex items-center justify-between mt-4">
 								<div className="content-center">
 									<input
 										type="checkbox"
 										name="remember-me"
-										className="form-checkbox rounded-sm border-transparent focus:border-transparent focus:ring-0"
-										onChange={handleChange}
+										id="remember-me"
+										className="form-checkbox rounded-sm border-gray-400 text-[#2E3B4E] focus:ring-[#2E3B4E]"
 									/>
-									<span className="text-sm p-2">{t('remember')}</span>
+									<label htmlFor="remember-me" className="text-sm p-2">
+										{t('remember')}
+									</label>
 								</div>
 								<Link
 									href="/resetPassword"
-									className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+									className="inline-block align-baseline font-bold text-sm text-[#2E3B4E] hover:text-blue-800">
 									{t('forgot')}
 								</Link>
 							</div>
 						</div>
 					</form>
+					{DevLoginShortcuts && (
+						<DevLoginShortcuts
+							loading={loading}
+							setLoading={setLoading}
+							setEmailHint={(email) =>
+								setData((prev) => ({ ...prev, email, password: '' }))
+							}
+							signInAndRedirect={async (email, password) => {
+								setError(null)
+								await signInAndRedirect(email, password)
+							}}
+							onError={mapLoginError}
+						/>
+					)}
 					<p className="text-center text-gray-500 text-sm">
 						{t('noAccount')}
 						<Link
 							href="/signup"
-							className="inline-block px-2 align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+							className="inline-block px-2 align-baseline font-bold text-sm text-[#2E3B4E] hover:text-blue-800">
 							{t('signupButton')}
 						</Link>
 					</p>
 					{/* <View> */}
-					<div className="flex justify-between items-center p-6 gap-1">
-						<span className="text-blue-500 text-md uppercase font-bold py-2 px-2">
-							{t('select')}
-						</span>
+					<div className="flex justify-center items-center p-6 gap-1">
 						<LanguageSwitcher />
 					</div>
 					<div className="privacy_policy flex justify-center items-center">
-						<a className="cursor-pointer text-blue-600" onClick={openModal}>
+						<Link
+							href="/privacy-policy"
+							className="text-[#2E3B4E] text-xs font-semibold hover:underline">
 							Privacy Policy
-						</a>
+						</Link>
 					</div>
 				</div>
-				<PrivacyPolicyModal showModal={showModal} closeModal={closeModal} />
 			</div>
 		</>
 	)

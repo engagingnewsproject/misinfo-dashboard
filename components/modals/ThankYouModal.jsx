@@ -1,33 +1,45 @@
-import React,{ useState } from 'react'
-import { IoClose } from "react-icons/io5"
-const ThankYouModal = ({ setContactHelpModal, setContactSent, handleContactHelpSubmit }) => {
+import React from 'react'
+import ModalCloseButton from '../ui/ModalCloseButton'
+import { useDelayedDialogOpen } from '../../hooks/useDelayedDialogOpen'
+import {
+	Dialog,
+	DialogBody,
+	DialogHeader,
+	Typography,
+} from '@material-tailwind/react'
 
-  const [update, setUpdate] = useState(false)
+/**
+ * Mount when visible; Dialog opens one tick later to avoid Floating UI
+ * aria-hidden warnings. Closes contact-help flow via setContactHelpModal /
+ * setContactSent when provided.
+ */
+const ThankYouModal = ({ setContactHelpModal, setContactSent }) => {
+	const dialogOpen = useDelayedDialogOpen()
 
-	const handleThankYouClose = () => {
-		
+	const handleClose = () => {
+		setContactHelpModal?.(false)
+		setContactSent?.(false)
 	}
-  return (
-    <>
-        <div className="fixed z-[1200] top-0 left-0 w-full h-full bg-black bg-opacity-50 overflow-auto">
-            <div 
-                onClick={handleThankYouClose} 
-                className={`flex overflow-y-auto justify-center items-center z-[1300] absolute top-0 left-0 w-full h-full`}>
-                <div onClick={(e) => {e.stopPropagation()}} className={`flex-col justify-center items-center bg-white md:w-8/12 lg:w-6/12 h-auto rounded-2xl py-10 px-10 z-50`}>
-                    <div className="flex justify-between w-full mb-5">
-                        <div className="text-md font-bold text-blue-600 tracking-wide">Contact Help Form</div>
-                        <button onClick={handleThankYouClose} className="text-gray-800">
-                            <IoClose size={25}/>
-                        </button>
-                    </div>
-                    <div>
-                     <p>Thank you.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </>
-  );
-};
 
-export default ThankYouModal;
+	return (
+		<Dialog data-component="ThankYouModal"
+			open={dialogOpen}
+			handler={handleClose}
+			size="xs"
+			className="thank-you-modal rounded-md">
+			<DialogHeader className="justify-between gap-4">
+				<Typography variant="h3" color="blue" className="mt-0 mb-0">
+					Contact Help Form
+				</Typography>
+				<ModalCloseButton onClick={handleClose} />
+			</DialogHeader>
+			<DialogBody>
+				<Typography variant="paragraph" className="mb-0">
+					Thank you.
+				</Typography>
+			</DialogBody>
+		</Dialog>
+	)
+}
+
+export default ThankYouModal

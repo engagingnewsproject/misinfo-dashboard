@@ -57,18 +57,18 @@ const LanguageSwitcher = () => {
      }
   };
 
-  const active = "text-blue-600 font-bold text-sm"
+  const active = "text-[#2E3B4E] font-bold text-sm"
   const nonactive = "text-gray-600 text-sm"
 
 
   return (
-      <div className="flex items-center gap-1">
+      <div data-component="LanguageSwitcher" className="flex items-center gap-1">
         <span className={router.locale== "en" ? active :nonactive }>English</span>
         <Switch value={router.locale== "en" ? false : true} 					
         checked={router.locale == "en" ? false : true}
         onChange={handleLanguageChange} 
         checkedIcon	={false} uncheckedIcon = {true}
-        onColor="#2563eb"/>
+        onColor="#2E3B4E"/>
         <span className={router.locale == "es" ? active : nonactive }>Español</span>
       </div>
 

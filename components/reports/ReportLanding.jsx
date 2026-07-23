@@ -18,7 +18,7 @@
  * @version 1.0.0
  * @since 2024
  */
-import React,{ useState,useEffect } from 'react'
+import React from 'react'
 import { useRouter } from 'next/router'
 import Image from 'next/image';
 import { reportSystems } from '../../pages/report';
@@ -26,10 +26,12 @@ import ReportSystem from './ReportSystem';
 import ReportList from './ReportList';
 import { IoChevronForward } from "react-icons/io5";
 import { auth } from '../../config/firebase'
-import { useAuth } from '../../context/AuthContext';
 
 import { useTranslation } from 'next-i18next';
+import PageTitle from '../layout/PageTitle'
 
+/** Report card image (bundled so it works on Firebase App Hosting where public/ may not be served). */
+import reportImg from '../../public/img/report.png';
 
 /**
  * ReportLanding Component
@@ -78,52 +80,27 @@ const ReportLanding = ({
 	const style = {
 		container: "z-0 flex-col lg:max-w-4xl mb-12",
 		headerWrap: 'flex pb-4 justify-between',
-		header: "text-center md:text-left text-xl font-bold text-blue-600 tracking-wider",
-		buttonLg: 'flex items-center justify-center gap-5 bg-blue-600 w-full hover:bg-blue-600 text-white font-normal py-2 px-6 border border-blue-600 rounded-xl',
-		button: 'bg-sky-100 hover:bg-blue-200 text-blue-600 font-normal py-2 px-6 mt-4 border border-blue-600 rounded-xl',
-		systemWrap: 'text-xl font-extrabold text-blue-600 tracking-wider mt-5'
+		header: "text-center md:text-left text-xl font-bold text-[#2E3B4E] tracking-wider",
+		buttonLg: 'flex items-center justify-center gap-5 bg-blue-600 w-full hover:bg-blue-600 text-white font-normal py-2 px-6 border border-[#868686] rounded-md',
+		button: 'bg-[#D3D3D3] hover:bg-[#ebebeb] text-[#2E3B4E] font-normal py-2 px-6 mt-4 border border-[#868686] rounded-md',
+		systemWrap: 'text-xl font-extrabold text-[#2E3B4E] tracking-wider mt-5'
 	}
 
 	const router = useRouter()
-	// Initialize authentication context
-	const { setCustomClaims } = useAuth()
-
-
 
 	/**
 	 * get current user's email
 	 */
 	const userEmail = auth.currentUser.email
-	useEffect(()=> {
-		// TODO: debugging callback function to verify user role before displaying dashboard view
-		const unsubscribe = auth.onAuthStateChanged((user) => {
-			if (user) {
-				// Add check for auth.currentUser (performance)
-				auth.currentUser.getIdTokenResult()
-					.then((idTokenResult) => {
-						if (idTokenResult.claims.admin) {
-							setCustomClaims({ admin: true })
-						} else if (idTokenResult.claims.agency) {
-							setCustomClaims({ agency: true })
-						} else {
-							// console.log('GENERAL USER')
-						}
-					})
-					.catch((error) => {
-						console.log(error)
-					})
-			}
-		})
-		return () => unsubscribe();
-	}, [setCustomClaims])
 	return (
-		<div className={style.container}>
+		<div data-component="ReportLanding" className={style.container}>
+			<PageTitle>Report</PageTitle>
 			{/* Headbar */}
 			<div className={style.headerWrap}>
 				<h2 className={style.header}>{t("hello")}</h2>
 			</div>
 			<button onClick={onReportStartClick} className={style.buttonLg}>
-				<Image src="/img/report.png" width={200} height={120} priority alt="report" className='h-auto max-w-36 sm:h-auto' as="image" />
+				<Image src={reportImg} width={200} height={120} priority alt="report" className='h-auto max-w-36 sm:h-auto' />
 				<span className='flex flex-col text-left'>
 					<span className='flex items-center'>{t("report")}<IoChevronForward size={25}/></span>
 					<span className='text-xs'>{t("potential")}</span>

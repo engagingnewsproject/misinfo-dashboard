@@ -22,7 +22,19 @@
     "incorrect":"La contraseña es incorrecta.",
     "not_found": "No se encontró una cuenta con el correo electrónico proporcionado. Haz clic en el enlace de registro abajo.",
     "error": "Se ha producido un error al iniciar sesión.",
+    "emulator_mode_banner": "Los emuladores locales de Firebase están activos. Use las cuentas de prueba del README, no contraseñas de producción. Para iniciar sesión en producción, detenga este servidor y ejecute npm run dev:live.",
+    "login_network_emulator": "No se puede acceder al emulador de Auth (puerto 9099). Espere a que npm run dev indique que el emulador está listo, o use npm run dev:live para Firebase de producción.",
+    "login_network_live": "No se pudo conectar con Firebase (red). Compruebe su conexión, VPN y la configuración de App Check / token de depuración.",
     "phone": "Numero de teléfono (opcional)",
     "contact": "Acepto que mi redacción local pueda contactarme para dar seguimiento a los informes que comparto.",
-    "password_error": "Las contraseñas no coinciden."
+    "password_error": "Las contraseñas no coinciden.",
+    "verifyEmailPageTitle": "Verificar correo | Truth Sleuth Local",
+    "verifyEmailHeading": "Verificación de correo",
+    "verifyEmailAgencyIntro": "Al crear una cuenta, se le pedirá que verifique su correo electrónico.",
+    "verifyEmailAgencyStep1": "Haga clic en el enlace del correo de verificación.",
+    "verifyEmailAgencyStep2": "Inicie sesión en el panel con la información de su nueva cuenta.",
+    "verifyEmailAgencyStep3": "Si es necesario, puede cambiar el nombre y la ubicación de su agencia en su perfil.",
+    "verifyEmailUserPrompt": "Revise su bandeja de entrada para verificar su correo electrónico e iniciar sesión.",
+    "verifyEmailResend": "Reenviar correo",
+    "verifyEmailSent": "Se envió un nuevo correo de verificación."
   }

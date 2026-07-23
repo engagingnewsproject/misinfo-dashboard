@@ -11,20 +11,30 @@
 import { useRouter } from 'next/router'
 import React, { useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 const ProtectedRoute = ({ children }) => {
+	const { user, loading } = useAuth()
+	const router = useRouter()
 
-    const { user } = useAuth()
-    const router = useRouter()
+	useEffect(() => {
+		// Wait until auth has resolved — redirecting while loading===true and
+		// user===null races the post-login onAuthStateChanged → setUser path.
+		if (!loading && !user) {
+			router.push('/login')
+		}
+	}, [router, user, loading])
 
-    useEffect(() => {
-        if (!user) {
-            router.push('/login')
-        }
+	if (loading) {
+		return (
+			<div data-component="ProtectedRoute" className="min-h-screen w-full flex flex-col items-center justify-center bg-[#D3D3D3] gap-3">
+				<LoadingSpinner className="h-12 w-12 text-[#2E3B4E]" />
+				<p className="text-sm text-gray-600">Loading…</p>
+			</div>
+		)
+	}
 
-    }, [router, user])
-    
-    return <>{user ? children : null}</>
+	return <>{user ? children : null}</>
 }
 
 export default ProtectedRoute

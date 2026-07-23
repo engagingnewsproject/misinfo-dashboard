@@ -1,0 +1,12 @@
+{
+  // Team triage guide: docs/fallow-triage.md
+  // Fix cycles, shared constants, and large same-domain clones.
+  // Ignore small structural similarity (react-select, modal form rows).
+  "duplicates": {
+    "enabled": true,
+    "mode": "mild",
+    "minLines": 5,
+    "minTokens": 50,
+    "minOccurrences": 2
+  }
+}

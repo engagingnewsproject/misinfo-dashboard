@@ -31,12 +31,14 @@ import {
 	getDoc, 
 	updateDoc,
 	deleteDoc,
+	addDoc,
+	setDoc,
 	arrayUnion,
 	query,
 	where
 } from 'firebase/firestore'
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
-import { db } from "../../config/firebase"
+import { db, storage, app } from "../../config/firebase"
 import { useAuth } from '../../context/AuthContext'
 import Image from 'next/image'
 import AgencyModal from '../modals/admin/AgencyModal'
@@ -46,6 +48,20 @@ import { Tooltip } from 'react-tooltip'
 import { IoTrash } from "react-icons/io5"
 import { FaPlus } from 'react-icons/fa'
 import { Button } from '@material-tailwind/react'
+import { seedAgencyTagsDoc } from '../../utils/tag-defaults'
+import adminSectionStyles from '../../styles/adminSectionStyles'
+import AdminDataTable from './AdminDataTable'
+import PageTitle from '../layout/PageTitle'
+
+const style = adminSectionStyles
+
+const AGENCY_COLUMNS = [
+	'Agency Logo',
+	'Agency Name',
+	'Agency Location',
+	'Agency Admin User',
+	'Delete Agency',
+]
 
 /**
  * Agencies Component - Comprehensive agency management interface
@@ -69,7 +85,6 @@ import { Button } from '@material-tailwind/react'
 const Agencies = ({handleAgencyUpdateSubmit}) => {
 	// Authentication and Firebase
 	const { sendSignIn } = useAuth() // User authentication and email sending
-	const storage = getStorage() // Firebase Storage instance
 	const imgPicker = useRef(null) // File input reference for image upload
 	
 	// Agency data management
@@ -85,7 +100,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [deleteModal, setDeleteModal] = useState(false) // Delete confirmation modal
 	
 	// Image upload and management
-	const [update, setUpdate] = useState('') // Trigger for image upload
 	const [logo, setLogo] = useState('') // Agency logo URL
 	const [images, setImages] = useState([]) // Selected image files
 	const [uploadedImageURLs, setUploadedImageURLs] = useState([]) // Uploaded image URLs
@@ -93,7 +107,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	// New agency creation state
 	const [newAgencySubmitted, setNewAgencySubmitted] = useState(0) // Submission counter
 	const [newAgencyName, setNewAgencyName] = useState('') // New agency name
-	const [newAgencyEmails, setNewAgencyEmails] = useState([]) // New agency admin emails
+	const [newAgencyEmails, setNewAgencyEmails] = useState('') // Comma-separated admin emails
 	const [data, setData] = useState({ country: 'US', state: null, city: null }) // Location data
 	const [emailSent, setEmailSent] = useState(false) // Email invitation status
 	
@@ -118,19 +132,18 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 * @returns {Promise<void>} Promise that resolves when agencies are fetched
 	 */
 	const getData = async () => {
-		const agencyCollection = collection(db, 'agency')
-		const reportsCollection = collection(db, 'reports')
-		const snapshot = await getDocs(agencyCollection, reportsCollection)
 		try {
-			var arr = []
-			snapshot.forEach((doc) => {
+			const agencyCollection = collection(db, 'agency')
+			const snapshot = await getDocs(agencyCollection)
+			const arr = []
+			snapshot.forEach((d) => {
 				arr.push({
-					[doc.id]: doc.data(), // Format: { docId: docData }
+					[d.id]: d.data(),
 				})
 			})
 			setAgencies(arr)
 		} catch (error) {
-			console.log(error)
+			console.error(error)
 		}
 	}
 
@@ -144,7 +157,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 */
 	const handleAddNewAgencyModal = (e) => {
 		e.preventDefault()
-		setData({ country: 'US', state: null, city: null }) // Reset location data
+		setData({ country: 'US', state: null, city: null })
+		setErrors({})
 		setNewAgencyModal(true)
 	}
 	
@@ -158,6 +172,12 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const handleNewAgencyName = (e) => {
 		e.preventDefault()
 		setNewAgencyName(e.target.value)
+		setErrors((prev) => {
+			if (!prev.submit) return prev
+			const next = { ...prev }
+			delete next.submit
+			return next
+		})
 	}
 	
 	/**
@@ -169,9 +189,13 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 */
 	const handleNewAgencyEmails = (e) => {
 		e.preventDefault()
-		let usersArr = e.target.value
-		usersArr = usersArr.split(',') // Split comma-separated emails
-		setNewAgencyEmails(usersArr)
+		setNewAgencyEmails(e.target.value)
+		setErrors((prev) => {
+			if (!prev.submit) return prev
+			const next = { ...prev }
+			delete next.submit
+			return next
+		})
 	}
 	
 	/**
@@ -214,9 +238,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			const newImage = files[i]
 			setImages((prevState) => [...prevState, newImage])
 		}
-
-		// Trigger upload process
-		setUpdate(!update)
+		// Upload runs on Update Agency submit only (not on file select)
 	}
 
 	/**
@@ -230,15 +252,34 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 */
 	const handleUpload = async () => {
 		try {
+			// Use shared storage from config, or lazy-init in browser when storageBucket is set
+			let storageInstance = storage
+			if (!storageInstance && typeof window !== 'undefined') {
+				if (!app.options?.storageBucket) {
+					console.error('Firebase Storage is not configured. Set NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET in your .env file (e.g. your-project-id.appspot.com), then restart the dev server.')
+					return false
+				}
+				try {
+					const storageModule = await import('firebase/storage')
+					const bucket = app.options.storageBucket
+					storageInstance = storageModule.getStorage(app, bucket?.startsWith('gs://') ? bucket : `gs://${bucket}`)
+				} catch (lazyErr) {
+					console.error('Firebase Storage failed despite bucket being set. Enable Cloud Storage in Firebase Console (Storage → Get started) and ensure a default bucket exists.')
+					throw lazyErr
+				}
+			}
+			if (!storageInstance) {
+				console.error('Firebase Storage is not available.')
+				return false
+			}
 			if (images.length === 0) {
-				console.error('No images to upload.')
-				return
+				return false
 			}
 
 			// Create upload tasks for all selected images
 			const uploadPromises = images.map(async (image) => {
 				const storageRef = ref(
-					storage,
+					storageInstance,
 					`${new Date().getTime().toString()}.png`, // Unique filename
 				)
 				const uploadTask = uploadBytesResumable(storageRef, image)
@@ -253,10 +294,17 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			setLogo(imageURLs) // Update logo state
 
 			// Automatically save agency data after successful upload
-			saveAgency(imageURLs)
+			await saveAgency(imageURLs)
+			return true
 		} catch (error) {
 			console.error('Error uploading images:', error)
+			return false
 		}
+	}
+	
+	const handleRemoveImage = (index) => {
+		setImages((prevState) => prevState.filter((_, i) => i !== index))
+		if (imgPicker.current) imgPicker.current.value = ''
 	}
 
 	/**
@@ -296,7 +344,10 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 
 				try {
 					// Send sign-in invitation to new user
-					await sendSignIn(userEmail)
+					await sendSignIn(userEmail, {
+						agencyId,
+						agencyName: agencyInfo?.name,
+					})
 					setSendEmail(`Sign-in link sent to ${userEmail}`)
 				} catch (error) {
 					console.error(`Error sending sign-in link to ${userEmail}:`, error)
@@ -337,7 +388,10 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 * @returns {Promise<void>} Promise that resolves when email is sent
 	 */
 	const sendAgencyLinks = async (email) => {
-		await sendSignIn(email)
+		await sendSignIn(email, {
+			agencyId,
+			agencyName: agencyInfo?.name,
+		})
 		setResendEmail('Email was sent.')
 	}
 
@@ -378,7 +432,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 
 			// Update local state and trigger UI refresh
 			setAgencyUsersArr(updatedUsers)
-			setUpdate(!update)
+			await getData()
+			handleAgencyUpdateSubmit?.()
 			console.log('Admin user deleted successfully.')
 		} catch (error) {
 			console.error('Error deleting admin user:', error)
@@ -396,13 +451,23 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 */
 	const handleSubmitClick = async (e) => {
 		e.preventDefault()
-		if (images.length > 0) {
-			// Trigger image upload process
-			setUpdate((prev) => !prev)
-		} else {
-			// Save agency data directly if no images
-			saveAgency(uploadedImageURLs)
+		try {
+			if (images.length > 0) {
+				const uploaded = await handleUpload()
+				if (!uploaded) return
+			} else {
+				// Preserve existing logo when no new file was chosen
+				const logoToSave =
+					uploadedImageURLs.length > 0
+						? uploadedImageURLs
+						: agencyInfo?.logo || []
+				await saveAgency(logoToSave)
+			}
+			setImages([])
+			setUploadedImageURLs([])
 			setAgencyModal(false)
+		} catch (error) {
+			console.error('Error updating agency:', error)
 		}
 	}
 
@@ -416,13 +481,68 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 * @returns {Promise<void>} Promise that resolves when agency is saved
 	 */
 	const saveAgency = (uploadedImageURLs) => {
-		console.log(uploadedImageURLs)
+		if (!agencyId) {
+			console.error('Cannot save agency: missing agency document ID.')
+			return Promise.reject(new Error('missing agency document ID'))
+		}
 		const agencyRef = doc(db, 'agency', agencyId)
-		updateDoc(agencyRef, {
+		return updateDoc(agencyRef, {
 			logo: uploadedImageURLs,
 		}).then(() => {
-			handleAgencyUpdateSubmit() // Trigger parent updates
+			handleAgencyUpdateSubmit()
 		})
+	}
+
+	/**
+	 * Validates the form, sends Firebase email-link invites to each admin (must succeed),
+	 * then creates the agency and default tags documents.
+	 *
+	 * @returns {Promise<void>}
+	 */
+	const createNewAgency = async () => {
+		const name = newAgencyName.trim()
+		const validation = {}
+
+		if (!name) validation.newAgencyName = true
+		if (!data.state || !data.city) validation.location = true
+
+		const userEmails = newAgencyEmails
+			.split(',')
+			.map((email) => email.trim())
+			.filter(Boolean)
+		const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+		const invalidEmails = userEmails.filter((email) => !emailPattern.test(email))
+
+		if (userEmails.length === 0) validation.email = true
+		else if (invalidEmails.length > 0) validation.email = true
+
+		if (Object.keys(validation).length > 0) {
+			setErrors(validation)
+			throw new Error('Please fix the highlighted fields.')
+		}
+		setErrors({})
+
+		const normalizedEmails = userEmails.map((email) => email.toLowerCase())
+
+		// Send passwordless invite links first so failures surface and we do not
+		// create an agency row without a working invite path.
+		await Promise.all(
+			normalizedEmails.map((email) =>
+				sendSignIn(email, { agencyName: name }),
+			),
+		)
+
+		const agencyPayload = {
+			name,
+			city: data.city.name,
+			state: data.state.name,
+			agencyUsers: normalizedEmails,
+			logo: [],
+		}
+
+		const agencyDocRef = await addDoc(collection(db, 'agency'), agencyPayload)
+
+		await seedAgencyTagsDoc(agencyDocRef.id)
 	}
 
 	/**
@@ -436,16 +556,29 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 */
 	const handleFormSubmit = async (e) => {
 		e.preventDefault()
-		setUpdate(!update)
-		
-		// Route based on form type
-		if (e.target.id == 'newAgencyModal') {
-			// Create new agency
-			saveAgency()
+		if (e.target.id !== 'newAgencyModal') {
+			return
+		}
+		try {
+			await createNewAgency()
 			setNewAgencyModal(false)
-		} else if (e.target.id == 'agencyModal') {
-			// Update existing agency
-			handleAgencyUpdate(e)
+			setNewAgencyName('')
+			setNewAgencyEmails('')
+			setData({ country: 'US', state: null, city: null })
+			setErrors({})
+			await getData()
+			handleAgencyUpdateSubmit?.()
+		} catch (error) {
+			if (error.message === 'Please fix the highlighted fields.') {
+				return
+			}
+			setErrors((prev) => ({
+				...prev,
+				submit:
+					error?.message ||
+					'Could not finish creating the agency. If invites failed, confirm Email link sign-in is enabled in Firebase Auth and the continue URL domain is authorized.',
+			}))
+			console.error('Error creating agency:', error)
 		}
 	}
 
@@ -529,6 +662,8 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 */
 	const handleAgencyModalShow = async (agencyId) => {
 		setAgencyModal(true)
+		setImages([])
+		setUploadedImageURLs([])
 		const docRef = await getDoc(doc(db, 'agency', agencyId))
 		setAgencyInfo(docRef.data()) // Set agency data for editing
 		setAgencyUsersArr(docRef.data()['agencyUsers']) // Set agency users
@@ -561,38 +696,11 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		getData()
 	}, [])
 	
-	// Trigger image upload when update flag is set
-	useEffect(() => {
-		if (update) {
-			handleUpload()
-		}
-	}, [update])
-	
 	// Debug logging when agency modal opens
 	useEffect(() => {
 		console.log(agencyInfo)
 	}, [agencyModal])
 
-	// Component styling object
-	const style = {
-		section_container:
-			'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
-		section_wrapper: 'flex flex-col h-full',
-		section_header: 'flex justify-between ml-10 md:mx-0 py-5',
-		section_title: 'text-xl font-extrabold text-blue-600 tracking-wider',
-		section_filters: '',
-		section_filtersWrap: 'p-0 px-4 md:p-4 md:py-0 md:px-4 flex items-center',
-		table_main: 'min-w-full bg-white rounded-xl p-1',
-		table_thead: 'border-b dark:border-indigo-100 bg-slate-100',
-		table_th: 'px-3 p-3 text-sm font-semibold text-left tracking-wide',
-		table_tr:
-			'border-b transition duration-300 ease-in-out hover:bg-indigo-50 dark:border-indigo-100 dark:hover:bg-indigo-100',
-		table_td: 'whitespace-normal text-sm px-3 p-2 cursor-pointer',
-		table_button: 'hover:fill-cyan-700',
-		table_icon: 'ml-4 fill-gray-400 hover:fill-red-600',
-		button:
-			'flex items-center shadow ml-auto bg-white hover:bg-gray-100 text-sm py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
-	}
 	/**
 	 * Renders the agencies management interface
 	 * 
@@ -603,10 +711,12 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 * @returns {JSX.Element} The agencies management component
 	 */
 	return (
-		<div className={style.section_container}>
+		<div data-component="Agencies" className={style.section_container}>
 			<div className={style.section_wrapper}>
 				<div className={style.section_header}>
-					<div className={style.section_title}>Agencies</div>
+					<PageTitle mobileOnly={false} gutter={false}>
+						Agencies
+					</PageTitle>
 					<div className={style.section_filtersWrap}>
 						{/* <button className={style.button} onClick={handleAddNewAgencyModal}><FaPlus className="text-blue-600 mr-2" size={12}/>Add Agency</button> */}
 						<Button
@@ -618,17 +728,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 						{/* TODO: add filters to agency list */}
 					</div>
 				</div>
-				<table className={style.table_main}>
-					<thead className={style.table_thead}>
-						<tr>
-							<th className={style.table_th}>Agency Logo</th>
-							<th className={style.table_th}>Agency Name</th>
-							<th className={style.table_th}>Agency Location</th>
-							<th className={style.table_th}>Agency Admin User</th>
-							<th className={style.table_th}>Delete Agency</th>
-						</tr>
-					</thead>
-					<tbody>
+				<AdminDataTable columns={AGENCY_COLUMNS}>
 						{agencies.slice(0, endIndex).map((agencyObj, i) => {
 							const agency = Object.values(agencyObj)[0]
 							i = Object.keys(agencyObj)[0]
@@ -644,11 +744,11 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 											agency['logo'].map((image, i) => {
 												return (
 													<Image
-														src={`${image}`}
+														src={image}
 														width={50}
 														height={50}
-														className="w-auto"
-														alt="image"
+														className="h-[50px] w-[50px] object-contain"
+														alt={`${agency.name} logo`}
 														key={i}
 													/>
 												)
@@ -687,13 +787,11 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 								</tr>
 							)
 						})}
-					</tbody>
-				</table>
+				</AdminDataTable>
 			</div>
 			{agencyModal && (
 				<AgencyModal
 					handleImageChange={handleImageChange}
-					handleUpload={handleUpload}
 					handleAddAgencyUsers={handleAddAgencyUsers}
 					addAgencyUsers={addAgencyUsers}
 					setAddAgencyUsers={setAddAgencyUsers}
@@ -714,6 +812,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 					setSendEmail={setSendEmail}
 					setResendEmail={setResendEmail}
 					imgPicker={imgPicker}
+					handleRemoveImage={handleRemoveImage}
 					errors={errors}
 				/>
 			)}

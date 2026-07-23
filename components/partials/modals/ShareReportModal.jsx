@@ -1,79 +1,125 @@
-import React, { useState } from "react"
-import { RiDeleteBin2Fill } from "react-icons/ri"
-import { useTranslation } from "next-i18next"
+import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'next-i18next'
+import FormInput from '../../ui/FormInput'
+import ModalCloseButton from '../../ui/ModalCloseButton'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
+import {
+	Button,
+	Dialog,
+	DialogBody,
+	DialogFooter,
+	DialogHeader,
+	Typography,
+} from '@material-tailwind/react'
+import {
+	buildReportShareUrl,
+	copyReportShareLink,
+	openReportShareEmail,
+} from '../../../utils/share-report'
 
-const ShareReportModal = ({
-	func,
-	title,
-	subtitle,
-	CTA,
-	closeModal,
-	onEmailChange,
-	onSubmit,
-}) => {
-	// const handleSubmit = (e) => {
-	// 	e.preventDefault()
-	// 	func()
-	// }
-	const { t } = useTranslation("ShareReport")
-	const style = {
-		modal_form_label: "text-lg font-bold text-black tracking-wider mb-4 hidden",
-		modal_form_input:
-			"shadow border-none rounded-xl min-w-full col-span-2 p-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
+/**
+ * Modal for sharing a report by email or by copying its dashboard link.
+ *
+ * Mount when visible; Dialog opens one tick later to avoid Floating UI
+ * aria-hidden warnings when mounting with open={true} immediately.
+ *
+ * @param {Object} props
+ * @param {string} props.reportId - Report document id used to build the share URL
+ * @param {string} [props.reportTitle] - Included in the email subject when present
+ * @param {(open: boolean) => void} props.closeModal - Closes the modal
+ */
+const ShareReportModal = ({ reportId, reportTitle = '', closeModal }) => {
+	const { t } = useTranslation('ShareReport')
+	const [email, setEmail] = useState('')
+	const [copied, setCopied] = useState(false)
+	const [copyError, setCopyError] = useState(false)
+	const dialogOpen = useDelayedDialogOpen()
+	const shareUrl = buildReportShareUrl(reportId)
+
+	const handleClose = () => closeModal(false)
+
+	useEffect(() => {
+		if (!copied) return undefined
+		const timer = setTimeout(() => setCopied(false), 2000)
+		return () => clearTimeout(timer)
+	}, [copied])
+
+	const handleCopyLink = async () => {
+		setCopyError(false)
+		const ok = await copyReportShareLink(shareUrl)
+		if (ok) {
+			setCopied(true)
+		} else {
+			setCopyError(true)
+		}
 	}
+
+	const handleSubmit = (e) => {
+		e.preventDefault()
+		openReportShareEmail({
+			email,
+			title: reportTitle,
+			url: shareUrl,
+		})
+		closeModal(false)
+	}
+
 	return (
-		<div>
-			<div className='flex justify-center items-center z-[1900] absolute top-0 left-0 w-full h-full bg-black opacity-60'></div>
-			<div
-				className='flex justify-center items-center z-[1900] absolute top-0 left-0 w-full h-full'
-				onClick={() => closeModal(false)}>
-				<div
-					className='flex-col justify-center items-center bg-white w-80 h-auto rounded-2xl py-10 px-10'
-					onClick={(e) => {
-						e.stopPropagation()
-					}}>
-					<div className='grid justify-items-center mb-4'>
-						{CTA == "Delete" && (
-							<RiDeleteBin2Fill className='text-blue-500' size={30} />
-						)}
-						<div className='flex-col mt-3 mb-2 text-center tracking-wide'>
-							<div className='text-lg text-blue-500 font-bold my-2'>
-								{title}
-							</div>
-							<div className='text-xs font-light'>{subtitle}</div>
+		<Dialog data-component="ShareReportModal"
+			open={dialogOpen}
+			handler={handleClose}
+			size="xs"
+			className="share-report-modal rounded-md">
+			<form onSubmit={handleSubmit}>
+				<DialogHeader className="justify-between gap-4">
+					<div>
+						<Typography variant="h3" color="blue" className="mt-0 mb-1">
+							{t('shareReport')}
+						</Typography>
+						<Typography variant="small" className="font-normal">
+							{t('subtitle')}
+						</Typography>
+					</div>
+					<ModalCloseButton onClick={handleClose} />
+				</DialogHeader>
+				<DialogBody className="flex flex-col gap-3">
+					<div>
+						<label className="block text-xs font-semibold text-gray-600 mb-1">
+							{t('linkLabel')}
+						</label>
+						<div className="rounded-md bg-gray-50 border border-gray-200 px-3 py-2 text-xs text-gray-700 break-all">
+							{shareUrl}
 						</div>
 					</div>
-					<form onSubmit={onSubmit}>
-						<div className='mt-6 flex flex-col justify-between'>
-							<div>
-								{/* Email */}
-								<label htmlFor='email' className={style.modal_form_label}>
-									Email
-								</label>
-								<input
-									className={style.modal_form_input}
-									id='email'
-									type='text'
-									onChange={onEmailChange}
-									placeholder='email@email.com'
-								/>
-							</div>
-							<button
-								onClick={() => closeModal(false)}
-								className='bg-white hover:bg-red-500 hover:text-white text-sm text-red-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline'>
-								{t("cancel")}
-							</button>
-							<button
-								className='bg-blue-600 hover:bg-white text-white text-sm hover:text-blue-500 font-bold py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline'
-								type='submit'
-								autoFocus>
-								{CTA}
-							</button>
-						</div>
-					</form>
-				</div>
-			</div>
-		</div>
+					<Button type="button" variant="outlined" onClick={handleCopyLink}>
+						{copied ? t('copied') : t('copyLink')}
+					</Button>
+					{copyError && (
+						<p className="text-xs text-red-500">{t('copyFailed')}</p>
+					)}
+					<FormInput
+						id="email"
+						type="email"
+						label={t('emailOptional')}
+						placeholder={t('emailPlaceholder')}
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+					/>
+				</DialogBody>
+				<DialogFooter className="justify-between gap-4">
+					<Button
+						type="button"
+						variant="outlined"
+						color="red"
+						onClick={handleClose}>
+						{t('cancel')}
+					</Button>
+					<Button type="submit" autoFocus>
+						{t('share')}
+					</Button>
+				</DialogFooter>
+			</form>
+		</Dialog>
 	)
 }
 
