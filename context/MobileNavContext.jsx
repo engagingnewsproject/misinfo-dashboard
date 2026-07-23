@@ -14,6 +14,18 @@ import {
 export const NAV_COLLAPSED_WIDTH = 65
 /** Cap for desktop-expanded drawer (MT Drawer `size` → max-width). */
 export const NAV_EXPANDED_MAX_WIDTH = 280
+/** Cap for mobile labeled overlay drawer (~80vw, max this). */
+export const NAV_MOBILE_MAX_WIDTH = 320
+
+/**
+ * Mobile open-drawer width: ~80% of viewport, capped at NAV_MOBILE_MAX_WIDTH.
+ * @param {number} viewportWidth
+ * @returns {number}
+ */
+export function getMobileDrawerSize(viewportWidth) {
+	if (!viewportWidth || viewportWidth <= 0) return NAV_MOBILE_MAX_WIDTH
+	return Math.min(NAV_MOBILE_MAX_WIDTH, Math.round(viewportWidth * 0.8))
+}
 
 const DESKTOP_EXPANDED_KEY = 'tsl-nav-desktop-expanded'
 

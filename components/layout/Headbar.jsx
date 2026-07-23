@@ -22,7 +22,7 @@ const Headbar = ({ title, actions }) => {
 		<>
 			<div
 				data-component="Headbar"
-				className="w-full flex flex-row items-center gap-2 px-3 sm:px-4 md:px-12 pb-5 max-sm:fixed max-sm:top-0 max-sm:inset-x-0 max-sm:z-40 max-sm:bg-white max-sm:pt-[max(0.75rem,env(safe-area-inset-top))] max-sm:pb-3 sm:static">
+				className="w-full flex flex-row items-center gap-2 px-3 sm:px-4 md:px-12 pb-5 bg-white sm:bg-transparent max-sm:fixed max-sm:top-0 max-sm:inset-x-0 max-sm:z-40 max-sm:pt-[max(0.75rem,env(safe-area-inset-top))] max-sm:py-3 sm:static">
 				{canOpenDrawer && (
 					<IconButton
 						variant="text"

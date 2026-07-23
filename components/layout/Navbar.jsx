@@ -2,6 +2,7 @@
  * @fileoverview Navbar - Side Navigation Component
  *
  * Responsive drawer: brand + expand at top; icon rail / labels; logout at bottom.
+ * Mobile always shows a wide labeled overlay; expand/collapse is desktop-only.
  */
 
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react'
@@ -9,6 +10,7 @@ import { createPortal } from 'react-dom'
 import { useRouter } from 'next/router'
 import Image from 'next/image'
 import {
+	Button,
 	Drawer,
 	IconButton,
 	List,
@@ -43,6 +45,7 @@ import { useNavBranding } from '../../hooks/useNavBranding'
 import {
 	NAV_COLLAPSED_WIDTH,
 	NAV_EXPANDED_MAX_WIDTH,
+	getMobileDrawerSize,
 	useMobileNav,
 } from '../../context/MobileNavContext'
 
@@ -85,7 +88,9 @@ function NavItem({
 	tooltipClass,
 	ariaLabel,
 }) {
-	const navIconClass = `my-2 mx-2 ${tooltipClass}${active ? ' bg-brand/10' : ''}`
+	const navIconClass = `my-1.5 mx-2 h-12 w-12 flex items-center justify-center ${tooltipClass}${
+		active ? ' bg-brand/10' : ''
+	}`
 
 	if (!expanded) {
 		return (
@@ -106,12 +111,16 @@ function NavItem({
 		<ListItem
 			selected={active}
 			onClick={onClick}
-			className={`mx-1 rounded-md py-2 ${active ? 'bg-brand/10' : ''}`}
+			className={`mx-1 min-h-12 rounded-md px-3 py-2.5 ${
+				active ? 'bg-brand/10' : ''
+			}`}
 			aria-label={ariaLabel || label}>
 			<ListItemPrefix className="mr-3 shrink-0">{icon}</ListItemPrefix>
 			<Typography
 				variant="small"
-				className="font-medium text-[#2E3B4E] whitespace-nowrap">
+				className={`min-w-0 truncate font-medium text-brand ${
+					active ? 'font-semibold' : ''
+				}`}>
 				{label}
 			</Typography>
 		</ListItem>
@@ -143,23 +152,52 @@ function NavBrandMark({ agencyLogo, isAgency, compact }) {
 function NavBrandTitle({ customClaims, agencyName }) {
 	if (customClaims?.admin) {
 		return (
-			<div className="text-sm font-semibold tracking-wide truncate min-w-0">
+			<div className="text-sm font-semibold tracking-wide truncate min-w-0 text-brand">
 				Truth Sleuth Local
 			</div>
 		)
 	}
 	if (customClaims?.agency && !customClaims?.admin) {
 		return (
-			<div className="text-sm font-semibold tracking-wide truncate min-w-0">
+			<div className="text-sm font-semibold tracking-wide truncate min-w-0 text-brand">
 				{agencyName || 'Agency'}
 			</div>
 		)
 	}
 	return (
-		<div className="text-sm font-semibold tracking-wide truncate min-w-0">
+		<div className="text-sm font-semibold tracking-wide truncate min-w-0 text-brand">
 			Truth Sleuth Local
 		</div>
 	)
+}
+
+/** Brand-filled report action shown when the drawer shows labels. */
+function ReportCta({ customClaims, onAgencyNewReport, onCreateReport }) {
+	if (customClaims?.agency) {
+		return (
+			<Button
+				fullWidth
+				size="md"
+				className="flex items-center justify-center gap-2 bg-brand text-white shadow-none hover:bg-brand-hover hover:shadow-none normal-case"
+				onClick={onAgencyNewReport}>
+				<IoAddCircleOutline size={20} />
+				New Report
+			</Button>
+		)
+	}
+	if (!customClaims?.admin && !customClaims?.agency) {
+		return (
+			<Button
+				fullWidth
+				size="md"
+				className="flex items-center justify-center gap-2 bg-brand text-white shadow-none hover:bg-brand-hover hover:shadow-none normal-case"
+				onClick={onCreateReport}>
+				<HiOutlineDocumentPlus size={20} />
+				Create Report
+			</Button>
+		)
+	}
+	return null
 }
 
 const Navbar = ({
@@ -194,7 +232,13 @@ const Navbar = ({
 	const isDesktop = windowSize[0] > 640
 	// Mobile overlay always shows labels so page names are readable; desktop uses expand toggle.
 	const showLabels = isDesktop ? desktopExpanded : open
-	const drawerSize = showLabels ? NAV_EXPANDED_MAX_WIDTH : NAV_COLLAPSED_WIDTH
+	const drawerSize = isDesktop
+		? showLabels
+			? NAV_EXPANDED_MAX_WIDTH
+			: NAV_COLLAPSED_WIDTH
+		: open
+			? getMobileDrawerSize(windowSize[0])
+			: NAV_COLLAPSED_WIDTH
 
 	useEffect(() => {
 		const handleWindowResize = () => {
@@ -243,12 +287,12 @@ const Navbar = ({
 	}
 
 	const handleAgencyNewReport = (e) => {
-		handleNewReportClick(e)
+		handleNewReportClick?.(e)
 		closeDrawer()
 	}
 
 	const handleGeneralUserReport = (e) => {
-		onReportTabClick(e)
+		onReportTabClick?.(e)
 		closeDrawer()
 	}
 
@@ -270,9 +314,12 @@ const Navbar = ({
 
 	const icon = (Node) => <Node size={showLabels ? 22 : 25} />
 	const isAgencyUser = Boolean(customClaims?.agency)
+	const showReportCta =
+		Boolean(customClaims?.agency) ||
+		(!customClaims?.admin && !customClaims?.agency)
 
 	const primaryNavExpanded = (
-		<List className="p-0 !min-w-0 w-max max-w-full">
+		<List className="w-full p-0 !min-w-0">
 			{(customClaims.admin || customClaims.agency) && (
 				<NavItem
 					expanded
@@ -303,15 +350,6 @@ const Navbar = ({
 					tooltipClass="tooltip-tags"
 				/>
 			)}
-			{customClaims.agency && (
-				<NavItem
-					expanded
-					icon={icon(IoAddCircleOutline)}
-					label="New Report"
-					onClick={handleAgencyNewReport}
-					tooltipClass="tooltip-new-report"
-				/>
-			)}
 			{customClaims.admin && (
 				<NavItem
 					expanded
@@ -320,15 +358,6 @@ const Navbar = ({
 					active={tab === 3}
 					onClick={() => handleTabNavigation(3)}
 					tooltipClass="tooltip-users"
-				/>
-			)}
-			{!customClaims.admin && !customClaims.agency && (
-				<NavItem
-					expanded
-					icon={icon(HiOutlineDocumentPlus)}
-					label="Create Report"
-					onClick={handleGeneralUserReport}
-					tooltipClass="tooltip-create-report"
 				/>
 			)}
 			{customClaims.admin && (
@@ -418,7 +447,7 @@ const Navbar = ({
 	)
 
 	const secondaryNavExpanded = (
-		<List className="p-0 !min-w-0 w-max max-w-full">
+		<List className="w-full p-0 !min-w-0">
 			{customClaims.admin && (
 				<NavItem
 					expanded
@@ -441,7 +470,7 @@ const Navbar = ({
 			<NavItem
 				expanded
 				icon={icon(IoChatboxEllipsesOutline)}
-				label="Contact for Help"
+				label="Help"
 				onClick={handleContactHelpModal}
 				tooltipClass="tooltip-contact-us-for-help"
 			/>
@@ -504,12 +533,12 @@ const Navbar = ({
 				size={drawerSize}
 				overlay={disableOverlay}
 				className={`z-[9997] !h-full transition-[max-width] duration-200 ease-in-out${
-					showLabels ? ' !w-max overflow-x-hidden' : ''
+					isDesktop && showLabels ? ' !w-max overflow-x-hidden' : ''
 				}`}>
 				<div
 					data-component="Navbar"
-					className={`flex h-full flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] ${
-						showLabels ? 'w-max max-w-full' : 'w-full'
+					className={`flex h-full w-full flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] ${
+						isDesktop && showLabels ? 'w-max max-w-full' : ''
 					}`}>
 					{/* Top: brand + expand (desktop) / close (mobile) */}
 					{!isDesktop && showLabels ? (
@@ -517,11 +546,11 @@ const Navbar = ({
 							<IconButton
 								variant="text"
 								onClick={closeDrawer}
-								className="tooltip-close -ml-1 text-[#2E3B4E] hover:bg-brand/10"
+								className="tooltip-close -ml-1 text-brand hover:bg-brand/10"
 								aria-label="Close menu">
 								<IoClose size={28} />
 							</IconButton>
-							<div className="mt-2 flex items-center gap-3 min-w-0 px-1">
+							<div className="mt-2 flex min-w-0 items-center gap-3 px-1">
 								<NavBrandMark
 									agencyLogo={agencyLogo}
 									isAgency={isAgencyUser}
@@ -549,8 +578,8 @@ const Navbar = ({
 							)}
 
 							<div
-								className={`flex items-center min-w-0 flex-1 ${
-									showLabels ? 'gap-3' : 'justify-center w-full'
+								className={`flex min-w-0 flex-1 items-center ${
+									showLabels ? 'gap-3' : 'w-full justify-center'
 								}`}>
 								<NavBrandMark
 									agencyLogo={agencyLogo}
@@ -569,7 +598,7 @@ const Navbar = ({
 								<IconButton
 									variant="text"
 									onClick={toggleDesktopExpanded}
-									className={`shrink-0 text-[#2E3B4E] hover:bg-brand/10 ${
+									className={`shrink-0 text-brand hover:bg-brand/10 ${
 										showLabels ? '' : 'my-1 mx-2 tooltip-expand-nav'
 									}`}
 									aria-label={
@@ -588,26 +617,41 @@ const Navbar = ({
 						</div>
 					)}
 
-					<div className={`shrink-0 overflow-y-auto ${showLabels ? 'px-1 pt-2' : ''}`}>
+					{/* Primary nav (scrollable) */}
+					<div
+						className={`min-h-0 flex-1 overflow-y-auto ${
+							showLabels ? 'px-2 pt-3' : ''
+						}`}>
 						{showLabels ? primaryNavExpanded : primaryNavCollapsed}
 					</div>
 
-					<div className={`mt-auto shrink-0 ${showLabels ? 'px-1' : ''}`}>
+					{/* Report CTA between primary and utility when labels are on */}
+					{showLabels && showReportCta && (
+						<div className="shrink-0 px-3 py-3">
+							<ReportCta
+								customClaims={customClaims}
+								onAgencyNewReport={handleAgencyNewReport}
+								onCreateReport={handleGeneralUserReport}
+							/>
+						</div>
+					)}
+
+					{/* Utility + logout pinned to bottom */}
+					<div className={`mt-auto shrink-0 ${showLabels ? 'px-2 pb-2' : ''}`}>
 						{showLabels ? secondaryNavExpanded : secondaryNavCollapsed}
 
-						{/* Logout — last item */}
-						<div className="border-t border-blue-gray-50 mt-1">
+						<div className="mt-1 border-t border-blue-gray-50">
 							{showLabels ? (
 								<ListItem
 									onClick={() => setLogoutModal(true)}
-									className="mx-1 rounded-md py-2"
+									className="mx-1 min-h-12 rounded-md px-3 py-2.5"
 									aria-label="Log out">
 									<ListItemPrefix className="mr-3 shrink-0">
 										<IoLogOutOutline size={22} />
 									</ListItemPrefix>
 									<Typography
 										variant="small"
-										className="font-medium text-[#2E3B4E] whitespace-nowrap">
+										className="font-medium text-brand whitespace-nowrap">
 										Log out
 									</Typography>
 								</ListItem>
@@ -619,7 +663,7 @@ const Navbar = ({
 											setLogoutModal(true)
 											closeDrawer()
 										}}
-										className="my-4 mx-2 tooltip-logout"
+										className="my-4 mx-2 h-12 w-12 tooltip-logout"
 										aria-label="Log out">
 										<IoLogOutOutline size={30} />
 									</IconButton>
