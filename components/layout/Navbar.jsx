@@ -1,14 +1,13 @@
 /**
  * @fileoverview Navbar - Side Navigation Component
  *
- * Responsive drawer: brand + expand at top; icon rail / labels; logout at bottom.
- * Mobile always shows a wide labeled overlay; expand/collapse is desktop-only.
+ * Responsive drawer: desktop brand + expand at top; icon rail / labels; logout at bottom.
+ * Mobile overlay is menu-only (brand lives in Headbar); expand/collapse is desktop-only.
  */
 
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/router'
-import Image from 'next/image'
 import {
 	Button,
 	Drawer,
@@ -34,7 +33,6 @@ import {
 	IoChevronForwardOutline,
 	IoLogOutOutline,
 } from 'react-icons/io5'
-import { GiMagnifyingGlass } from 'react-icons/gi'
 import { HiOutlineDocumentPlus } from 'react-icons/hi2'
 import { Tooltip } from 'react-tooltip'
 import HelpModal from '../modals/common/HelpModal'
@@ -42,6 +40,7 @@ import ContactHelpModal from '../modals/ContactHelpModal'
 import ConfirmModal from '../modals/common/ConfirmModal'
 import { useAuth } from '../../context/AuthContext'
 import { useNavBranding } from '../../hooks/useNavBranding'
+import BrandLockup, { BrandMark } from './BrandLockup'
 import {
 	NAV_COLLAPSED_WIDTH,
 	NAV_EXPANDED_MAX_WIDTH,
@@ -127,50 +126,6 @@ function NavItem({
 	)
 }
 
-function NavBrandMark({ agencyLogo, isAgency, compact }) {
-	if (isAgency && agencyLogo) {
-		return (
-			<Image
-				src={agencyLogo}
-				width={compact ? 36 : 40}
-				height={compact ? 36 : 40}
-				alt="agency logo"
-				className={`${compact ? 'h-9 w-9' : 'h-10 w-10'} object-contain shrink-0`}
-			/>
-		)
-	}
-	return (
-		<div
-			className={`bg-brand rounded-full shrink-0 ${
-				compact ? 'p-2' : 'p-2.5'
-			}`}>
-			<GiMagnifyingGlass className="fill-white" size={compact ? 16 : 18} />
-		</div>
-	)
-}
-
-function NavBrandTitle({ customClaims, agencyName }) {
-	if (customClaims?.admin) {
-		return (
-			<div className="text-sm font-semibold tracking-wide truncate min-w-0 text-brand">
-				Truth Sleuth Local
-			</div>
-		)
-	}
-	if (customClaims?.agency && !customClaims?.admin) {
-		return (
-			<div className="text-sm font-semibold tracking-wide truncate min-w-0 text-brand">
-				{agencyName || 'Agency'}
-			</div>
-		)
-	}
-	return (
-		<div className="text-sm font-semibold tracking-wide truncate min-w-0 text-brand">
-			Truth Sleuth Local
-		</div>
-	)
-}
-
 /** Brand-filled report action shown when the drawer shows labels. */
 function ReportCta({ customClaims, onAgencyNewReport, onCreateReport }) {
 	if (customClaims?.agency) {
@@ -230,15 +185,16 @@ const Navbar = ({
 
 	const drawerRef = useRef(null)
 	const isDesktop = windowSize[0] > 640
-	// Mobile overlay always shows labels so page names are readable; desktop uses expand toggle.
-	const showLabels = isDesktop ? desktopExpanded : open
+	// Mobile drawer is always labeled; never flip to icon-rail while closing (avoids CTA flash).
+	const showLabels = isDesktop ? desktopExpanded : true
+	// Mobile closed must be 0 — collapsed width + labels lets "Log out" peek past the off-screen transform.
 	const drawerSize = isDesktop
 		? showLabels
 			? NAV_EXPANDED_MAX_WIDTH
 			: NAV_COLLAPSED_WIDTH
 		: open
 			? getMobileDrawerSize(windowSize[0])
-			: NAV_COLLAPSED_WIDTH
+			: 0
 
 	useEffect(() => {
 		const handleWindowResize = () => {
@@ -532,17 +488,17 @@ const Navbar = ({
 				onClose={closeDrawer}
 				size={drawerSize}
 				overlay={disableOverlay}
-				className={`z-[9997] !h-full transition-[max-width] duration-200 ease-in-out${
-					isDesktop && showLabels ? ' !w-max overflow-x-hidden' : ''
+				className={`z-[9997] !h-full overflow-hidden transition-[max-width] duration-200 ease-in-out${
+					isDesktop && showLabels ? ' !w-max' : ''
 				}`}>
 				<div
 					data-component="Navbar"
 					className={`flex h-full w-full flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] ${
 						isDesktop && showLabels ? 'w-max max-w-full' : ''
 					}`}>
-					{/* Top: brand + expand (desktop) / close (mobile) */}
-					{!isDesktop && showLabels ? (
-						<div className="shrink-0 border-b border-blue-gray-50 px-3 pt-2 pb-3">
+					{/* Top: close only (mobile) / brand + expand (desktop) */}
+					{!isDesktop ? (
+						<div className="shrink-0 border-b border-blue-gray-50 px-3 pt-2 pb-2">
 							<IconButton
 								variant="text"
 								onClick={closeDrawer}
@@ -550,68 +506,46 @@ const Navbar = ({
 								aria-label="Close menu">
 								<IoClose size={28} />
 							</IconButton>
-							<div className="mt-2 flex min-w-0 items-center gap-3 px-1">
-								<NavBrandMark
-									agencyLogo={agencyLogo}
-									isAgency={isAgencyUser}
-									compact={false}
-								/>
-								<NavBrandTitle
-									customClaims={customClaims}
-									agencyName={agencyName}
-								/>
-							</div>
 						</div>
 					) : (
 						<div
 							className={`shrink-0 flex items-center gap-1 border-b border-blue-gray-50 ${
 								showLabels ? 'px-2 py-3' : 'px-1 py-2 flex-col'
 							}`}>
-							{!isDesktop && (
-								<IconButton
-									variant="text"
-									onClick={closeDrawer}
-									className="my-1 mx-2 tooltip-close sm:hidden self-start"
-									aria-label="Close menu">
-									<IoClose size={30} />
-								</IconButton>
-							)}
-
-							<div
-								className={`flex min-w-0 flex-1 items-center ${
-									showLabels ? 'gap-3' : 'w-full justify-center'
-								}`}>
-								<NavBrandMark
+							{showLabels ? (
+								<BrandLockup
 									agencyLogo={agencyLogo}
-									isAgency={isAgencyUser}
-									compact={!showLabels}
+									agencyName={agencyName}
+									customClaims={customClaims}
+									className="min-w-0 flex-1"
+									titleClassName="text-sm"
 								/>
-								{showLabels && (
-									<NavBrandTitle
-										customClaims={customClaims}
-										agencyName={agencyName}
+							) : (
+								<div className="flex w-full justify-center">
+									<BrandMark
+										agencyLogo={agencyLogo}
+										isAgency={isAgencyUser}
+										compact
 									/>
-								)}
-							</div>
-
-							{isDesktop && (
-								<IconButton
-									variant="text"
-									onClick={toggleDesktopExpanded}
-									className={`shrink-0 text-brand hover:bg-brand/10 ${
-										showLabels ? '' : 'my-1 mx-2 tooltip-expand-nav'
-									}`}
-									aria-label={
-										showLabels ? 'Collapse sidebar' : 'Expand sidebar'
-									}>
-									{showLabels ? (
-										<IoChevronBackOutline size={22} />
-									) : (
-										<IoChevronForwardOutline size={26} />
-									)}
-								</IconButton>
+								</div>
 							)}
-							{isDesktop && !showLabels && (
+
+							<IconButton
+								variant="text"
+								onClick={toggleDesktopExpanded}
+								className={`shrink-0 text-brand hover:bg-brand/10 ${
+									showLabels ? '' : 'my-1 mx-2 tooltip-expand-nav'
+								}`}
+								aria-label={
+									showLabels ? 'Collapse sidebar' : 'Expand sidebar'
+								}>
+								{showLabels ? (
+									<IoChevronBackOutline size={22} />
+								) : (
+									<IoChevronForwardOutline size={26} />
+								)}
+							</IconButton>
+							{!showLabels && (
 								<NavTooltip tooltipClass="tooltip-expand-nav">Expand</NavTooltip>
 							)}
 						</div>
