@@ -61,7 +61,7 @@ import ConfirmModal from '../modals/common/ConfirmModal'
 import EditUserModal from '../modals/admin/EditUserModal'
 import NewUserModal from '../modals/admin/NewUserModal'
 import { FaPlus } from 'react-icons/fa'
-import { HiChevronDown, HiChevronUp } from 'react-icons/hi2'
+import { HiChevronDown, HiChevronUp, HiMagnifyingGlass } from 'react-icons/hi2'
 import {
 	Card,
 	CardHeader,
@@ -1509,6 +1509,7 @@ const Users = () => {
 								label="Search"
 								value={searchTerm}
 								onChange={(e) => setSearchTerm(e.target.value)}
+								icon={<HiMagnifyingGlass className="h-5 w-5" />}
 							/>
 						</div>
 					</div>
