@@ -23,6 +23,7 @@
 
 import React, { useEffect, useState } from "react"
 import { resolveAgencyIdForReport } from '../../../utils/label-tags'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -196,18 +197,11 @@ const ReportModal = ({
 	const [shareReportModal, setShareReportModal] = useState(false) // Share modal visibility
 	const [tagLabelMap, setTagLabelMap] = useState({})
 	const [lightboxOpen, setLightboxOpen] = useState(false)
-	// Delay Dialog open one tick: MT Dialog + Floating UI 0.19 logs aria-hidden
-	// "not contained inside body" when mounting with open={true} immediately.
-	const [dialogOpen, setDialogOpen] = useState(false)
+	const dialogOpen = useDelayedDialogOpen()
 
 	const reportImages = Array.isArray(report.images)
 		? report.images.filter(Boolean)
 		: []
-
-	useEffect(() => {
-		const id = window.setTimeout(() => setDialogOpen(true), 0)
-		return () => window.clearTimeout(id)
-	}, [])
 
 	useEffect(() => {
 		let cancelled = false
