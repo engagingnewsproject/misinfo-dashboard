@@ -196,9 +196,9 @@ function DashboardLayout({
 	const [viewVal, setViewVal] = useState('overview')
 	const showGraphToggle = tab === 0 && (customClaims.admin || customClaims.agency)
 
+	// Omit titles when the tab renders a visible desktop PageTitle (e.g. Profile).
 	const headbarTitles = {
 		0: 'Dashboard',
-		1: 'Profile',
 		2: 'Tagging Systems',
 		3: 'Users',
 		4: 'Agencies',

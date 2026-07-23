@@ -21,6 +21,7 @@
   "account": "Cuenta",
   "deleteAccount":"¿Estás seguro de que quieres eliminar tu cuenta?",
   "email": "Correo Electrónico",
+  "password": "Contraseña",
   "successUpdatePassword": "Contraseña actualiza",
   "emailUpdated": "Correo electrónico actualizado",
   "incorrectEmail": "El nuevo correo electrónico debe ser @correo.",

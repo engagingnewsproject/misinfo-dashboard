@@ -64,6 +64,34 @@ const FormSelect = ({
               ? stylesProp.control(base, state)
               : stylesProp?.control),
           }),
+          singleValue: (base, state) => ({
+            ...base,
+            fontSize: '0.875rem', // text-sm / 14px — match FormInput
+            ...(typeof stylesProp?.singleValue === 'function'
+              ? stylesProp.singleValue(base, state)
+              : stylesProp?.singleValue),
+          }),
+          input: (base, state) => ({
+            ...base,
+            fontSize: '0.875rem',
+            ...(typeof stylesProp?.input === 'function'
+              ? stylesProp.input(base, state)
+              : stylesProp?.input),
+          }),
+          placeholder: (base, state) => ({
+            ...base,
+            fontSize: '0.875rem',
+            ...(typeof stylesProp?.placeholder === 'function'
+              ? stylesProp.placeholder(base, state)
+              : stylesProp?.placeholder),
+          }),
+          option: (base, state) => ({
+            ...base,
+            fontSize: '0.875rem', // text-sm / 14px — match closed field
+            ...(typeof stylesProp?.option === 'function'
+              ? stylesProp.option(base, state)
+              : stylesProp?.option),
+          }),
           menu: (base, state) => ({
             ...base,
             zIndex: MENU_Z_INDEX,

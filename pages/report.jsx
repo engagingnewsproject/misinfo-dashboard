@@ -177,9 +177,9 @@ function ReportLayout({
 	setLocationModal,
 }) {
 	const contentOffsetStyle = useNavContentOffsetStyle()
+	// Profile uses in-content PageTitle on desktop — omit Headbar title.
 	const headbarTitles = {
 		0: 'Report',
-		1: 'Profile',
 	}
 
 	return (

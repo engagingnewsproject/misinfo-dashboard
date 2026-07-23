@@ -22,6 +22,8 @@ import {
  * @param {string} props.label
  * @param {string} [props.helperText]
  * @param {string} [props.actionText]
+ * @param {boolean} [props.framed=true] - When false, omit dashed dropzone chrome
+ *   (for nesting inside an outlined field that already has border + label)
  */
 const MediaUploadField = ({
 	id = 'multiple_files',
@@ -34,6 +36,7 @@ const MediaUploadField = ({
 	label,
 	helperText,
 	actionText = 'Click or drag images here',
+	framed = true,
 }) => {
 	const [isDragging, setIsDragging] = useState(false)
 	const [lightboxIndex, setLightboxIndex] = useState(null)
@@ -144,16 +147,28 @@ const MediaUploadField = ({
 				onDragOver={(event) => handleDrag(event, true)}
 				onDragLeave={(event) => handleDrag(event, false)}
 				onDrop={handleDrop}
-				className={`flex w-full items-center gap-2 rounded-md border border-dashed px-3 py-2.5 text-left transition-colors ${
-					isDragging
-						? 'border-blue-500 bg-blue-50'
-						: 'border-slate-300 bg-white hover:border-blue-400 hover:bg-sky-50'
-				}`}
+				className={
+					framed
+						? `flex w-full items-center gap-2 rounded-md border border-dashed px-3 py-2.5 text-left transition-colors ${
+								isDragging
+									? 'border-blue-500 bg-blue-50'
+									: 'border-slate-300 bg-white hover:border-blue-400 hover:bg-sky-50'
+							}`
+						: `flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-left transition-colors ${
+								isDragging ? 'bg-blue-50' : 'hover:bg-blue-gray-50'
+							}`
+				}
 				aria-label={label}>
 				<IoCloudUploadOutline className="h-5 w-5 shrink-0 text-[#2E3B4E]" />
 				<span className="min-w-0 flex-1 text-sm leading-snug">
-					<span className="font-medium text-blue-gray-800">{label}</span>
-					<span className="text-gray-500"> · {actionText}</span>
+					{framed ? (
+						<>
+							<span className="font-medium text-blue-gray-800">{label}</span>
+							<span className="text-gray-500"> · {actionText}</span>
+						</>
+					) : (
+						<span className="text-gray-500">{actionText}</span>
+					)}
 				</span>
 			</button>
 			{helperText && (
