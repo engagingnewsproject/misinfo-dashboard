@@ -128,6 +128,14 @@
         { "fieldPath": "experimentId", "order": "ASCENDING" },
         { "fieldPath": "origin", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "mobileUsers",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userRole", "order": "ASCENDING" },
+        { "fieldPath": "joiningDate", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
