@@ -111,7 +111,7 @@ function NavItem({
 		<ListItem
 			selected={active}
 			onClick={onClick}
-			className={`mx-1 min-h-12 rounded-md px-3 py-2.5 ${
+			className={`w-full min-h-12 rounded-md px-3 py-2.5 ${
 				active ? 'bg-brand/10' : ''
 			}`}
 			aria-label={ariaLabel || label}>
@@ -620,7 +620,7 @@ const Navbar = ({
 					{/* Primary nav (scrollable) */}
 					<div
 						className={`min-h-0 flex-1 overflow-y-auto ${
-							showLabels ? 'px-2 pt-3' : ''
+							showLabels ? 'px-3 pt-3' : ''
 						}`}>
 						{showLabels ? primaryNavExpanded : primaryNavCollapsed}
 					</div>
@@ -637,14 +637,14 @@ const Navbar = ({
 					)}
 
 					{/* Utility + logout pinned to bottom */}
-					<div className={`mt-auto shrink-0 ${showLabels ? 'px-2 pb-2' : ''}`}>
+					<div className={`mt-auto shrink-0 ${showLabels ? 'px-3 pb-2' : ''}`}>
 						{showLabels ? secondaryNavExpanded : secondaryNavCollapsed}
 
-						<div className="mt-1 border-t border-blue-gray-50">
+						<div className="mt-1 border-t border-blue-gray-50 pt-1">
 							{showLabels ? (
 								<ListItem
 									onClick={() => setLogoutModal(true)}
-									className="mx-1 min-h-12 rounded-md px-3 py-2.5"
+									className="w-full min-h-12 rounded-md px-3 py-2.5"
 									aria-label="Log out">
 									<ListItemPrefix className="mr-3 shrink-0">
 										<IoLogOutOutline size={22} />
