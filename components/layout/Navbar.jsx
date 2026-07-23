@@ -426,7 +426,7 @@ const Navbar = ({
 			<NavItem
 				expanded
 				icon={icon(IoChatboxEllipsesOutline)}
-				label="Help"
+				label="Contact"
 				onClick={handleContactHelpModal}
 				tooltipClass="tooltip-contact-us-for-help"
 			/>
@@ -496,9 +496,9 @@ const Navbar = ({
 					className={`flex h-full w-full flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] ${
 						isDesktop && showLabels ? 'w-max max-w-full' : ''
 					}`}>
-					{/* Top: close only (mobile) / brand + expand (desktop) */}
+					{/* Top: Menu + close (mobile) / brand + expand (desktop) */}
 					{!isDesktop ? (
-						<div className="shrink-0 border-b border-blue-gray-50 px-3 pt-2 pb-2">
+						<div className="shrink-0 flex items-center gap-1 border-b border-blue-gray-50 px-3 pt-2 pb-2">
 							<IconButton
 								variant="text"
 								onClick={closeDrawer}
@@ -506,6 +506,11 @@ const Navbar = ({
 								aria-label="Close menu">
 								<IoClose size={28} />
 							</IconButton>
+							<Typography
+								variant="h6"
+								className="font-semibold text-blue-gray-900">
+								Menu
+							</Typography>
 						</div>
 					) : (
 						<div
