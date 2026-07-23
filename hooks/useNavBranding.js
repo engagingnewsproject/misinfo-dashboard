@@ -1,5 +1,5 @@
 /**
- * Agency logo + name for the nav brand chrome.
+ * Agency logo + name for Headbar / Navbar brand chrome.
  * Mirrors former Headbar Firestore lookup (agencyId doc, then legacy email query).
  */
 import { useEffect, useState } from 'react'

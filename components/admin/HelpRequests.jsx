@@ -36,6 +36,7 @@ import HelpRequestsModal from '../modals/HelpRequestsModal'
 import Link from 'next/link'
 import adminSectionStyles from '../../styles/adminSectionStyles'
 import AdminDataTable from './AdminDataTable'
+import PageTitle from '../layout/PageTitle'
 
 const style = adminSectionStyles
 
@@ -198,7 +199,9 @@ const HelpRequests = () => {
 			<div data-component="HelpRequests" className={style.section_container}>
 				<div className={style.section_wrapper}>
 					<div className={style.section_header}>
-						<div className={style.section_title}>Help Requests</div>
+						<PageTitle mobileOnly={false} gutter={false}>
+							Help Requests
+						</PageTitle>
 						<div className={style.section_filtersWrap}>
 							<div className="relative">
 								<input

@@ -6,7 +6,7 @@ const adminSectionStyles = {
 	section_container:
 		'w-full h-full flex flex-col px-3 md:px-12 py-5 mb-5 overflow-y-auto',
 	section_wrapper: 'flex flex-col h-full',
-	section_header: 'flex justify-between ml-10 md:mx-0 py-5',
+	section_header: 'flex justify-between items-center gap-3 py-5',
 	section_title: 'text-xl font-extrabold text-[#2E3B4E] tracking-wider',
 	section_filters: '',
 	section_filtersWrap: 'p-0 px-4 md:p-4 md:py-0 md:px-4 flex items-center',

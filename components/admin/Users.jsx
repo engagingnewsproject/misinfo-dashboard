@@ -85,6 +85,7 @@ import {
 } from '../../utils/reports-queries'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import adminSectionStyles from '../../styles/adminSectionStyles'
+import PageTitle from '../layout/PageTitle'
 
 const dateOptions = {
 	day: '2-digit',
@@ -1515,9 +1516,9 @@ const Users = () => {
 				<CardHeader floated={false} shadow={false} data-element="users-card-header" className="mb-4">
 					<div className="mb-4 flex flex-col justify-between gap-4 md:flex-row md:items-center">
 						<div>
-							<Typography variant="h2" color="blue-gray" className="mt-0">
+							<PageTitle mobileOnly={false} gutter={false}>
 								Users
-							</Typography>
+							</PageTitle>
 						</div>
 						<Button
 							className="flex items-center gap-3"

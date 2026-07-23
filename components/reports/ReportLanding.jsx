@@ -28,6 +28,7 @@ import { IoChevronForward } from "react-icons/io5";
 import { auth } from '../../config/firebase'
 
 import { useTranslation } from 'next-i18next';
+import PageTitle from '../layout/PageTitle'
 
 /** Report card image (bundled so it works on Firebase App Hosting where public/ may not be served). */
 import reportImg from '../../public/img/report.png';
@@ -93,6 +94,7 @@ const ReportLanding = ({
 	const userEmail = auth.currentUser.email
 	return (
 		<div data-component="ReportLanding" className={style.container}>
+			<PageTitle>Report</PageTitle>
 			{/* Headbar */}
 			<div className={style.headerWrap}>
 				<h2 className={style.header}>{t("hello")}</h2>

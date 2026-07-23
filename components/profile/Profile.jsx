@@ -3,7 +3,7 @@
  *
  * This component provides a comprehensive profile management interface for users and agencies.
  * Features include:
- * - Viewing and editing user profile information (name, email, password, location)
+ * - Viewing and editing user profile information (password, location; email is read-only)
  * - Agency profile management (name, logo, location)
  * - Image upload and preview for agency logos
  * - Role-based access and UI (admin, agency, user)
@@ -13,7 +13,7 @@
  * - Responsive design and accessibility
  *
  * Integrates with:
- * - UpdatePwModal, UpdateEmailModal, DeleteModal
+ * - UpdatePwModal, DeleteModal
  * - LocationUpdate form
  * - LanguageSwitcher
  *
@@ -23,7 +23,6 @@
  */
 import React, { useState, useEffect, useRef, useTransition } from 'react'
 import UpdatePwModal from '../modals/profile/UpdatePwModal'
-import UpdateEmailModal from '../modals/profile/UpdateEmailModal'
 import { useAuth } from '../../context/AuthContext'
 // import { auth } from 'firebase-admin';
 import DeleteModal from '../modals/common/DeleteModal'
@@ -42,16 +41,17 @@ import {
 import { db, auth, storage } from '../../config/firebase'
 import { State, City } from 'country-state-city'
 import { useTranslation } from 'next-i18next'
-import globalStyles from '../../styles/globalStyles'
 import { Button } from '@material-tailwind/react'
 import AgencySettingsForm from './AgencySettingsForm'
 import UserSettingsForm from './UserSettingsForm'
+import PageTitle from '../layout/PageTitle'
+import adminSectionStyles from '../../styles/adminSectionStyles'
 /**
  * Profile Component
  *
  * Renders the user profile page, allowing users to view and update their personal and agency information.
  * Handles role-based rendering for admins, agencies, and regular users.
- * Provides modals for updating email, password, and confirming account actions.
+ * Provides modals for updating password and confirming account actions.
  *
  * @param {Object} props
  * @param {Object} props.customClaims - Custom claims object for role-based access
@@ -61,7 +61,6 @@ const Profile = ({ customClaims }) => {
   const { user, verifyRole, disableUser } = useAuth()
   const { t } = useTranslation('Profile')
   const [openModal, setOpenModal] = useState(false)
-  const [emailModal, setEmailModal] = useState(false)
   const [deleteModal, setDeleteModal] = useState(false)
   const [agency, setAgency] = useState([])
   const [agencyName, setAgencyName] = useState('')
@@ -446,7 +445,7 @@ const Profile = ({ customClaims }) => {
     <section className="mt-auto mb-8 p-6 bg-white rounded-md">
       {!isAgency && !isAdmin && languageToggle()}
       <div className="flex justify-between tracking-normal items-center">
-        <div className="font-light mr-4">{t('delete')}</div>
+        <div className="font-light text-base mr-4">{t('delete')}</div>
         <Button
           onClick={() => setDeleteModal(true)}
           variant="outlined" color="red" type="button">
@@ -459,21 +458,18 @@ const Profile = ({ customClaims }) => {
   return (
     <div
       data-component="Profile"
-      className={`${
-        customClaims === null
-          ? globalStyles.page.wrap
-          : globalStyles.page.wrap
-      }`}>
+      className={adminSectionStyles.section_container}>
       <div className={style.sectionWrapper}>
         <UserSettingsForm
-          isAgency={isAgency}
-          agency={agency}
-          agencyName={agencyName}
+          pageTitle={
+            <PageTitle mobileOnly={false} gutter={false}>
+              Profile
+            </PageTitle>
+          }
           email={user.email}
           user={user}
           userData={userData}
           setUserData={setUserData}
-          onEditEmail={() => setEmailModal(true)}
           onEditPassword={() => setOpenModal(true)}
         />
 
@@ -503,7 +499,6 @@ const Profile = ({ customClaims }) => {
       </div>
 
       {openModal && <UpdatePwModal setOpenModal={setOpenModal} />}
-      {emailModal && <UpdateEmailModal setEmailModal={setEmailModal} />}
       {deleteModal && (
         <DeleteModal
           func={handleDelete}

@@ -12,6 +12,7 @@ import React, { useState, useMemo } from 'react'
 import ReportsSection from '../reports/ReportsSection'
 import TagGraph from './TagGraph'
 import Toggle from '../common/Toggle'
+import PageTitle from '../layout/PageTitle'
 import { useAuth } from '../../context/AuthContext'
 import globalStyles from '../../styles/globalStyles'
 
@@ -43,6 +44,7 @@ const Home = ({
 	return (
 		<div data-component="Home" className="w-full h-full flex flex-col">
 			<div className={globalStyles.page.wrap} id="scrollableDiv">
+				<PageTitle srOnly>Dashboard</PageTitle>
 				{/* Mobile: toggle above graphs; desktop toggle lives in Headbar */}
 				<div className="md:hidden mb-3">
 					<Toggle viewVal={viewVal} setViewVal={setViewVal} />

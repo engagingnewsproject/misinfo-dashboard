@@ -51,6 +51,7 @@ import { Button } from '@material-tailwind/react'
 import { seedAgencyTagsDoc } from '../../utils/tag-defaults'
 import adminSectionStyles from '../../styles/adminSectionStyles'
 import AdminDataTable from './AdminDataTable'
+import PageTitle from '../layout/PageTitle'
 
 const style = adminSectionStyles
 
@@ -713,7 +714,9 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 		<div data-component="Agencies" className={style.section_container}>
 			<div className={style.section_wrapper}>
 				<div className={style.section_header}>
-					<div className={style.section_title}>Agencies</div>
+					<PageTitle mobileOnly={false} gutter={false}>
+						Agencies
+					</PageTitle>
 					<div className={style.section_filtersWrap}>
 						{/* <button className={style.button} onClick={handleAddNewAgencyModal}><FaPlus className="text-blue-600 mr-2" size={12}/>Add Agency</button> */}
 						<Button

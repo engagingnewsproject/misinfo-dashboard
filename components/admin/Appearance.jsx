@@ -4,6 +4,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 import { Button, Typography } from '@material-tailwind/react'
+import PageTitle from '../layout/PageTitle'
 import { db } from '../../config/firebase'
 import {
 	DEFAULT_APPEARANCE_CONFIG,
@@ -85,9 +86,7 @@ const Appearance = () => {
 
 	return (
 		<div data-component="Appearance" className="p-6 max-w-3xl">
-			<Typography variant="h4" color="blue" className="mb-2">
-				Appearance
-			</Typography>
+			<PageTitle mobileOnly={false}>Appearance</PageTitle>
 			<p className="text-sm text-gray-600 mb-6">
 				Configure shared dashboard colors. Changes apply for all signed-in users.
 			</p>
