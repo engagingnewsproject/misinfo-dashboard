@@ -604,6 +604,44 @@ const EditUserModal = ({
 			.replace(/_/g, ' ')
 			.replace(/^./, (match) => match.toUpperCase())
 
+	/**
+	 * Shared labeled switch row (contact, banned, other booleans).
+	 *
+	 * @param {{ checked: boolean, onChange: (e: Event) => void, label: string, disabled?: boolean, color?: string }} props
+	 */
+	const renderSwitchRow = ({
+		checked,
+		onChange,
+		label,
+		disabled = false,
+		color = 'blue',
+	}) => (
+		<div
+			className={`${style.modal_form_switch} ${disabled ? 'opacity-60' : ''}`}>
+			<Switch
+				checked={checked}
+				onChange={onChange}
+				disabled={disabled}
+				color={color}
+			/>
+			<Typography variant="small" className="mb-0">
+				{label}
+			</Typography>
+		</div>
+	)
+
+	const renderBannedSwitch = () =>
+		renderSwitchRow({
+			checked: banned,
+			onChange: (e) => {
+				const next = e.target.checked
+				setBanned(next)
+				handleBannedLocal(next)
+			},
+			label: banned ? 'Banned' : 'Not banned',
+			color: 'red',
+		})
+
 	const renderAdditionalField = (fieldKey, fieldValue) => {
 		const fieldConfig = mobileUserFieldTypes?.[fieldKey]
 		const fieldType = fieldConfig?.type || typeof fieldValue
@@ -626,17 +664,14 @@ const EditUserModal = ({
 							{formatFieldLabel(fieldKey)}
 						</Typography>
 					)}
-					<div className={`${style.modal_form_switch} ${disabled ? 'opacity-60' : ''}`}>
-						<Switch
-							checked={Boolean(fieldValue)}
-							onChange={(e) => commitMobileFieldChange(fieldKey, e.target.checked)}
-							disabled={disabled}
-							color="blue"
-						/>
-						<Typography variant="small" className="mb-0">
-							{statusLabel}
-						</Typography>
-					</div>
+					{renderSwitchRow({
+						checked: Boolean(fieldValue),
+						onChange: (e) =>
+							commitMobileFieldChange(fieldKey, e.target.checked),
+						label: statusLabel,
+						disabled,
+						color: 'blue',
+					})}
 				</div>
 			)
 		}
@@ -1000,22 +1035,7 @@ const EditUserModal = ({
 													)}
 												</div>
 											)}
-											<div key="banned">
-												<div className={style.modal_form_switch}>
-													<Switch
-														checked={banned}
-														onChange={(e) => {
-															const next = e.target.checked
-															setBanned(next)
-															handleBannedLocal(next)
-														}}
-														color="red"
-													/>
-													<Typography variant="small" className="mb-0">
-														{banned ? 'Banned' : 'Not banned'}
-													</Typography>
-												</div>
-											</div>
+											<div key="banned">{renderBannedSwitch()}</div>
 											{joiningDateEntry && (
 												<div key="joiningDate">
 													{renderAdditionalField(
@@ -1079,22 +1099,7 @@ const EditUserModal = ({
 						{/* Banned + Role when there are no mobileUserDetails */}
 						{Object.keys(mobileUserDetails || {}).length === 0 && (
 							<>
-								<div>
-									<div className={style.modal_form_switch}>
-										<Switch
-											checked={banned}
-											onChange={(e) => {
-												const next = e.target.checked
-												setBanned(next)
-												handleBannedLocal(next)
-											}}
-											color="red"
-										/>
-										<Typography variant="small" className="mb-0">
-											{banned ? 'Banned' : 'Not banned'}
-										</Typography>
-									</div>
-								</div>
+								<div>{renderBannedSwitch()}</div>
 								{customClaims.admin && (
 									<div>
 										<Typography
