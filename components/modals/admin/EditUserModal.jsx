@@ -590,11 +590,21 @@ const EditUserModal = ({
 		const disabled = !isAdmin
 
 		if (fieldType === 'boolean') {
+			const isContact = fieldKey === 'contact'
+			const statusLabel = isContact
+				? Boolean(fieldValue)
+					? 'Contact'
+					: 'No Contact'
+				: Boolean(fieldValue)
+					? 'Enabled'
+					: 'Disabled'
 			return (
 				<div>
-					<Typography variant="small" className="font-semibold mb-2">
-						{formatFieldLabel(fieldKey)}
-					</Typography>
+					{!isContact && (
+						<Typography variant="small" className="font-semibold mb-2">
+							{formatFieldLabel(fieldKey)}
+						</Typography>
+					)}
 					<div className={`${style.modal_form_switch} ${disabled ? 'opacity-60' : ''}`}>
 						<Switch
 							checked={Boolean(fieldValue)}
@@ -603,7 +613,7 @@ const EditUserModal = ({
 							color="blue"
 						/>
 						<Typography variant="small" className="mb-0">
-							{Boolean(fieldValue) ? 'Enabled' : 'Disabled'}
+							{statusLabel}
 						</Typography>
 					</div>
 				</div>
@@ -781,7 +791,16 @@ const EditUserModal = ({
 				<Typography variant="h3" color="blue" className="mt-0 mb-0">
 					User Info
 				</Typography>
-				<ModalCloseButton onClick={attemptCloseModal} />
+				<div className="flex items-center gap-3">
+					{unsavedWarning && (
+						<Typography
+							variant="small"
+							className="mb-0 font-bold text-red-600">
+							{unsavedWarning}
+						</Typography>
+					)}
+					<ModalCloseButton onClick={attemptCloseModal} />
+				</div>
 			</DialogHeader>
 			<DialogBody className="overflow-y-auto max-h-[calc(100dvh-8rem)]">
 				<form onSubmit={(e) => { onFormSubmit(e); setHasUnsavedChanges(false); setUnsavedWarning('') }}>
@@ -905,13 +924,48 @@ const EditUserModal = ({
 									className="md:col-span-2 mt-4 mb-0">
 									Additional details
 								</Typography>
-								{Object.entries(mobileUserDetails)
-									.filter(([k]) => k !== 'city' && k !== 'state')
-									.map(([fieldKey, fieldValue]) => (
-										<div key={fieldKey} className="md:col-span-2">
-											{renderAdditionalField(fieldKey, fieldValue)}
-										</div>
-									))}
+								{(() => {
+									const detailEntries = Object.entries(
+										mobileUserDetails,
+									).filter(
+										([k]) => k !== 'city' && k !== 'state',
+									)
+									const halfWidthKeys = ['contact', 'joiningDate']
+									const halfWidthEntries = halfWidthKeys
+										.map((key) =>
+											detailEntries.find(([k]) => k === key),
+										)
+										.filter(Boolean)
+									const fullWidthEntries = detailEntries.filter(
+										([k]) => !halfWidthKeys.includes(k),
+									)
+									return (
+										<>
+											{halfWidthEntries.map(
+												([fieldKey, fieldValue]) => (
+													<div key={fieldKey}>
+														{renderAdditionalField(
+															fieldKey,
+															fieldValue,
+														)}
+													</div>
+												),
+											)}
+											{fullWidthEntries.map(
+												([fieldKey, fieldValue]) => (
+													<div
+														key={fieldKey}
+														className="md:col-span-2">
+														{renderAdditionalField(
+															fieldKey,
+															fieldValue,
+														)}
+													</div>
+												),
+											)}
+										</>
+									)
+								})()}
 								{!isAdmin && (
 									<Typography variant="small" className="md:col-span-2 text-slate-600 mb-0">
 										Only admins can edit these values.
@@ -920,63 +974,64 @@ const EditUserModal = ({
 							</Fragment>
 						)}
 
-						<div className={style.modal_form_switch}>
-							<Typography variant="small" className="font-semibold mb-0 mr-2">
-								Banned
-							</Typography>
-							<Switch
-								checked={banned}
-								onChange={(e) => {
-									const next = e.target.checked
-									setBanned(next)
-									handleBannedLocal(next)
-								}}
-								color="red"
-							/>
-							<Typography variant="small" className="mb-0">
-								{banned ? 'Banned' : 'Not banned'}
-							</Typography>
+						<div>
+							<div className={style.modal_form_switch}>
+								<Switch
+									checked={banned}
+									onChange={(e) => {
+										const next = e.target.checked
+										setBanned(next)
+										handleBannedLocal(next)
+									}}
+									color="red"
+								/>
+								<Typography variant="small" className="mb-0">
+									{banned ? 'Banned' : 'Not banned'}
+								</Typography>
+							</div>
 						</div>
 
 						{customClaims.admin && (
 							<>
-								<Typography variant="h5" color="blue" className="md:col-span-2 mt-2 mb-0">
-									Permissions
-								</Typography>
-								<div className={`${style.modal_form_radio_container} md:col-span-2`}>
-									<label htmlFor='admin'>
-										<input
-											type='radio'
-											value='Admin'
-											id='admin'
-											checked={userRole === "Admin"}
-											onChange={() => handleRoleLocal("Admin")}
-											className={style.modal_form_radio}
-										/>
-										Admin
-									</label>
-									<label htmlFor='agency'>
-										<input
-											type='radio'
-											value='Agency'
-											id='agency'
-											checked={userRole === "Agency"}
-											onChange={() => handleRoleLocal("Agency")}
-											className={style.modal_form_radio}
-										/>
-										Agency
-									</label>
-									<label htmlFor='user'>
-										<input
-											type='radio'
-											value='User'
-											id='user'
-											checked={userRole === "User"}
-											onChange={() => handleRoleLocal("User")}
-											className={style.modal_form_radio}
-										/>
-										User
-									</label>
+								<div>
+									<Typography variant="small" className="font-semibold mb-2">
+										Role
+									</Typography>
+									<div className={style.modal_form_radio_container}>
+										<label htmlFor='admin'>
+											<input
+												type='radio'
+												value='Admin'
+												id='admin'
+												checked={userRole === "Admin"}
+												onChange={() => handleRoleLocal("Admin")}
+												className={style.modal_form_radio}
+											/>
+											Admin
+										</label>
+										<label htmlFor='agency'>
+											<input
+												type='radio'
+												value='Agency'
+												id='agency'
+												checked={userRole === "Agency"}
+												onChange={() => handleRoleLocal("Agency")}
+												className={style.modal_form_radio}
+											/>
+											Agency
+										</label>
+										<label htmlFor='user'>
+											<input
+												type='radio'
+												value='User'
+												id='user'
+												checked={userRole === "User"}
+												onChange={() => handleRoleLocal("User")}
+												className={style.modal_form_radio}
+											/>
+											User
+										</label>
+									</div>
 								</div>
 								{userRole === "Agency" && (
 									<div className="md:col-span-2">
@@ -1001,23 +1056,29 @@ const EditUserModal = ({
 								)}
 							</>
 						)}
-						{unsavedWarning && (
-							<Typography variant="small" className="md:col-span-2 text-red-600 text-center mb-0">
-								{unsavedWarning}
-							</Typography>
-						)}
 						{mobileFieldFormError && (
 							<Typography variant="small" className="md:col-span-2 text-red-600 text-center mb-0">
 								{mobileFieldFormError}
 							</Typography>
 						)}
-						<div className='md:col-span-2 flex flex-col items-center gap-2 pt-2'>
+						<div className="md:col-span-2 flex flex-col items-center gap-2 pt-2">
 							<Typography variant="small" className="mb-0">
 								Current Role: {userRole}
 							</Typography>
-							<Button type='submit'>
-								Update User
-							</Button>
+							<div className="flex items-center gap-3">
+								<Button
+									type="button"
+									variant="outlined"
+									color="blue-gray"
+									onClick={() => {
+										setUnsavedWarning('')
+										setHasUnsavedChanges(false)
+										setUserEditModal(false)
+									}}>
+									Cancel
+								</Button>
+								<Button type="submit">Update User</Button>
+							</div>
 						</div>
 					</div>
 				</form>
