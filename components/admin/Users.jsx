@@ -32,6 +32,7 @@
 import React, {
 	useState,
 	useEffect,
+	useLayoutEffect,
 	useContext,
 	useMemo,
 	useCallback,
@@ -436,6 +437,34 @@ const Users = () => {
 	const [remoteSearchLoading, setRemoteSearchLoading] = useState(false)
 	const searchActive = !!(searchTerm && searchTerm.trim())
 	const emailSearchActive = searchActive && searchTerm.includes('@')
+
+	/** White table panel: fill down to 20px above the viewport bottom. */
+	const TABLE_VIEWPORT_BOTTOM_GAP = 20
+	const TABLE_FOOTER_RESERVE = 28
+	const tableHostRef = useRef(/** @type {HTMLDivElement | null} */ (null))
+	const [tableHostHeight, setTableHostHeight] = useState(560)
+
+	useLayoutEffect(() => {
+		const updateTableHeight = () => {
+			const el = tableHostRef.current
+			if (!el) return
+			const top = el.getBoundingClientRect().top
+			const next = Math.floor(
+				window.innerHeight - top - TABLE_VIEWPORT_BOTTOM_GAP,
+			)
+			setTableHostHeight(Math.max(240, next))
+		}
+		updateTableHeight()
+		window.addEventListener('resize', updateTableHeight)
+		return () => window.removeEventListener('resize', updateTableHeight)
+	}, [
+		agencyClaimsStatus,
+		paginationError,
+		customClaims?.agency,
+		customClaims?.admin,
+		searchActive,
+		remoteSearchLoading,
+	])
 
 	const getAuthUsersMap = useCallback(async () => {
 		if (authUsersMapRef.current) {
@@ -1476,11 +1505,17 @@ const Users = () => {
 						</div>
 					</div>
 				)}
-				<div className={style.table_main}>
-					<div className="flex flex-col h-full">
+				<div
+					ref={tableHostRef}
+					className={style.table_main}
+					style={{ height: tableHostHeight }}>
+					<div className="flex flex-col h-full min-h-0">
 						<InfiniteScroll
 							className="overflow-x-auto"
-							height={560}
+							height={Math.max(
+								200,
+								tableHostHeight - TABLE_FOOTER_RESERVE,
+							)}
 							dataLength={loadedMobileUsers.length}
 							next={() => {
 								if (searchActive) return
@@ -1628,7 +1663,7 @@ const Users = () => {
 								</tbody>
 							</table>
 						</InfiniteScroll>
-						<div className="mt-2 self-end text-xs">
+						<div className="mt-2 self-end text-xs shrink-0">
 							Total users: {loadedMobileUsers.length}
 						</div>
 					</div>
