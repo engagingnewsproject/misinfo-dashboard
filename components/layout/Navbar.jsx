@@ -192,12 +192,9 @@ const Navbar = ({
 
 	const drawerRef = useRef(null)
 	const isDesktop = windowSize[0] > 640
-	const showLabels = isDesktop && desktopExpanded
-	const drawerSize = isDesktop
-		? showLabels
-			? NAV_EXPANDED_MAX_WIDTH
-			: NAV_COLLAPSED_WIDTH
-		: NAV_COLLAPSED_WIDTH
+	// Mobile overlay always shows labels so page names are readable; desktop uses expand toggle.
+	const showLabels = isDesktop ? desktopExpanded : open
+	const drawerSize = showLabels ? NAV_EXPANDED_MAX_WIDTH : NAV_COLLAPSED_WIDTH
 
 	useEffect(() => {
 		const handleWindowResize = () => {
@@ -515,56 +512,81 @@ const Navbar = ({
 						showLabels ? 'w-max max-w-full' : 'w-full'
 					}`}>
 					{/* Top: brand + expand (desktop) / close (mobile) */}
-					<div
-						className={`shrink-0 flex items-center gap-1 border-b border-blue-gray-50 ${
-							showLabels ? 'px-2 py-3' : 'px-1 py-2 flex-col'
-						}`}>
-						{!isDesktop && (
+					{!isDesktop && showLabels ? (
+						<div className="shrink-0 border-b border-blue-gray-50 px-3 pt-2 pb-3">
 							<IconButton
 								variant="text"
 								onClick={closeDrawer}
-								className="my-1 mx-2 tooltip-close sm:hidden self-start"
+								className="tooltip-close -ml-1 text-[#2E3B4E] hover:bg-brand/10"
 								aria-label="Close menu">
-								<IoClose size={30} />
+								<IoClose size={28} />
 							</IconButton>
-						)}
-
-						<div
-							className={`flex items-center min-w-0 flex-1 ${
-								showLabels ? 'gap-2' : 'justify-center w-full'
-							}`}>
-							<NavBrandMark
-								agencyLogo={agencyLogo}
-								isAgency={isAgencyUser}
-								compact={!showLabels}
-							/>
-							{showLabels && (
+							<div className="mt-2 flex items-center gap-3 min-w-0 px-1">
+								<NavBrandMark
+									agencyLogo={agencyLogo}
+									isAgency={isAgencyUser}
+									compact={false}
+								/>
 								<NavBrandTitle
 									customClaims={customClaims}
 									agencyName={agencyName}
 								/>
+							</div>
+						</div>
+					) : (
+						<div
+							className={`shrink-0 flex items-center gap-1 border-b border-blue-gray-50 ${
+								showLabels ? 'px-2 py-3' : 'px-1 py-2 flex-col'
+							}`}>
+							{!isDesktop && (
+								<IconButton
+									variant="text"
+									onClick={closeDrawer}
+									className="my-1 mx-2 tooltip-close sm:hidden self-start"
+									aria-label="Close menu">
+									<IoClose size={30} />
+								</IconButton>
+							)}
+
+							<div
+								className={`flex items-center min-w-0 flex-1 ${
+									showLabels ? 'gap-3' : 'justify-center w-full'
+								}`}>
+								<NavBrandMark
+									agencyLogo={agencyLogo}
+									isAgency={isAgencyUser}
+									compact={!showLabels}
+								/>
+								{showLabels && (
+									<NavBrandTitle
+										customClaims={customClaims}
+										agencyName={agencyName}
+									/>
+								)}
+							</div>
+
+							{isDesktop && (
+								<IconButton
+									variant="text"
+									onClick={toggleDesktopExpanded}
+									className={`shrink-0 text-[#2E3B4E] hover:bg-brand/10 ${
+										showLabels ? '' : 'my-1 mx-2 tooltip-expand-nav'
+									}`}
+									aria-label={
+										showLabels ? 'Collapse sidebar' : 'Expand sidebar'
+									}>
+									{showLabels ? (
+										<IoChevronBackOutline size={22} />
+									) : (
+										<IoChevronForwardOutline size={26} />
+									)}
+								</IconButton>
+							)}
+							{isDesktop && !showLabels && (
+								<NavTooltip tooltipClass="tooltip-expand-nav">Expand</NavTooltip>
 							)}
 						</div>
-
-						{isDesktop && (
-							<IconButton
-								variant="text"
-								onClick={toggleDesktopExpanded}
-								className={`shrink-0 text-[#2E3B4E] hover:bg-brand/10 ${
-									showLabels ? '' : 'my-1 mx-2 tooltip-expand-nav'
-								}`}
-								aria-label={showLabels ? 'Collapse sidebar' : 'Expand sidebar'}>
-								{showLabels ? (
-									<IoChevronBackOutline size={22} />
-								) : (
-									<IoChevronForwardOutline size={26} />
-								)}
-							</IconButton>
-						)}
-						{isDesktop && !showLabels && (
-							<NavTooltip tooltipClass="tooltip-expand-nav">Expand</NavTooltip>
-						)}
-					</div>
+					)}
 
 					<div className={`shrink-0 overflow-y-auto ${showLabels ? 'px-1 pt-2' : ''}`}>
 						{showLabels ? primaryNavExpanded : primaryNavCollapsed}
