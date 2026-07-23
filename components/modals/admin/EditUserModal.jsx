@@ -808,7 +808,7 @@ const EditUserModal = ({
 					return true
 				},
 			}}>
-			<DialogHeader className="justify-between gap-4">
+			<DialogHeader className="justify-between gap-4 text-base font-normal">
 				<Typography variant="h3" color="blue" className="mt-0 mb-0">
 					User Info
 				</Typography>
@@ -823,7 +823,7 @@ const EditUserModal = ({
 					<ModalCloseButton onClick={attemptCloseModal} />
 				</div>
 			</DialogHeader>
-			<DialogBody className="overflow-y-auto max-h-[calc(100dvh-8rem)]">
+			<DialogBody className="overflow-y-auto max-h-[calc(100dvh-8rem)] text-base">
 				<form
 					onSubmit={(e) => {
 						if (isEditingLocation && !handleLocationSave()) {
@@ -1040,6 +1040,7 @@ const EditUserModal = ({
 																	<Tab
 																		key={value}
 																		value={value}
+																		className="text-sm"
 																		onClick={() =>
 																			handleRoleLocal(value)
 																		}>
@@ -1107,6 +1108,7 @@ const EditUserModal = ({
 													<Tab
 														key={value}
 														value={value}
+														className="text-sm"
 														onClick={() => handleRoleLocal(value)}>
 														&nbsp;&nbsp;{label}&nbsp;&nbsp;
 													</Tab>
