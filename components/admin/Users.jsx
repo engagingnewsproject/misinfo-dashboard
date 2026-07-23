@@ -151,6 +151,48 @@ const patchUserRowInList = (prev, docId, partial) => {
 }
 
 /**
+ * Maps agency membership emails → display names.
+ * Org association lives on `agency.agencyUsers`, not on `mobileUsers`.
+ *
+ * @param {Array<{ name?: string, agencyUsers?: string[] }>} agencies
+ * @returns {Map<string, string>} lowercase email → agency name
+ */
+const buildEmailToAgencyNameMap = (agencies) => {
+	const map = new Map()
+	for (const agency of agencies || []) {
+		const name = typeof agency?.name === 'string' ? agency.name.trim() : ''
+		if (!name) continue
+		for (const raw of agency.agencyUsers || []) {
+			if (typeof raw !== 'string') continue
+			const email = raw.trim().toLowerCase()
+			if (email) map.set(email, name)
+		}
+	}
+	return map
+}
+
+/**
+ * Attaches `agencyName` onto user rows via email membership lookup.
+ *
+ * @param {Array<Object>} users
+ * @param {Map<string, string>} emailToAgencyName
+ * @param {boolean} [agenciesLoaded=false] - When true, clear names for emails not in any agency
+ * @returns {Array<Object>}
+ */
+const withAgencyNames = (users, emailToAgencyName, agenciesLoaded = false) => {
+	if (!users?.length) return users
+	if (!agenciesLoaded) return users
+	return users.map((user) => {
+		const email =
+			typeof user?.email === 'string' ? user.email.trim().toLowerCase() : ''
+		const fromMembership = email ? emailToAgencyName.get(email) : undefined
+		const nextName = fromMembership || ''
+		if ((user.agencyName ?? '') === nextName) return user
+		return { ...user, agencyName: nextName }
+	})
+}
+
+/**
  * Sort by Firestore `joiningDate` (seconds), falling back to parsed `joined` string.
  * Returns a new array (does not mutate the input).
  *
@@ -515,6 +557,12 @@ const Users = () => {
 		}
 	}, [authGetUserList])
 
+	/** Email → agency display name from membership lists (for Agency column). */
+	const emailToAgencyName = useMemo(
+		() => buildEmailToAgencyNameMap(agenciesArray),
+		[agenciesArray],
+	)
+
 	// Processed users: combines pagination data with auth details and applies search.
 	// Ordered by joiningDate per Join Date header toggle (default newest-first).
 	const loadedMobileUsers = useMemo(() => {
@@ -537,7 +585,14 @@ const Users = () => {
 					: baseUsers
 		}
 
-		return sortByJoinedDate(list, joinDateSort)
+		return sortByJoinedDate(
+			withAgencyNames(
+				list,
+				emailToAgencyName,
+				!!customClaims?.admin && agenciesArray.length > 0,
+			),
+			joinDateSort,
+		)
 	}, [
 		paginatedUsers,
 		agencyUsers,
@@ -548,6 +603,8 @@ const Users = () => {
 		searchActive,
 		remoteSearchHits,
 		joinDateSort,
+		emailToAgencyName,
+		agenciesArray.length,
 	])
 
 	/**
@@ -637,11 +694,11 @@ const Users = () => {
 	 */
 	const fetchAgencies = async () => {
 		const snapshot = await getDocs(collection(db, 'agency'))
-		const agencies = snapshot.docs.map((doc) => ({
-			id: doc.id,
-			name: doc.data().name,
+		const agencies = snapshot.docs.map((docSnap) => ({
+			id: docSnap.id,
+			name: docSnap.data().name,
+			agencyUsers: docSnap.data().agencyUsers || [],
 		}))
-		// console.log(agencies);
 		setAgenciesArray(agencies)
 	}
 
@@ -875,62 +932,35 @@ const Users = () => {
 	}
 
 	/**
-	 * Handles the submission of the form to add a new user.
-	 *
-	 * This function is responsible for managing the entire process of adding a new user.
-	 * It first prevents the default form submission behavior and clears any existing errors.
-	 * The function then validates the new user's email address to ensure it meets the minimum
-	 * length requirement (at least 15 characters). If the email is valid, the function attempts
-	 * to send a sign-in link to the provided email address.
-	 *
-	 * After successfully sending the sign-in link, the function adds the new user's email to the
-	 * `agencyUsers` array in the corresponding Firestore agency document, provided that the
-	 * `agencyId` is valid. If any part of this process fails, the error is caught and handled by
-	 * updating the `errors` state with the appropriate message.
-	 *
-	 * Finally, if all operations succeed, the function triggers a state update to refresh the user list
-	 * and closes the modal.
+	 * Invites a public (non-admin, non-agency) user via passwordless email link.
+	 * They complete signup on /signup and are created as a regular User.
 	 *
 	 * @param {Event} e - The event object from the form submission.
-	 * @returns {Promise<void>} A promise that resolves after the sign-in email is sent, the user's email
-	 * is added to the Firestore agency document, and the modal is closed. If an error is encountered,
-	 * it is handled and displayed in the form.
+	 * @returns {Promise<void>}
 	 */
 	const handleAddNewUserFormSubmit = async (e) => {
 		e.preventDefault()
 		try {
-			// Clear previous errors
 			setErrors({})
 
-			// Validate the email length before sending the sign-in link
-			if (newUserEmail.length < 15) {
+			const trimmedEmail = newUserEmail.trim()
+			const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)
+			if (!emailOk) {
 				setErrors((prevErrors) => ({
 					...prevErrors,
-					// Error message shown to user
-					email: 'Email should be at least 15 characters long',
+					email: 'Enter a valid email address',
 				}))
-				return // Stop the form submission if there's a validation error
+				return
 			}
 
-			await sendSignIn(newUserEmail)
+			await sendSignIn(trimmedEmail)
 
-			// Add the new user's email to the agency's `agencyUsers` array in Firestore
-			// Validate agencyId before proceeding
-			if (!agencyId || agencyId.trim() === '') {
-				throw new Error('Invalid or missing agency ID')
-			}
-			const agencyRef = doc(db, 'agency', agencyId)
-			console.log(agencyRef)
-			await updateDoc(agencyRef, {
-				agencyUsers: arrayUnion(newUserEmail),
-			})
-
+			setNewUserEmail('')
 			setUpdate(!update)
 			setNewUserModal(false)
 		} catch (error) {
 			console.error('Error in handleAddNewUserFormSubmit:', error.message)
 
-			// Set the error message in the errors state
 			setErrors((prevErrors) => ({
 				...prevErrors,
 				email: error.message,
@@ -1210,6 +1240,8 @@ const Users = () => {
 							)
 						}
 					}
+					setAgencyName(selectedAgency.name || '')
+					await fetchAgencies()
 				} else {
 				}
 			} catch (error) {
@@ -1428,12 +1460,22 @@ const Users = () => {
 			}
 		}
 
+		const resolvedAgencyName =
+			userRole === 'Agency'
+				? agenciesArray.find((a) => a.id === selectedAgency)?.name ||
+					agencyName ||
+					''
+				: ''
 		const optimisticPatch = {
 			...serializedAdditionalFields,
 			name,
 			email,
 			isBanned: banned,
 			userRole,
+			agencyName: resolvedAgencyName,
+		}
+		if (customClaims.admin) {
+			await fetchAgencies()
 		}
 		if (customClaims.agency) {
 			setAgencyUsers((prev) => patchUserRowInList(prev, userId, optimisticPatch))
@@ -1470,21 +1512,18 @@ const Users = () => {
 	return (
 		<div data-component="Users" className={style.section_container}>
 			<Card className="h-full w-full">
-				<CardHeader floated={false} shadow={false} className="rounded-none">
+				<CardHeader floated={false} shadow={false} data-element="users-card-header" className="mb-4">
 					<div className="mb-4 flex flex-col justify-between gap-4 md:flex-row md:items-center">
 						<div>
-							<Typography variant="h5" color="blue-gray">
+							<Typography variant="h2" color="blue-gray" className="mt-0">
 								Users
-							</Typography>
-							<Typography color="gray" className="mt-1 font-normal">
-								{customClaims.admin ? 'Admin: All Users' : 'All Agency'}
 							</Typography>
 						</div>
 						<Button
 							className="flex items-center gap-3"
 							size="sm"
 							onClick={handleAddNewUserModal}>
-							<FaPlus className="h-3.5 w-3.5" /> Add User
+							<FaPlus className="h-3.5 w-3.5" /> Invite User
 						</Button>
 					</div>
 					<div className="flex flex-col items-center justify-between gap-4 md:flex-row">
@@ -1537,30 +1576,6 @@ const Users = () => {
 						</Typography>
 					</div>
 				)}
-				{!customClaims.agency && (
-					<div className="mx-4 mb-2 flex flex-wrap items-center gap-2 rounded-lg bg-white p-2">
-						<Typography variant="small" className="font-bold">
-							Key:
-						</Typography>
-						<div className="flex items-center gap-1">
-							<Typography variant="small" className="bg-red-50 p-1">
-								Red:
-							</Typography>
-							<Typography variant="small">
-								Firestore &apos;mobileUsers&apos; doc missing
-							</Typography>
-						</div>
-						<div className="flex items-center gap-1">
-							<Typography variant="small" className="bg-yellow-100 p-1">
-								Yellow:
-							</Typography>
-							<Typography variant="small">
-								User disabled in Firebase Auth
-							</Typography>
-						</div>
-					</div>
-				)}
-
 				<div
 					ref={tableHostRef}
 					className="flex min-h-0 flex-col"
@@ -1835,11 +1850,36 @@ const Users = () => {
 							</table>
 						</InfiniteScroll>
 					</CardBody>
-					<CardFooter className="flex shrink-0 items-center justify-end border-t border-blue-gray-50 p-4">
+					<CardFooter className="flex shrink-0 flex-wrap items-center gap-2 rounded-b-xl border-t border-blue-gray-50 bg-blue-gray-50/80 p-4">
+						{!customClaims.agency && (
+							<div className="flex flex-wrap items-center gap-2">
+								<Typography variant="small" className="font-bold">
+									Key:
+								</Typography>
+								<div className="flex items-center gap-1">
+									<Typography variant="small" className="bg-red-50 p-1">
+										Red:
+									</Typography>
+									<Typography variant="small">
+										Firestore &apos;mobileUsers&apos; doc missing
+									</Typography>
+								</div>
+								<div className="flex items-center gap-1">
+									<Typography
+										variant="small"
+										className="bg-yellow-100 p-1">
+										Yellow:
+									</Typography>
+									<Typography variant="small">
+										User disabled in Firebase Auth
+									</Typography>
+								</div>
+							</div>
+						)}
 						<Typography
 							variant="small"
 							color="blue-gray"
-							className="font-normal">
+							className="ml-auto font-normal">
 							Total users: {loadedMobileUsers.length}
 						</Typography>
 					</CardFooter>
