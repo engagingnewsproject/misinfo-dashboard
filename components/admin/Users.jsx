@@ -1105,10 +1105,6 @@ const Users = () => {
 		if (userAgencyDoc) {
 			const userAgency = userAgencyDoc.id // Get the document ID
 			const agencyName = userAgencyDoc.data().name // Get the agency name from the document data
-
-			console.log('userAgency ID --> ', userAgency)
-			console.log('agencyName --> ', agencyName)
-
 			setSelectedAgency(userAgency)
 			setAgencyName(agencyName)
 		} else {
@@ -1158,12 +1154,9 @@ const Users = () => {
 		e.preventDefault()
 		const selectedValue = e.target.value
 		setSelectedAgency(selectedValue)
-		// console.log(selectedAgency.name)
 		const selectedAgency = agenciesArray.find(
 			(agency) => agency.id === selectedValue,
 		)
-		// console.log(selectedAgency) // Additional debugging to verify the correct agency is selected
-
 		if (selectedAgency) {
 			try {
 				// Fetch the current data of the agency document to which the user is being added
@@ -1204,9 +1197,7 @@ const Users = () => {
 								claimError,
 							)
 						}
-						console.log('User successfully added to the new agency.')
 					} else {
-						console.log('User already exists in this agency.')
 						try {
 							await addAgencyRole({
 								email,
@@ -1220,7 +1211,6 @@ const Users = () => {
 						}
 					}
 				} else {
-					console.log('Agency document does not exist.')
 				}
 			} catch (error) {
 				console.error('Error updating agency documents:', error)

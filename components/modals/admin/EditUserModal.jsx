@@ -65,6 +65,14 @@ const EditUserModal = ({
 	const [locationError, setLocationError] = useState('')
 	const [selectedStateOption, setSelectedStateOption] = useState(null)
 	const [selectedCityOption, setSelectedCityOption] = useState(null)
+	// Delay Dialog open one tick: MT Dialog + Floating UI 0.19 logs aria-hidden
+	// "not contained inside body" when mounting with open={true} immediately.
+	const [dialogOpen, setDialogOpen] = useState(false)
+
+	useEffect(() => {
+		const id = window.setTimeout(() => setDialogOpen(true), 0)
+		return () => window.clearTimeout(id)
+	}, [])
 
 	const stateOptions = useMemo(() => State.getStatesOfCountry('US'), [])
 	const cityOptions = useMemo(() => {
@@ -751,7 +759,7 @@ const EditUserModal = ({
 
 	return (
 		<Dialog data-component="EditUserModal"
-			open
+			open={dialogOpen}
 			handler={attemptCloseModal}
 			size="xl"
 			className="edit-user-modal rounded-md"
@@ -775,7 +783,7 @@ const EditUserModal = ({
 				</Typography>
 				<ModalCloseButton onClick={attemptCloseModal} />
 			</DialogHeader>
-			<DialogBody className="overflow-y-auto max-h-[calc(100dvh-8rem)] pt-0">
+			<DialogBody className="overflow-y-auto max-h-[calc(100dvh-8rem)]">
 				<form onSubmit={(e) => { onFormSubmit(e); setHasUnsavedChanges(false); setUnsavedWarning('') }}>
 					<div className={style.modal_form_container}>
 						<div className="md:col-span-2">
