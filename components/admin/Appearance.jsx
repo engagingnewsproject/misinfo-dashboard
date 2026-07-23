@@ -92,7 +92,7 @@ const Appearance = () => {
 				Configure shared dashboard colors. Changes apply for all signed-in users.
 			</p>
 
-			<div className="mb-8 p-6 bg-white rounded-lg border border-blue-gray-100">
+			<div className="mb-8 p-6 bg-white rounded-md border border-blue-gray-100">
 				<Typography variant="h5" color="blue" className="mb-4">
 					Report table
 				</Typography>

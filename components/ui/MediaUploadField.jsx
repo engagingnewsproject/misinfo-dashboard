@@ -144,7 +144,7 @@ const MediaUploadField = ({
 				onDragOver={(event) => handleDrag(event, true)}
 				onDragLeave={(event) => handleDrag(event, false)}
 				onDrop={handleDrop}
-				className={`flex w-full items-center gap-2 rounded-lg border border-dashed px-3 py-2.5 text-left transition-colors ${
+				className={`flex w-full items-center gap-2 rounded-md border border-dashed px-3 py-2.5 text-left transition-colors ${
 					isDragging
 						? 'border-blue-500 bg-blue-50'
 						: 'border-slate-300 bg-white hover:border-blue-400 hover:bg-sky-50'

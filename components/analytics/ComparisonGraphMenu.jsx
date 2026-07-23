@@ -245,7 +245,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
     </div>
     {showCalendar == 1 &&  
       <>    
-        <div className="absolute z-50 mt-2 right-0 bg-white p-2 rounded-lg shadow-xl border border-gray-200">
+        <div className="absolute z-50 mt-2 right-0 bg-white p-2 rounded-md shadow-xl border border-gray-200">
           <DateRange
             editableDateInputs={true}
             onChange={item => handleDateSelection(item)}

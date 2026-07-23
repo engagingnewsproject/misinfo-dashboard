@@ -1555,7 +1555,7 @@ const Users = () => {
 				</CardHeader>
 
 				{paginationError && (
-					<div className="mx-4 mb-2 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700">
+					<div className="mx-4 mb-2 flex items-center gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-red-700">
 						<Typography variant="small" className="font-bold">
 							Error:
 						</Typography>
@@ -1563,12 +1563,12 @@ const Users = () => {
 					</div>
 				)}
 				{agencyClaimsStatus === 'pending' && (
-					<div className="mx-4 mb-2 flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+					<div className="mx-4 mb-2 flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-blue-800">
 						<Typography variant="small">Loading agency access…</Typography>
 					</div>
 				)}
 				{agencyClaimsStatus === 'missing' && (
-					<div className="mx-4 mb-2 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-900">
+					<div className="mx-4 mb-2 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-900">
 						<Typography variant="small">
 							Agency access is incomplete (missing agency ID on your account).
 							Refresh the page, or ask an admin to re-run agency claims
@@ -1850,7 +1850,7 @@ const Users = () => {
 							</table>
 						</InfiniteScroll>
 					</CardBody>
-					<CardFooter className="flex shrink-0 flex-wrap items-center gap-2 rounded-b-xl border-t border-blue-gray-50 bg-blue-gray-50/80 p-4">
+					<CardFooter className="flex shrink-0 flex-wrap items-center gap-2 rounded-b-md border-t border-blue-gray-50 bg-blue-gray-50/80 p-4">
 						{!customClaims.agency && (
 							<div className="flex flex-wrap items-center gap-2">
 								<Typography variant="small" className="font-bold">

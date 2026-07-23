@@ -273,7 +273,7 @@ const ReportDetails = () => {
 				</div>
 			</div>
 			{info?.archived === true && (
-				<div className="mb-4 px-4 py-2 rounded-lg bg-amber-100 text-amber-900 text-sm">
+				<div className="mb-4 px-4 py-2 rounded-md bg-amber-100 text-amber-900 text-sm">
 					This report is archived and hidden from default dashboard views.
 				</div>
 			)}

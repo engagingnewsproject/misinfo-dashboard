@@ -573,8 +573,8 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 				</form>
 
 				{search.length > 0 && (
-					<div className="shadow-lg absolute rounded-lg z-20 mt-2 w-1/2">
-						<div className="bg-white w-full rounded-lg">
+					<div className="shadow-lg absolute rounded-md z-20 mt-2 w-1/2">
+						<div className="bg-white w-full rounded-md">
 							{searchResult.map((item) => {
 								if (!isLabelsMode && isOtherTagName(item)) return null
 								if (isLabelsMode && isAppWideLabel(item)) return null
@@ -584,7 +584,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 											setSelected(item)
 											setSearchResult([])
 										}}
-										className="text-light text-sm rounded-lg leading-tight py-2 pl-4 hover:bg-indigo-100 cursor-pointer"
+										className="text-light text-sm rounded-md leading-tight py-2 pl-4 hover:bg-indigo-100 cursor-pointer"
 										key={item}>
 										{formatTagDisplay(item, {
 											required: isRequiredTag(item, requiredTags),
