@@ -44,10 +44,16 @@ const Home = ({
 	return (
 		<div data-component="Home" className="w-full h-full flex flex-col">
 			<div className={globalStyles.page.wrap} id="scrollableDiv">
-				<PageTitle srOnly>Dashboard</PageTitle>
-				{/* Mobile: toggle above graphs; desktop toggle lives in Headbar */}
-				<div className="md:hidden mb-3">
-					<Toggle viewVal={viewVal} setViewVal={setViewVal} />
+				{/* Mobile: title + toggle; desktop toggle lives in Headbar */}
+				<div className="md:hidden mb-3 flex items-center justify-between gap-2">
+					<PageTitle gutter={false} mobileOnly={false}>
+						Dashboard
+					</PageTitle>
+					<Toggle
+						viewVal={viewVal}
+						setViewVal={setViewVal}
+						className="shrink-0"
+					/>
 				</div>
 				<TagGraph viewVal={viewVal} />
 				<ReportsSection
