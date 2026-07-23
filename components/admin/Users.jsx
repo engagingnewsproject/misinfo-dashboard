@@ -45,7 +45,6 @@ import {
 	doc,
 	deleteDoc,
 	updateDoc,
-	setDoc,
 	onSnapshot,
 	query,
 	where,
@@ -61,13 +60,7 @@ import InfiniteScroll from 'react-infinite-scroll-component'
 import ConfirmModal from '../modals/common/ConfirmModal'
 import EditUserModal from '../modals/admin/EditUserModal'
 import NewUserModal from '../modals/admin/NewUserModal'
-import RecreateProfileModal from '../modals/admin/RecreateProfileModal'
 import { FaPlus } from 'react-icons/fa'
-import {
-	buildMobileUserProfile,
-	defaultDisplayNameFromAuth,
-	userRoleFromClaims,
-} from '../../utils/mobile-user-profile'
 import globalStyles from '../../styles/globalStyles'
 import { useUsersPagination } from '../../hooks/useUsersPagination'
 import { searchUsers, findMobileUsersByEmail } from '../../utils/firebase-helpers'
@@ -398,33 +391,6 @@ const Users = () => {
 	const [newUserEmail, setNewUserEmail] = useState('') // New user email
 	const [errors, setErrors] = useState({}) // Form validation errors
 
-	// Recreate missing mobileUsers profile (Auth exists, Firestore doc deleted)
-	const [recreateModal, setRecreateModal] = useState(false)
-	const [recreateLookupMode, setRecreateLookupMode] = useState(
-		/** @type {'uid' | 'email'} */ ('email'),
-	)
-	const [recreateLookup, setRecreateLookup] = useState('')
-	const [recreateLookingUp, setRecreateLookingUp] = useState(false)
-	const [recreateResolved, setRecreateResolved] = useState(
-		/** @type {null | {
-		 *   uid: string
-		 *   email: string
-		 *   displayName: string
-		 *   suggestedRole: string
-		 *   docExists: boolean
-		 *   creationTime?: string
-		 * }} */ (null),
-	)
-	const [recreateName, setRecreateName] = useState('')
-	const [recreateRole, setRecreateRole] = useState('User')
-	const [recreateAgency, setRecreateAgency] = useState('')
-	const [recreateForce, setRecreateForce] = useState(false)
-	const [recreateSubmitting, setRecreateSubmitting] = useState(false)
-	const [recreateErrors, setRecreateErrors] = useState(
-		/** @type {Record<string, string>} */ ({}),
-	)
-	const [recreateSuccess, setRecreateSuccess] = useState('')
-
 	// State for agency-specific user management
 	const [agencyUsers, setAgencyUsers] = useState([]) // Users filtered by agency
 	const [agencyLoading, setAgencyLoading] = useState(false) // Loading state for agency users
@@ -572,7 +538,7 @@ const Users = () => {
 					})
 				}
 
-				// Auth-only user (missing mobileUsers doc) — still show so admin can recreate
+				// Auth-only user (missing mobileUsers doc) — still surface in email search
 				if (authUser?.uid && !byId.has(authUser.uid)) {
 					byId.set(authUser.uid, {
 						...authUser,
@@ -914,158 +880,6 @@ const Users = () => {
 				...prevErrors,
 				email: error.message,
 			}))
-		}
-	}
-
-	const resetRecreateModalState = () => {
-		setRecreateLookup('')
-		setRecreateLookupMode('email')
-		setRecreateLookingUp(false)
-		setRecreateResolved(null)
-		setRecreateName('')
-		setRecreateRole('User')
-		setRecreateAgency('')
-		setRecreateForce(false)
-		setRecreateSubmitting(false)
-		setRecreateErrors({})
-		setRecreateSuccess('')
-	}
-
-	const handleOpenRecreateModal = (e) => {
-		e.preventDefault()
-		resetRecreateModalState()
-		setRecreateModal(true)
-	}
-
-	const handleCloseRecreateModal = (open) => {
-		if (!open) {
-			setRecreateModal(false)
-			resetRecreateModalState()
-		}
-	}
-
-	/**
-	 * Resolve Auth user by email or UID, then check whether mobileUsers/{uid} exists.
-	 */
-	const handleRecreateLookup = async () => {
-		const term = recreateLookup.trim()
-		setRecreateErrors({})
-		setRecreateSuccess('')
-		setRecreateResolved(null)
-
-		if (!term) {
-			setRecreateErrors({
-				lookup:
-					recreateLookupMode === 'email'
-						? 'Enter an Auth email'
-						: 'Enter an Auth UID',
-			})
-			return
-		}
-
-		setRecreateLookingUp(true)
-		try {
-			let authUser = null
-
-			if (recreateLookupMode === 'email') {
-				const result = await getUserByEmail({ email: term })
-				authUser = result?.data
-				if (!authUser?.uid) {
-					setRecreateErrors({ lookup: 'No Auth user found for that email' })
-					return
-				}
-			} else {
-				authUser = await fetchUserRecord(term)
-				if (!authUser?.uid) {
-					setRecreateErrors({ lookup: 'No Auth user found for that UID' })
-					return
-				}
-			}
-
-			const mobileSnap = await getDoc(doc(db, 'mobileUsers', authUser.uid))
-			const suggestedRole = userRoleFromClaims(authUser.customClaims)
-			const displayName = defaultDisplayNameFromAuth(authUser)
-
-			setRecreateResolved({
-				uid: authUser.uid,
-				email: authUser.email || '',
-				displayName,
-				suggestedRole,
-				docExists: mobileSnap.exists(),
-				creationTime: authUser.metadata?.creationTime,
-			})
-			setRecreateName(displayName)
-			setRecreateRole(suggestedRole)
-			setRecreateForce(false)
-		} catch (error) {
-			console.error('Recreate profile lookup failed:', error)
-			setRecreateErrors({
-				lookup: error?.message || 'Lookup failed',
-			})
-		} finally {
-			setRecreateLookingUp(false)
-		}
-	}
-
-	/**
-	 * Write mobileUsers/{uid} from Auth + form fields (admin-only create allowed by rules).
-	 */
-	const handleRecreateSubmit = async () => {
-		if (!recreateResolved?.uid) {
-			setRecreateErrors({ submit: 'Look up an Auth user first' })
-			return
-		}
-		if (!recreateName.trim()) {
-			setRecreateErrors({ name: 'Name is required' })
-			return
-		}
-		if (recreateResolved.docExists && !recreateForce) {
-			setRecreateErrors({
-				submit: 'Document already exists — check overwrite to replace it',
-			})
-			return
-		}
-
-		setRecreateSubmitting(true)
-		setRecreateErrors({})
-		setRecreateSuccess('')
-
-		try {
-			let joiningDate = Math.floor(Date.now() / 1000)
-			if (recreateResolved.creationTime) {
-				const createdMs = Date.parse(recreateResolved.creationTime)
-				if (Number.isFinite(createdMs)) {
-					joiningDate = Math.floor(createdMs / 1000)
-				}
-			}
-
-			const profile = buildMobileUserProfile({
-				name: recreateName.trim(),
-				email: recreateResolved.email,
-				joiningDate,
-				userRole: recreateRole,
-				agency: recreateRole === 'Agency' ? recreateAgency : '',
-				isBanned: false,
-				contact: false,
-				state: '',
-				city: '',
-			})
-
-			await setDoc(doc(db, 'mobileUsers', recreateResolved.uid), profile)
-			setRecreateSuccess(
-				`Created mobileUsers/${recreateResolved.uid}. You can close this dialog.`,
-			)
-			setRecreateResolved((prev) =>
-				prev ? { ...prev, docExists: true } : prev,
-			)
-			setUpdate(!update)
-		} catch (error) {
-			console.error('Recreate profile failed:', error)
-			setRecreateErrors({
-				submit: error?.message || 'Failed to recreate profile',
-			})
-		} finally {
-			setRecreateSubmitting(false)
 		}
 	}
 
@@ -1624,14 +1438,6 @@ const Users = () => {
 							onChange={(e) => setSearchTerm(e.target.value)}
 							className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm mr-2"
 						/>
-						{customClaims.admin && (
-							<button
-								type="button"
-								className={style.button}
-								onClick={handleOpenRecreateModal}>
-								Recreate profile
-							</button>
-						)}
 						<button className={style.button} onClick={handleAddNewUserModal}>
 							<FaPlus className="text-[#2E3B4E] mr-2" size={12} />
 							Add User
@@ -1887,36 +1693,6 @@ const Users = () => {
 					// onNewAgencyCity={handleNewAgencyCity}
 					onFormSubmit={handleAddNewUserFormSubmit}
 					errors={errors}
-				/>
-			)}
-			{recreateModal && customClaims.admin && (
-				<RecreateProfileModal
-					setOpen={handleCloseRecreateModal}
-					lookup={recreateLookup}
-					onLookupChange={(e) => {
-						setRecreateLookup(e.target.value)
-						setRecreateErrors((prev) => ({ ...prev, lookup: '' }))
-					}}
-					lookupMode={recreateLookupMode}
-					onLookupModeChange={setRecreateLookupMode}
-					onLookup={handleRecreateLookup}
-					lookingUp={recreateLookingUp}
-					resolved={recreateResolved}
-					name={recreateName}
-					onNameChange={(e) => {
-						setRecreateName(e.target.value)
-						setRecreateErrors((prev) => ({ ...prev, name: '' }))
-					}}
-					userRole={recreateRole}
-					onRoleChange={(e) => setRecreateRole(e.target.value)}
-					agency={recreateAgency}
-					onAgencyChange={(e) => setRecreateAgency(e.target.value)}
-					forceOverwrite={recreateForce}
-					onForceOverwriteChange={(e) => setRecreateForce(e.target.checked)}
-					onSubmit={handleRecreateSubmit}
-					submitting={recreateSubmitting}
-					errors={recreateErrors}
-					successMessage={recreateSuccess}
 				/>
 			)}
 		</div>
