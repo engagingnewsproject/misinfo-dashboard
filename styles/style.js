@@ -171,6 +171,26 @@ const style = {
 			},
 		},
 	},
+	// Align panel radius with app containers (rounded-md). MT defaults:
+	// Dialog container → rounded-lg; Card → rounded-xl.
+	dialog: {
+		styles: {
+			base: {
+				container: {
+					borderRadius: 'rounded-md',
+				},
+			},
+		},
+	},
+	card: {
+		styles: {
+			base: {
+				initial: {
+					borderRadius: 'rounded-md',
+				},
+			},
+		},
+	},
 	// MT default text-blue-gray-500 is ~4.13:1 on white (fails WCAG AA for normal text).
 	// blue-gray-600 is ~5.1:1 and keeps the same muted body tone.
 	dialogBody: {
