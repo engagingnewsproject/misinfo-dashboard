@@ -1,8 +1,8 @@
-import React from 'react'
 import FormInput from '../../ui/FormInput'
 import FormSelect from '../../ui/FormSelect'
 import ModalCloseButton from '../../ui/ModalCloseButton'
 import { State, City } from 'country-state-city'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -12,7 +12,8 @@ import {
 } from '@material-tailwind/react'
 
 /**
- * Mount when visible; Dialog is always open while mounted.
+ * Mount when visible; Dialog opens one tick later to avoid Floating UI
+ * aria-hidden warnings when mounting with open={true} immediately.
  */
 const NewAgencyModal = ({
 	setNewAgencyModal,
@@ -27,10 +28,11 @@ const NewAgencyModal = ({
 	errors,
 }) => {
 	const handleClose = () => setNewAgencyModal(false)
+	const dialogOpen = useDelayedDialogOpen()
 
 	return (
 		<Dialog data-component="NewAgencyModal"
-			open
+			open={dialogOpen}
 			handler={handleClose}
 			size="md"
 			className="new-agency-modal rounded-md"

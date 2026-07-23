@@ -4,6 +4,7 @@ import ModalCloseButton from '../../ui/ModalCloseButton'
 import { useAuth } from '../../../context/AuthContext'
 import moment from 'moment'
 import { db } from '../../../config/firebase'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	fetchExperimentConfig,
 	getActiveExperimentId,
@@ -141,6 +142,7 @@ const AgencyReportModal = ({
 	setNewReportModal,
 	handleNewReportSubmit,
 }) => {
+	const dialogOpen = useDelayedDialogOpen(open)
 	const dbInstance = collection(db, 'reports')
 	const { user, customClaims, refreshCustomClaims } = useAuth()
 	// useStates
@@ -1243,7 +1245,7 @@ const AgencyReportModal = ({
 	return (
 		<>
 			<Dialog data-component="AgencyReportModal"
-				open={open}
+				open={dialogOpen}
 				handler={handleNewReportModalClose}
 				size="xl"
 				className="agency-report-modal rounded-md"

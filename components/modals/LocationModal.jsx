@@ -6,6 +6,7 @@ import { useTranslation } from 'next-i18next'
 import { State, City } from 'country-state-city'
 import FormSelect from '../ui/FormSelect'
 import ModalCloseButton from '../ui/ModalCloseButton'
+import { useDelayedDialogOpen } from '../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -15,14 +16,15 @@ import {
 } from '@material-tailwind/react'
 
 /**
- * Mount when visible (`{locationModal && <LocationModal ... />}`); Dialog is always open
- * while mounted, matching existing call sites.
+ * Mount when visible (`{locationModal && <LocationModal ... />}`); Dialog opens
+ * one tick later to avoid Floating UI aria-hidden warnings.
  */
 const LocationModal = ({ setLocationModal }) => {
 	const { t } = useTranslation('Profile')
 	const { user } = useAuth()
 	const [userLocation, setUserLocation] = useState(null)
 	const [errors, setErrors] = useState({})
+	const dialogOpen = useDelayedDialogOpen()
 
 	const handleClose = () => setLocationModal(false)
 
@@ -55,7 +57,7 @@ const LocationModal = ({ setLocationModal }) => {
 
 	return (
 		<Dialog data-component="LocationModal"
-			open
+			open={dialogOpen}
 			handler={handleClose}
 			size="xs"
 			className="location-modal rounded-md"

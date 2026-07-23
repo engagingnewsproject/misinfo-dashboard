@@ -5,6 +5,7 @@ import {
 } from '../../../config/labels'
 import FormInput from '../../ui/FormInput'
 import ModalCloseButton from '../../ui/ModalCloseButton'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -17,7 +18,8 @@ import {
 /**
  * Modal for creating a new custom agency label from Tagging Systems.
  *
- * Mount when visible; Dialog is always open while mounted.
+ * Mount when visible; Dialog opens one tick later to avoid Floating UI
+ * aria-hidden warnings when mounting with open={true} immediately.
  *
  * @param {Object} props
  * @param {string[]} props.existingLabels
@@ -26,6 +28,7 @@ import {
  */
 const NewLabelModal = ({ existingLabels, onClose, onAdd }) => {
 	const [label, setLabel] = useState('')
+	const dialogOpen = useDelayedDialogOpen()
 	const existingLower = existingLabels.map((item) => item.toLowerCase())
 	const validationError = validateCustomLabel(label)
 	const isDuplicate =
@@ -40,7 +43,7 @@ const NewLabelModal = ({ existingLabels, onClose, onAdd }) => {
 
 	return (
 		<Dialog data-component="NewLabelModal"
-			open
+			open={dialogOpen}
 			handler={onClose}
 			size="xs"
 			className="new-label-modal rounded-md">

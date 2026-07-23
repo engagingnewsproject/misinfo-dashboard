@@ -6,12 +6,14 @@ import {
 	Typography,
 } from '@material-tailwind/react'
 import ModalCloseButton from '../../ui/ModalCloseButton'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 
 const HelpModal = ({ open, setHelpModal }) => {
 	const handleClose = () => setHelpModal(false)
+	const dialogOpen = useDelayedDialogOpen(open)
 
 	return (
-		<Dialog data-component="HelpModal" open={open} handler={handleClose} size="lg" className="rounded-md">
+		<Dialog data-component="HelpModal" open={dialogOpen} handler={handleClose} size="lg" className="rounded-md">
 			<DialogHeader className="justify-between gap-4">
 				<Typography variant="h2" color="blue" className="mt-0 mb-0">
 					Help and Documentation

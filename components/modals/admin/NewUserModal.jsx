@@ -1,6 +1,7 @@
 import FormInput from '../../ui/FormInput'
 import ModalCloseButton from '../../ui/ModalCloseButton'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -21,14 +22,7 @@ const NewUserModal = ({
 	errors,
 }) => {
 	const handleClose = () => setNewUserModal(false)
-	// Delay Dialog open one tick: MT Dialog + Floating UI 0.19 logs aria-hidden
-	// "not contained inside body" when mounting with open={true} immediately.
-	const [dialogOpen, setDialogOpen] = useState(false)
-
-	useEffect(() => {
-		const id = window.setTimeout(() => setDialogOpen(true), 0)
-		return () => window.clearTimeout(id)
-	}, [])
+	const dialogOpen = useDelayedDialogOpen()
 
 	return (
 		<Dialog data-component="NewUserModal"

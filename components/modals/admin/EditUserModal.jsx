@@ -5,6 +5,7 @@ import FormTextarea from '../../ui/FormTextarea'
 import FormSelect from '../../ui/FormSelect'
 import ModalCloseButton from '../../ui/ModalCloseButton'
 import { State, City } from "country-state-city"
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -74,14 +75,7 @@ const EditUserModal = ({
 	const [locationError, setLocationError] = useState('')
 	const [selectedStateOption, setSelectedStateOption] = useState(null)
 	const [selectedCityOption, setSelectedCityOption] = useState(null)
-	// Delay Dialog open one tick: MT Dialog + Floating UI 0.19 logs aria-hidden
-	// "not contained inside body" when mounting with open={true} immediately.
-	const [dialogOpen, setDialogOpen] = useState(false)
-
-	useEffect(() => {
-		const id = window.setTimeout(() => setDialogOpen(true), 0)
-		return () => window.clearTimeout(id)
-	}, [])
+	const dialogOpen = useDelayedDialogOpen()
 
 	const stateOptions = useMemo(() => State.getStatesOfCountry('US'), [])
 	const cityOptions = useMemo(() => {

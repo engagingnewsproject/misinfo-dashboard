@@ -4,6 +4,7 @@ import { useTranslation } from 'next-i18next'
 import { auth } from '../../../config/firebase'
 import FormInput from '../../ui/FormInput'
 import ModalCloseButton from '../../ui/ModalCloseButton'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -13,11 +14,12 @@ import {
 } from '@material-tailwind/react'
 
 /**
- * Mount when visible (`{emailModal && <UpdateEmailModal ... />}`); Dialog is always open
- * while mounted, matching existing call sites.
+ * Mount when visible (`{emailModal && <UpdateEmailModal ... />}`); Dialog opens
+ * one tick later to avoid Floating UI aria-hidden warnings.
  */
 const UpdateEmailModal = ({ setEmailModal }) => {
 	const { t } = useTranslation('Profile')
+	const dialogOpen = useDelayedDialogOpen()
 
 	const { updateUserEmail } = useAuth()
 	const [updateSuccess, setUpdateSuccess] = useState(false)
@@ -48,7 +50,7 @@ const UpdateEmailModal = ({ setEmailModal }) => {
 
 	return (
 		<Dialog data-component="UpdateEmailModal"
-			open
+			open={dialogOpen}
 			handler={handleClose}
 			size="xs"
 			className="update-email-modal rounded-md">

@@ -5,6 +5,7 @@ import ConfirmModal from '../common/ConfirmModal'
 import FormInput from '../../ui/FormInput'
 import MediaUploadField from '../../ui/MediaUploadField'
 import ModalCloseButton from '../../ui/ModalCloseButton'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -15,7 +16,8 @@ import {
 } from '@material-tailwind/react'
 
 /**
- * Mount when visible; Dialog is always open while mounted.
+ * Mount when visible; Dialog opens one tick later to avoid Floating UI
+ * aria-hidden warnings when mounting with open={true} immediately.
  */
 const AgencyModal = ({
 	setAgencyModal,
@@ -37,6 +39,7 @@ const AgencyModal = ({
 }) => {
 	const [deleteModal, setDeleteModal] = useState(false)
 	const [selectedUserToDelete, setSelectedUserToDelete] = useState('')
+	const dialogOpen = useDelayedDialogOpen()
 
 	const handleClose = () => setAgencyModal(false)
 
@@ -57,7 +60,7 @@ const AgencyModal = ({
 	return (
 		<>
 			<Dialog data-component="AgencyModal"
-				open
+				open={dialogOpen}
 				handler={handleClose}
 				size="xl"
 				className="agency-modal rounded-md"

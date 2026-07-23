@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { CUSTOM_LABEL_DEFAULT_COLOR } from '../../../config/labels'
 import ModalCloseButton from '../../ui/ModalCloseButton'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -13,7 +14,8 @@ import {
 /**
  * Modal for editing a custom label's color (name is read-only in v1).
  *
- * Mount when visible; Dialog is always open while mounted.
+ * Mount when visible; Dialog opens one tick later to avoid Floating UI
+ * aria-hidden warnings when mounting with open={true} immediately.
  *
  * @param {Object} props
  * @param {string} props.labelName
@@ -23,6 +25,7 @@ import {
  */
 const EditLabelModal = ({ labelName, currentColor, onSave, onClose }) => {
 	const [color, setColor] = useState(currentColor || CUSTOM_LABEL_DEFAULT_COLOR)
+	const dialogOpen = useDelayedDialogOpen()
 
 	const handleSave = (e) => {
 		e.preventDefault()
@@ -31,7 +34,7 @@ const EditLabelModal = ({ labelName, currentColor, onSave, onClose }) => {
 
 	return (
 		<Dialog data-component="EditLabelModal"
-			open
+			open={dialogOpen}
 			handler={onClose}
 			size="xs"
 			className="edit-label-modal rounded-md">

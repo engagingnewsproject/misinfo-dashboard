@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import FormInput from '../../ui/FormInput'
 import ModalCloseButton from '../../ui/ModalCloseButton'
+import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
 	Dialog,
@@ -19,7 +20,8 @@ import {
 /**
  * Modal to add a custom agency Topic/Source tag with EN id + EN/ES labels.
  *
- * Mount when visible; Dialog is always open while mounted.
+ * Mount when visible; Dialog opens one tick later to avoid Floating UI
+ * aria-hidden warnings when mounting with open={true} immediately.
  *
  * @param {{
  *   tagSystems: string[],
@@ -41,6 +43,7 @@ const NewTagModal = ({
 	const [labelEn, setLabelEn] = useState('')
 	const [labelEs, setLabelEs] = useState('')
 	const [error, setError] = useState('')
+	const dialogOpen = useDelayedDialogOpen()
 
 	const handleClose = () => setNewTagModal(false)
 
@@ -69,7 +72,7 @@ const NewTagModal = ({
 
 	return (
 		<Dialog data-component="NewTagModal"
-			open
+			open={dialogOpen}
 			handler={handleClose}
 			size="sm"
 			className="new-tag-modal rounded-md">
