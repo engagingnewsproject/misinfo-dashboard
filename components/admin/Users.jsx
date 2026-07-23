@@ -71,6 +71,9 @@ import {
 	Button,
 	IconButton,
 	Tooltip,
+	Tabs,
+	TabsHeader,
+	Tab,
 } from '@material-tailwind/react'
 import { useUsersPagination } from '../../hooks/useUsersPagination'
 import { searchUsers, findMobileUsersByEmail } from '../../utils/firebase-helpers'
@@ -94,6 +97,14 @@ const tableTd = 'whitespace-normal p-4'
 const tableTdCenter =
 	'whitespace-normal md:whitespace-nowrap p-4 text-center'
 const style = adminSectionStyles
+
+/** Admin role filter tabs — values match Firestore `userRole` / EditUserModal. */
+const ROLE_TABS = [
+	{ label: 'All', value: 'all' },
+	{ label: 'Admin', value: 'Admin' },
+	{ label: 'Agency', value: 'Agency' },
+	{ label: 'User', value: 'User' },
+]
 
 /**
  * Retrieves the user's join date based on available data.
@@ -1463,20 +1474,36 @@ const Users = () => {
 								{customClaims.admin ? 'Admin: All Users' : 'All Agency'}
 							</Typography>
 						</div>
-						<div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row sm:items-center md:w-max">
-							<div className="w-full md:w-72">
-								<Input
-									label="Search"
-									value={searchTerm}
-									onChange={(e) => setSearchTerm(e.target.value)}
-								/>
-							</div>
-							<Button
-								className="flex items-center gap-3"
-								size="sm"
-								onClick={handleAddNewUserModal}>
-								<FaPlus className="h-3.5 w-3.5" /> Add User
-							</Button>
+						<Button
+							className="flex items-center gap-3"
+							size="sm"
+							onClick={handleAddNewUserModal}>
+							<FaPlus className="h-3.5 w-3.5" /> Add User
+						</Button>
+					</div>
+					<div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+						{customClaims.admin ? (
+							<Tabs value={roleFilter} className="w-full md:w-max">
+								<TabsHeader>
+									{ROLE_TABS.map(({ label, value }) => (
+										<Tab
+											key={value}
+											value={value}
+											onClick={() => setRoleFilter(value)}>
+											&nbsp;&nbsp;{label}&nbsp;&nbsp;
+										</Tab>
+									))}
+								</TabsHeader>
+							</Tabs>
+						) : (
+							<div className="hidden md:block" />
+						)}
+						<div className="w-full md:w-72">
+							<Input
+								label="Search"
+								value={searchTerm}
+								onChange={(e) => setSearchTerm(e.target.value)}
+							/>
 						</div>
 					</div>
 				</CardHeader>
