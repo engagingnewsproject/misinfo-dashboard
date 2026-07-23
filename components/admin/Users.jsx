@@ -1529,39 +1529,53 @@ const Users = () => {
 									<span className="text-gray-500">Loading more users...</span>
 								</div>
 							}>
-							<table className="min-w-full bg-white rounded-md p-1">
-								<thead className="border-b dark:border-indigo-100 bg-slate-100">
+							<table className="min-w-full bg-white rounded-md p-1 border-separate border-spacing-0">
+								<thead className="border-b dark:border-indigo-100">
 									<tr>
-										<th scope="col" className={tableHeading.default}>
+										<th
+											scope="col"
+											className={`${tableHeading.default} sticky top-0 z-10 bg-slate-100`}>
 											Name
 										</th>
-										<th scope="col" className={tableHeading.default_center}>
+										<th
+											scope="col"
+											className={`${tableHeading.default_center} sticky top-0 z-10 bg-slate-100`}>
 											Email
 										</th>
-										<th scope="col" className={tableHeading.default_center}>
+										<th
+											scope="col"
+											className={`${tableHeading.default_center} sticky top-0 z-10 bg-slate-100`}>
 											Join Date
 										</th>
 										{customClaims.admin && (
-											<th scope="col" className={tableHeading.default_center}>
+											<th
+												scope="col"
+												className={`${tableHeading.default_center} sticky top-0 z-10 bg-slate-100`}>
 												Agency
 											</th>
 										)}
 										{customClaims.admin && (
-											<th scope="col" className={tableHeading.default_center}>
+											<th
+												scope="col"
+												className={`${tableHeading.default_center} sticky top-0 z-10 bg-slate-100`}>
 												Role
 											</th>
 										)}
-										<th scope="col" className={tableHeading.default_center}>
+										<th
+											scope="col"
+											className={`${tableHeading.default_center} sticky top-0 z-10 bg-slate-100`}>
 											Banned
 										</th>
-										<th scope="col" className={tableHeading.default_center}>
+										<th
+											scope="col"
+											className={`${tableHeading.default_center} sticky top-0 z-10 bg-slate-100`}>
 											Disabled
 										</th>
 										{customClaims.admin && (
 											<th
 												scope="col"
 												colSpan={2}
-												className={tableHeading.default_center}>
+												className={`${tableHeading.default_center} sticky top-0 z-10 bg-slate-100`}>
 												Delete
 											</th>
 										)}
