@@ -150,12 +150,34 @@ const style = {
 			color: 'blue',
 		},
 		styles: {
+			base: {
+				input: {
+					// All colors (blue, red, …) — not only the brand override below
+					backgroundImage: 'checked:[background-image:none]',
+				},
+			},
 			colors: {
 				blue: {
 					input:
 						'checked:bg-brand checked:[background-image:none]',
 					circle: 'peer-checked:border-brand',
 					before: 'peer-checked:before:bg-brand',
+				},
+				red: {
+					input: 'checked:bg-red-500 checked:[background-image:none]',
+					circle: 'peer-checked:border-red-500',
+					before: 'peer-checked:before:bg-red-500',
+				},
+			},
+		},
+	},
+	// MT default text-blue-gray-500 is ~4.13:1 on white (fails WCAG AA for normal text).
+	// blue-gray-600 is ~5.1:1 and keeps the same muted body tone.
+	dialogBody: {
+		styles: {
+			base: {
+				initial: {
+					color: 'text-blue-gray-600',
 				},
 			},
 		},

@@ -128,9 +128,7 @@ const AgencyModal = ({
 									autoComplete="nope"
 								/>
 								{errors.email ? (
-									<p className="error">
-										Email should be at least 15 characters long
-									</p>
+									<p className="error">Enter a valid email address</p>
 								) : null}
 								<Button
 									onClick={handleAddAgencyUsers}

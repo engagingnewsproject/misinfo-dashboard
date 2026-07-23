@@ -31,6 +31,12 @@ module.exports = withMT({
 					100: '#e0f2fe',
 				},
 			},
+			fontSize: {
+				base: [
+					'14px', 
+					{ lineHeight: '1.5' }
+				],
+			},
 		},
 	},
 	plugins: [require("@tailwindcss/forms")],

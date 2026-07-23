@@ -54,10 +54,11 @@ const VIEW_BY_TAB = [
  */
 function isTabAllowed(tabIndex, claims) {
 	if (tabIndex === 1) return true
-	if (tabIndex === 0 || tabIndex === 2 || tabIndex === 3) {
+	if (tabIndex === 0 || tabIndex === 2) {
 		return !!(claims.admin || claims.agency)
 	}
-	if (tabIndex === 4 || tabIndex === 5 || tabIndex === 6) {
+	// Users (3) and admin-only tools
+	if (tabIndex === 3 || tabIndex === 4 || tabIndex === 5 || tabIndex === 6) {
 		return !!claims.admin
 	}
 	return false
@@ -181,7 +182,7 @@ const Dashboard = () => {
 					{tab == 2 && (customClaims.admin || customClaims.agency) && (
 						<Settings customClaims={customClaims} />
 					)}
-					{tab == 3 && (customClaims.admin || customClaims.agency) && (
+					{tab == 3 && customClaims.admin && (
 						<Users customClaims={customClaims} />
 					)}
 					{tab == 4 && customClaims.admin && (

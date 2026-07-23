@@ -508,21 +508,43 @@ export const AuthContextProvider = ({children}) => {
     }
     
     /**
-     * Sends a sign-in link to the specified email address.
-     * 
+     * Sends a passwordless sign-in / invite link to the given email.
+     * Optional agency fields are appended to the signup continue URL so the
+     * invitee can see which agency they are joining (association still comes
+     * from agencyUsers + addAgencyRole, not from these query params).
+     *
      * @param {string} email - Email address to send sign-in link to
+     * @param {{ agencyId?: string, agencyName?: string }} [agency]
      * @returns {Promise<void>} Resolves when email is sent
      * @throws {Error} When email sending fails
      * @example
-     * await sendSignIn('user@example.com');
+     * await sendSignIn('user@example.com', { agencyId: 'abc', agencyName: 'City PD' });
      */
-    const sendSignIn = async (email) => {
-        // Always use configured app URL so invites from localhost still point at the live app
+    const sendSignIn = async (email, agency = {}) => {
+        // Prefer the page origin on localhost so invite/signup testing hits local code.
+        // Production/hosted keeps NEXT_PUBLIC_APP_URL (or the App Hosting fallback).
+        const host =
+            typeof window !== 'undefined' ? window.location.hostname : ''
+        const isLocalHost =
+            host === 'localhost' || host === '127.0.0.1' || host === '[::1]'
         const origin = (
-            process.env.NEXT_PUBLIC_APP_URL ||
-            'https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app'
+            isLocalHost && typeof window !== 'undefined'
+                ? window.location.origin
+                : process.env.NEXT_PUBLIC_APP_URL ||
+                  'https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app'
         ).replace(/\/$/, '')
-        const baseUrl = `${origin}/signup`
+        const params = new URLSearchParams()
+        const agencyId =
+            typeof agency?.agencyId === 'string' ? agency.agencyId.trim() : ''
+        const agencyName =
+            typeof agency?.agencyName === 'string' ? agency.agencyName.trim() : ''
+        if (agencyId) params.set('agencyId', agencyId)
+        if (agencyName) params.set('agencyName', agencyName)
+        // Public invites (Users page) get an explicit marker so signup never
+        // treats them as agency just because the URL is an email link.
+        if (!agencyId && !agencyName) params.set('invite', 'user')
+        const qs = params.toString()
+        const baseUrl = `${origin}/signup${qs ? `?${qs}` : ''}`
 
         const actionCodeSettings = {
             url: baseUrl,
@@ -533,7 +555,7 @@ export const AuthContextProvider = ({children}) => {
             await sendSignInLinkToEmail(auth, email, actionCodeSettings)
             // Save the email locally for later use
             window.localStorage.setItem('emailForSignIn', email)
-            console.log("Sign-in link sent to:", email);
+            console.log("Sign-in link sent to:", email, 'continueUrl:', baseUrl);
         } catch (error) {
             const errorMessage = error.message
             console.error("Error sending sign-in link:", errorMessage);

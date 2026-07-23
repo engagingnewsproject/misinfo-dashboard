@@ -343,7 +343,10 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 
 				try {
 					// Send sign-in invitation to new user
-					await sendSignIn(userEmail)
+					await sendSignIn(userEmail, {
+						agencyId,
+						agencyName: agencyInfo?.name,
+					})
 					setSendEmail(`Sign-in link sent to ${userEmail}`)
 				} catch (error) {
 					console.error(`Error sending sign-in link to ${userEmail}:`, error)
@@ -384,7 +387,10 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 * @returns {Promise<void>} Promise that resolves when email is sent
 	 */
 	const sendAgencyLinks = async (email) => {
-		await sendSignIn(email)
+		await sendSignIn(email, {
+			agencyId,
+			agencyName: agencyInfo?.name,
+		})
 		setResendEmail('Email was sent.')
 	}
 
@@ -519,7 +525,11 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 
 		// Send passwordless invite links first so failures surface and we do not
 		// create an agency row without a working invite path.
-		await Promise.all(normalizedEmails.map((email) => sendSignIn(email)))
+		await Promise.all(
+			normalizedEmails.map((email) =>
+				sendSignIn(email, { agencyName: name }),
+			),
+		)
 
 		const agencyPayload = {
 			name,
