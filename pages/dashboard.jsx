@@ -215,7 +215,7 @@ function DashboardLayout({
 				handleNewReportClick={handleNewReportClick}
 				customClaims={customClaims}
 			/>
-			<div className="flex flex-col py-5" style={contentOffsetStyle}>
+			<div className="flex flex-col pb-5 pt-0 sm:py-5" style={contentOffsetStyle}>
 				<Headbar
 					title={headbarTitles[tab]}
 					actions={

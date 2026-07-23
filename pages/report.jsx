@@ -123,7 +123,7 @@ const Report = () => {
   const style = {
 		button: 'w-80 self-center mt-4 shadow bg-blue-600 hover:bg-gray-100 text-sm text-white py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline',
 		pageContainer: 'md:h-full w-full',
-		wrapper: 'w-full h-full flex flex-col py-5',
+		wrapper: 'w-full h-full flex flex-col pb-5 pt-0 sm:py-5',
 		content: 'w-full md:h-full flex flex-col px-3 md:px-12 py-5 md:py-0 mb-5 overflow-y-auto'
 	}
 
