@@ -45,6 +45,17 @@ import ContactHelpModal from '../modals/ContactHelpModal'
 import { useAuth } from '../../context/AuthContext'
 import { useTranslation } from 'next-i18next'
 
+/** Must match `VIEW_BY_TAB` in pages/dashboard.jsx */
+const DASHBOARD_VIEW_BY_TAB = [
+	'home',
+	'profile',
+	'settings',
+	'users',
+	'agencies',
+	'help',
+	'appearance',
+]
+
 /**
  * Navbar - Main navigation sidebar component.
  * 
@@ -81,7 +92,8 @@ const Navbar = ({
 	isOpen,
 }) => {
 	const { t } = useTranslation('Navbar')
-	
+	const router = useRouter()
+
 	// Window size state for responsive behavior
 	const [windowSize, setWindowSize] = useState([
 		window.innerWidth,
@@ -138,10 +150,20 @@ const Navbar = ({
 
 	/**
 	 * Handles navigation to a specific tab.
-	 * 
+	 * On /report, only Profile is local; other tabs live on the dashboard.
+	 *
 	 * @param {number} tabIndex - The tab index to navigate to
 	 */
 	const handleTabNavigation = (tabIndex) => {
+		const onDashboard = router.pathname === '/dashboard'
+
+		if (!onDashboard && tabIndex !== 1) {
+			const view = DASHBOARD_VIEW_BY_TAB[tabIndex] ?? 'home'
+			router.push({ pathname: '/dashboard', query: { view } })
+			closeDrawer()
+			return
+		}
+
 		setTab(tabIndex)
 		closeDrawer()
 	}
