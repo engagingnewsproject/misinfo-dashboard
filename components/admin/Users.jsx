@@ -55,14 +55,23 @@ import {
 	GeoPoint,
 } from 'firebase/firestore'
 import { db, auth } from '../../config/firebase'
-import { Tooltip } from 'react-tooltip'
 import { IoTrash } from 'react-icons/io5'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import ConfirmModal from '../modals/common/ConfirmModal'
 import EditUserModal from '../modals/admin/EditUserModal'
 import NewUserModal from '../modals/admin/NewUserModal'
 import { FaPlus } from 'react-icons/fa'
-import globalStyles from '../../styles/globalStyles'
+import {
+	Card,
+	CardHeader,
+	CardBody,
+	CardFooter,
+	Typography,
+	Input,
+	Button,
+	IconButton,
+	Tooltip,
+} from '@material-tailwind/react'
 import { useUsersPagination } from '../../hooks/useUsersPagination'
 import { searchUsers, findMobileUsersByEmail } from '../../utils/firebase-helpers'
 import {
@@ -78,16 +87,12 @@ const dateOptions = {
 	year: 'numeric',
 	month: 'short',
 }
-const tableHeading = {
-	default: 'px-3 py-1 text-sm font-semibold text-left tracking-wide',
-	default_center: 'text-center p-2 text-sm font-semibold tracking-wide',
-	small: '',
-}
-const column = {
-	data: 'whitespace-normal text-sm px-3 py-1',
-	data_center:
-		'whitespace-normal md:whitespace-nowrap text-sm px-3 py-1 text-center',
-}
+const tableTh =
+	'sticky top-0 z-10 border-y border-blue-gray-100 bg-blue-gray-50/50 p-4'
+const tableThCenter = `${tableTh} text-center`
+const tableTd = 'whitespace-normal p-4'
+const tableTdCenter =
+	'whitespace-normal md:whitespace-nowrap p-4 text-center'
 const style = adminSectionStyles
 
 /**
@@ -440,7 +445,7 @@ const Users = () => {
 
 	/** White table panel: fill down to 20px above the viewport bottom. */
 	const TABLE_VIEWPORT_BOTTOM_GAP = 20
-	const TABLE_FOOTER_RESERVE = 28
+	const TABLE_FOOTER_RESERVE = 64
 	const tableHostRef = useRef(/** @type {HTMLDivElement | null} */ (null))
 	const [tableHostHeight, setTableHostHeight] = useState(560)
 
@@ -1447,69 +1452,86 @@ const Users = () => {
 
 	return (
 		<div data-component="Users" className={style.section_container}>
-			<div className={style.section_wrapper}>
-				<div className={style.section_header}>
-					<div className={style.section_title}>
-						<div className={`${globalStyles.heading.h1.blue} leading-none`}>
-							Users
+			<Card className="h-full w-full">
+				<CardHeader floated={false} shadow={false} className="rounded-none">
+					<div className="mb-4 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+						<div>
+							<Typography variant="h5" color="blue-gray">
+								Users
+							</Typography>
+							<Typography color="gray" className="mt-1 font-normal">
+								{customClaims.admin ? 'Admin: All Users' : 'All Agency'}
+							</Typography>
 						</div>
-						{customClaims.admin ? (
-							<span className="text-xs">Admin: All Users</span>
-						) : (
-							<span className="text-xs">All Agency</span>
-						)}
+						<div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row sm:items-center md:w-max">
+							<div className="w-full md:w-72">
+								<Input
+									label="Search"
+									value={searchTerm}
+									onChange={(e) => setSearchTerm(e.target.value)}
+								/>
+							</div>
+							<Button
+								className="flex items-center gap-3"
+								size="sm"
+								onClick={handleAddNewUserModal}>
+								<FaPlus className="h-3.5 w-3.5" /> Add User
+							</Button>
+						</div>
 					</div>
-					<div className={style.section_filtersWrap}>
-						<input
-							type="text"
-							placeholder="Search users by name or email..."
-							value={searchTerm}
-							onChange={(e) => setSearchTerm(e.target.value)}
-							className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm mr-2"
-						/>
-						<button className={style.button} onClick={handleAddNewUserModal}>
-							<FaPlus className="text-[#2E3B4E] mr-2" size={12} />
-							Add User
-						</button>
-					</div>
-				</div>
-				{/* Error message for pagination issues */}
+				</CardHeader>
+
 				{paginationError && (
-					<div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm mb-2 text-red-700">
-						<div className="font-bold">Error:</div>
-						<div>{paginationError}</div>
+					<div className="mx-4 mb-2 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700">
+						<Typography variant="small" className="font-bold">
+							Error:
+						</Typography>
+						<Typography variant="small">{paginationError}</Typography>
 					</div>
 				)}
 				{agencyClaimsStatus === 'pending' && (
-					<div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm mb-2 text-blue-800">
-						Loading agency access…
+					<div className="mx-4 mb-2 flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+						<Typography variant="small">Loading agency access…</Typography>
 					</div>
 				)}
 				{agencyClaimsStatus === 'missing' && (
-					<div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm mb-2 text-amber-900">
-						Agency access is incomplete (missing agency ID on your account).
-						Refresh the page, or ask an admin to re-run agency claims backfill.
+					<div className="mx-4 mb-2 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-900">
+						<Typography variant="small">
+							Agency access is incomplete (missing agency ID on your account).
+							Refresh the page, or ask an admin to re-run agency claims
+							backfill.
+						</Typography>
 					</div>
 				)}
-				{/* Data status legend for admins - shows data consistency issues */}
 				{!customClaims.agency && (
-					<div className="flex items-center gap-2 p-2 bg-white rounded-lg text-xs mb-2">
-						<div className="font-bold">Key: </div>
-						<div className="flex gap-1 items-center">
-							<div className="bg-red-50 p-1">Red:</div>
-							<div>Firestore 'mobileUsers' doc missing</div>
+					<div className="mx-4 mb-2 flex flex-wrap items-center gap-2 rounded-lg bg-white p-2">
+						<Typography variant="small" className="font-bold">
+							Key:
+						</Typography>
+						<div className="flex items-center gap-1">
+							<Typography variant="small" className="bg-red-50 p-1">
+								Red:
+							</Typography>
+							<Typography variant="small">
+								Firestore &apos;mobileUsers&apos; doc missing
+							</Typography>
 						</div>
-						<div className="flex gap-1 items-center">
-							<div className="bg-yellow-100 p-1">Yellow:</div>
-							<div>User disabled in Firebase Auth</div>
+						<div className="flex items-center gap-1">
+							<Typography variant="small" className="bg-yellow-100 p-1">
+								Yellow:
+							</Typography>
+							<Typography variant="small">
+								User disabled in Firebase Auth
+							</Typography>
 						</div>
 					</div>
 				)}
+
 				<div
 					ref={tableHostRef}
-					className={style.table_main}
+					className="flex min-h-0 flex-col"
 					style={{ height: tableHostHeight }}>
-					<div className="flex flex-col h-full min-h-0">
+					<CardBody className="flex-1 overflow-hidden px-0 py-0">
 						<InfiniteScroll
 							className="overflow-x-auto"
 							height={Math.max(
@@ -1525,149 +1547,225 @@ const Users = () => {
 								hasMore && !customClaims.agency && !searchActive
 							}
 							loader={
-								<div className="text-center py-4">
-									<span className="text-gray-500">Loading more users...</span>
+								<div className="py-4 text-center">
+									<Typography
+										variant="small"
+										color="blue-gray"
+										className="font-normal opacity-70">
+										Loading more users...
+									</Typography>
 								</div>
 							}>
-							<table className="min-w-full bg-white rounded-md p-1 border-separate border-spacing-0">
-								<thead className="border-b dark:border-indigo-100">
+							<table className="w-full min-w-max table-auto text-left">
+								<thead>
 									<tr>
-										<th
-											scope="col"
-											className={`${tableHeading.default} sticky top-0 z-10 bg-slate-100`}>
-											Name
+										<th scope="col" className={tableTh}>
+											<Typography
+												variant="small"
+												color="blue-gray"
+												className="font-normal leading-none opacity-70">
+												Name
+											</Typography>
 										</th>
-										<th
-											scope="col"
-											className={`${tableHeading.default_center} sticky top-0 z-10 bg-slate-100`}>
-											Email
+										<th scope="col" className={tableThCenter}>
+											<Typography
+												variant="small"
+												color="blue-gray"
+												className="font-normal leading-none opacity-70">
+												Email
+											</Typography>
 										</th>
-										<th
-											scope="col"
-											className={`${tableHeading.default_center} sticky top-0 z-10 bg-slate-100`}>
-											Join Date
+										<th scope="col" className={tableThCenter}>
+											<Typography
+												variant="small"
+												color="blue-gray"
+												className="font-normal leading-none opacity-70">
+												Join Date
+											</Typography>
 										</th>
 										{customClaims.admin && (
-											<th
-												scope="col"
-												className={`${tableHeading.default_center} sticky top-0 z-10 bg-slate-100`}>
-												Agency
+											<th scope="col" className={tableThCenter}>
+												<Typography
+													variant="small"
+													color="blue-gray"
+													className="font-normal leading-none opacity-70">
+													Agency
+												</Typography>
 											</th>
 										)}
 										{customClaims.admin && (
-											<th
-												scope="col"
-												className={`${tableHeading.default_center} sticky top-0 z-10 bg-slate-100`}>
-												Role
+											<th scope="col" className={tableThCenter}>
+												<Typography
+													variant="small"
+													color="blue-gray"
+													className="font-normal leading-none opacity-70">
+													Role
+												</Typography>
 											</th>
 										)}
-										<th
-											scope="col"
-											className={`${tableHeading.default_center} sticky top-0 z-10 bg-slate-100`}>
-											Banned
+										<th scope="col" className={tableThCenter}>
+											<Typography
+												variant="small"
+												color="blue-gray"
+												className="font-normal leading-none opacity-70">
+												Banned
+											</Typography>
 										</th>
-										<th
-											scope="col"
-											className={`${tableHeading.default_center} sticky top-0 z-10 bg-slate-100`}>
-											Disabled
+										<th scope="col" className={tableThCenter}>
+											<Typography
+												variant="small"
+												color="blue-gray"
+												className="font-normal leading-none opacity-70">
+												Disabled
+											</Typography>
 										</th>
 										{customClaims.admin && (
 											<th
 												scope="col"
 												colSpan={2}
-												className={`${tableHeading.default_center} sticky top-0 z-10 bg-slate-100`}>
-												Delete
+												className={tableThCenter}>
+												<Typography
+													variant="small"
+													color="blue-gray"
+													className="font-normal leading-none opacity-70">
+													Delete
+												</Typography>
 											</th>
 										)}
 									</tr>
 								</thead>
 								<tbody>
-									{/* Loading state - shows spinner while fetching user data */}
 									{initialLoading ||
 									(isLoading && loadedMobileUsers.length === 0) ||
 									agencyLoading ||
 									remoteSearchLoading ? (
 										<tr>
 											<td colSpan="100%" className="text-center">
-												<div className="flex flex-col justify-center items-center gap-2 h-40">
+												<div className="flex h-40 flex-col items-center justify-center gap-2">
 													<LoadingSpinner className="h-10 w-10 text-[#2E3B4E]" />
-													<span className="text-sm text-gray-600">Loading users…</span>
+													<Typography
+														variant="small"
+														color="blue-gray"
+														className="font-normal">
+														Loading users…
+													</Typography>
 												</div>
 											</td>
 										</tr>
 									) : loadedMobileUsers.length === 0 ? (
 										<tr>
 											<td colSpan="100%" className="text-center">
-												<div className="flex justify-center items-center h-32">
-													No users found
+												<div className="flex h-32 items-center justify-center">
+													<Typography
+														variant="small"
+														color="blue-gray"
+														className="font-normal">
+														No users found
+													</Typography>
 												</div>
 											</td>
 										</tr>
 									) : (
-										// Render user rows with role-based conditional rendering
 										loadedMobileUsers.map((userObj, index) => {
-											// Extract user ID for operations
-											let userId = userObj.mobileUserId ?? userObj.id ?? userObj.uid
+											let userId =
+												userObj.mobileUserId ?? userObj.id ?? userObj.uid
+											const isLast =
+												index === loadedMobileUsers.length - 1
+											const cellClass = isLast
+												? tableTd
+												: `${tableTd} border-b border-blue-gray-50`
+											const cellClassCenter = isLast
+												? tableTdCenter
+												: `${tableTdCenter} border-b border-blue-gray-50`
 											return (
 												<tr
-													className={`border-b transition duration-300 ease-in-out dark:border-indigo-100 ${!customClaims.agency && !userObj.hasFirestoreDoc && 'bg-red-50'} ${userObj.disabled && 'bg-yellow-100'}`}
-													key={userId ?? userObj.email ?? `unknown-${index}`}
+													className={`transition duration-300 ease-in-out ${!customClaims.agency && !userObj.hasFirestoreDoc && 'bg-red-50'} ${userObj.disabled && 'bg-yellow-100'} ${customClaims.admin ? 'cursor-pointer hover:bg-blue-gray-50/50' : ''}`}
+													key={
+														userId ??
+														userObj.email ??
+														`unknown-${index}`
+													}
 													onClick={
 														customClaims.admin
 															? () => handleEditUser(userObj, userId)
 															: undefined
 													}>
-													{/* User name column */}
-													<td scope="row" className={column.data}>
-														{userObj.name}
+													<td scope="row" className={cellClass}>
+														<Typography
+															variant="small"
+															color="blue-gray"
+															className="font-normal">
+															{userObj.name}
+														</Typography>
 													</td>
-													{/* User email column */}
-													<td className={column.data_center}>
-														{userObj.email}
+													<td className={cellClassCenter}>
+														<Typography
+															variant="small"
+															color="blue-gray"
+															className="font-normal">
+															{userObj.email}
+														</Typography>
 													</td>
-													{/* User join date column */}
-													<td className={column.data_center}>
-														{userObj.joined}
+													<td className={cellClassCenter}>
+														<Typography
+															variant="small"
+															color="blue-gray"
+															className="font-normal">
+															{userObj.joined}
+														</Typography>
 													</td>
-													{/* Agency column - only visible to admins */}
 													{customClaims.admin && (
-														<td className={column.data_center}>
-															{userObj.agencyName}
+														<td className={cellClassCenter}>
+															<Typography
+																variant="small"
+																color="blue-gray"
+																className="font-normal">
+																{userObj.agencyName}
+															</Typography>
 														</td>
 													)}
-													{/* User role column - only visible to admins */}
 													{customClaims.admin && (
-														<td className={column.data_center}>
-															{userObj.userRole}
+														<td className={cellClassCenter}>
+															<Typography
+																variant="small"
+																color="blue-gray"
+																className="font-normal">
+																{userObj.userRole}
+															</Typography>
 														</td>
 													)}
-													{/* User banned status column */}
-													<td className={column.data_center}>
-														{(userObj.isBanned && 'yes') || 'no'}
+													<td className={cellClassCenter}>
+														<Typography
+															variant="small"
+															color="blue-gray"
+															className="font-normal">
+															{(userObj.isBanned && 'yes') || 'no'}
+														</Typography>
 													</td>
-													{/* User disabled status column */}
-													<td className={column.data_center}>
-														{userObj.disabled ? 'Yes' : 'No'}
+													<td className={cellClassCenter}>
+														<Typography
+															variant="small"
+															color="blue-gray"
+															className="font-normal">
+															{userObj.disabled ? 'Yes' : 'No'}
+														</Typography>
 													</td>
-													{/* Delete action column - only visible to admins */}
 													{customClaims.admin && (
 														<td
-															className={column.data_center}
+															className={cellClassCenter}
 															onClick={(e) => e.stopPropagation()}>
-															<button
-																onClick={() => handleMobileUserDelete(userId)}
-																className={`${style.table_button} tooltip-delete-user`}>
-																<IoTrash
-																	size={20}
-																	className="ml-4 fill-gray-400 hover:fill-red-600"
-																/>
-																<Tooltip
-																	anchorSelect=".tooltip-delete-user"
-																	place="top"
-																	delayShow={500}>
-																	Delete User
-																</Tooltip>
-															</button>
+															<Tooltip content="Delete User">
+																<IconButton
+																	variant="text"
+																	onClick={() =>
+																		handleMobileUserDelete(userId)
+																	}>
+																	<IoTrash
+																		size={20}
+																		className="fill-gray-400 hover:fill-red-600"
+																	/>
+																</IconButton>
+															</Tooltip>
 														</td>
 													)}
 												</tr>
@@ -1677,13 +1775,17 @@ const Users = () => {
 								</tbody>
 							</table>
 						</InfiniteScroll>
-						<div className="mt-2 self-end text-xs shrink-0">
+					</CardBody>
+					<CardFooter className="flex shrink-0 items-center justify-end border-t border-blue-gray-50 p-4">
+						<Typography
+							variant="small"
+							color="blue-gray"
+							className="font-normal">
 							Total users: {loadedMobileUsers.length}
-						</div>
-					</div>
+						</Typography>
+					</CardFooter>
 				</div>
-			</div>
-			{/* Delete confirmation modal */}
+			</Card>
 			{deleteModal && (
 				<ConfirmModal
 					func={handleDelete}
@@ -1693,53 +1795,38 @@ const Users = () => {
 					closeModal={setDeleteModal}
 				/>
 			)}
-			{/* User editing modal */}
 			{userEditModal && (
 				<EditUserModal
 					mobileUserDetails={mobileUserDetails}
 					onMobileFieldChange={handleMobileUserFieldChange}
 					mobileUserFieldTypes={mobileUserFieldTypes}
 					mobileFieldFormError={mobileFieldFormError}
-					// User
 					userId={userId}
 					userEditing={userEditing}
-					// Claims
 					customClaims={customClaims}
-					// Modal
 					setUserEditModal={toggleUserEditModal}
-					// Name
 					name={name}
 					onNameChange={handleNameChange}
-					// agency
 					agenciesArray={agenciesArray}
 					selectedAgency={selectedAgency}
 					agencyName={agencyName}
 					onAgencyChange={handleAgencyChange}
-					// Role
 					onRoleChange={handleRoleChange}
 					userRole={userRole}
 					setUserRole={setUserRole}
-					// Email
 					email={email}
 					onEmailChange={handleEmailChange}
-					// Banned
 					banned={banned}
 					setBanned={setBanned}
 					onBannedChange={handleBannedChange}
-					// Form submit
 					onFormSubmit={handleFormSubmit}
 				/>
 			)}
-			{/* New user creation modal */}
 			{newUserModal && (
 				<NewUserModal
 					setNewUserModal={setNewUserModal}
-					// newUserName={newUserName}
-					// onNewUserName={handleNewUserName}
 					newUserEmail={newUserEmail}
 					onNewUserEmail={handleNewUserEmail}
-					// onNewAgencyState={handleNewAgencyState}
-					// onNewAgencyCity={handleNewAgencyCity}
 					onFormSubmit={handleAddNewUserFormSubmit}
 					errors={errors}
 				/>
