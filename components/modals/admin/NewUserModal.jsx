@@ -1,6 +1,6 @@
 import FormInput from '../../ui/FormInput'
 import ModalCloseButton from '../../ui/ModalCloseButton'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
 	Button,
 	Dialog,
@@ -10,7 +10,8 @@ import {
 } from '@material-tailwind/react'
 
 /**
- * Mount when visible; Dialog is always open while mounted.
+ * Mount when visible; Dialog opens one tick later to avoid Floating UI
+ * aria-hidden warnings when mounting with open={true} immediately.
  */
 const NewUserModal = ({
 	setNewUserModal,
@@ -20,10 +21,18 @@ const NewUserModal = ({
 	errors,
 }) => {
 	const handleClose = () => setNewUserModal(false)
+	// Delay Dialog open one tick: MT Dialog + Floating UI 0.19 logs aria-hidden
+	// "not contained inside body" when mounting with open={true} immediately.
+	const [dialogOpen, setDialogOpen] = useState(false)
+
+	useEffect(() => {
+		const id = window.setTimeout(() => setDialogOpen(true), 0)
+		return () => window.clearTimeout(id)
+	}, [])
 
 	return (
 		<Dialog data-component="NewUserModal"
-			open
+			open={dialogOpen}
 			handler={handleClose}
 			size="md"
 			className="new-user-modal rounded-md">
