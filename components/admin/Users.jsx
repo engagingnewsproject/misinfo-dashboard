@@ -61,6 +61,7 @@ import ConfirmModal from '../modals/common/ConfirmModal'
 import EditUserModal from '../modals/admin/EditUserModal'
 import NewUserModal from '../modals/admin/NewUserModal'
 import { FaPlus } from 'react-icons/fa'
+import { HiChevronDown, HiChevronUp } from 'react-icons/hi2'
 import {
 	Card,
 	CardHeader,
@@ -91,7 +92,7 @@ const dateOptions = {
 	month: 'short',
 }
 const tableTh =
-	'sticky top-0 z-10 border-y border-blue-gray-100 bg-blue-gray-50/50 p-4'
+	'sticky top-0 z-10 border-y border-blue-gray-100 bg-blue-gray-50/80 p-4'
 const tableThCenter = `${tableTh} text-center`
 const tableTd = 'whitespace-normal p-4'
 const tableTdCenter =
@@ -150,17 +151,23 @@ const patchUserRowInList = (prev, docId, partial) => {
 }
 
 /**
- * Sorts an array of users by their join date in descending order.
+ * Sort by Firestore `joiningDate` (seconds), falling back to parsed `joined` string.
+ * Returns a new array (does not mutate the input).
  *
- * This function takes an array of user objects and sorts them based on their `joined` date.
- * The sorting is done in descending order, so users with the most recent join date will appear first.
- * The `joined` date is expected to be a string that can be converted into a Date object.
- *
- * @param {Array<Object>} users - An array of user objects, each containing a `joined` date field.
- * @returns {Array<Object>} The sorted array of users, with the most recently joined users first.
+ * @param {Array<Object>} users
+ * @param {'asc' | 'desc'} [direction='desc'] - `desc` = newest first, `asc` = oldest first
+ * @returns {Array<Object>}
  */
-const sortByJoinedDate = (users) => {
-	return users.sort((a, b) => new Date(b.joined) - new Date(a.joined))
+const sortByJoinedDate = (users, direction = 'desc') => {
+	const joinTs = (user) => {
+		const raw = user?.joiningDate
+		if (typeof raw === 'number' && Number.isFinite(raw)) return raw
+		if (raw && typeof raw.seconds === 'number') return raw.seconds
+		const parsed = user?.joined ? Date.parse(user.joined) : NaN
+		return Number.isFinite(parsed) ? parsed / 1000 : 0
+	}
+	const dir = direction === 'asc' ? 1 : -1
+	return [...(users || [])].sort((a, b) => (joinTs(a) - joinTs(b)) * dir)
 }
 
 const describeFirestoreField = (fieldValue) => {
@@ -383,6 +390,9 @@ const Users = () => {
 	const [userRole, setUserRole] = useState('') // Current user's role being edited
 	const [searchTerm, setSearchTerm] = useState('') // Search term for filtering users
 	const [roleFilter, setRoleFilter] = useState('all') // Role filter for users
+	const [joinDateSort, setJoinDateSort] = useState(
+		/** @type {'asc' | 'desc'} */ ('desc'),
+	) // Join Date column sort; default newest-first
 	const [deleteModal, setDeleteModal] = useState(false) // Delete confirmation modal
 	const [userEditing, setUserEditing] = useState([]) // User data being edited
 	const [name, setName] = useState('') // User name being edited
@@ -505,30 +515,29 @@ const Users = () => {
 		}
 	}, [authGetUserList])
 
-	// Processed users: combines pagination data with auth details and applies search
+	// Processed users: combines pagination data with auth details and applies search.
+	// Ordered by joiningDate per Join Date header toggle (default newest-first).
 	const loadedMobileUsers = useMemo(() => {
+		let list
 		if (emailSearchActive) {
-			if (remoteSearchHits !== null) {
-				return remoteSearchHits
-			}
-			return []
+			list = remoteSearchHits !== null ? remoteSearchHits : []
+		} else {
+			const usedEnhanced =
+				!!customClaims?.admin &&
+				enhancedPaginatedUsers.length === paginatedUsers.length
+			const baseUsers = customClaims?.agency
+				? agencyUsers
+				: usedEnhanced
+					? enhancedPaginatedUsers
+					: paginatedUsers
+
+			list =
+				searchActive && !emailSearchActive
+					? searchUsers(baseUsers, searchTerm)
+					: baseUsers
 		}
 
-		const usedEnhanced =
-			!!customClaims?.admin &&
-			enhancedPaginatedUsers.length === paginatedUsers.length
-		const baseUsers = customClaims?.agency
-			? agencyUsers
-			: usedEnhanced
-				? enhancedPaginatedUsers
-				: paginatedUsers
-
-		// Name (non-email) search: filter already-loaded rows only
-		if (searchActive && !emailSearchActive) {
-			return searchUsers(baseUsers, searchTerm)
-		}
-
-		return baseUsers
+		return sortByJoinedDate(list, joinDateSort)
 	}, [
 		paginatedUsers,
 		agencyUsers,
@@ -538,6 +547,7 @@ const Users = () => {
 		emailSearchActive,
 		searchActive,
 		remoteSearchHits,
+		joinDateSort,
 	])
 
 	/**
@@ -1586,6 +1596,39 @@ const Users = () => {
 							<table className="w-full min-w-max table-auto text-left">
 								<thead>
 									<tr>
+										<th
+											scope="col"
+											className={`${tableTh} cursor-pointer transition-colors hover:bg-blue-gray-100`}
+											onClick={() =>
+												setJoinDateSort((prev) =>
+													prev === 'desc' ? 'asc' : 'desc',
+												)
+											}
+											aria-sort={
+												joinDateSort === 'asc'
+													? 'ascending'
+													: 'descending'
+											}>
+											<Typography
+												variant="small"
+												color="blue-gray"
+												className="flex items-center gap-1 font-normal leading-none opacity-70">
+												Join Date
+												{joinDateSort === 'asc' ? (
+													<HiChevronUp
+														strokeWidth={1}
+														className="h-3.5 w-3.5"
+														aria-hidden
+													/>
+												) : (
+													<HiChevronDown
+														strokeWidth={1}
+														className="h-3.5 w-3.5"
+														aria-hidden
+													/>
+												)}
+											</Typography>
+										</th>
 										<th scope="col" className={tableTh}>
 											<Typography
 												variant="small"
@@ -1600,14 +1643,6 @@ const Users = () => {
 												color="blue-gray"
 												className="font-normal leading-none opacity-70">
 												Email
-											</Typography>
-										</th>
-										<th scope="col" className={tableThCenter}>
-											<Typography
-												variant="small"
-												color="blue-gray"
-												className="font-normal leading-none opacity-70">
-												Join Date
 											</Typography>
 										</th>
 										{customClaims.admin && (
@@ -1722,7 +1757,15 @@ const Users = () => {
 															variant="small"
 															color="blue-gray"
 															className="font-normal">
-															{userObj.name}
+															{userObj.joined ?? 'No Date'}
+														</Typography>
+													</td>
+													<td className={cellClass}>
+														<Typography
+															variant="small"
+															color="blue-gray"
+															className="font-normal">
+															{userObj.name ?? ''}
 														</Typography>
 													</td>
 													<td className={cellClassCenter}>
@@ -1730,15 +1773,7 @@ const Users = () => {
 															variant="small"
 															color="blue-gray"
 															className="font-normal">
-															{userObj.email}
-														</Typography>
-													</td>
-													<td className={cellClassCenter}>
-														<Typography
-															variant="small"
-															color="blue-gray"
-															className="font-normal">
-															{userObj.joined}
+															{userObj.email ?? ''}
 														</Typography>
 													</td>
 													{customClaims.admin && (
@@ -1747,7 +1782,7 @@ const Users = () => {
 																variant="small"
 																color="blue-gray"
 																className="font-normal">
-																{userObj.agencyName}
+																{userObj.agencyName ?? ''}
 															</Typography>
 														</td>
 													)}
@@ -1757,7 +1792,7 @@ const Users = () => {
 																variant="small"
 																color="blue-gray"
 																className="font-normal">
-																{userObj.userRole}
+																{userObj.userRole ?? ''}
 															</Typography>
 														</td>
 													)}
