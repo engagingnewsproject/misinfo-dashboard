@@ -31,6 +31,8 @@ import { collection, getDoc, getDocs, doc } from "firebase/firestore";
 import { db, auth } from "../../config/firebase"
 import {List,ListItem} from "@material-tailwind/react"
 import FormSelect from '../ui/FormSelect';
+import PageTitle from '../layout/PageTitle'
+import adminSectionStyles from '../../styles/adminSectionStyles'
 import { Country, State, City } from 'country-state-city';
 
 /**
@@ -175,12 +177,14 @@ const Settings = () => {
   }, [agencyID])
   
   return (
-    <div data-component="Settings">
+    <div data-component="Settings" className={adminSectionStyles.section_container}>
       {tagSystem == 0 ?
-      <div className="z-0 flex-col p-16">
+      <div className="z-0 flex flex-col">
         {customClaims.admin && <TagDefaultsSettings />}
-        <div className="mb-8 p-6 bg-white rounded-md border border-blue-gray-100">
-          <div className={globalStyles.heading.h1.blue}>Tagging Systems</div>
+        <div className="mb-8 rounded-md border border-blue-gray-100 bg-white p-6 shadow-md md:shadow-none">
+          <PageTitle mobileOnly={false} gutter={false} className="mb-4">
+            Tagging Systems
+          </PageTitle>
           {agencyClaimsStatus === 'pending' && (
             <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
               Loading agency access…
