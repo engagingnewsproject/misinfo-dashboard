@@ -143,6 +143,8 @@ const style = {
 		},
 	},
 	// Switch reads theme.switch (the package exports this key as switchButton).
+	// Hide @tailwindcss/forms checked ✓ — Switch is a checkbox under the hood;
+	// forms paints a white checkmark onto the track. Checkboxes keep their icon.
 	switch: {
 		defaultProps: {
 			color: 'blue',
@@ -150,7 +152,8 @@ const style = {
 		styles: {
 			colors: {
 				blue: {
-					input: 'checked:bg-brand',
+					input:
+						'checked:bg-brand checked:[background-image:none]',
 					circle: 'peer-checked:border-brand',
 					before: 'peer-checked:before:bg-brand',
 				},

@@ -1266,8 +1266,14 @@ const Users = () => {
 	 *
 	 * @param {Event} e - The event object from the banned status toggle.
 	 */
-	const handleBannedChange = (e) => {
-		setBanned((prevBanned) => !prevBanned) // Use a function to toggle based on previous state
+	/**
+	 * Syncs banned status from EditUserModal Switch (`checked` boolean).
+	 * Must set the value — toggling cancels the modal's own setBanned(next).
+	 *
+	 * @param {boolean} checked - Next banned state from the Switch
+	 */
+	const handleBannedChange = (checked) => {
+		setBanned(Boolean(checked))
 	}
 
 	/**
