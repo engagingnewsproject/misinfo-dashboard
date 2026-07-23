@@ -22,7 +22,15 @@ const Headbar = ({ title, actions }) => {
 		<>
 			<div
 				data-component="Headbar"
-				className="w-full flex flex-row items-center gap-2 px-3 sm:px-4 md:px-12 pb-5 bg-white sm:bg-transparent max-sm:fixed max-sm:top-0 max-sm:inset-x-0 max-sm:z-40 max-sm:pt-[max(0.75rem,env(safe-area-inset-top))] max-sm:py-3 sm:static">
+				className={[
+					// layout
+					'flex w-full items-center gap-2',
+					// mobile: fixed white bar (safe-area top handled here — fixed ignores parent pad)
+					'fixed inset-x-0 top-0 z-40 min-h-16 bg-white px-3 pb-4 pt-[max(1rem,env(safe-area-inset-top))]',
+					// desktop: in-flow, no fill, match content gutter
+					'sm:static sm:z-auto sm:min-h-0 sm:bg-transparent sm:px-4 sm:pb-5 sm:pt-0',
+					'md:px-12',
+				].join(' ')}>
 				{canOpenDrawer && (
 					<IconButton
 						variant="text"
@@ -33,16 +41,16 @@ const Headbar = ({ title, actions }) => {
 					</IconButton>
 				)}
 				{title ? (
-					<h1 className="text-xl md:text-2xl font-semibold tracking-wide text-[#2E3B4E] min-w-0 truncate">
+					<h1 className="min-w-0 truncate text-xl font-semibold tracking-wide text-[#2E3B4E] md:text-2xl">
 						{title}
 					</h1>
 				) : null}
 				{actions ? (
-					<div className="ml-auto shrink-0 hidden md:block">{actions}</div>
+					<div className="ml-auto hidden shrink-0 md:block">{actions}</div>
 				) : null}
 			</div>
-			{/* Reserve space under the fixed bar on mobile so content isn't covered */}
-			<div className="sm:hidden shrink-0 h-14" aria-hidden />
+			{/* Matches mobile fixed bar height so content isn’t covered */}
+			<div className="h-16 shrink-0 sm:hidden" aria-hidden />
 		</>
 	)
 }

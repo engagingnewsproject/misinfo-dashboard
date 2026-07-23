@@ -102,7 +102,7 @@ const globalStyles = {
     button: 'rounded-full border-[#868686] absolute top-4 right-4'
   },
   page: {
-    wrap: 'w-full h-full flex flex-col mb-5 overflow-y-auto'
+    wrap: 'w-full h-full flex flex-col px-3 md:px-12 mb-5 overflow-y-auto'
   },
   inputTextarea:
     'border-gray-300 rounded-md w-full h-auto py-3 px-3 text-sm text-gray-700 leading-tight focus:outline-none focus:shadow-outline',
