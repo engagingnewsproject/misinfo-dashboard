@@ -173,11 +173,40 @@ const style = {
 	},
 	// Align panel radius with app containers (rounded-md). MT defaults:
 	// Dialog container → rounded-lg; Card → rounded-xl.
+	// Size tiers: replace MT % widths with w-full + hard max-w so wide
+	// viewports don't stretch lg/xl panels. xxl stays fullscreen (unused).
 	dialog: {
 		styles: {
 			base: {
 				container: {
 					borderRadius: 'rounded-md',
+				},
+			},
+			sizes: {
+				xs: {
+					width: 'w-full',
+					minWidth: 'min-w-0',
+					maxWidth: 'max-w-md',
+				},
+				sm: {
+					width: 'w-full',
+					minWidth: 'min-w-0',
+					maxWidth: 'max-w-lg',
+				},
+				md: {
+					width: 'w-full',
+					minWidth: 'min-w-0',
+					maxWidth: 'max-w-xl',
+				},
+				lg: {
+					width: 'w-full',
+					minWidth: 'min-w-0',
+					maxWidth: 'max-w-3xl',
+				},
+				xl: {
+					width: 'w-full',
+					minWidth: 'min-w-0',
+					maxWidth: 'max-w-5xl',
 				},
 			},
 		},
