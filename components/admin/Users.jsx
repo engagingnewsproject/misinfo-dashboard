@@ -45,6 +45,7 @@ import {
 	doc,
 	deleteDoc,
 	updateDoc,
+	setDoc,
 	onSnapshot,
 	query,
 	where,
@@ -60,10 +61,16 @@ import InfiniteScroll from 'react-infinite-scroll-component'
 import ConfirmModal from '../modals/common/ConfirmModal'
 import EditUserModal from '../modals/admin/EditUserModal'
 import NewUserModal from '../modals/admin/NewUserModal'
+import RecreateProfileModal from '../modals/admin/RecreateProfileModal'
 import { FaPlus } from 'react-icons/fa'
+import {
+	buildMobileUserProfile,
+	defaultDisplayNameFromAuth,
+	userRoleFromClaims,
+} from '../../utils/mobile-user-profile'
 import globalStyles from '../../styles/globalStyles'
 import { useUsersPagination } from '../../hooks/useUsersPagination'
-import { searchUsers } from '../../utils/firebase-helpers'
+import { searchUsers, findMobileUsersByEmail } from '../../utils/firebase-helpers'
 import {
 	buildActiveReportsQuery,
 	fetchExperimentConfig,
@@ -357,6 +364,7 @@ const Users = () => {
 		customClaims,
 		fetchUserRecord,
 		authGetUserList,
+		getUserByEmail,
 		functionsReady,
 		refreshCustomClaims,
 	} = useAuth()
@@ -389,6 +397,33 @@ const Users = () => {
 	const [data, setData] = useState({ email: '' }) // New user data
 	const [newUserEmail, setNewUserEmail] = useState('') // New user email
 	const [errors, setErrors] = useState({}) // Form validation errors
+
+	// Recreate missing mobileUsers profile (Auth exists, Firestore doc deleted)
+	const [recreateModal, setRecreateModal] = useState(false)
+	const [recreateLookupMode, setRecreateLookupMode] = useState(
+		/** @type {'uid' | 'email'} */ ('email'),
+	)
+	const [recreateLookup, setRecreateLookup] = useState('')
+	const [recreateLookingUp, setRecreateLookingUp] = useState(false)
+	const [recreateResolved, setRecreateResolved] = useState(
+		/** @type {null | {
+		 *   uid: string
+		 *   email: string
+		 *   displayName: string
+		 *   suggestedRole: string
+		 *   docExists: boolean
+		 *   creationTime?: string
+		 * }} */ (null),
+	)
+	const [recreateName, setRecreateName] = useState('')
+	const [recreateRole, setRecreateRole] = useState('User')
+	const [recreateAgency, setRecreateAgency] = useState('')
+	const [recreateForce, setRecreateForce] = useState(false)
+	const [recreateSubmitting, setRecreateSubmitting] = useState(false)
+	const [recreateErrors, setRecreateErrors] = useState(
+		/** @type {Record<string, string>} */ ({}),
+	)
+	const [recreateSuccess, setRecreateSuccess] = useState('')
 
 	// State for agency-specific user management
 	const [agencyUsers, setAgencyUsers] = useState([]) // Users filtered by agency
@@ -425,22 +460,148 @@ const Users = () => {
 	paginatedUsersRef.current = paginatedUsers
 	// Skip update-effect on mount; mount effect already loads data
 	const skipUpdateRefreshOnMount = useRef(true)
+	/** Cached Auth user map (uid -> record). Fetched once — re-fetching on every page crashed scroll. */
+	const authUsersMapRef = useRef(/** @type {Map<string, object> | null} */ (null))
+	const authUsersFetchPromiseRef = useRef(/** @type {Promise<Map<string, object>> | null} */ (null))
+	/** Server/Auth email search hits; null = not in email-search mode */
+	const [remoteSearchHits, setRemoteSearchHits] = useState(
+		/** @type {null | Array<object>} */ (null),
+	)
+	const [remoteSearchLoading, setRemoteSearchLoading] = useState(false)
+	const searchActive = !!(searchTerm && searchTerm.trim())
+	const emailSearchActive = searchActive && searchTerm.includes('@')
+
+	const getAuthUsersMap = useCallback(async () => {
+		if (authUsersMapRef.current) {
+			return authUsersMapRef.current
+		}
+		if (authUsersFetchPromiseRef.current) {
+			return authUsersFetchPromiseRef.current
+		}
+		authUsersFetchPromiseRef.current = (async () => {
+			const result = await authGetUserList()
+			const map = new Map()
+			;(result?.data?.users || []).forEach((authUser) => {
+				map.set(authUser.uid, authUser)
+			})
+			authUsersMapRef.current = map
+			return map
+		})()
+		try {
+			return await authUsersFetchPromiseRef.current
+		} finally {
+			authUsersFetchPromiseRef.current = null
+		}
+	}, [authGetUserList])
 
 	// Processed users: combines pagination data with auth details and applies search
 	const loadedMobileUsers = useMemo(() => {
+		if (emailSearchActive) {
+			if (remoteSearchHits !== null) {
+				return remoteSearchHits
+			}
+			return []
+		}
+
+		const usedEnhanced =
+			!!customClaims?.admin &&
+			enhancedPaginatedUsers.length === paginatedUsers.length
 		const baseUsers = customClaims?.agency
 			? agencyUsers
-			: customClaims?.admin && enhancedPaginatedUsers.length === paginatedUsers.length
+			: usedEnhanced
 				? enhancedPaginatedUsers
 				: paginatedUsers
-				
-		// Apply search filter if search term exists
-		if (searchTerm && searchTerm.trim()) {
+
+		// Name (non-email) search: filter already-loaded rows only
+		if (searchActive && !emailSearchActive) {
 			return searchUsers(baseUsers, searchTerm)
 		}
 
 		return baseUsers
-	}, [paginatedUsers, agencyUsers, enhancedPaginatedUsers, searchTerm, customClaims])
+	}, [
+		paginatedUsers,
+		agencyUsers,
+		enhancedPaginatedUsers,
+		searchTerm,
+		customClaims,
+		emailSearchActive,
+		searchActive,
+		remoteSearchHits,
+	])
+
+	/**
+	 * Debounced email search against Firestore + Auth (not just loaded pages).
+	 */
+	useEffect(() => {
+		const term = (searchTerm || '').trim()
+		if (!term || !term.includes('@')) {
+			setRemoteSearchHits(null)
+			setRemoteSearchLoading(false)
+			return
+		}
+
+		let cancelled = false
+		setRemoteSearchLoading(true)
+		const timer = setTimeout(async () => {
+			try {
+				const firestoreHits = await findMobileUsersByEmail(term)
+				let authUser = null
+				if (functionsReady && getUserByEmail) {
+					try {
+						const result = await getUserByEmail({ email: term })
+						authUser = result?.data?.uid ? result.data : null
+					} catch (err) {
+						console.warn('Email search Auth lookup failed:', err)
+					}
+				}
+
+				const authMap = authUsersMapRef.current
+				const byId = new Map()
+
+				for (const hit of firestoreHits) {
+					const auth =
+						authMap?.get(hit.id) ||
+						(authUser?.uid === hit.id ? authUser : null)
+					byId.set(hit.id, {
+						...(auth || {}),
+						...hit,
+						hasFirestoreDoc: true,
+						joined: getJoinedDate(hit, auth || null),
+						mobileUserId: hit.id,
+						disabled: auth?.disabled ?? hit.disabled ?? false,
+					})
+				}
+
+				// Auth-only user (missing mobileUsers doc) — still show so admin can recreate
+				if (authUser?.uid && !byId.has(authUser.uid)) {
+					byId.set(authUser.uid, {
+						...authUser,
+						id: authUser.uid,
+						uid: authUser.uid,
+						email: authUser.email || term,
+						name: authUser.displayName || '',
+						hasFirestoreDoc: false,
+						joined: getJoinedDate(null, authUser),
+						mobileUserId: authUser.uid,
+						disabled: !!authUser.disabled,
+					})
+				}
+
+				const hits = [...byId.values()]
+				if (!cancelled) setRemoteSearchHits(hits)
+			} catch (error) {
+				console.error('Remote email search failed:', error)
+				if (!cancelled) setRemoteSearchHits([])
+			} finally {
+				if (!cancelled) setRemoteSearchLoading(false)
+			}
+		}, 300)
+
+		return () => {
+			cancelled = true
+			clearTimeout(timer)
+		}
+	}, [searchTerm, functionsReady, getUserByEmail])
 
 	/**
 	 * Fetches all agency documents from the Firestore 'agency' collection
@@ -615,16 +776,7 @@ const Users = () => {
 			}
 
 			try {
-				// Get auth details for all users at once
-				// Note: This is an optimization opportunity - could be done in batches
-				const result = await authGetUserList()
-				const usersFromAuth = result.data.users
-
-				// Create a map of auth users by UID for quick lookup
-				const authUsersMap = new Map()
-				usersFromAuth.forEach((authUser) => {
-					authUsersMap.set(authUser.uid, authUser)
-				})
+				const authUsersMap = await getAuthUsersMap()
 
 				// Enhance paginated users with auth details
 				return users.map((firestoreUser) => {
@@ -651,7 +803,7 @@ const Users = () => {
 				return users
 			}
 		},
-		[customClaims, authGetUserList],
+		[customClaims, getAuthUsersMap],
 	)
 	
 	// For admin, enrich paginated users with Auth details when the list changes (only after Functions is ready)
@@ -762,6 +914,158 @@ const Users = () => {
 				...prevErrors,
 				email: error.message,
 			}))
+		}
+	}
+
+	const resetRecreateModalState = () => {
+		setRecreateLookup('')
+		setRecreateLookupMode('email')
+		setRecreateLookingUp(false)
+		setRecreateResolved(null)
+		setRecreateName('')
+		setRecreateRole('User')
+		setRecreateAgency('')
+		setRecreateForce(false)
+		setRecreateSubmitting(false)
+		setRecreateErrors({})
+		setRecreateSuccess('')
+	}
+
+	const handleOpenRecreateModal = (e) => {
+		e.preventDefault()
+		resetRecreateModalState()
+		setRecreateModal(true)
+	}
+
+	const handleCloseRecreateModal = (open) => {
+		if (!open) {
+			setRecreateModal(false)
+			resetRecreateModalState()
+		}
+	}
+
+	/**
+	 * Resolve Auth user by email or UID, then check whether mobileUsers/{uid} exists.
+	 */
+	const handleRecreateLookup = async () => {
+		const term = recreateLookup.trim()
+		setRecreateErrors({})
+		setRecreateSuccess('')
+		setRecreateResolved(null)
+
+		if (!term) {
+			setRecreateErrors({
+				lookup:
+					recreateLookupMode === 'email'
+						? 'Enter an Auth email'
+						: 'Enter an Auth UID',
+			})
+			return
+		}
+
+		setRecreateLookingUp(true)
+		try {
+			let authUser = null
+
+			if (recreateLookupMode === 'email') {
+				const result = await getUserByEmail({ email: term })
+				authUser = result?.data
+				if (!authUser?.uid) {
+					setRecreateErrors({ lookup: 'No Auth user found for that email' })
+					return
+				}
+			} else {
+				authUser = await fetchUserRecord(term)
+				if (!authUser?.uid) {
+					setRecreateErrors({ lookup: 'No Auth user found for that UID' })
+					return
+				}
+			}
+
+			const mobileSnap = await getDoc(doc(db, 'mobileUsers', authUser.uid))
+			const suggestedRole = userRoleFromClaims(authUser.customClaims)
+			const displayName = defaultDisplayNameFromAuth(authUser)
+
+			setRecreateResolved({
+				uid: authUser.uid,
+				email: authUser.email || '',
+				displayName,
+				suggestedRole,
+				docExists: mobileSnap.exists(),
+				creationTime: authUser.metadata?.creationTime,
+			})
+			setRecreateName(displayName)
+			setRecreateRole(suggestedRole)
+			setRecreateForce(false)
+		} catch (error) {
+			console.error('Recreate profile lookup failed:', error)
+			setRecreateErrors({
+				lookup: error?.message || 'Lookup failed',
+			})
+		} finally {
+			setRecreateLookingUp(false)
+		}
+	}
+
+	/**
+	 * Write mobileUsers/{uid} from Auth + form fields (admin-only create allowed by rules).
+	 */
+	const handleRecreateSubmit = async () => {
+		if (!recreateResolved?.uid) {
+			setRecreateErrors({ submit: 'Look up an Auth user first' })
+			return
+		}
+		if (!recreateName.trim()) {
+			setRecreateErrors({ name: 'Name is required' })
+			return
+		}
+		if (recreateResolved.docExists && !recreateForce) {
+			setRecreateErrors({
+				submit: 'Document already exists — check overwrite to replace it',
+			})
+			return
+		}
+
+		setRecreateSubmitting(true)
+		setRecreateErrors({})
+		setRecreateSuccess('')
+
+		try {
+			let joiningDate = Math.floor(Date.now() / 1000)
+			if (recreateResolved.creationTime) {
+				const createdMs = Date.parse(recreateResolved.creationTime)
+				if (Number.isFinite(createdMs)) {
+					joiningDate = Math.floor(createdMs / 1000)
+				}
+			}
+
+			const profile = buildMobileUserProfile({
+				name: recreateName.trim(),
+				email: recreateResolved.email,
+				joiningDate,
+				userRole: recreateRole,
+				agency: recreateRole === 'Agency' ? recreateAgency : '',
+				isBanned: false,
+				contact: false,
+				state: '',
+				city: '',
+			})
+
+			await setDoc(doc(db, 'mobileUsers', recreateResolved.uid), profile)
+			setRecreateSuccess(
+				`Created mobileUsers/${recreateResolved.uid}. You can close this dialog.`,
+			)
+			setRecreateResolved((prev) =>
+				prev ? { ...prev, docExists: true } : prev,
+			)
+			setUpdate(!update)
+		} catch (error) {
+			console.error('Recreate profile failed:', error)
+			setRecreateErrors({
+				submit: error?.message || 'Failed to recreate profile',
+			})
+		} finally {
+			setRecreateSubmitting(false)
 		}
 	}
 
@@ -1320,6 +1624,14 @@ const Users = () => {
 							onChange={(e) => setSearchTerm(e.target.value)}
 							className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm mr-2"
 						/>
+						{customClaims.admin && (
+							<button
+								type="button"
+								className={style.button}
+								onClick={handleOpenRecreateModal}>
+								Recreate profile
+							</button>
+						)}
 						<button className={style.button} onClick={handleAddNewUserModal}>
 							<FaPlus className="text-[#2E3B4E] mr-2" size={12} />
 							Add User
@@ -1362,9 +1674,15 @@ const Users = () => {
 					<div className="flex flex-col h-full">
 						<InfiniteScroll
 							className="overflow-x-auto"
+							height={560}
 							dataLength={loadedMobileUsers.length}
-							next={loadMore}
-							hasMore={hasMore && !customClaims.agency}
+							next={() => {
+								if (searchActive) return
+								loadMore()
+							}}
+							hasMore={
+								hasMore && !customClaims.agency && !searchActive
+							}
 							loader={
 								<div className="text-center py-4">
 									<span className="text-gray-500">Loading more users...</span>
@@ -1412,7 +1730,8 @@ const Users = () => {
 									{/* Loading state - shows spinner while fetching user data */}
 									{initialLoading ||
 									(isLoading && loadedMobileUsers.length === 0) ||
-									agencyLoading ? (
+									agencyLoading ||
+									remoteSearchLoading ? (
 										<tr>
 											<td colSpan="100%" className="text-center">
 												<div className="flex flex-col justify-center items-center gap-2 h-40">
@@ -1568,6 +1887,36 @@ const Users = () => {
 					// onNewAgencyCity={handleNewAgencyCity}
 					onFormSubmit={handleAddNewUserFormSubmit}
 					errors={errors}
+				/>
+			)}
+			{recreateModal && customClaims.admin && (
+				<RecreateProfileModal
+					setOpen={handleCloseRecreateModal}
+					lookup={recreateLookup}
+					onLookupChange={(e) => {
+						setRecreateLookup(e.target.value)
+						setRecreateErrors((prev) => ({ ...prev, lookup: '' }))
+					}}
+					lookupMode={recreateLookupMode}
+					onLookupModeChange={setRecreateLookupMode}
+					onLookup={handleRecreateLookup}
+					lookingUp={recreateLookingUp}
+					resolved={recreateResolved}
+					name={recreateName}
+					onNameChange={(e) => {
+						setRecreateName(e.target.value)
+						setRecreateErrors((prev) => ({ ...prev, name: '' }))
+					}}
+					userRole={recreateRole}
+					onRoleChange={(e) => setRecreateRole(e.target.value)}
+					agency={recreateAgency}
+					onAgencyChange={(e) => setRecreateAgency(e.target.value)}
+					forceOverwrite={recreateForce}
+					onForceOverwriteChange={(e) => setRecreateForce(e.target.checked)}
+					onSubmit={handleRecreateSubmit}
+					submitting={recreateSubmitting}
+					errors={recreateErrors}
+					successMessage={recreateSuccess}
 				/>
 			)}
 		</div>

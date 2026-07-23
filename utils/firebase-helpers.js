@@ -47,18 +47,16 @@ export async function fetchUsersBatch({
       queryConstraints.push(where('userRole', '==', userRole));
     }
 
-    // Add search filter (case-insensitive email search)
-    // Note: For more advanced search, consider using a search service like Algolia
-    if (searchTerm) {
-      // Firestore doesn't support case-insensitive search natively
-      // This is a basic implementation - for production, use a dedicated search solution
-      const lowerSearch = searchTerm.toLowerCase();
+    // Email prefix search must order by email (cannot mix range filter with unrelated orderBy).
+    const trimmedSearch = typeof searchTerm === 'string' ? searchTerm.trim() : '';
+    if (trimmedSearch) {
+      const lowerSearch = trimmedSearch.toLowerCase();
       queryConstraints.push(where('email', '>=', lowerSearch));
       queryConstraints.push(where('email', '<=', lowerSearch + '\uf8ff'));
+      queryConstraints.push(orderBy('email', 'asc'));
+    } else {
+      queryConstraints.push(orderBy(orderField, orderDirection));
     }
-
-    // Add ordering
-    queryConstraints.push(orderBy(orderField, orderDirection));
 
     // Add pagination
     queryConstraints.push(limit(pageSize + 1)); // Fetch one extra to check if more exist
@@ -225,4 +223,40 @@ export function searchUsers(users, searchTerm) {
       displayName.includes(lowerSearch)
     );
   });
+}
+
+/**
+ * Look up mobileUsers docs by exact email (as-typed and lowercased).
+ * Use this for admin email search instead of filtering only-loaded pages.
+ *
+ * @param {string} email
+ * @returns {Promise<Array<{ id: string, hasFirestoreDoc: boolean } & Record<string, unknown>>>}
+ */
+export async function findMobileUsersByEmail(email) {
+  const trimmed = typeof email === 'string' ? email.trim() : '';
+  if (!trimmed) return [];
+
+  const variants = [...new Set([trimmed, trimmed.toLowerCase()])];
+  const byId = new Map();
+
+  await Promise.all(
+    variants.map(async (variant) => {
+      const q = query(
+        collection(db, 'mobileUsers'),
+        where('email', '==', variant),
+        limit(10),
+      );
+      const snapshot = await getDocs(q);
+      snapshot.docs.forEach((docSnap) => {
+        byId.set(docSnap.id, {
+          id: docSnap.id,
+          ...docSnap.data(),
+          hasFirestoreDoc: true,
+          mobileUserId: docSnap.id,
+        });
+      });
+    }),
+  );
+
+  return [...byId.values()];
 }

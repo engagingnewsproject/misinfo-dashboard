@@ -30,6 +30,7 @@ pglite-debug.log
 # local env files
 .env*.local
 .env
+.env.login
 
 # vercel
 .vercel

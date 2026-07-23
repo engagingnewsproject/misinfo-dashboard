@@ -8,6 +8,7 @@
 		"dev:live": "sh -c 'unset FIRESTORE_EMULATOR_HOST FIREBASE_AUTH_EMULATOR_HOST FIREBASE_STORAGE_EMULATOR_HOST FIREBASE_DATABASE_EMULATOR_HOST FIREBASE_FUNCTIONS_EMULATOR_HOST; export NEXT_PUBLIC_USE_EMULATORS=false; exec next dev --webpack'",
 		"seed:emulator": "node scripts/seed-emulator-from-prod.js",
 		"backfill:agency-id": "node scripts/backfill-report-agency-id.js",
+		"restore:mobile-user": "node scripts/restore-mobile-user.js",
 		"verify:agency-rules": "firebase emulators:exec --only firestore,auth \"node scripts/verify-agency-firestore-rules.js\"",
 		"build": "next build --webpack",
 		"start": "next start",

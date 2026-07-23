@@ -24,7 +24,6 @@ import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
-import { analytics } from '../config/firebase'
 import { db, auth } from '../config/firebase'
 import LanguageSwitcher from '../components/layout/LanguageSwitcher'
 import { useTranslation } from 'next-i18next';
@@ -40,6 +39,13 @@ import { GiMagnifyingGlass } from "react-icons/gi";
 import Head from 'next/head';
 import { Button, Typography } from '@material-tailwind/react'
 import FormInput from '../components/ui/FormInput'
+
+// Dev-only UI: conditional require so production client bundles can tree-shake it away.
+const DevLoginShortcuts =
+	process.env.NODE_ENV === 'development'
+		? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+			require('../components/dev/DevLoginShortcuts').default
+		: null
 
 /**
  * Login Page
@@ -59,11 +65,11 @@ const Login = () => {
     password: '',
   })
   const [error, setError] = useState(null)
-  const [errorMessage, setErrorMessage] = useState()
   const [loading, setLoading] = useState(false)
 	// password show/hide
   const [type, setType] = useState('password')
   const [icon, setIcon] = useState(false)
+
   // handle the toggle between the hide password (eyeOff icon) and the show password (eye icon)
   const handleTogglePass = () => {
     if (type==='password'){
@@ -81,69 +87,80 @@ const Login = () => {
     router.prefetch('/dashboard')
   }, [router])
 
-  const handleLogin = async (e) => {
-    e.preventDefault()
-    setLoading(true) // Set loading state to true during login process
-    try {
-      await login(data.email, data.password)
-      // Login successful, check if email is verified
-      if (auth.currentUser?.emailVerified) {
-        // Force-refresh so post-backfill agencyId claims are visible immediately
-        const idTokenResult = await auth.currentUser.getIdTokenResult(true)
+	/**
+	 * Sign in and role-based redirect. Shared by the form and local-dev shortcuts.
+	 * @param {string} email
+	 * @param {string} password
+	 */
+	const signInAndRedirect = async (email, password) => {
+		await login(email, password)
+		if (auth.currentUser?.emailVerified) {
+			const idTokenResult = await auth.currentUser.getIdTokenResult(true)
 
-        // Agency/admin users must not run a collection-wide agencyUsers query:
-        // new rules only allow reading their own agency doc (or all for admin).
-        // Prefer token claims; only probe membership when the user has no agency claim yet.
-        if (!idTokenResult.claims.admin && !idTokenResult.claims.agency) {
-          const dbInstance = collection(db, 'agency')
-          const q = query(
-            dbInstance,
-            where('agencyUsers', 'array-contains', data.email),
-          )
-          const querySnapshot = await getDocs(q)
+			// Agency/admin users must not run a collection-wide agencyUsers query:
+			// new rules only allow reading their own agency doc (or all for admin).
+			// Prefer token claims; only probe membership when the user has no agency claim yet.
+			if (!idTokenResult.claims.admin && !idTokenResult.claims.agency) {
+				const dbInstance = collection(db, 'agency')
+				const q = query(
+					dbInstance,
+					where('agencyUsers', 'array-contains', email),
+				)
+				const querySnapshot = await getDocs(q)
 
-          if (!querySnapshot.empty) {
-            const agencyId = querySnapshot.docs[0].id
-            await addAgencyRole({ email: data.email, agencyId })
-            // Sync React customClaims (not just the Firebase token) before dashboard
-            await refreshCustomClaims()
-            console.log(`${data.email} has been made an agency user`)
-            await router.push('/dashboard')
-            return
-          }
+				if (!querySnapshot.empty) {
+					const agencyId = querySnapshot.docs[0].id
+					await addAgencyRole({ email, agencyId })
+					await refreshCustomClaims()
+					console.log(`${email} has been made an agency user`)
+					await router.push('/dashboard')
+					return
+				}
 
-          await router.push('/report')
-          return
-        }
+				await router.push('/report')
+				return
+			}
 
-        await router.push('/dashboard')
-      } else {
-        // Email not verified, send verification email and redirect
-        // console.log("Email not verified. Sending verification email...")
-        await verifyEmail(auth.currentUser)
-        await router.push('/verifyEmail')
-      }
+			await router.push('/dashboard')
+		} else {
+			await verifyEmail(auth.currentUser)
+			await router.push('/verifyEmail')
+		}
+	}
 
-    } catch (error) {
-      // Login error occurred, handle and display it
-      // console.error("Login error:", error)
-      if (error.code === "auth/user-not-found") {
-        setError(t("not_found"))
-      } else if (error.code === "auth/wrong-password") {
-        setError(t("incorrect"))
-      } else if (error.code === "auth/network-request-failed") {
-        setError(
-          process.env.NEXT_PUBLIC_USE_EMULATORS === "true"
-            ? t("login_network_emulator")
-            : t("login_network_live"),
-        )
-      } else {
-        console.log(error)
-        setError(t("error"))
-      }
-    }
-    setLoading(false)
-  }
+	const mapLoginError = (err) => {
+		if (err.code === 'auth/user-not-found') {
+			setError(t('not_found'))
+		} else if (err.code === 'auth/wrong-password') {
+			setError(t('incorrect'))
+		} else if (err.code === 'auth/network-request-failed') {
+			setError(
+				process.env.NEXT_PUBLIC_USE_EMULATORS === 'true'
+					? t('login_network_emulator')
+					: t('login_network_live'),
+			)
+		} else {
+			console.log(err)
+			setError(err?.message || t('error'))
+		}
+	}
+
+	const completeLogin = async (email, password) => {
+		setLoading(true)
+		setError(null)
+		try {
+			await signInAndRedirect(email, password)
+		} catch (err) {
+			mapLoginError(err)
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	const handleLogin = async (e) => {
+		e.preventDefault()
+		await completeLogin(data.email, data.password)
+	}
 
   const handleChange = (e) => {
     const { id, value } = e.target
@@ -234,6 +251,20 @@ const Login = () => {
 							</div>
 						</div>
 					</form>
+					{DevLoginShortcuts && (
+						<DevLoginShortcuts
+							loading={loading}
+							setLoading={setLoading}
+							setEmailHint={(email) =>
+								setData((prev) => ({ ...prev, email, password: '' }))
+							}
+							signInAndRedirect={async (email, password) => {
+								setError(null)
+								await signInAndRedirect(email, password)
+							}}
+							onError={mapLoginError}
+						/>
+					)}
 					<p className="text-center text-gray-500 text-sm">
 						{t('noAccount')}
 						<Link
