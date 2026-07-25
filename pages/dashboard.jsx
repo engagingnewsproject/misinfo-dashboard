@@ -27,7 +27,6 @@ import Settings from '../components/admin/Settings'
 import Users from '../components/admin/Users'
 import Navbar from '../components/layout/Navbar'
 import Headbar from '../components/layout/Headbar'
-import Toggle from '../components/common/Toggle'
 import { useAuth } from '../context/AuthContext'
 import { MobileNavProvider, useNavContentOffsetStyle } from '../context/MobileNavContext'
 import Agencies from '../components/admin/Agencies'
@@ -194,17 +193,6 @@ function DashboardLayout({
 }) {
 	const contentOffsetStyle = useNavContentOffsetStyle()
 	const [viewVal, setViewVal] = useState('overview')
-	const showGraphToggle = tab === 0 && (customClaims.admin || customClaims.agency)
-
-	// Omit titles when the tab renders a visible desktop PageTitle (e.g. Profile).
-	const headbarTitles = {
-		0: 'Dashboard',
-		2: 'Tagging Systems',
-		3: 'Users',
-		4: 'Agencies',
-		5: 'Help Requests',
-		6: 'Appearance',
-	}
 
 	return (
 		<div data-component="dashboard" className="w-full">
@@ -216,14 +204,7 @@ function DashboardLayout({
 				customClaims={customClaims}
 			/>
 			<div className="flex flex-col pb-5 pt-0 sm:py-5" style={contentOffsetStyle}>
-				<Headbar
-					title={headbarTitles[tab]}
-					actions={
-						showGraphToggle ? (
-							<Toggle viewVal={viewVal} setViewVal={setViewVal} />
-						) : null
-					}
-				/>
+				<Headbar />
 				{tab == 0 && (customClaims.admin || customClaims.agency) && (
 					<Home
 						newReportSubmitted={newReportSubmitted}

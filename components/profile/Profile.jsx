@@ -462,9 +462,7 @@ const Profile = ({ customClaims }) => {
       <div className={style.sectionWrapper}>
         <UserSettingsForm
           pageTitle={
-            <PageTitle mobileOnly={false} gutter={false}>
-              Profile
-            </PageTitle>
+            <PageTitle gutter={false}>Profile</PageTitle>
           }
           email={user.email}
           user={user}

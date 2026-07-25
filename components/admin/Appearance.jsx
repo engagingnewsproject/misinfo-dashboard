@@ -86,7 +86,7 @@ const Appearance = () => {
 
 	return (
 		<div data-component="Appearance" className="p-6 max-w-3xl">
-			<PageTitle mobileOnly={false}>Appearance</PageTitle>
+			<PageTitle>Appearance</PageTitle>
 			<p className="text-sm text-gray-600 mb-6">
 				Configure shared dashboard colors. Changes apply for all signed-in users.
 			</p>

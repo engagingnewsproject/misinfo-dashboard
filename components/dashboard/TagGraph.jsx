@@ -35,8 +35,7 @@ import { Typography } from '@material-tailwind/react'
 /**
  * TagGraph - Main data visualization component for trending topics.
  *
- * View mode (overview vs comparison) is controlled by the parent so the toggle
- * can live in the shared Headbar.
+ * View mode (overview vs comparison) is controlled by the parent (Home title row).
  *
  * @param {Object} props
  * @param {string} props.viewVal - "overview" | "comparison"

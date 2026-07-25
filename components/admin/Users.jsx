@@ -1516,9 +1516,7 @@ const Users = () => {
 				<CardHeader floated={false} shadow={false} data-element="users-card-header" className="mb-4">
 					<div className="mb-4 flex flex-col justify-between gap-4 md:flex-row md:items-center">
 						<div>
-							<PageTitle mobileOnly={false} gutter={false}>
-								Users
-							</PageTitle>
+							<PageTitle gutter={false}>Users</PageTitle>
 						</div>
 						<Button
 							className="flex items-center gap-3"

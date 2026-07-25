@@ -13,7 +13,7 @@ describe('PageTitle', () => {
 		).toBeInTheDocument()
 	})
 
-	it('applies shared type + gutter classes by default', () => {
+	it('applies shared type + gutter classes by default (visible on all breakpoints)', () => {
 		render(<PageTitle>Profile</PageTitle>)
 		const heading = screen.getByRole('heading', { name: 'Profile' })
 		expect(heading).toHaveClass(
@@ -22,18 +22,21 @@ describe('PageTitle', () => {
 			'tracking-wide',
 			'text-[#2E3B4E]',
 			'mb-3',
-			'sm:hidden',
 		)
+		expect(heading).not.toHaveClass('sm:hidden')
 	})
 
 	it('omits gutter when gutter is false', () => {
-		render(
-			<PageTitle mobileOnly={false} gutter={false}>
-				Users
-			</PageTitle>,
-		)
+		render(<PageTitle gutter={false}>Users</PageTitle>)
 		expect(screen.getByRole('heading', { name: 'Users' })).not.toHaveClass(
 			'mb-3',
+		)
+	})
+
+	it('hides from sm+ when mobileOnly', () => {
+		render(<PageTitle mobileOnly>Mobile only</PageTitle>)
+		expect(screen.getByRole('heading', { name: 'Mobile only' })).toHaveClass(
+			'sm:hidden',
 		)
 	})
 

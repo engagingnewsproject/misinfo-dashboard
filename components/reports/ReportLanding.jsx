@@ -95,7 +95,6 @@ const ReportLanding = ({
 	return (
 		<div data-component="ReportLanding" className={style.container}>
 			<PageTitle>Report</PageTitle>
-			{/* Headbar */}
 			<div className={style.headerWrap}>
 				<h2 className={style.header}>{t("hello")}</h2>
 			</div>
