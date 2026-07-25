@@ -6,10 +6,10 @@ import {
 	DialogHeader,
 	Typography,
 } from '@material-tailwind/react'
-import Image from 'next/image'
 import Link from 'next/link'
-import React, { Fragment } from 'react'
+import React, { Fragment, useState } from 'react'
 import ModalCloseButton from '../ui/ModalCloseButton'
+import ImageLightboxGallery from '../ui/ImageLightboxGallery'
 import { useDelayedDialogOpen } from '../../hooks/useDelayedDialogOpen'
 
 const formatLabel = (label) => label.replace(/([a-z])([A-Z])/g, '$1 $2')
@@ -20,13 +20,18 @@ const formatLabel = (label) => label.replace(/([a-z])([A-Z])/g, '$1 $2')
  */
 const HelpRequestsModal = ({ helpRequestInfo, handleClose, mailtoLink }) => {
 	const dialogOpen = useDelayedDialogOpen()
+	const [lightboxOpen, setLightboxOpen] = useState(false)
 
 	return (
 		<Dialog data-component="HelpRequestsModal"
 			open={dialogOpen}
 			handler={handleClose}
 			size="lg"
-			className="help-requests-modal rounded-md">
+			className="help-requests-modal rounded-md"
+			dismiss={{
+				escapeKey: !lightboxOpen,
+				outsidePress: () => !lightboxOpen,
+			}}>
 			<DialogHeader className="justify-between gap-4">
 				<Typography variant="h3" color="blue" className="mt-0 mb-0">
 					Help Request Info
@@ -45,25 +50,12 @@ const HelpRequestsModal = ({ helpRequestInfo, handleClose, mailtoLink }) => {
 							</Typography>
 							<div className="mb-4">
 								{key === 'images' ? (
-									<div className="grid grid-cols-1 gap-y-4">
-										{(Array.isArray(value) ? value : [value]).map(
-											(image, imgIndex) => (
-												<Link
-													key={imgIndex}
-													href={image}
-													passHref={true}
-													target="_blank">
-													<Image
-														src={`${image}`}
-														width={100}
-														height={100}
-														className="w-auto"
-														alt={`image-${imgIndex}`}
-													/>
-												</Link>
-											),
-										)}
-									</div>
+									<ImageLightboxGallery
+										images={Array.isArray(value) ? value : [value]}
+										altPrefix="Help request screenshot"
+										listClassName="grid grid-cols-2 gap-4 w-full sm:grid-cols-3"
+										onLightboxChange={setLightboxOpen}
+									/>
 								) : key === 'email' ? (
 									<Link href={mailtoLink} target="_blank" className="underline">
 										{value}
