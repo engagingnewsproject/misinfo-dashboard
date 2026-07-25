@@ -85,6 +85,7 @@ export function MobileNavProvider({ children }) {
 			desktopExpanded,
 			toggleDesktopExpanded,
 			drawerWidth,
+			measuredExpandedWidth,
 			setMeasuredDrawerWidth,
 		}),
 		[
@@ -94,6 +95,7 @@ export function MobileNavProvider({ children }) {
 			desktopExpanded,
 			toggleDesktopExpanded,
 			drawerWidth,
+			measuredExpandedWidth,
 			setMeasuredDrawerWidth,
 		],
 	)
@@ -114,6 +116,7 @@ export function useMobileNav() {
 			desktopExpanded: false,
 			toggleDesktopExpanded: () => {},
 			drawerWidth: NAV_COLLAPSED_WIDTH,
+			measuredExpandedWidth: null,
 			setMeasuredDrawerWidth: () => {},
 		}
 	}

@@ -44,7 +44,6 @@ import BrandLockup, { BrandMark } from './BrandLockup'
 import {
 	NAV_COLLAPSED_WIDTH,
 	NAV_DESKTOP_MIN_WIDTH,
-	NAV_EXPANDED_MAX_WIDTH,
 	getMobileDrawerSize,
 	useMobileNav,
 } from '../../context/MobileNavContext'
@@ -181,6 +180,8 @@ const Navbar = ({
 		closeDrawer,
 		desktopExpanded,
 		toggleDesktopExpanded,
+		drawerWidth,
+		measuredExpandedWidth,
 		setMeasuredDrawerWidth,
 	} = useMobileNav()
 
@@ -189,10 +190,12 @@ const Navbar = ({
 	const isDesktop = windowSize[0] >= NAV_DESKTOP_MIN_WIDTH
 	// Mobile drawer is always labeled; never flip to icon-rail while closing (avoids CTA flash).
 	const showLabels = isDesktop ? desktopExpanded : true
-	// Mobile closed must be 0 — collapsed width + labels lets "Log out" peek past the off-screen transform.
+	// Desktop expanded size must match the measured content width (not the 280 cap).
+	// Using the cap while `!w-max` is on makes collapse pop: dropping `!w-max` snaps
+	// w-full up to maxWidth (280) before the 280→65 transition runs.
 	const drawerSize = isDesktop
 		? showLabels
-			? NAV_EXPANDED_MAX_WIDTH
+			? drawerWidth
 			: NAV_COLLAPSED_WIDTH
 		: open
 			? getMobileDrawerSize(windowSize[0])
@@ -221,6 +224,12 @@ const Navbar = ({
 
 		const report = () => {
 			const width = el.getBoundingClientRect().width
+			const maxW = parseFloat(window.getComputedStyle(el).maxWidth)
+			if (!Number.isFinite(width) || !Number.isFinite(maxW)) return
+			// Skip mid max-width transition frames (fractional maxWidth) so we don't
+			// overwrite the stable expanded measurement with collapse/expand in-betweens.
+			if (Math.abs(maxW - Math.round(maxW)) > 0.1) return
+			if (width <= NAV_COLLAPSED_WIDTH + 1) return
 			setMeasuredDrawerWidth(width)
 		}
 		report()
@@ -491,7 +500,11 @@ const Navbar = ({
 				size={drawerSize}
 				overlay={disableOverlay}
 				className={`z-[9997] !h-full overflow-hidden transition-[max-width] duration-200 ease-in-out${
-					isDesktop && showLabels ? ' !w-max' : ''
+					// Content-size only until first measure; afterward size tracks width so
+					// collapse animates from the real width without a 280px snap.
+					isDesktop && showLabels && measuredExpandedWidth == null
+						? ' !w-max'
+						: ''
 				}`}>
 				<div
 					data-component="Navbar"
