@@ -1,7 +1,6 @@
 /**
  * @fileoverview Shared page/view title for in-content wayfinding.
- * On mobile the Headbar shows brand; PageTitle names the current view.
- * On desktop the Headbar already shows the view name — default is mobile-only.
+ * On mobile the Headbar shows brand; PageTitle names the current view on all breakpoints.
  */
 
 import React from 'react'
@@ -14,7 +13,7 @@ import React from 'react'
  *
  * @param {Object} props
  * @param {React.ReactNode} props.children - Title text (e.g. Dashboard, Users)
- * @param {boolean} [props.mobileOnly=true] - Hide from sm+ when Headbar already shows the title
+ * @param {boolean} [props.mobileOnly=false] - When true, hide from sm+ (rare; prefer in-content titles)
  * @param {boolean} [props.gutter=true] - Default mb-3; set false inside flex/card headers that supply spacing
  * @param {boolean} [props.srOnly=false] - Visually hide but keep for screen readers
  * @param {string} [props.className] - Extra classes
@@ -22,7 +21,7 @@ import React from 'react'
  */
 const PageTitle = ({
 	children,
-	mobileOnly = true,
+	mobileOnly = false,
 	gutter = true,
 	srOnly = false,
 	className = '',

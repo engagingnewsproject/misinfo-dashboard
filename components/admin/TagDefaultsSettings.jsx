@@ -9,7 +9,6 @@ import { FaPlus } from 'react-icons/fa'
 import { MdModeEditOutline } from 'react-icons/md'
 import { TiDelete } from 'react-icons/ti'
 import { useAuth } from '../../context/AuthContext'
-import globalStyles from '../../styles/globalStyles'
 import FormInput from '../ui/FormInput'
 import ConfirmModal from '../modals/common/ConfirmModal'
 import { maxActiveTags } from '../../config/tagSystems'
@@ -184,9 +183,11 @@ function RequiredTagListEditor({ title, maxActive, tags, setTags }) {
 										/>
 									)}
 									{locked && (
-										<p className="text-xs text-gray-500">
+										<Typography
+											variant="paragraph"
+											className="text-xs text-gray-500">
 											Id: Other (locked)
-										</p>
+										</Typography>
 									)}
 									<FormInput
 										id={`edit-en-${title}-${tag.id}`}
@@ -324,7 +325,11 @@ function RequiredTagListEditor({ title, maxActive, tags, setTags }) {
 				</Button>
 			</form>
 			{localError && (
-				<p className="mt-2 text-sm text-red-500 font-light">{localError}</p>
+				<Typography
+					variant="paragraph"
+					className="mt-2 text-sm text-red-500 font-light">
+					{localError}
+				</Typography>
 			)}
 		</div>
 	)
@@ -428,14 +433,16 @@ const TagDefaultsSettings = () => {
 
 	return (
 		<div data-component="TagDefaultsSettings" className="mb-8 p-6 bg-white rounded-md border border-blue-gray-100">
-			<div className={globalStyles.heading.h1.blue}>Global Tag Defaults</div>
-			<p className="text-sm text-gray-600 mb-4">
+			<Typography variant="h2" color="blue" className="mt-0 mb-4">
+				Global Tag Defaults
+			</Typography>
+			<Typography variant="paragraph" className="text-sm text-gray-600 mb-4">
 				These Topic and Source tags are required for every newsroom. Agencies
 				cannot deactivate, rename, or remove them. Enter an English id (stored
 				in reports) plus English and Spanish display labels. Saving adds any
 				new required ids to all agencies; retired tags already on agencies are
 				left in place.
-			</p>
+			</Typography>
 
 			<div className="flex flex-col lg:flex-row gap-8 mb-4">
 				<RequiredTagListEditor
@@ -452,10 +459,10 @@ const TagDefaultsSettings = () => {
 				/>
 			</div>
 
-			<p className="text-xs text-gray-500 mb-4">
+			<Typography variant="paragraph" className="text-xs text-gray-500 mb-4">
 				* &quot;Other&quot; is required and its id cannot be changed. Both EN
 				and ES labels are required for every tag before save.
-			</p>
+			</Typography>
 
 			<div className="flex flex-wrap items-center gap-3">
 				<Button color="blue" disabled={busy} onClick={handleSaveClick}>
@@ -468,8 +475,16 @@ const TagDefaultsSettings = () => {
 					onClick={() => setNormalizeConfirmOpen(true)}>
 					Normalize Other aliases
 				</Button>
-				{status && <p className="text-sm text-green-700">{status}</p>}
-				{error && <p className="text-sm text-red-600">{error}</p>}
+				{status && (
+					<Typography variant="paragraph" className="text-sm text-green-700">
+						{status}
+					</Typography>
+				)}
+				{error && (
+					<Typography variant="paragraph" className="text-sm text-red-600">
+						{error}
+					</Typography>
+				)}
 			</div>
 
 			{confirmOpen && (

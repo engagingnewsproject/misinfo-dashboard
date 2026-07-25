@@ -2,8 +2,8 @@
  * @fileoverview Home - Main Dashboard Component
  *
  * This component serves as the main dashboard view for the Misinfo Dashboard application.
- * It orchestrates tag graphs and the reports section. The shared Headbar lives on the
- * parent dashboard page so it appears on every tab.
+ * It orchestrates tag graphs and the reports section. Mobile brand chrome is the
+ * shared Headbar on the parent dashboard page.
  *
  * @module components/Home
  */
@@ -44,10 +44,13 @@ const Home = ({
 	return (
 		<div data-component="Home" className="w-full h-full flex flex-col">
 			<div className={globalStyles.page.wrap} id="scrollableDiv">
-				<PageTitle srOnly>Dashboard</PageTitle>
-				{/* Mobile: toggle above graphs; desktop toggle lives in Headbar */}
-				<div className="md:hidden mb-3">
-					<Toggle viewVal={viewVal} setViewVal={setViewVal} />
+				<div className="mb-3 flex items-center justify-between gap-2">
+					<PageTitle gutter={false}>Dashboard</PageTitle>
+					<Toggle
+						viewVal={viewVal}
+						setViewVal={setViewVal}
+						className="shrink-0"
+					/>
 				</div>
 				<TagGraph viewVal={viewVal} />
 				<ReportsSection

@@ -44,23 +44,36 @@ import Image from 'next/image'
 import AgencyModal from '../modals/admin/AgencyModal'
 import NewAgencyModal from '../modals/admin/NewAgencyModal'
 import ConfirmModal from "../modals/common/ConfirmModal"
-import { Tooltip } from 'react-tooltip'
 import { IoTrash } from "react-icons/io5"
 import { FaPlus } from 'react-icons/fa'
-import { Button } from '@material-tailwind/react'
+import {
+	Button,
+	Card,
+	CardBody,
+	CardHeader,
+	IconButton,
+	Tooltip,
+	Typography,
+} from '@material-tailwind/react'
 import { seedAgencyTagsDoc } from '../../utils/tag-defaults'
 import adminSectionStyles from '../../styles/adminSectionStyles'
-import AdminDataTable from './AdminDataTable'
 import PageTitle from '../layout/PageTitle'
 
 const style = adminSectionStyles
 
+const tableTh =
+	'sticky top-0 z-10 border-y border-blue-gray-100 bg-blue-gray-50/80 p-4'
+const tableThCenter = `${tableTh} text-center`
+const tableTd = 'whitespace-normal p-4'
+const tableTdCenter =
+	'whitespace-normal md:whitespace-nowrap p-4 text-center'
+
 const AGENCY_COLUMNS = [
-	'Agency Logo',
-	'Agency Name',
-	'Agency Location',
-	'Agency Admin User',
-	'Delete Agency',
+	{ label: 'Agency Logo', center: true },
+	{ label: 'Agency Name', center: false },
+	{ label: 'Agency Location', center: true },
+	{ label: 'Agency Admin User', center: true },
+	{ label: 'Delete', center: true },
 ]
 
 /**
@@ -710,85 +723,144 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 * 
 	 * @returns {JSX.Element} The agencies management component
 	 */
+	const visibleAgencies = agencies.slice(0, endIndex)
+
 	return (
 		<div data-component="Agencies" className={style.section_container}>
-			<div className={style.section_wrapper}>
-				<div className={style.section_header}>
-					<PageTitle mobileOnly={false} gutter={false}>
-						Agencies
-					</PageTitle>
-					<div className={style.section_filtersWrap}>
-						{/* <button className={style.button} onClick={handleAddNewAgencyModal}><FaPlus className="text-blue-600 mr-2" size={12}/>Add Agency</button> */}
+			<Card className="h-full w-full">
+				<CardHeader floated={false} shadow={false} className="mb-4">
+					<div className="mb-4 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+						<div>
+							<PageTitle gutter={false}>Agencies</PageTitle>
+						</div>
 						<Button
 							className="flex items-center gap-3"
+							size="sm"
 							onClick={handleAddNewAgencyModal}>
-							<FaPlus size={12} />
-							Add Agency
+							<FaPlus className="h-3.5 w-3.5" /> Add Agency
 						</Button>
-						{/* TODO: add filters to agency list */}
 					</div>
-				</div>
-				<AdminDataTable columns={AGENCY_COLUMNS}>
-						{agencies.slice(0, endIndex).map((agencyObj, i) => {
-							const agency = Object.values(agencyObj)[0]
-							i = Object.keys(agencyObj)[0]
-							return (
-								<tr
-									onClick={() =>
-										handleAgencyModalShow(Object.keys(agencyObj)[0])
-									}
-									className={style.table_tr}
-									key={i}>
-									<td className={style.table_td}>
-										{agency['logo'] && agency['logo'][0] ? (
-											agency['logo'].map((image, i) => {
-												return (
-													<Image
-														src={image}
-														width={50}
-														height={50}
-														className="h-[50px] w-[50px] object-contain"
-														alt={`${agency.name} logo`}
-														key={i}
-													/>
-												)
-											})
-										) : (
-											<>No logo for this agency</>
-										)}
-									</td>
-									<td className={style.table_td}>{agency.name}</td>
-									<td className={style.table_td}>
-										{agency.city}, {agency.state}
-									</td>
-									<td
-										className={`${style.table_td} max-w-56 overflow-y-hidden`}>
-										<p className="max-h-20 overflow-auto">
-											{agency['agencyUsers'].join(', ')}
-										</p>
-									</td>
-									<td
-										className={style.table_td}
-										onClick={(e) => e.stopPropagation()}>
-										<button
-											onClick={() =>
-												handleAgencyDelete(Object.keys(agencyObj)[0])
-											}
-											className={`${style.table_button} tooltip-delete`}>
-											<IoTrash size={20} className={style.table_icon} />
-											<Tooltip
-												anchorSelect=".tooltip-delete"
-												place="bottom"
-												delayShow={500}>
-												Delete Agency
-											</Tooltip>
-										</button>
+				</CardHeader>
+				<CardBody className="overflow-x-auto px-0">
+					<table className="w-full min-w-max table-auto text-left">
+						<thead>
+							<tr>
+								{AGENCY_COLUMNS.map(({ label, center }) => (
+									<th
+										key={label}
+										scope="col"
+										className={center ? tableThCenter : tableTh}>
+										<Typography
+											variant="small"
+											color="blue-gray"
+											className="font-normal leading-none opacity-70">
+											{label}
+										</Typography>
+									</th>
+								))}
+							</tr>
+						</thead>
+						<tbody>
+							{visibleAgencies.length === 0 ? (
+								<tr>
+									<td colSpan="100%" className="text-center">
+										<div className="flex h-32 items-center justify-center">
+											<Typography
+												variant="small"
+												color="blue-gray"
+												className="font-normal">
+												No agencies found
+											</Typography>
+										</div>
 									</td>
 								</tr>
-							)
-						})}
-				</AdminDataTable>
-			</div>
+							) : (
+								visibleAgencies.map((agencyObj, index) => {
+									const agencyIdKey = Object.keys(agencyObj)[0]
+									const agency = Object.values(agencyObj)[0]
+									const isLast = index === visibleAgencies.length - 1
+									const cellClass = isLast
+										? tableTd
+										: `${tableTd} border-b border-blue-gray-50`
+									const cellClassCenter = isLast
+										? tableTdCenter
+										: `${tableTdCenter} border-b border-blue-gray-50`
+									const adminUsers = Array.isArray(agency.agencyUsers)
+										? agency.agencyUsers.join(', ')
+										: ''
+
+									return (
+										<tr
+											key={agencyIdKey}
+											onClick={() => handleAgencyModalShow(agencyIdKey)}
+											className="cursor-pointer transition duration-300 ease-in-out hover:bg-blue-gray-50/50">
+											<td className={cellClassCenter}>
+												{agency.logo && agency.logo[0] ? (
+													agency.logo.map((image, logoIndex) => (
+														<Image
+															src={image}
+															width={50}
+															height={50}
+															className="mx-auto h-[50px] w-[50px] object-contain"
+															alt={`${agency.name} logo`}
+															key={logoIndex}
+														/>
+													))
+												) : (
+													<Typography
+														variant="small"
+														color="blue-gray"
+														className="font-normal opacity-70">
+														No logo
+													</Typography>
+												)}
+											</td>
+											<td className={cellClass}>
+												<Typography
+													variant="small"
+													color="blue-gray"
+													className="font-normal">
+													{agency.name}
+												</Typography>
+											</td>
+											<td className={cellClassCenter}>
+												<Typography
+													variant="small"
+													color="blue-gray"
+													className="font-normal">
+													{agency.city}, {agency.state}
+												</Typography>
+											</td>
+											<td className={`${cellClassCenter} max-w-56`}>
+												<Typography
+													variant="small"
+													color="blue-gray"
+													className="max-h-20 overflow-auto font-normal">
+													{adminUsers}
+												</Typography>
+											</td>
+											<td
+												className={cellClassCenter}
+												onClick={(e) => e.stopPropagation()}>
+												<Tooltip content="Delete Agency">
+													<IconButton
+														variant="text"
+														onClick={() => handleAgencyDelete(agencyIdKey)}>
+														<IoTrash
+															size={20}
+															className="fill-gray-400 hover:fill-red-600"
+														/>
+													</IconButton>
+												</Tooltip>
+											</td>
+										</tr>
+									)
+								})
+							)}
+						</tbody>
+					</table>
+				</CardBody>
+			</Card>
 			{agencyModal && (
 				<AgencyModal
 					handleImageChange={handleImageChange}

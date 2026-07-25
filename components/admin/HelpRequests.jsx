@@ -13,8 +13,8 @@
  *
  * Integrates with:
  * - HelpRequestsModal (for viewing request details)
+ * - ConfirmModal (for delete confirmation)
  * - Firebase Firestore for help request data
- * - React context for authentication (if needed)
  *
  * @author Misinformation Dashboard Team
  * @version 1.0.0
@@ -30,22 +30,39 @@ import {
 	Timestamp,
 } from 'firebase/firestore'
 import { db } from '../../config/firebase'
-import { IoTrash, IoClose } from 'react-icons/io5'
-import { Tooltip } from 'react-tooltip'
+import { IoTrash } from 'react-icons/io5'
+import { HiMagnifyingGlass } from 'react-icons/hi2'
 import HelpRequestsModal from '../modals/HelpRequestsModal'
+import ConfirmModal from '../modals/common/ConfirmModal'
 import Link from 'next/link'
+import {
+	Card,
+	CardBody,
+	CardFooter,
+	CardHeader,
+	IconButton,
+	Input,
+	Tooltip,
+	Typography,
+} from '@material-tailwind/react'
 import adminSectionStyles from '../../styles/adminSectionStyles'
-import AdminDataTable from './AdminDataTable'
 import PageTitle from '../layout/PageTitle'
 
 const style = adminSectionStyles
 
+const tableTh =
+	'sticky top-0 z-10 border-y border-blue-gray-100 bg-blue-gray-50/80 p-4'
+const tableThCenter = `${tableTh} text-center`
+const tableTd = 'whitespace-normal p-4'
+const tableTdCenter =
+	'whitespace-normal md:whitespace-nowrap p-4 text-center'
+
 const HELP_REQUEST_COLUMNS = [
-	'Subject',
-	'Message',
-	'Email',
-	'Created Date',
-	{ label: 'Delete Request', center: true },
+	{ label: 'Subject', center: false, width: 'w-[18%]' },
+	{ label: 'Message', center: false, width: 'w-[38%]' },
+	{ label: 'Email', center: false, width: 'w-[20%]' },
+	{ label: 'Created Date', center: false, width: 'w-[16%]' },
+	{ label: 'Delete', center: true, width: 'w-[8%]' },
 ]
 
 /**
@@ -62,6 +79,8 @@ const HelpRequests = () => {
 	const [selectedHelpRequest, setSelectedHelpRequest] = useState(null)
 	const [loading, setLoading] = useState(true)
 	const [searchTerm, setSearchTerm] = useState('')
+	const [deleteModal, setDeleteModal] = useState(false)
+	const [pendingDeleteId, setPendingDeleteId] = useState(null)
 
 	/**
 	 * Filters help requests based on search term.
@@ -93,6 +112,9 @@ const HelpRequests = () => {
 	}
 
 	const filteredHelpRequests = getFilteredHelpRequests()
+	const sortedHelpRequests = [...filteredHelpRequests].sort(
+		(a, b) => new Date(b.createdDate) - new Date(a.createdDate),
+	)
 
 	/**
 	 * Fetches help requests from Firestore and updates the state.
@@ -101,10 +123,10 @@ const HelpRequests = () => {
 		const helpRequestsCollection = collection(db, 'helpRequests')
 		const helpRequestsSnapshot = await getDocs(helpRequestsCollection)
 
-		const helpRequestsList = helpRequestsSnapshot.docs.map((doc) => {
-			const { createdDate, ...data } = doc.data()
+		const helpRequestsList = helpRequestsSnapshot.docs.map((docSnap) => {
+			const { createdDate, ...data } = docSnap.data()
 			return {
-				id: doc.id,
+				id: docSnap.id,
 				...data,
 				createdDate: formatDate(createdDate),
 			}
@@ -134,7 +156,6 @@ const HelpRequests = () => {
 	 * @param {Object} data - The help request data to display.
 	 */
 	const handleRequestModalShow = (data) => {
-		// Open the modal when the button is clicked
 		setSelectedHelpRequest(data)
 		setShowHelpRequestModal(true)
 	}
@@ -143,23 +164,34 @@ const HelpRequests = () => {
 	 * Closes the HelpRequestsModal.
 	 */
 	const handleRequestModalClose = () => {
-		// Close the modal when the close button is clicked
 		setShowHelpRequestModal(false)
 		setSelectedHelpRequest(null)
 	}
 
 	/**
-	 * Deletes a help request from Firestore.
+	 * Opens the delete confirmation modal for a help request.
 	 *
 	 * @param {string} id - The ID of the help request to delete.
 	 */
-	const handleDeleteRequest = async (id) => {
+	const handleDeleteClick = (id) => {
+		setPendingDeleteId(id)
+		setDeleteModal(true)
+	}
+
+	/**
+	 * Deletes the pending help request from Firestore after confirmation.
+	 */
+	const handleDeleteConfirm = async () => {
+		if (!pendingDeleteId) return
+
 		try {
-			console.log('Deleting help request:', id)
-			const helpRequestDoc = doc(db, 'helpRequests', id)
+			const helpRequestDoc = doc(db, 'helpRequests', pendingDeleteId)
 			await deleteDoc(helpRequestDoc)
-			setHelpRequests(helpRequests.filter((request) => request.id !== id))
-			getData()
+			setHelpRequests((prev) =>
+				prev.filter((request) => request.id !== pendingDeleteId),
+			)
+			setDeleteModal(false)
+			setPendingDeleteId(null)
 		} catch (error) {
 			console.error('Error deleting help request:', error)
 		}
@@ -197,107 +229,165 @@ const HelpRequests = () => {
 	return (
 		<>
 			<div data-component="HelpRequests" className={style.section_container}>
-				<div className={style.section_wrapper}>
-					<div className={style.section_header}>
-						<PageTitle mobileOnly={false} gutter={false}>
-							Help Requests
-						</PageTitle>
-						<div className={style.section_filtersWrap}>
-							<div className="relative">
-								<input
-									type="text"
-									placeholder="Search help requests..."
+				<Card className="h-full w-full">
+					<CardHeader floated={false} shadow={false} className="mb-4">
+						<div className="mb-4 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+							<div>
+								<PageTitle gutter={false}>Help Requests</PageTitle>
+							</div>
+							<div className="w-full md:w-72">
+								<Input
+									label="Search"
 									value={searchTerm}
 									onChange={(e) => setSearchTerm(e.target.value)}
-									className="px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+									icon={<HiMagnifyingGlass className="h-5 w-5" />}
 								/>
-								{searchTerm && (
-									<button
-										onClick={() => setSearchTerm('')}
-										className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-										aria-label="Clear search">
-										<IoClose size={18} />
-									</button>
-								)}
 							</div>
 						</div>
-					</div>
-					{searchTerm && (
-						<div className="text-sm text-gray-600 mb-2 ml-10 md:ml-0">
-							Showing {filteredHelpRequests.length} of {helpRequests.length}{' '}
-							help requests
-						</div>
-					)}
-					<AdminDataTable columns={HELP_REQUEST_COLUMNS}>
-							{loading && (
+					</CardHeader>
+					<CardBody className="overflow-x-hidden px-0">
+						<table className="w-full table-fixed text-left">
+							<thead>
 								<tr>
-									<td colSpan="5" className={`${style.table_td} text-center`}>
-										Loading...
-									</td>
-								</tr>
-							)}
-
-							{!loading && filteredHelpRequests.length == 0 && (
-								<tr>
-									<td colSpan="5" className={`${style.table_td} text-center`}>
-										{searchTerm
-											? `No help requests found matching "${searchTerm}"`
-											: 'No help requests found'}
-									</td>
-								</tr>
-							)}
-
-							{filteredHelpRequests.length > 0 &&
-								filteredHelpRequests
-									.sort(
-										(a, b) => new Date(b.createdDate) - new Date(a.createdDate),
-									)
-									.map((request) => (
-										<tr
-											onClick={() => {
-												const { id, ...data } = request
-												handleRequestModalShow(data)
-											}}
-											key={request.id}
-											className={style.table_tr}>
-											<td className={style.table_td}>{request.subject}</td>
-											<td className={style.table_td}>{request.message}</td>
-											<td className={style.table_td}>
-												<Link
-													onClick={(e) => {
-														e.stopPropagation()
-													}}
-													className="underline"
-													href={getMailtoLink(request)}
-													target="_blank">
-													{request.email}
-												</Link>
-											</td>
-											<td className={style.table_td}>{request.createdDate}</td>
-											<td
-												className={`${style.table_td} text-center`}
-												onClick={(e) => e.stopPropagation()}>
-												<button
-													onClick={async () => {
-														await handleDeleteRequest(request.id)
-													}}
-													className={`${style.table_button} tooltip-delete-user`}>
-													<IoTrash
-														size={20}
-														className={style.table_icon}
-													/>
-													<Tooltip
-														anchorSelect=".tooltip-delete-user"
-														place="top"
-														delayShow={500}>
-														Delete Request
-													</Tooltip>
-												</button>
-											</td>
-										</tr>
+									{HELP_REQUEST_COLUMNS.map(({ label, center, width }) => (
+										<th
+											key={label}
+											scope="col"
+											className={`${center ? tableThCenter : tableTh} ${width}`}>
+											<Typography
+												variant="small"
+												color="blue-gray"
+												className="font-normal leading-none opacity-70">
+												{label}
+											</Typography>
+										</th>
 									))}
-					</AdminDataTable>
-				</div>
+								</tr>
+							</thead>
+							<tbody>
+								{loading && (
+									<tr>
+										<td colSpan="100%" className="text-center">
+											<div className="flex h-32 items-center justify-center">
+												<Typography
+													variant="small"
+													color="blue-gray"
+													className="font-normal">
+													Loading...
+												</Typography>
+											</div>
+										</td>
+									</tr>
+								)}
+
+								{!loading && sortedHelpRequests.length === 0 && (
+									<tr>
+										<td colSpan="100%" className="text-center">
+											<div className="flex h-32 items-center justify-center">
+												<Typography
+													variant="small"
+													color="blue-gray"
+													className="font-normal">
+													{searchTerm
+														? `No help requests found matching "${searchTerm}"`
+														: 'No help requests found'}
+												</Typography>
+											</div>
+										</td>
+									</tr>
+								)}
+
+								{!loading &&
+									sortedHelpRequests.map((request, index) => {
+										const isLast = index === sortedHelpRequests.length - 1
+										const cellClass = isLast
+											? tableTd
+											: `${tableTd} border-b border-blue-gray-50`
+										const cellClassCenter = isLast
+											? tableTdCenter
+											: `${tableTdCenter} border-b border-blue-gray-50`
+
+										return (
+											<tr
+												key={request.id}
+												onClick={() => {
+													const { id, ...data } = request
+													handleRequestModalShow(data)
+												}}
+												className="cursor-pointer transition duration-300 ease-in-out hover:bg-blue-gray-50/50">
+												<td className={`${cellClass} min-w-0`}>
+													<Typography
+														variant="small"
+														color="blue-gray"
+														className="truncate font-normal">
+														{request.subject}
+													</Typography>
+												</td>
+												<td className={`${cellClass} min-w-0`}>
+													<Typography
+														variant="small"
+														color="blue-gray"
+														className="line-clamp-2 break-words font-normal [overflow-wrap:anywhere]">
+														{request.message}
+													</Typography>
+												</td>
+												<td className={`${cellClass} min-w-0`}>
+													<Link
+														onClick={(e) => {
+															e.stopPropagation()
+														}}
+														className="block truncate underline"
+														href={getMailtoLink(request)}
+														target="_blank">
+														<Typography
+															variant="small"
+															color="blue-gray"
+															className="truncate font-normal">
+															{request.email}
+														</Typography>
+													</Link>
+												</td>
+												<td className={`${cellClass} min-w-0`}>
+													<Typography
+														variant="small"
+														color="blue-gray"
+														className="truncate font-normal">
+														{request.createdDate}
+													</Typography>
+												</td>
+												<td
+													className={cellClassCenter}
+													onClick={(e) => e.stopPropagation()}>
+													<Tooltip content="Delete Request">
+														<IconButton
+															variant="text"
+															onClick={() =>
+																handleDeleteClick(request.id)
+															}>
+															<IoTrash
+																size={20}
+																className="fill-gray-400 hover:fill-red-600"
+															/>
+														</IconButton>
+													</Tooltip>
+												</td>
+											</tr>
+										)
+									})}
+							</tbody>
+						</table>
+					</CardBody>
+					<CardFooter className="flex shrink-0 flex-wrap items-center gap-2 rounded-b-md border-t border-blue-gray-50 bg-blue-gray-50/80 p-4">
+						<Typography
+							variant="small"
+							color="blue-gray"
+							className="ml-auto font-normal">
+							{searchTerm
+								? `Showing ${filteredHelpRequests.length} of ${helpRequests.length} help requests`
+								: `Total help requests: ${helpRequests.length}`}
+						</Typography>
+					</CardFooter>
+				</Card>
 			</div>
 
 			{showHelpRequestModal && selectedHelpRequest && (
@@ -305,6 +395,19 @@ const HelpRequests = () => {
 					helpRequestInfo={selectedHelpRequest}
 					handleClose={handleRequestModalClose}
 					mailtoLink={getMailtoLink(selectedHelpRequest)}
+				/>
+			)}
+
+			{deleteModal && (
+				<ConfirmModal
+					func={handleDeleteConfirm}
+					title="Are you sure you want to delete this help request?"
+					subtitle=""
+					CTA="Delete"
+					closeModal={(open) => {
+						setDeleteModal(open)
+						if (!open) setPendingDeleteId(null)
+					}}
 				/>
 			)}
 		</>

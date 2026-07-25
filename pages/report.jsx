@@ -177,10 +177,6 @@ function ReportLayout({
 	setLocationModal,
 }) {
 	const contentOffsetStyle = useNavContentOffsetStyle()
-	// Profile uses in-content PageTitle on desktop — omit Headbar title.
-	const headbarTitles = {
-		0: 'Report',
-	}
 
 	return (
 		<div data-component="report" className={style.pageContainer}>
@@ -192,7 +188,7 @@ function ReportLayout({
 			/>
 			<div className="w-full" style={contentOffsetStyle}>
 				<div className={style.wrapper}>
-					<Headbar title={headbarTitles[tab]} />
+					<Headbar />
 					<div className={style.content}>
 						{tab == 0 && reportSystem == 0 && (
 							<ReportLanding

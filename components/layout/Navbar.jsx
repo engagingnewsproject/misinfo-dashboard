@@ -43,6 +43,7 @@ import { useNavBranding } from '../../hooks/useNavBranding'
 import BrandLockup, { BrandMark } from './BrandLockup'
 import {
 	NAV_COLLAPSED_WIDTH,
+	NAV_DESKTOP_MIN_WIDTH,
 	NAV_EXPANDED_MAX_WIDTH,
 	getMobileDrawerSize,
 	useMobileNav,
@@ -184,7 +185,8 @@ const Navbar = ({
 	} = useMobileNav()
 
 	const drawerRef = useRef(null)
-	const isDesktop = windowSize[0] > 640
+	// Same threshold as Headbar `sm:` / MobileNavContext (MT sm = 540).
+	const isDesktop = windowSize[0] >= NAV_DESKTOP_MIN_WIDTH
 	// Mobile drawer is always labeled; never flip to icon-rail while closing (avoids CTA flash).
 	const showLabels = isDesktop ? desktopExpanded : true
 	// Mobile closed must be 0 — collapsed width + labels lets "Log out" peek past the off-screen transform.
@@ -205,7 +207,7 @@ const Navbar = ({
 	}, [])
 
 	useEffect(() => {
-		if (windowSize && windowSize[0] < 640) {
+		if (windowSize && windowSize[0] < NAV_DESKTOP_MIN_WIDTH) {
 			setDisableOverlay(true)
 		} else {
 			setDisableOverlay(false)
@@ -426,7 +428,7 @@ const Navbar = ({
 			<NavItem
 				expanded
 				icon={icon(IoChatboxEllipsesOutline)}
-				label="Help"
+				label="Contact"
 				onClick={handleContactHelpModal}
 				tooltipClass="tooltip-contact-us-for-help"
 			/>
@@ -496,9 +498,9 @@ const Navbar = ({
 					className={`flex h-full w-full flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] ${
 						isDesktop && showLabels ? 'w-max max-w-full' : ''
 					}`}>
-					{/* Top: close only (mobile) / brand + expand (desktop) */}
+					{/* Top: Menu + close (mobile) / brand + expand (desktop) */}
 					{!isDesktop ? (
-						<div className="shrink-0 border-b border-blue-gray-50 px-3 pt-2 pb-2">
+						<div className="shrink-0 flex items-center gap-1 border-b border-blue-gray-50 px-3 pt-2 pb-2">
 							<IconButton
 								variant="text"
 								onClick={closeDrawer}
@@ -506,6 +508,11 @@ const Navbar = ({
 								aria-label="Close menu">
 								<IoClose size={28} />
 							</IconButton>
+							<Typography
+								variant="h6"
+								className="font-semibold text-blue-gray-900">
+								Menu
+							</Typography>
 						</div>
 					) : (
 						<div
