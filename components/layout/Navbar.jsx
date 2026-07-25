@@ -43,6 +43,7 @@ import { useNavBranding } from '../../hooks/useNavBranding'
 import BrandLockup, { BrandMark } from './BrandLockup'
 import {
 	NAV_COLLAPSED_WIDTH,
+	NAV_DESKTOP_MIN_WIDTH,
 	NAV_EXPANDED_MAX_WIDTH,
 	getMobileDrawerSize,
 	useMobileNav,
@@ -184,7 +185,8 @@ const Navbar = ({
 	} = useMobileNav()
 
 	const drawerRef = useRef(null)
-	const isDesktop = windowSize[0] > 640
+	// Same threshold as Headbar `sm:` / MobileNavContext (MT sm = 540).
+	const isDesktop = windowSize[0] >= NAV_DESKTOP_MIN_WIDTH
 	// Mobile drawer is always labeled; never flip to icon-rail while closing (avoids CTA flash).
 	const showLabels = isDesktop ? desktopExpanded : true
 	// Mobile closed must be 0 — collapsed width + labels lets "Log out" peek past the off-screen transform.
@@ -205,7 +207,7 @@ const Navbar = ({
 	}, [])
 
 	useEffect(() => {
-		if (windowSize && windowSize[0] < 640) {
+		if (windowSize && windowSize[0] < NAV_DESKTOP_MIN_WIDTH) {
 			setDisableOverlay(true)
 		} else {
 			setDisableOverlay(false)

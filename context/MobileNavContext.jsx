@@ -16,6 +16,12 @@ export const NAV_COLLAPSED_WIDTH = 65
 export const NAV_EXPANDED_MAX_WIDTH = 280
 /** Cap for mobile labeled overlay drawer (~80vw, max this). */
 export const NAV_MOBILE_MAX_WIDTH = 320
+/**
+ * Desktop nav breakpoint — must match Material Tailwind / withMT `sm` (540px)
+ * and Headbar `sm:` classes so mobile Headbar and desktop Navbar never both hide.
+ */
+export const NAV_DESKTOP_MIN_WIDTH = 540
+export const NAV_DESKTOP_MQ = `(min-width: ${NAV_DESKTOP_MIN_WIDTH}px)`
 
 /**
  * Mobile open-drawer width: ~80% of viewport, capped at NAV_MOBILE_MAX_WIDTH.
@@ -117,13 +123,14 @@ export function useMobileNav() {
 /**
  * Desktop content offset that tracks sidebar width (fixed drawer).
  * On mobile the drawer overlays, so only base padding applies.
+ * Uses NAV_DESKTOP_MQ so offset matches Navbar / Headbar `sm:` switch.
  */
 export function useNavContentOffsetStyle() {
 	const { drawerWidth } = useMobileNav()
 	const [isDesktop, setIsDesktop] = useState(false)
 
 	useEffect(() => {
-		const mq = window.matchMedia('(min-width: 640px)')
+		const mq = window.matchMedia(NAV_DESKTOP_MQ)
 		const update = () => setIsDesktop(mq.matches)
 		update()
 		mq.addEventListener('change', update)
