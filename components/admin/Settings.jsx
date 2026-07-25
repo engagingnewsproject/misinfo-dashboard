@@ -26,10 +26,9 @@ import TagDefaultsSettings from './TagDefaultsSettings';
 import { useAuth } from '../../context/AuthContext'
 import { canManageAgencyLabels } from '../../config/labels'
 import { seedAgencyTagsDoc } from '../../utils/tag-defaults'
-import globalStyles from '../../styles/globalStyles';
 import { collection, getDoc, getDocs, doc } from "firebase/firestore"; 
 import { db, auth } from "../../config/firebase"
-import {List,ListItem} from "@material-tailwind/react"
+import {List,ListItem, Typography} from "@material-tailwind/react"
 import FormSelect from '../ui/FormSelect';
 import PageTitle from '../layout/PageTitle'
 import adminSectionStyles from '../../styles/adminSectionStyles'
@@ -93,7 +92,7 @@ const Settings = () => {
    */
   const handleStateChange = (e) => {
     console.log(e)
-    setStateSelected(e)
+    setStateSelected({ country: 'US', state: e, city: null })
     setAgencyID(null)
     setSelectedAgency(null)
 
@@ -180,11 +179,8 @@ const Settings = () => {
     <div data-component="Settings" className={adminSectionStyles.section_container}>
       {tagSystem == 0 ?
       <div className="z-0 flex flex-col">
-        {customClaims.admin && <TagDefaultsSettings />}
         <div className="mb-8 rounded-md border border-blue-gray-100 bg-white p-6 shadow-md md:shadow-none">
-          <PageTitle mobileOnly={false} gutter={false} className="mb-4">
-            Tagging Systems
-          </PageTitle>
+          <PageTitle>Tagging Systems</PageTitle>
           {agencyClaimsStatus === 'pending' && (
             <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
               Loading agency access…
@@ -197,28 +193,31 @@ const Settings = () => {
             </div>
           )}
           {customClaims.admin && 
-          <div>
-              <div className={globalStyles.heading.h2.blue}>Agency Location</div>
-
+          <div className="flex flex-col gap-3">
               <FormSelect
-              id="state"
+              id="settings_state"
               required
               label="State"
-              value={stateSelected.state }
+              isSearchable
+              value={stateSelected.state}
               options={State.getStatesOfCountry('US')}
               getOptionLabel={(options) => options['name']}
               getOptionValue={(options) => options['name']}
               onChange={handleStateChange}
             />
-            <div className={globalStyles.heading.h2.blue}>Agencies</div>
-
             <FormSelect
+              id="settings_agency"
               options={agencies}
               label="Agency Name"
+              value={agencies.find((option) => option.id === agencyID) ?? null}
               getOptionLabel={(options) => options['name']}
               getOptionValue={(options) => options['name']}
               onChange={handleAgencyChange}/>
-            {customClaims.admin && <div className={globalStyles.heading.h2.blue}>Tags</div>}
+            {customClaims.admin && (
+              <Typography variant="h2" color="blue" className="mb-0">
+                Tags
+              </Typography>
+            )}
             {agencyID == null &&        
               <div>
                   Select an agency to view and edit their tags.
@@ -264,6 +263,7 @@ const Settings = () => {
             </div> 
           }
         </div>
+        {customClaims.admin && <TagDefaultsSettings />}
         {customClaims.admin && <ExperimentSettings />}
       </div>
     :

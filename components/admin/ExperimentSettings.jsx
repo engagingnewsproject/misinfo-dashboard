@@ -239,16 +239,16 @@ const ExperimentSettings = () => {
 
 	return (
 		<div data-component="ExperimentSettings" className="experiment-settings mb-8 p-6 bg-white rounded-md border border-blue-gray-100">
-			<Typography variant="h5" color="blue" className="mb-4">
-				Experiment &amp; archive
+			<Typography variant="h2" color="blue" className="mt-0 mb-4">
+				Experiment &amp; Archive
 			</Typography>
-			<p className="text-sm text-gray-600 mb-4">
+			<Typography variant="paragraph" className="text-sm text-gray-600 mb-4">
 				Operational dashboards and exports use the active experiment (
 				<code>archived == false</code> and matching <code>experimentId</code>
 				). Backfill assigns cohort by createdDate: before 2025 → 2024-pilot;
 				2025 → 2025-main; 2026+ → active experiment. Default archive
 				cutoff: {DEFAULT_ARCHIVE_CUTOFF_ISO}.
-			</p>
+			</Typography>
 
 			<div className="flex flex-col gap-4 max-w-xl">
 				<label className="flex flex-col gap-1">
@@ -273,12 +273,14 @@ const ExperimentSettings = () => {
 				</Button>
 
 				<div className="border-t border-blue-gray-100 pt-4 mt-2">
-					<p className="text-sm font-medium mb-2">Add study wave</p>
-					<p className="text-xs text-gray-500 mb-3">
+					<Typography variant="paragraph" className="text-sm font-medium mb-2">
+						Add study wave
+					</Typography>
+					<Typography variant="paragraph" className="text-xs text-gray-500 mb-3">
 						Registers a new experiment in <code>settings/experiment</code> so it
 						appears in the dropdown. New reports use whichever experiment is
 						active when they are created.
-					</p>
+					</Typography>
 					<div className="flex flex-col gap-2">
 						<FormInput
 							type="text"
@@ -327,11 +329,11 @@ const ExperimentSettings = () => {
 
 				{metrics && (
 					<div className="text-sm text-gray-700">
-						<p>
+						<Typography variant="paragraph">
 							<strong>Current cohort metrics</strong> (
 							{metrics.experimentId}): {metrics.submittedCount} submitted,{' '}
 							{metrics.scrapedCount} scraped/piped
-						</p>
+						</Typography>
 					</div>
 				)}
 
@@ -384,14 +386,18 @@ const ExperimentSettings = () => {
 					</Button>
 				</div>
 				{previewCount !== null && (
-					<p className="text-sm">Preview: {previewCount} report(s)</p>
+					<Typography variant="paragraph" className="text-sm">
+						Preview: {previewCount} report(s)
+					</Typography>
 				)}
 				{status && (
-					<p className={`text-sm ${globalStyles.text?.default || ''}`}>
+					<Typography
+						variant="paragraph"
+						className={`text-sm ${globalStyles.text?.default || ''}`}>
 						{status}
-					</p>
+					</Typography>
 				)}
-				<p className="text-xs text-gray-500">
+				<Typography variant="paragraph" className="text-xs text-gray-500">
 					External tools: query <code>reports</code> with{' '}
 					<code>archived == false</code> and{' '}
 					<code>experimentId == &quot;{selectedExperimentId}&quot;</code>, or
@@ -404,7 +410,7 @@ const ExperimentSettings = () => {
 						Archiving (wiki)
 					</a>{' '}
 					(user guide) or <code>technicalDocumentation.md</code> (developers).
-				</p>
+				</Typography>
 			</div>
 		</div>
 	)
