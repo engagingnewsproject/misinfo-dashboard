@@ -44,6 +44,7 @@ import BrandLockup, { BrandMark } from './BrandLockup'
 import {
 	NAV_COLLAPSED_WIDTH,
 	NAV_DESKTOP_MIN_WIDTH,
+	NAV_EXPANDED_MAX_WIDTH,
 	getMobileDrawerSize,
 	useMobileNav,
 } from '../../context/MobileNavContext'
@@ -223,20 +224,34 @@ const Navbar = ({
 		if (!el) return
 
 		const report = () => {
-			const width = el.getBoundingClientRect().width
 			const maxW = parseFloat(window.getComputedStyle(el).maxWidth)
-			if (!Number.isFinite(width) || !Number.isFinite(maxW)) return
-			// Skip mid max-width transition frames (fractional maxWidth) so we don't
-			// overwrite the stable expanded measurement with collapse/expand in-betweens.
-			if (Math.abs(maxW - Math.round(maxW)) > 0.1) return
-			if (width <= NAV_COLLAPSED_WIDTH + 1) return
+			const hasWMax = el.className.includes('w-max')
+			const width = el.getBoundingClientRect().width
+			// First measure only when fully open at the cap with !w-max so content
+			// isn't clipped mid-transition (near-integer maxW used to pass a weak check).
+			const atMeasureCap = Math.abs(maxW - NAV_EXPANDED_MAX_WIDTH) <= 0.5
+			if (
+				measuredExpandedWidth != null ||
+				!hasWMax ||
+				!atMeasureCap ||
+				!Number.isFinite(width) ||
+				width <= NAV_COLLAPSED_WIDTH + 1
+			) {
+				return
+			}
 			setMeasuredDrawerWidth(width)
 		}
 		report()
 		const ro = new ResizeObserver(report)
 		ro.observe(el)
 		return () => ro.disconnect()
-	}, [isDesktop, desktopExpanded, showLabels, setMeasuredDrawerWidth])
+	}, [
+		isDesktop,
+		desktopExpanded,
+		showLabels,
+		measuredExpandedWidth,
+		setMeasuredDrawerWidth,
+	])
 
 	/** On /report, only Profile is local; other tabs live on the dashboard. */
 	const handleTabNavigation = (tabIndex) => {

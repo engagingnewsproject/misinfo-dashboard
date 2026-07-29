@@ -88,7 +88,7 @@ export default function BrandLockup({
 	return (
 		<div
 			data-component="BrandLockup"
-			className={`flex min-w-0 items-center gap-3 ${className}`.trim()}>
+			className={`flex min-w-0 items-center gap-3 pr-2 ${className}`.trim()}>
 			<BrandMark agencyLogo={agencyLogo} isAgency={isAgency} compact={compact} />
 			<BrandTitle
 				customClaims={customClaims}

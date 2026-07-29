@@ -57,6 +57,9 @@ export function MobileNavProvider({ children }) {
 	const toggleDesktopExpanded = useCallback(() => {
 		setDesktopExpanded((prev) => {
 			const next = !prev
+			// Clear measure on collapse so the next expand remeasures at the cap
+			// (avoids a poisoned mid-transition width sticking forever).
+			if (!next) setMeasuredExpandedWidth(null)
 			try {
 				window.localStorage.setItem(DESKTOP_EXPANDED_KEY, next ? '1' : '0')
 			} catch {
