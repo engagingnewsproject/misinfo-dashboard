@@ -8,28 +8,27 @@ import { GiMagnifyingGlass } from 'react-icons/gi'
 
 /**
  * Circular brand mark: agency logo when available, otherwise magnifying glass.
+ * Always 40×40 so collapsed/expanded (and Headbar) stay consistent.
  *
  * @param {Object} props
  * @param {string} [props.agencyLogo]
  * @param {boolean} [props.isAgency]
- * @param {boolean} [props.compact]
  */
-export function BrandMark({ agencyLogo, isAgency, compact = false }) {
+export function BrandMark({ agencyLogo, isAgency }) {
 	if (isAgency && agencyLogo) {
 		return (
 			<Image
 				src={agencyLogo}
-				width={compact ? 36 : 40}
-				height={compact ? 36 : 40}
+				width={40}
+				height={40}
 				alt="agency logo"
-				className={`${compact ? 'h-9 w-9' : 'h-10 w-10'} object-contain shrink-0`}
+				className="h-10 w-10 max-h-[40px] max-w-[40px] object-contain shrink-0"
 			/>
 		)
 	}
 	return (
-		<div
-			className={`bg-brand rounded-full shrink-0 ${compact ? 'p-2' : 'p-2.5'}`}>
-			<GiMagnifyingGlass className="fill-white" size={compact ? 16 : 18} />
+		<div className="bg-brand rounded-full shrink-0 p-2.5 max-h-[40px] max-w-[40px]">
+			<GiMagnifyingGlass className="fill-white" size={18} />
 		</div>
 	)
 }
@@ -69,7 +68,6 @@ export function BrandTitle({
  * @param {string} [props.agencyLogo]
  * @param {string} [props.agencyName]
  * @param {Object} [props.customClaims]
- * @param {boolean} [props.compact]
  * @param {string} [props.className] - Wrapper classes
  * @param {string} [props.titleClassName] - Title text classes
  * @param {'div'|'h1'|'span'} [props.titleAs]
@@ -78,7 +76,6 @@ export default function BrandLockup({
 	agencyLogo,
 	agencyName,
 	customClaims,
-	compact = false,
 	className = '',
 	titleClassName = 'text-sm',
 	titleAs = 'div',
@@ -89,7 +86,7 @@ export default function BrandLockup({
 		<div
 			data-component="BrandLockup"
 			className={`flex min-w-0 items-center gap-3 pr-2 ${className}`.trim()}>
-			<BrandMark agencyLogo={agencyLogo} isAgency={isAgency} compact={compact} />
+			<BrandMark agencyLogo={agencyLogo} isAgency={isAgency} />
 			<BrandTitle
 				customClaims={customClaims}
 				agencyName={agencyName}

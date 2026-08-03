@@ -88,7 +88,7 @@ function NavItem({
 	tooltipClass,
 	ariaLabel,
 }) {
-	const navIconClass = `my-1.5 mx-2 h-12 w-12 flex items-center justify-center ${tooltipClass}${
+	const navIconClass = `my-1.5 h-12 w-12 flex items-center justify-center ${tooltipClass}${
 		active ? ' bg-brand/10' : ''
 	}`
 
@@ -514,7 +514,10 @@ const Navbar = ({
 				onClose={closeDrawer}
 				size={drawerSize}
 				overlay={disableOverlay}
-				className={`z-[9997] !h-full overflow-hidden transition-[max-width] duration-200 ease-in-out${
+				className={`z-[9997] !h-full transition-[max-width] duration-200 ease-in-out ${
+					// Desktop: visible so the edge-mounted expand control can sit on the rail seam.
+					isDesktop ? '!overflow-visible' : 'overflow-hidden'
+				}${
 					// Content-size only until first measure; afterward size tracks width so
 					// collapse animates from the real width without a 280px snap.
 					isDesktop && showLabels && measuredExpandedWidth == null
@@ -528,7 +531,7 @@ const Navbar = ({
 					}`}>
 					{/* Top: Menu + close (mobile) / brand + expand (desktop) */}
 					{!isDesktop ? (
-						<div className="shrink-0 flex items-center gap-1 border-b border-blue-gray-50 px-3 pt-2 pb-2">
+						<div className="shrink-0 flex items-center gap-1 border-b border-blue-gray-50 pt-2 pb-2">
 							<IconButton
 								variant="text"
 								onClick={closeDrawer}
@@ -544,8 +547,8 @@ const Navbar = ({
 						</div>
 					) : (
 						<div
-							className={`shrink-0 flex items-center gap-1 border-b border-blue-gray-50 ${
-								showLabels ? 'px-2 py-3' : 'px-1 py-2 flex-col'
+							className={`relative shrink-0 flex items-center border-b border-blue-gray-50 ${
+								showLabels ? 'gap-1 px-3 py-2' : 'justify-center px-3 py-2'
 							}`}>
 							{showLabels ? (
 								<BrandLockup
@@ -560,28 +563,35 @@ const Navbar = ({
 									<BrandMark
 										agencyLogo={agencyLogo}
 										isAgency={isAgencyUser}
-										compact
 									/>
 								</div>
 							)}
 
-							<IconButton
-								variant="text"
-								onClick={toggleDesktopExpanded}
-								className={`shrink-0 text-brand hover:bg-brand/10 ${
-									showLabels ? '' : 'my-1 mx-2 tooltip-expand-nav'
-								}`}
-								aria-label={
-									showLabels ? 'Collapse sidebar' : 'Expand sidebar'
-								}>
-								{showLabels ? (
-									<IoChevronBackOutline size={22} />
-								) : (
-									<IoChevronForwardOutline size={26} />
-								)}
-							</IconButton>
-							{!showLabels && (
-								<NavTooltip tooltipClass="tooltip-expand-nav">Expand</NavTooltip>
+							{/* Expanded: inline. Collapsed: edge-mount via wrapper — absolute on
+							    IconButton itself can stay in-flow and shove BrandMark off-center. */}
+							{showLabels ? (
+								<IconButton
+									variant="text"
+									size="sm"
+									onClick={toggleDesktopExpanded}
+									className="shrink-0 !h-7 !w-7 !max-h-7 !max-w-7 rounded-md border border-blue-gray-100 bg-white text-brand hover:bg-blue-gray-50"
+									aria-label="Collapse sidebar">
+									<IoChevronBackOutline size={16} />
+								</IconButton>
+							) : (
+								<div className="pointer-events-auto absolute top-1/2 z-10 -translate-y-1/2 -right-5">
+									<IconButton
+										variant="text"
+										size="sm"
+										onClick={toggleDesktopExpanded}
+										className="!h-7 !w-7 !max-h-7 !max-w-7 rounded-md border border-blue-gray-100 bg-white shadow-sm text-brand hover:bg-blue-gray-50 tooltip-expand-nav"
+										aria-label="Expand sidebar">
+										<IoChevronForwardOutline size={16} />
+									</IconButton>
+									<NavTooltip tooltipClass="tooltip-expand-nav">
+										Expand
+									</NavTooltip>
+								</div>
 							)}
 						</div>
 					)}
@@ -589,7 +599,7 @@ const Navbar = ({
 					{/* Primary nav (scrollable) */}
 					<div
 						className={`min-h-0 flex-1 overflow-y-auto ${
-							showLabels ? 'px-3 pt-3' : ''
+							showLabels ? 'px-3 pt-3' : 'flex flex-col items-center'
 						}`}>
 						{showLabels ? primaryNavExpanded : primaryNavCollapsed}
 					</div>
@@ -606,10 +616,16 @@ const Navbar = ({
 					)}
 
 					{/* Utility + logout pinned to bottom */}
-					<div className={`mt-auto shrink-0 ${showLabels ? 'px-3 pb-2' : ''}`}>
+					<div
+						className={`mt-auto shrink-0 ${
+							showLabels ? 'px-3 pb-2' : 'flex flex-col items-center'
+						}`}>
 						{showLabels ? secondaryNavExpanded : secondaryNavCollapsed}
 
-						<div className="mt-1 border-t border-blue-gray-50 pt-1">
+						<div
+							className={`mt-1 border-t border-blue-gray-50 pt-1 ${
+								showLabels ? '' : 'flex w-full flex-col items-center'
+							}`}>
 							{showLabels ? (
 								<ListItem
 									onClick={() => setLogoutModal(true)}
@@ -632,7 +648,7 @@ const Navbar = ({
 											setLogoutModal(true)
 											closeDrawer()
 										}}
-										className="my-4 mx-2 h-12 w-12 tooltip-logout"
+										className="my-4 h-12 w-12 tooltip-logout"
 										aria-label="Log out">
 										<IoLogOutOutline size={30} />
 									</IconButton>
