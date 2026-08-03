@@ -43,5 +43,8 @@ jobs:
       - name: Install dependencies (strict, matches App Hosting)
         run: npm ci
 
+      - name: Test
+        run: npm test
+
       - name: Build
         run: npm run build
