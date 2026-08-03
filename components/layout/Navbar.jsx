@@ -531,7 +531,7 @@ const Navbar = ({
 					}`}>
 					{/* Top: Menu + close (mobile) / brand + expand (desktop) */}
 					{!isDesktop ? (
-						<div className="shrink-0 flex items-center gap-1 border-b border-blue-gray-50 p-2">
+						<div className="shrink-0 flex items-center gap-1 border-b border-blue-gray-50 pt-2 pb-2">
 							<IconButton
 								variant="text"
 								onClick={closeDrawer}
