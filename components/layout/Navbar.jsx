@@ -32,6 +32,7 @@ import {
 	IoChevronBackOutline,
 	IoChevronForwardOutline,
 	IoLogOutOutline,
+	IoPulseOutline,
 } from 'react-icons/io5'
 import { HiOutlineDocumentPlus } from 'react-icons/hi2'
 import { Tooltip } from 'react-tooltip'
@@ -58,6 +59,7 @@ const DASHBOARD_VIEW_BY_TAB = [
 	'agencies',
 	'help',
 	'appearance',
+	'pipeline',
 ]
 
 /** Tooltip outside the drawer so overflow / motion transforms can't clip it. */
@@ -315,6 +317,16 @@ const Navbar = ({
 			{customClaims.admin && (
 				<NavItem
 					expanded
+					icon={icon(IoPulseOutline)}
+					label="Pipeline"
+					active={tab === 7}
+					onClick={() => handleTabNavigation(7)}
+					tooltipClass="tooltip-pipeline"
+				/>
+			)}
+			{customClaims.admin && (
+				<NavItem
+					expanded
 					icon={icon(IoBusinessOutline)}
 					label="Agencies"
 					active={tab === 4}
@@ -365,6 +377,16 @@ const Navbar = ({
 					active={tab === 0}
 					onClick={() => handleTabNavigation(0)}
 					tooltipClass="tooltip-home"
+				/>
+			)}
+			{customClaims.admin && (
+				<NavItem
+					expanded={false}
+					icon={icon(IoPulseOutline)}
+					label="Pipeline"
+					active={tab === 7}
+					onClick={() => handleTabNavigation(7)}
+					tooltipClass="tooltip-pipeline"
 				/>
 			)}
 			{customClaims.admin && (

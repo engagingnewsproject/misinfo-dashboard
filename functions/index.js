@@ -444,6 +444,10 @@ exports.previewBulkArchive = experimentFunctions.previewBulkArchive;
 exports.bulkArchiveReports = experimentFunctions.bulkArchiveReports;
 exports.getExperimentMetrics = experimentFunctions.getExperimentMetrics;
 
+const pipelineRunFunctions = require("./pipeline-runs");
+
+exports.getPipelineRuns = pipelineRunFunctions.getPipelineRuns;
+
 exports.authGetUserList = functions.https.onCall(async (data, context) => {
   // Ensure that the user is authenticated
   if (!context.auth) {
