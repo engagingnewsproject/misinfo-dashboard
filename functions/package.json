@@ -14,6 +14,7 @@
   },
   "main": "index.js",
   "dependencies": {
+    "@google-cloud/bigquery": "^9.0.2",
     "@google-cloud/firestore": "^7.9.0",
     "@google-cloud/storage": "^7.0.1",
     "@sendgrid/mail": "^8.1.3",

@@ -38,6 +38,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import Head from 'next/head'
 import HelpRequests from '../components/admin/HelpRequests'
 import Appearance from '../components/admin/Appearance'
+import Pipeline from '../components/admin/Pipeline'
 
 /** Stable view names synced to `?view=` so refresh restores the active tab. */
 const VIEW_BY_TAB = [
@@ -48,6 +49,7 @@ const VIEW_BY_TAB = [
 	'agencies',
 	'help',
 	'appearance',
+	'pipeline',
 ]
 
 /**
@@ -62,8 +64,14 @@ function isTabAllowed(tabIndex, claims) {
 	if (tabIndex === 0 || tabIndex === 2) {
 		return !!(claims.admin || claims.agency)
 	}
-	// Users (3) and admin-only tools
-	if (tabIndex === 3 || tabIndex === 4 || tabIndex === 5 || tabIndex === 6) {
+	// Users (3) and admin-only tools (agencies, help, appearance, pipeline)
+	if (
+		tabIndex === 3 ||
+		tabIndex === 4 ||
+		tabIndex === 5 ||
+		tabIndex === 6 ||
+		tabIndex === 7
+	) {
 		return !!claims.admin
 	}
 	return false
@@ -230,6 +238,7 @@ function DashboardLayout({
 				)}
 				{tab == 5 && customClaims.admin && <HelpRequests />}
 				{tab == 6 && customClaims.admin && <Appearance />}
+				{tab == 7 && customClaims.admin && <Pipeline />}
 			</div>
 			{newReportModal && (
 				<AgencyReportModal
