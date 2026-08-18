@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { IoClose } from 'react-icons/io5'
-import Image from 'next/image'
 import ConfirmModal from '../common/ConfirmModal'
 import FormInput from '../../ui/FormInput'
+import ImageLightboxGallery from '../../ui/ImageLightboxGallery'
 import MediaUploadField from '../../ui/MediaUploadField'
 import ModalCloseButton from '../../ui/ModalCloseButton'
 import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
@@ -39,9 +39,14 @@ const AgencyModal = ({
 }) => {
 	const [deleteModal, setDeleteModal] = useState(false)
 	const [selectedUserToDelete, setSelectedUserToDelete] = useState('')
+	const [lightboxOpen, setLightboxOpen] = useState(false)
 	const dialogOpen = useDelayedDialogOpen()
 
 	const handleClose = () => setAgencyModal(false)
+
+	const logoImages = [
+		uploadedImageURLs[0] || agencyInfo.logo?.[0],
+	].filter(Boolean)
 
 	const handleDeleteClick = (user, e) => {
 		if (e) {
@@ -65,9 +70,9 @@ const AgencyModal = ({
 				size="xl"
 				className="agency-modal rounded-md"
 				dismiss={{
-					escapeKey: !deleteModal,
+					escapeKey: !deleteModal && !lightboxOpen,
 					outsidePress: (event) => {
-						if (deleteModal) return false
+						if (deleteModal || lightboxOpen) return false
 						const target = event.target
 						if (!(target instanceof Element)) return true
 						if (target.closest('.confirm-modal-root')) return false
@@ -153,25 +158,16 @@ const AgencyModal = ({
 								)}
 							</div>
 							<div>
-								{images.length === 0 && (
-									<>
-										{uploadedImageURLs[0] ? (
-											<Image
-												src={uploadedImageURLs[0]}
-												width={100}
-												height={100}
-												alt="Agency logo preview"
-												onLoad={() => URL.revokeObjectURL(uploadedImageURLs[0])}
-											/>
-										) : agencyInfo.logo?.[0] ? (
-											<Image
-												src={agencyInfo.logo[0]}
-												width={100}
-												height={100}
-												alt="Agency logo"
-											/>
-										) : null}
-									</>
+								{images.length === 0 && logoImages.length > 0 && (
+									<div className="mb-3 max-w-[7.5rem]">
+										<ImageLightboxGallery
+											images={logoImages}
+											altPrefix="Agency logo"
+											listClassName="grid grid-cols-1 gap-2 w-full"
+											thumbnailClassName="h-auto w-full max-w-[100px] object-contain"
+											onLightboxChange={setLightboxOpen}
+										/>
+									</div>
 								)}
 								<MediaUploadField
 									id="agency_logo_file"
