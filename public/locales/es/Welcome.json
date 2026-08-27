@@ -36,5 +36,6 @@
     "verifyEmailAgencyStep3": "Si es necesario, puede cambiar el nombre y la ubicación de su agencia en su perfil.",
     "verifyEmailUserPrompt": "Revise su bandeja de entrada para verificar su correo electrónico e iniciar sesión.",
     "verifyEmailResend": "Reenviar correo",
-    "verifyEmailSent": "Se envió un nuevo correo de verificación."
+    "verifyEmailSent": "Se envió un nuevo correo de verificación.",
+    "loginPurposeBlurb": "Truth Sleuth ayuda a las personas a enviar reportes sobre información electoral local que consideran inexacta y permite que las organizaciones asociadas los revisen."
   }

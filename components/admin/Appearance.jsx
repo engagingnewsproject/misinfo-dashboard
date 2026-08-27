@@ -10,6 +10,7 @@ import {
 	getAppearanceConfig,
 	saveAppearanceConfig,
 } from '../../utils/appearance-config'
+import LoginBlurbSettings from './LoginBlurbSettings'
 
 /**
  * @param {{ bg: string, hover: string }} row
@@ -89,8 +90,11 @@ const Appearance = () => {
 				Appearance
 			</Typography>
 			<p className="text-sm text-gray-600 mb-6">
-				Configure shared dashboard colors. Changes apply for all signed-in users.
+				Configure shared dashboard colors and public login page copy. Changes
+				apply for all users.
 			</p>
+
+			<LoginBlurbSettings />
 
 			<div className="mb-8 p-6 bg-white rounded-md border border-blue-gray-100">
 				<Typography variant="h5" color="blue" className="mb-4">
