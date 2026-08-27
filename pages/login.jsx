@@ -25,6 +25,11 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import { db, auth } from '../config/firebase'
+import {
+	DEFAULT_LOGIN_BLURB,
+	getLoginBlurbConfig,
+	getLoginBlurbForLocale,
+} from '../utils/login-blurb-config'
 import LanguageSwitcher from '../components/layout/LanguageSwitcher'
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
@@ -60,6 +65,9 @@ const Login = () => {
   const { t } = useTranslation('Welcome');
 
   const { user, login, verifyEmail, addAgencyRole, refreshCustomClaims } = useAuth()
+  const [loginBlurbs, setLoginBlurbs] = useState(DEFAULT_LOGIN_BLURB)
+  const locale = router.locale === 'es' ? 'es' : 'en'
+  const loginPurposeBlurb = getLoginBlurbForLocale(loginBlurbs, locale)
   const [data, setData] = useState({
     email: '',
     password: '',
@@ -86,6 +94,20 @@ const Login = () => {
     // Prefetch the dashboard page
     router.prefetch('/dashboard')
   }, [router])
+
+  useEffect(() => {
+    let cancelled = false
+    getLoginBlurbConfig(db)
+      .then((config) => {
+        if (!cancelled) setLoginBlurbs(config)
+      })
+      .catch((err) => {
+        console.error('Failed to load login page blurb', err)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
 	/**
 	 * Sign in and role-based redirect. Shared by the form and local-dev shortcuts.
@@ -183,6 +205,11 @@ const Login = () => {
 							<GiMagnifyingGlass size={30} className="fill-white" />
 						</div>
 						<Typography variant="small" className='text-xs font-semibold text-[#2E3B4E]'>Truth Sleuth Local</Typography>
+						<Typography
+							variant="small"
+							className="mt-3 text-center text-sm font-normal text-gray-600 leading-relaxed px-2">
+							{loginPurposeBlurb}
+						</Typography>
 					</div>
 					{process.env.NEXT_PUBLIC_USE_EMULATORS === 'true' && (
 						<div
