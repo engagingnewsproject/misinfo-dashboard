@@ -39,6 +39,9 @@ import {
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
 
+// Above chart layers (z-10) and MT Dialog overlay so portaled menus stay clickable.
+const MENU_Z_INDEX = 10050
+
 /**
  * ComparisonGraphMenu Component
  *
@@ -76,6 +79,23 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
       border: 0,
       boxShadow: "none"
     })
+  };
+
+  const selectStyles = {
+    ...(topicError ? borderStyle : {}),
+    menu: (base) => ({
+      ...base,
+      backgroundColor: '#ffffff',
+      zIndex: MENU_Z_INDEX,
+    }),
+    menuPortal: (base) => ({
+      ...base,
+      zIndex: MENU_Z_INDEX,
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isFocused ? '#f3f4f6' : '#ffffff',
+    }),
   };
   const errorOutline = "border-2 border-rose-600 "
   const animatedComponents = makeAnimated();
@@ -164,17 +184,36 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
     <div data-component="ComparisonGraphMenu" className="relative flex justify-stretch lg:justify-between flex-wrap gap-2">
       <div className="flex flex-wrap items-center gap-1">
         {/* Calendar allows user to change date range. */}
-        <Tooltip content={showCalendar == 0 ? 'Select Dates' : 'Close Calendar'}>
-          <IconButton
-            variant="text"
-            color={dateError ? 'red' : 'blue-gray'}
-            className={dateError ? 'bg-red-50' : showCalendar == 1 ? 'bg-blue-50' : ''}
-            onClick={handleSelect}
-            aria-label={showCalendar == 0 ? 'Select Dates' : 'Close Calendar'}
-          >
-            {showCalendar == 0 ? <IoMdCalendar size={22} /> : <IoMdRemove size={22} />}
-          </IconButton>
-        </Tooltip>
+        <div className="relative">
+          <Tooltip content={showCalendar == 0 ? 'Select Dates' : 'Close Calendar'}>
+            <IconButton
+              variant="text"
+              color={dateError ? 'red' : 'blue-gray'}
+              className={dateError ? 'bg-red-50' : showCalendar == 1 ? 'bg-blue-50' : ''}
+              onClick={handleSelect}
+              aria-label={showCalendar == 0 ? 'Select Dates' : 'Close Calendar'}
+            >
+              {showCalendar == 0 ? <IoMdCalendar size={22} /> : <IoMdRemove size={22} />}
+            </IconButton>
+          </Tooltip>
+
+          {showCalendar == 1 && (
+            <div
+              className="absolute left-0 top-full mt-2 bg-white p-2 rounded-md shadow-xl border border-gray-200"
+              style={{ zIndex: MENU_Z_INDEX }}
+            >
+              <DateRange
+                editableDateInputs={true}
+                onChange={item => handleDateSelection(item)}
+                moveRangeOnFirstSelection={false}
+                showSelectionPreview={true}
+                months={1}
+                ranges={dateRange}
+                maxDate={new Date()}
+              />
+            </div>
+          )}
+        </div>
 
           {/* Allows user to change the selected topics. */}
           <div className={`min-w-[12rem] flex-1 ${topicError ? errorOutline : ''}`}>
@@ -184,7 +223,11 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
                 onChange={item => setSelectedTopics(item)}
                 closeMenuOnSelect={false}
                 value={selectedTopics}
-                styles={topicError && borderStyle}
+                menuPortalTarget={
+                  typeof document !== 'undefined' ? document.body : null
+                }
+                menuPosition="fixed"
+                styles={selectStyles}
               />
           </div>
         
@@ -243,21 +286,6 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
 
    
     </div>
-    {showCalendar == 1 &&  
-      <>    
-        <div className="absolute z-50 mt-2 right-0 bg-white p-2 rounded-md shadow-xl border border-gray-200">
-          <DateRange
-            editableDateInputs={true}
-            onChange={item => handleDateSelection(item)}
-            moveRangeOnFirstSelection={false}
-            showSelectionPreview={true}
-            months={1}
-            ranges={dateRange}
-            maxDate={new Date()}
-          />
-        </div>
-      </>
-    }
   </>
   )
   }
