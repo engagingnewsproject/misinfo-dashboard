@@ -30,6 +30,7 @@ import {
   LinearScale,
   PointElement,
   LineElement,
+  Filler,
   Title,
   Tooltip,
   Legend,
@@ -106,11 +107,30 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   // Keep topic colors consistent even if the selection order changes.
   const topicColorMap = useRef(new Map())
 
-  const withOpacity = (hex, opacity = 0.16) => {
-    const clean = hex.replace('#', '')
-    const r = parseInt(clean.substring(0, 2), 16)
-    const g = parseInt(clean.substring(2, 4), 16)
-    const b = parseInt(clean.substring(4, 6), 16)
+  const withOpacity = (color, opacity = 0.25) => {
+    if (typeof color !== 'string') return color
+
+    // Fallback palette uses hsl(...); pass through as hsla so fill matches the line.
+    if (color.startsWith('hsl(')) {
+      return color.replace(/^hsl\(/, 'hsla(').replace(/\)$/, `, ${opacity})`)
+    }
+
+    if (color.startsWith('rgba(')) {
+      return color.replace(/,\s*[\d.]+\)$/, `, ${opacity})`)
+    }
+
+    if (color.startsWith('rgb(')) {
+      return color.replace(/^rgb\(/, 'rgba(').replace(/\)$/, `, ${opacity})`)
+    }
+
+    const clean = color.replace('#', '')
+    const full =
+      clean.length === 3
+        ? clean.split('').map((c) => c + c).join('')
+        : clean
+    const r = parseInt(full.substring(0, 2), 16)
+    const g = parseInt(full.substring(2, 4), 16)
+    const b = parseInt(full.substring(4, 6), 16)
     return `rgba(${r}, ${g}, ${b}, ${opacity})`
   }
 
@@ -380,6 +400,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     LinearScale,
     PointElement,
     LineElement,
+    Filler,
     Title,
     Tooltip,
     Legend
