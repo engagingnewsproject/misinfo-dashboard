@@ -89,12 +89,18 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
 
   // Futuristic Robot palette (dark → light for contrast on white chart bg)
   const palette = [
-    '#071C2C', // Trapped Darkness
-    '#103A54', // Gibraltar Sea
-    '#315D77', // Berry Blue
-    '#688390', // Blue Prince
-    '#A2AAA4', // Ginkgo Green
-    '#DBDDD5', // Pacific Fog
+    // '#071C2C', // Trapped Darkness
+    // '#103A54', // Gibraltar Sea
+    // '#315D77', // Berry Blue
+    // '#688390', // Blue Prince
+    // '#A2AAA4', // Ginkgo Green
+    // '#DBDDD5', // Pacific Fog
+    '#333F48', // Slate Gray
+    '#9CADB7', // Blue Gray
+    '#D6D2C4', // Silver Sand
+    '#F8971F', // Orange
+    '#00A9B7', // Turquoise
+    '#005F86', // Deep Sky Blue
   ]
 
   // Keep topic colors consistent even if the selection order changes.
