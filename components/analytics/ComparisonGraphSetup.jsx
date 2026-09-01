@@ -33,13 +33,16 @@ import {
   IoIosArrowBack,
 } from "react-icons/io";
 import ComparisonGraphPlotted from './ComparisonGraphPlotted'
+import { ComparisonGraphAlert } from './ComparisonGraphAlert'
 import {
-  Alert,
   Button,
   Typography,
 } from '@material-tailwind/react'
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
+
+// Above chart layers (z-10) and MT Dialog overlay so portaled topic menus stay clickable.
+const MENU_Z_INDEX = 10050
 import firebaseHelper from '../../firebase/FirebaseHelper'
 /**
  * ComparisonGraphSetup Component
@@ -73,6 +76,12 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
   // --- Validation state ---
   const [topicError, setTopicError] = useState(false) // Error state for topic selection
   const [dateError, setDateError] = useState(false) // Error state for date selection
+  const [dismissedTopicAlert, setDismissedTopicAlert] = useState(false)
+  const [dismissedDateErrorKey, setDismissedDateErrorKey] = useState(null)
+
+  const dateErrorKey = `${dateRange[0].startDate.getTime()}|${dateRange[0].endDate.getTime()}`
+  const showTopicAlert = topicError && !dismissedTopicAlert
+  const showDateAlert = dateError && dismissedDateErrorKey !== dateErrorKey
 
   const getDaysSelected = (range = dateRange[0]) =>
     ((range.endDate - range.startDate) / (1000 * 60 * 60 * 24)) + 1
@@ -92,6 +101,9 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
     if (item.selection.endDate !== item.selection.startDate) {
       setDateRange([item.selection])
       setDateError(!isValidDateRange(item.selection))
+      if (isValidDateRange(item.selection)) {
+        setDismissedDateErrorKey(null)
+      }
     } 
   }
 
@@ -112,8 +124,10 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
     if (isValidDateRange()) {
       setTab(4)
       setDateError(false)
+      setDismissedDateErrorKey(null)
     } else {
       setDateError(true)
+      setDismissedDateErrorKey(null)
     }
   }
 
@@ -124,8 +138,10 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
   const handleTopicSelection = () => {
     if (selectedTopics.length < 1) {
       setTopicError(true)
+      setDismissedTopicAlert(false)
     } else  {
       setTopicError(false)
+      setDismissedTopicAlert(false)
       setTab(1)
     }
   }
@@ -158,6 +174,24 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
 
   const animatedComponents = makeAnimated();
 
+  const selectStyles = {
+    // Portaled menu must sit above chart layers and MT dialog overlay.
+    menu: (base) => ({
+      ...base,
+      backgroundColor: '#ffffff',
+      zIndex: MENU_Z_INDEX,
+    }),
+    menuPortal: (base) => ({
+      ...base,
+      zIndex: MENU_Z_INDEX,
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isFocused ? '#f3f4f6' : '#ffffff',
+    }),
+  };
+
+  // Next buttons stay visible; disabled until the step's validation passes (avoids layout jump).
   const canProceedToDates = selectedTopics.length > 0
   const canProceedToGraph = isValidDateRange()
 
@@ -169,37 +203,56 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
               {/* Initial screen that appears when user selects the comparison view. Allows user to select three topics. */}
             {tab == 0 && 
               <div className="flex items-center justify-center gap-3 md:ml-12 flex-wrap">
-              <div className="bg-white rounded-md mt-6 py-5 px-4 h-auto w-full max-w-xl">
+              <div className="relative bg-white rounded-md mt-6 py-5 px-4 h-auto w-full max-w-xl">
                 <Typography variant="h5" color="blue" className="text-center py-2">
                   Select topics to compare.
                 </Typography>
                 <Typography variant="paragraph" className="pb-4 text-center text-gray-700">
                   Choose at least one topic to view the number of reports.
                 </Typography>
-                {topicError && (
-                  <Alert color="red" className="mb-3 py-2 text-sm">
-                    You must choose at least one topic to compare.
-                  </Alert>
-                )}
                 <Select options={listTopicChoices} components={animatedComponents}
                 isMulti 
-                onChange={item => setSelectedTopics(item)}
+                onChange={item => {
+                  setSelectedTopics(item)
+                  if (item?.length > 0) {
+                    setTopicError(false)
+                    setDismissedTopicAlert(false)
+                  }
+                }}
                 closeMenuOnSelect={false}
                 value={selectedTopics}
+                menuPortalTarget={
+                  typeof document !== 'undefined' ? document.body : null
+                }
+                menuPosition="fixed"
+                styles={selectStyles}
                 />
+                {topicError && (
+                  <div
+                    className="absolute bottom-3 right-3 z-30 max-w-[calc(100%-1.5rem)]"
+                    aria-live="polite"
+                  >
+                    <ComparisonGraphAlert
+                      open={showTopicAlert}
+                      color="red"
+                      onDismiss={() => setDismissedTopicAlert(true)}
+                    >
+                      You must choose at least one topic to compare.
+                    </ComparisonGraphAlert>
+                  </div>
+                )}
               </div>
-              {canProceedToDates &&
-                <Button
-                  size="sm"
-                  variant="outlined"
-                  color="blue"
-                  className="flex items-center gap-2 mt-6"
-                  onClick={handleTopicSelection}
-                >
-                  Next
-                  <IoIosArrowForward size={18} />
-                </Button>
-              }
+              <Button
+                size="sm"
+                variant="outlined"
+                color="blue"
+                className="flex items-center gap-2 mt-6"
+                onClick={handleTopicSelection}
+                disabled={!canProceedToDates}
+              >
+                Next
+                <IoIosArrowForward size={18} />
+              </Button>
             </div>
             }
             {/* Second screen that appears when user selects the comparison view. Allows user to select date range. */}
@@ -216,18 +269,13 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
                   <IoIosArrowBack size={18} />
                   Back
                 </Button>
-                                <div className="bg-white rounded-md mt-6 py-5 px-4 w-full lg:w-1/3 overflow-x-auto order-first lg:order-none">
+                                <div className="relative bg-white rounded-md mt-6 py-5 px-4 w-full lg:w-1/3 overflow-x-auto order-first lg:order-none">
                   <Typography variant="h5" color="blue" className="pt-2 tracking-wider text-center">
                     Select dates
                   </Typography>
                   <Typography variant="paragraph" className="text-center text-gray-700">
                     Select a date range to collect the number of reports for the selected topics.
                   </Typography>
-                  {dateError && (
-                    <Alert color="red" className="my-3 py-2 text-sm">
-                      You must select a date range of at least three days and no more than three weeks.
-                    </Alert>
-                  )}
                   
                   {/* TODO: fix resizing on mobile screen and choose one of these calendar views*/}
                     <div className="flex items-center justify-center pt-3">
@@ -241,20 +289,35 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
                         maxDate={new Date()}
                       />
                     </div>
+
+                  {/* Top-right so the alert does not cover the calendar below. */}
+                  {dateError && (
+                    <div
+                      className="absolute top-3 right-3 z-30 max-w-[calc(100%-1.5rem)]"
+                      aria-live="polite"
+                    >
+                      <ComparisonGraphAlert
+                        open={showDateAlert}
+                        color="red"
+                        onDismiss={() => setDismissedDateErrorKey(dateErrorKey)}
+                      >
+                        You must select a date range of at least three days and no more than three weeks.
+                      </ComparisonGraphAlert>
+                    </div>
+                  )}
                    
                 </div>
-                {canProceedToGraph &&
-                  <Button
-                    size="sm"
-                    variant="outlined"
-                    color="blue"
-                    className="flex items-center gap-2 mt-6"
-                    onClick={handleGraphChange}
-                  >
-                    Next
-                    <IoIosArrowForward size={18} />
-                  </Button>
-                }
+                <Button
+                  size="sm"
+                  variant="outlined"
+                  color="blue"
+                  className="flex items-center gap-2 mt-6"
+                  onClick={handleGraphChange}
+                  disabled={!canProceedToGraph}
+                >
+                  Next
+                  <IoIosArrowForward size={18} />
+                </Button>
               </div>
             }
           

@@ -5,6 +5,7 @@
  * - Select and change topics for comparison
  * - Pick a custom date range using a calendar dropdown
  * - Refresh or clear the graph
+ * - Floating dismissible alerts (portaled to the graph card, bottom-right)
  * - See error and status notifications for selection validation
  * - Responsive and accessible UI with tooltips and icons
  *
@@ -18,6 +19,7 @@
  * @since 2024
  */
 import React, { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { DateRange } from 'react-date-range';
 
 import 'react-date-range/dist/styles.css'; // main style file
@@ -31,13 +33,16 @@ import {
   IoIosTrash
 } from "react-icons/io";
 import {
-  Alert,
   IconButton,
   Spinner,
   Tooltip,
 } from '@material-tailwind/react'
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
+import { ComparisonGraphAlert } from './ComparisonGraphAlert'
+
+// Above chart layers (z-10) and MT Dialog overlay so portaled menus stay clickable.
+const MENU_Z_INDEX = 10050
 
 /**
  * ComparisonGraphMenu Component
@@ -61,13 +66,59 @@ import makeAnimated from 'react-select/animated';
  * @param {Function} props.setUpdateGraph - Setter for updateGraph state
  * @param {boolean} props.loaded - Whether the graph data is loaded
  * @param {Function} props.setLoaded - Setter for loaded state
+ * @param {HTMLElement|null} props.alertMount - Card element to anchor floating alerts (bottom-right)
  * @returns {JSX.Element} The rendered comparison graph menu UI
  */
 const ComparisonGraphMenu = ({dateRange, setDateRange, 
                             selectedTopics, setSelectedTopics, 
                             listTopicChoices, tab, setTab, setTopicError, topicError, setDateError, dateError,
-                            updateGraph, setUpdateGraph, loaded, setLoaded}) => {
+                            updateGraph, setUpdateGraph, loaded, setLoaded, alertMount}) => {
   const [showCalendar, setShowCalendar] = useState(0)
+  const [dismissedRefreshKey, setDismissedRefreshKey] = useState(null)
+  const [dismissedErrorKey, setDismissedErrorKey] = useState(null)
+
+  // Dismiss keys let users close alerts without hiding them forever — re-show when selection changes.
+  const refreshAlertKey = selectedTopics.map((topic) => topic.value).join(',')
+    + `|${dateRange[0].startDate.getTime()}|${dateRange[0].endDate.getTime()}`
+  const errorAlertKey = `${topicError}|${dateError}`
+
+  const refreshEligible = updateGraph && loaded && !(topicError || dateError)
+  const errorEligible = topicError || dateError
+
+  const showRefreshAlert = refreshEligible && dismissedRefreshKey !== refreshAlertKey
+  const showErrorAlert = errorEligible && dismissedErrorKey !== errorAlertKey
+
+  // Portal alerts into the graph card so they float bottom-right without shifting toolbar layout.
+  const alertPortal = alertMount && !showCalendar && (refreshEligible || errorEligible)
+    ? createPortal(
+        <div
+          className="absolute bottom-3 right-3 z-30 flex flex-col items-end max-w-xl"
+          aria-live="polite"
+        >
+          {refreshEligible && (
+            <ComparisonGraphAlert
+              open={showRefreshAlert}
+              color="green"
+              onDismiss={() => setDismissedRefreshKey(refreshAlertKey)}
+            >
+              Refresh the graph to see the report data for the most recent changes.
+            </ComparisonGraphAlert>
+          )}
+
+          {errorEligible && (
+            <ComparisonGraphAlert
+              open={showErrorAlert}
+              color="red"
+              onDismiss={() => setDismissedErrorKey(errorAlertKey)}
+            >
+              {topicError && <div>You must select at least one topic to compare.</div>}
+              {dateError && <div>You must select a date range of at least three days and no more than three weeks.</div>}
+            </ComparisonGraphAlert>
+          )}
+        </div>,
+        alertMount,
+      )
+    : null
 
   // Border style used for the topic select dropdown for error handling.
   const borderStyle = {
@@ -76,6 +127,28 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
       border: 0,
       boxShadow: "none"
     })
+  };
+
+  const selectStyles = {
+    ...(topicError ? borderStyle : {}),
+    // Portaled menu must sit above chart layers and MT dialog overlay.
+    menu: (base) => ({
+      ...base,
+      backgroundColor: '#ffffff',
+      zIndex: MENU_Z_INDEX,
+    }),
+    menuPortal: (base) => ({
+      ...base,
+      zIndex: MENU_Z_INDEX,
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isFocused ? '#f3f4f6' : '#ffffff',
+    }),
+    valueContainer: (base) => ({
+      ...base,
+      flexWrap: 'wrap',
+    }),
   };
   const errorOutline = "border-2 border-rose-600 "
   const animatedComponents = makeAnimated();
@@ -106,9 +179,10 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
       {
         // Prevents the graph from displaying until data has been collected.
         setLoaded(false)
+        setUpdateGraph(true)
       }
 
-    // Update error state if there are not three selected topics
+    // Update error state if no topics are selected.
     if (selectedTopics.length < 1) {
       setTopicError(true)
     }
@@ -147,6 +221,8 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
         key: 'selection'
       }])
     setSelectedTopics([])
+    setDismissedRefreshKey(null)
+    setDismissedErrorKey(null)
     setTab(0)
   }
 
@@ -161,103 +237,87 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
 
   return (
   <>
-    <div data-component="ComparisonGraphMenu" className="relative flex justify-stretch lg:justify-between flex-wrap gap-2">
-      <div className="flex flex-wrap items-center gap-1">
+    <div data-component="ComparisonGraphMenu" className="flex items-center gap-2">
         {/* Calendar allows user to change date range. */}
-        <Tooltip content={showCalendar == 0 ? 'Select Dates' : 'Close Calendar'}>
-          <IconButton
-            variant="text"
-            color={dateError ? 'red' : 'blue-gray'}
-            className={dateError ? 'bg-red-50' : showCalendar == 1 ? 'bg-blue-50' : ''}
-            onClick={handleSelect}
-            aria-label={showCalendar == 0 ? 'Select Dates' : 'Close Calendar'}
-          >
-            {showCalendar == 0 ? <IoMdCalendar size={22} /> : <IoMdRemove size={22} />}
-          </IconButton>
-        </Tooltip>
+        <div className="relative flex-shrink-0">
+          <Tooltip content={showCalendar == 0 ? 'Select Dates' : 'Close Calendar'}>
+            <IconButton
+              variant="text"
+              color={dateError ? 'red' : 'blue-gray'}
+              className={dateError ? 'bg-red-50' : showCalendar == 1 ? 'bg-blue-50' : ''}
+              onClick={handleSelect}
+              aria-label={showCalendar == 0 ? 'Select Dates' : 'Close Calendar'}
+            >
+              {showCalendar == 0 ? <IoMdCalendar size={22} /> : <IoMdRemove size={22} />}
+            </IconButton>
+          </Tooltip>
 
-          {/* Allows user to change the selected topics. */}
-          <div className={`min-w-[12rem] flex-1 ${topicError ? errorOutline : ''}`}>
+          {showCalendar == 1 && (
+            <div
+              className="absolute left-0 top-full mt-2 bg-white p-2 rounded-md shadow-xl border border-gray-200"
+              style={{ zIndex: MENU_Z_INDEX }}
+            >
+              <DateRange
+                editableDateInputs={true}
+                onChange={item => handleDateSelection(item)}
+                moveRangeOnFirstSelection={false}
+                showSelectionPreview={true}
+                months={1}
+                ranges={dateRange}
+                maxDate={new Date()}
+              />
+            </div>
+          )}
+        </div>
+
+          {/* Topic select grows between calendar and actions; min-w-0 lets chips wrap instead of pushing buttons down. */}
+          <div className={`min-w-0 flex-1 ${topicError ? errorOutline : ''}`}>
             <Select options={listTopicChoices} components={animatedComponents}
                 isMulti 
                 error={topicError}
                 onChange={item => setSelectedTopics(item)}
                 closeMenuOnSelect={false}
                 value={selectedTopics}
-                styles={topicError && borderStyle}
+                menuPortalTarget={
+                  typeof document !== 'undefined' ? document.body : null
+                }
+                menuPosition="fixed"
+                styles={selectStyles}
               />
           </div>
-        
-          {/* Allows user to refresh graph when new topics or date range have been selected. */}
-          {loaded &&
-            <Tooltip content="Refresh Graph">
-              <IconButton
-                variant="text"
-                color="blue-gray"
-                onClick={handleGraphUpdate}
-                aria-label="Refresh Graph"
-              >
-                <IoMdRefresh size={22} />
-              </IconButton>
-            </Tooltip>
-          }
 
-          {/* Displays loading spinner while the graph is being updated. */}
-          {!loaded &&
-            <div className="mx-2 flex items-center" role="status" aria-label="Loading graph">
-              <Spinner className="h-6 w-6" color="blue" />
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {loaded ? (
+                <Tooltip content="Refresh Graph">
+                  <IconButton
+                    variant="text"
+                    color="blue-gray"
+                    onClick={handleGraphUpdate}
+                    aria-label="Refresh Graph"
+                  >
+                    <IoMdRefresh size={22} />
+                  </IconButton>
+                </Tooltip>
+              ) : (
+                <div className="flex items-center justify-center w-10 h-10" role="status" aria-label="Loading graph">
+                  <Spinner className="h-6 w-6" color="blue" />
+                </div>
+              )}
+
+              <Tooltip content="Clear Graph">
+                <IconButton
+                  variant="text"
+                  color="blue-gray"
+                  onClick={handleReset}
+                  aria-label="Clear Graph"
+                >
+                  <IoIosTrash size={22} />
+                </IconButton>
+              </Tooltip>
             </div>
-          }
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-2 flex-1 justify-end">
-            {/*Displays notification when user needs to refresh graph once the topic or date selection has been modified. */}
-            {updateGraph && loaded && !(topicError || dateError) && !showCalendar &&
-              <Alert color="green" className="py-2 px-3 text-sm max-w-xl">
-                Refresh the graph to see the report data for the most recent changes.
-              </Alert>
-            }
 
-            {/* Displays error when topic or date selection is invalid. */}
-            {(topicError || dateError) && !showCalendar && 
-              <Alert color="red" className="py-2 px-3 text-sm max-w-xl">
-                {topicError && <div>You must select at least one topic to compare.</div>}
-                {dateError && <div>You must select a date range of at least three days and no more than three weeks.</div>}
-              </Alert>
-            }
-          
-          <Tooltip content="Clear Graph">
-            <IconButton
-              variant="text"
-              color="blue-gray"
-              onClick={handleReset}
-              aria-label="Clear Graph"
-            >
-              <IoIosTrash size={22} />
-            </IconButton>
-          </Tooltip>
-
-      </div>
-      
-      {/*Allows user to clear graph and start from initial screen to select topics. */}
-
-   
     </div>
-    {showCalendar == 1 &&  
-      <>    
-        <div className="absolute z-50 mt-2 right-0 bg-white p-2 rounded-md shadow-xl border border-gray-200">
-          <DateRange
-            editableDateInputs={true}
-            onChange={item => handleDateSelection(item)}
-            moveRangeOnFirstSelection={false}
-            showSelectionPreview={true}
-            months={1}
-            ranges={dateRange}
-            maxDate={new Date()}
-          />
-        </div>
-      </>
-    }
+    {alertPortal}
   </>
   )
   }

@@ -30,6 +30,7 @@ import {
   LinearScale,
   PointElement,
   LineElement,
+  Filler,
   Title,
   Tooltip,
   Legend,
@@ -106,11 +107,30 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   // Keep topic colors consistent even if the selection order changes.
   const topicColorMap = useRef(new Map())
 
-  const withOpacity = (hex, opacity = 0.16) => {
-    const clean = hex.replace('#', '')
-    const r = parseInt(clean.substring(0, 2), 16)
-    const g = parseInt(clean.substring(2, 4), 16)
-    const b = parseInt(clean.substring(4, 6), 16)
+  const withOpacity = (color, opacity = 0.25) => {
+    if (typeof color !== 'string') return color
+
+    // Fallback palette uses hsl(...); pass through as hsla so fill matches the line.
+    if (color.startsWith('hsl(')) {
+      return color.replace(/^hsl\(/, 'hsla(').replace(/\)$/, `, ${opacity})`)
+    }
+
+    if (color.startsWith('rgba(')) {
+      return color.replace(/,\s*[\d.]+\)$/, `, ${opacity})`)
+    }
+
+    if (color.startsWith('rgb(')) {
+      return color.replace(/^rgb\(/, 'rgba(').replace(/\)$/, `, ${opacity})`)
+    }
+
+    const clean = color.replace('#', '')
+    const full =
+      clean.length === 3
+        ? clean.split('').map((c) => c + c).join('')
+        : clean
+    const r = parseInt(full.substring(0, 2), 16)
+    const g = parseInt(full.substring(2, 4), 16)
+    const b = parseInt(full.substring(4, 6), 16)
     return `rgba(${r}, ${g}, ${b}, ${opacity})`
   }
 
@@ -269,11 +289,12 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
       }
 
       const color = topicColorMap.current.get(topicValue)
+      const fillColor = withOpacity(color, 0.25)
       const topicData = {
         label: selectedTopics[topic].label,
         data: reportData[topic],
         borderColor: color,
-        backgroundColor: withOpacity(color, 0.25),
+        backgroundColor: fillColor,
         borderWidth: 3,
         pointRadius: 4,
         pointHoverRadius: 7,
@@ -281,7 +302,10 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
         pointBackgroundColor: '#fff',
         pointBorderColor: color,
         tension: 0.32,
-        fill: true,
+        // Fill only under this line's curve — not down to y=0 — so colors
+        // don't bleed across overlapping topic datasets. Shape mode uses
+        // backgroundColor for the fill; above/below only apply to boundaries.
+        fill: 'shape',
       }
       arr.push(topicData)
     }
@@ -380,6 +404,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
     LinearScale,
     PointElement,
     LineElement,
+    Filler,
     Title,
     Tooltip,
     Legend
@@ -411,7 +436,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
         },
         beginAtZero: true,
         title: {
-          text: "Number of Reports",
+          text: "Reports",
           display: true,
           font: {
             size: 14,
@@ -472,16 +497,23 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   
   }
 
+  // Ref for the white graph card — ComparisonGraphMenu portals floating alerts here.
+  const [graphCardEl, setGraphCardEl] = useState(null)
+
   return (
     <div data-component="ComparisonGraphPlotted">
           {/* Once user selects the topics and date range, graph of topic reports will be plotted. */}
-          <div className="bg-white rounded-md mt-6 py-5 px-3">
+          <div
+            ref={setGraphCardEl}
+            className="relative bg-white rounded-md mt-6 py-5 px-3"
+          >
           <ComparisonGraphMenu dateRange={dateRange} setDateRange={setDateRange} 
               selectedTopics={selectedTopics} setSelectedTopics={setSelectedTopics}
               listTopicChoices={topicList} tab={tab} setTab={setTab}
               setTopicError={setTopicError}  topicError={topicError}
               dateError={dateError} setDateError = {setDateError} updateGraph={updateGraph} 
-              setUpdateGraph={setUpdateGraph} loaded={loaded} setLoaded={setLoaded}/>
+              setUpdateGraph={setUpdateGraph} loaded={loaded} setLoaded={setLoaded}
+              alertMount={graphCardEl}/>
 
             {/* Displays graph once data is collected for the topics. */}
 		
