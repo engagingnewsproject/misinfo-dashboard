@@ -289,11 +289,12 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
       }
 
       const color = topicColorMap.current.get(topicValue)
+      const fillColor = withOpacity(color, 0.25)
       const topicData = {
         label: selectedTopics[topic].label,
         data: reportData[topic],
         borderColor: color,
-        backgroundColor: withOpacity(color, 0.25),
+        backgroundColor: fillColor,
         borderWidth: 3,
         pointRadius: 4,
         pointHoverRadius: 7,
@@ -301,7 +302,12 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
         pointBackgroundColor: '#fff',
         pointBorderColor: color,
         tension: 0.32,
-        fill: true,
+        // Fill only under this line's curve — not down to y=0 — so colors
+        // don't bleed across overlapping topic datasets.
+        fill: {
+          target: 'shape',
+          above: fillColor,
+        },
       }
       arr.push(topicData)
     }
@@ -432,7 +438,7 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
         },
         beginAtZero: true,
         title: {
-          text: "Number of Reports",
+          text: "Reports",
           display: true,
           font: {
             size: 14,
@@ -493,16 +499,23 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
   
   }
 
+  // Ref for the white graph card — ComparisonGraphMenu portals floating alerts here.
+  const [graphCardEl, setGraphCardEl] = useState(null)
+
   return (
     <div data-component="ComparisonGraphPlotted">
           {/* Once user selects the topics and date range, graph of topic reports will be plotted. */}
-          <div className="bg-white rounded-md mt-6 py-5 px-3">
+          <div
+            ref={setGraphCardEl}
+            className="relative bg-white rounded-md mt-6 py-5 px-3"
+          >
           <ComparisonGraphMenu dateRange={dateRange} setDateRange={setDateRange} 
               selectedTopics={selectedTopics} setSelectedTopics={setSelectedTopics}
               listTopicChoices={topicList} tab={tab} setTab={setTab}
               setTopicError={setTopicError}  topicError={topicError}
               dateError={dateError} setDateError = {setDateError} updateGraph={updateGraph} 
-              setUpdateGraph={setUpdateGraph} loaded={loaded} setLoaded={setLoaded}/>
+              setUpdateGraph={setUpdateGraph} loaded={loaded} setLoaded={setLoaded}
+              alertMount={graphCardEl}/>
 
             {/* Displays graph once data is collected for the topics. */}
 		
