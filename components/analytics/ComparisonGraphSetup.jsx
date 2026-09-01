@@ -40,6 +40,9 @@ import {
 } from '@material-tailwind/react'
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
+
+// Above chart layers (z-10) and MT Dialog overlay so portaled menus stay clickable.
+const MENU_Z_INDEX = 10050
 import firebaseHelper from '../../firebase/FirebaseHelper'
 /**
  * ComparisonGraphSetup Component
@@ -158,6 +161,22 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
 
   const animatedComponents = makeAnimated();
 
+  const selectStyles = {
+    menu: (base) => ({
+      ...base,
+      backgroundColor: '#ffffff',
+      zIndex: MENU_Z_INDEX,
+    }),
+    menuPortal: (base) => ({
+      ...base,
+      zIndex: MENU_Z_INDEX,
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isFocused ? '#f3f4f6' : '#ffffff',
+    }),
+  };
+
   const canProceedToDates = selectedTopics.length > 0
   const canProceedToGraph = isValidDateRange()
 
@@ -186,6 +205,11 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
                 onChange={item => setSelectedTopics(item)}
                 closeMenuOnSelect={false}
                 value={selectedTopics}
+                menuPortalTarget={
+                  typeof document !== 'undefined' ? document.body : null
+                }
+                menuPosition="fixed"
+                styles={selectStyles}
                 />
               </div>
               {canProceedToDates &&
