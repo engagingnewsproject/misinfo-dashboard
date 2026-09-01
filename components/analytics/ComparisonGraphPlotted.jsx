@@ -303,11 +303,9 @@ const ComparisonGraphPlotted = ({dateRange, setDateRange, selectedTopics, setSel
         pointBorderColor: color,
         tension: 0.32,
         // Fill only under this line's curve — not down to y=0 — so colors
-        // don't bleed across overlapping topic datasets.
-        fill: {
-          target: 'shape',
-          above: fillColor,
-        },
+        // don't bleed across overlapping topic datasets. Shape mode uses
+        // backgroundColor for the fill; above/below only apply to boundaries.
+        fill: 'shape',
       }
       arr.push(topicData)
     }
