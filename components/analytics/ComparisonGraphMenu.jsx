@@ -126,6 +126,7 @@ const ComparisonGraphMenu = ({dateRange, setDateRange,
       {
         // Prevents the graph from displaying until data has been collected.
         setLoaded(false)
+        setUpdateGraph(true)
       }
 
     // Update error state if there are not three selected topics
