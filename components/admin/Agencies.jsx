@@ -49,7 +49,6 @@ import { IoTrash } from "react-icons/io5"
 import { FaPlus } from 'react-icons/fa'
 import { Button } from '@material-tailwind/react'
 import { seedAgencyTagsDoc } from '../../utils/tag-defaults'
-import { clearAgencyUserClaims } from '../../utils/clear-agency-user-claims'
 import adminSectionStyles from '../../styles/adminSectionStyles'
 import AdminDataTable from './AdminDataTable'
 
@@ -84,7 +83,7 @@ const AGENCY_COLUMNS = [
  */
 const Agencies = ({handleAgencyUpdateSubmit}) => {
 	// Authentication and Firebase
-	const { sendSignIn, addUserRole } = useAuth() // User authentication and email sending
+	const { sendSignIn } = useAuth() // User authentication and email sending
 	const imgPicker = useRef(null) // File input reference for image upload
 	
 	// Agency data management
@@ -121,7 +120,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	const [search, setSearch] = useState('') // Search functionality (unused)
 	const [endIndex, setEndIndex] = useState(10) // Pagination limit
 	const [errors, setErrors] = useState({}) // Form validation errors
-	const [deleteWarning, setDeleteWarning] = useState('')
 
 	/**
 	 * Fetches all agencies from Firestore and populates the agencies state
@@ -592,7 +590,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 	 * @param {string} agencyId - ID of the agency to delete
 	 */
 	const handleAgencyDelete = async (agencyId) => {
-		setDeleteWarning('')
 		setDeleteModal(true)
 		setAgencyId(agencyId)
 	}
@@ -617,14 +614,7 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 			const agencyData = agencySnapshot.data()
 
 			// Get list of agency users
-			const agencyUsers = agencyData['agencyUsers'] || []
-			const claimFailures = await clearAgencyUserClaims(
-				agencyUsers,
-				addUserRole,
-			)
-			claimFailures.forEach(({ email, error }) => {
-				console.error(`Could not clear Auth claims for ${email}:`, error)
-			})
+			const agencyUsers = agencyData['agencyUsers']
 
 			// Update agency field for each associated user
 			const updatePromises = []
@@ -652,18 +642,11 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 
 			// Delete the agency document
 			await deleteDoc(agencyRef)
-			await getData()
 
 			console.log('Agency and user updates completed successfully.')
 			setDeleteModal(false)
-			if (claimFailures.length > 0) {
-				setDeleteWarning(
-					`Agency deleted, but Auth claims could not be cleared for ${claimFailures.length} user(s). Those users may retain agency access until their claims are reset.`,
-				)
-			}
 		} catch (error) {
 			console.error('Error deleting agency:', error)
-			setDeleteWarning('Agency could not be deleted. Please try again.')
 		}
 	}
 
@@ -742,11 +725,6 @@ const Agencies = ({handleAgencyUpdateSubmit}) => {
 						{/* TODO: add filters to agency list */}
 					</div>
 				</div>
-				{deleteWarning && (
-					<p role="alert" className="mb-4 text-sm text-red-700">
-						{deleteWarning}
-					</p>
-				)}
 				<AdminDataTable columns={AGENCY_COLUMNS}>
 						{agencies.slice(0, endIndex).map((agencyObj, i) => {
 							const agency = Object.values(agencyObj)[0]

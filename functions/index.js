@@ -193,12 +193,22 @@ exports.notifySlackOnNewHelpRequest = functions
  * @example
  * const result = await addUserRole({ email: 'user@example.com' });
  */
-exports.addUserRole = functions.https.onCall(async (data, context) => {
-  const user = await admin.auth().getUserByEmail(data.email);
-  await admin.auth().setCustomUserClaims(user.uid, {});
-  return {
-    message: `Success! ${data.email} has been reset to user privileges.`,
-  };
+exports.addUserRole = functions.https.onCall((data, context) => {
+  // get user and add custom claim to user
+  return admin.auth().getUserByEmail(data.email).then((user) => {
+    // Once user object is retrieved, updates custom claim
+    return admin.auth().setCustomUserClaims(user.uid, {});
+
+    // callback for frontend if success
+  }).then(() => {
+    return {
+      message: `Success! ${data.email} has been reset to user privileges.`,
+    };
+
+    // callback if there is an error
+  }).catch((err) => {
+    return err;
+  });
 });
 
 /**
