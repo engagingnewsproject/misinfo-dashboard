@@ -21,6 +21,7 @@ const COMPARISON_ALERT_CLASS = 'py-2 pl-3 pr-9 text-sm shadow-md !w-auto max-w-x
 export function ComparisonGraphAlert({ open, color, onDismiss, children }) {
   return (
     <Alert
+      data-component="ComparisonGraphAlert"
       open={open}
       color={color}
       className={COMPARISON_ALERT_CLASS}
