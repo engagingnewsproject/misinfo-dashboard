@@ -202,13 +202,30 @@ const nextConfig = {
     ];
   },
   // App Hosting / some Cloud Run images may not expose `public/` at the site root; `beforeFiles`
-  // rewrites run before static lookup so manifest and favicons still resolve.
+  // rewrites run before static lookup so manifest, favicons, and next-pwa scripts still resolve.
   async rewrites() {
+    const staticRewrites = rootPublicFiles.map((file) => ({
+      source: `/${file}`,
+      destination: `/api/public-asset/${file}`,
+    }));
+    // Hashed names from @ducanh2912/next-pwa (sw.js + workbox/fallback/swe-worker).
+    const pwaRewrites = [
+      { source: '/sw.js', destination: '/api/public-asset/sw.js' },
+      {
+        source: '/workbox-:hash.js',
+        destination: '/api/public-asset/workbox-:hash.js',
+      },
+      {
+        source: '/fallback-:hash.js',
+        destination: '/api/public-asset/fallback-:hash.js',
+      },
+      {
+        source: '/swe-worker-:hash.js',
+        destination: '/api/public-asset/swe-worker-:hash.js',
+      },
+    ];
     return {
-      beforeFiles: rootPublicFiles.map((file) => ({
-        source: `/${file}`,
-        destination: `/api/public-asset/${file}`,
-      })),
+      beforeFiles: [...staticRewrites, ...pwaRewrites],
     };
   },
   images: {
