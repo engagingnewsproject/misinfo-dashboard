@@ -166,6 +166,15 @@ const rootPublicFiles = [
 const nextConfig = {
   i18n,
   reactStrictMode: true,
+  // Match Firebase App Hosting (standalone Cloud Run image).
+  output: 'standalone',
+  // Ensure post-build public/ (including next-pwa sw.js) is traced into the
+  // standalone bundle — App Hosting's adapter often skips a full public/ merge
+  // when NFT already created a partial public/ folder.
+  outputFileTracingIncludes: {
+    '/api/public-asset/[filename]': ['./public/**/*'],
+    '/sw.js': ['./public/sw.js', './public/workbox-*.js', './public/fallback-*.js'],
+  },
   // Headers for static assets (migrated from netlify.toml for Firebase Hosting)
   async headers() {
     return [
