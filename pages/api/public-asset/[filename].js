@@ -24,23 +24,49 @@ const CONTENT_TYPES = {
   'robots.txt': 'text/plain; charset=utf-8',
 };
 
+const JS_CONTENT_TYPE = 'application/javascript; charset=utf-8';
+
+/**
+ * next-pwa writes hashed scripts into public/ at build time. Allow only those
+ * known basename patterns (no path segments) so we can serve them on App Hosting.
+ */
+const PWA_JS_BASENAME =
+  /^(?:sw\.js|workbox-[a-f0-9]+\.js|fallback-[a-f0-9]+\.js|swe-worker-[a-zA-Z0-9_-]+\.js)$/;
+
+/**
+ * @param {string} filename
+ * @returns {string | null}
+ */
+function contentTypeFor(filename) {
+  if (CONTENT_TYPES[filename]) return CONTENT_TYPES[filename];
+  if (PWA_JS_BASENAME.test(filename)) return JS_CONTENT_TYPE;
+  return null;
+}
+
 export default async function handler(req, res) {
   const raw = req.query.filename;
   const filename = Array.isArray(raw) ? raw[0] : raw;
-  if (!filename || !CONTENT_TYPES[filename]) {
+  const contentType = filename ? contentTypeFor(filename) : null;
+  if (!filename || !contentType || filename.includes('/') || filename.includes('\\')) {
     return res.status(404).end();
   }
 
   const publicDir = path.join(process.cwd(), 'public');
   const filePath = path.join(publicDir, filename);
-  if (!filePath.startsWith(publicDir)) {
+  if (!filePath.startsWith(publicDir + path.sep) && filePath !== publicDir) {
     return res.status(404).end();
   }
 
   try {
     const buf = await fs.readFile(filePath);
-    res.setHeader('Content-Type', CONTENT_TYPES[filename]);
-    res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    res.setHeader('Content-Type', contentType);
+    // Keep SW scripts fresh so clients pick up new precache manifests after deploy.
+    if (PWA_JS_BASENAME.test(filename)) {
+      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+      res.setHeader('Service-Worker-Allowed', '/');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    }
     res.status(200).send(buf);
   } catch {
     res.status(404).end();
