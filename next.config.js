@@ -5,11 +5,15 @@ const withPWA = require('@ducanh2912/next-pwa').default({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
   register: true,
+  // Next emits this file in the build, but App Hosting/standalone often 404s it.
+  // Workbox treats that as a hard install failure (bad-precaching-response).
+  buildExcludes: [/dynamic-css-manifest\.json$/],
   fallbacks: {
     document: '/offline',
   },
   workboxOptions: {
     disableDevLogs: true,
+    exclude: [/dynamic-css-manifest\.json$/],
     runtimeCaching: [
       {
         urlPattern: ({ url }) =>
