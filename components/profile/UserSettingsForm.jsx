@@ -101,7 +101,7 @@ const UserSettingsForm = ({
           </div>
           <div className="flex gap-2 tracking-normal items-center justify-between">
             <div className="font-light">{email}</div>
-            {isEditing && (
+            {!isAgency && isEditing && (
               <Button variant="outlined" color="blue" onClick={onEditEmail}>
                 {t('editEmail')}
               </Button>
