@@ -10,6 +10,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button } from '@material-tailwind/react'
 import PageTitle from '../layout/PageTitle'
 import AdminDataTable from './AdminDataTable'
+import PipelineSettings from './PipelineSettings'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import adminSectionStyles from '../../styles/adminSectionStyles'
 import { fetchPipelineRuns } from '../../utils/fetch-pipeline-runs'
@@ -348,6 +349,10 @@ const Pipeline = ({ fetchRuns = fetchPipelineRuns }) => {
 						allowFullScreen
 						className="h-[900px] w-full rounded-md border-0 bg-white"
 					/>
+				</div>
+
+				<div className="mt-8">
+					<PipelineSettings />
 				</div>
 			</div>
 		</div>
