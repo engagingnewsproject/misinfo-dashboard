@@ -11,6 +11,53 @@ jest.mock('../../../utils/fetch-pipeline-runs', () => ({
 	fetchPipelineRuns: jest.fn().mockResolvedValue([]),
 }))
 
+jest.mock('../../../config/firebase', () => ({
+	db: {},
+}))
+
+jest.mock('../../../utils/pipeline-config', () => ({
+	PIPELINE_SETTING_FIELDS: [
+		{
+			key: 'importToFirestore',
+			type: 'switch',
+			group: 'Firestore import',
+			label: 'Import curated articles to Firestore',
+			description: 'When off, skip dashboard import.',
+			defaultLabel: 'true',
+		},
+	],
+	PROD_DEFAULTS: {
+		importToFirestore: true,
+		jobFilterProcessedUrls: true,
+		publicationDateFreshnessFilter: true,
+		firestoreImportForceSingleAgency: false,
+		maxDomains: 6000,
+		maxLinksPerDomain: 10,
+		curatedArticleLimit: 200,
+		minPublicationDate: '2026-01-01',
+		firestoreImportUserId: '',
+		firestoreImportAgencyName: 'Test Agency',
+	},
+	getPipelineConfig: jest.fn().mockResolvedValue({
+		importToFirestore: true,
+		jobFilterProcessedUrls: true,
+		publicationDateFreshnessFilter: true,
+		firestoreImportForceSingleAgency: false,
+		maxDomains: 6000,
+		maxLinksPerDomain: 10,
+		curatedArticleLimit: 200,
+		minPublicationDate: '2026-01-01',
+		firestoreImportUserId: '',
+		firestoreImportAgencyName: 'Test Agency',
+	}),
+	savePipelineConfig: jest.fn(),
+	validatePipelineConfig: jest.fn().mockReturnValue(null),
+}))
+
+jest.mock('../../../context/AuthContext', () => ({
+	useAuth: () => ({ user: { uid: 'admin-uid' } }),
+}))
+
 const sampleRun = {
 	run_timestamp: '20260811_070316',
 	measurement_run_id: 'production_daily',
@@ -40,12 +87,19 @@ function renderPipeline(fetchRuns) {
 }
 
 describe('Pipeline', () => {
-	it('renders the title, rundown, and Data Studio embed', async () => {
+	it('renders the title, settings, rundown, and Data Studio embed', async () => {
 		const fetchRuns = jest.fn().mockResolvedValue([sampleRun])
 		renderPipeline(fetchRuns)
 
 		expect(
 			screen.getByRole('heading', { level: 1, name: 'Pipeline' }),
+		).toBeInTheDocument()
+
+		expect(
+			await screen.findByRole('heading', { name: 'Pipeline settings' }),
+		).toBeInTheDocument()
+		expect(
+			screen.getByText('Import curated articles to Firestore'),
 		).toBeInTheDocument()
 
 		expect(
