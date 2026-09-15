@@ -35,6 +35,7 @@
     "verifyEmailAgencyStep2": "Log in to the dashboard using your new account information.",
     "verifyEmailAgencyStep3": "If needed, you can change your agency name and location under your profile.",
     "verifyEmailUserPrompt": "Check your inbox to verify your email in order to log in.",
+    "verifyEmailSpamTip": "If you don’t see it within a few minutes, check your spam or junk folder.",
     "verifyEmailResend": "Resend email",
     "verifyEmailSent": "New verification email sent.",
     "loginPurposeBlurb": "Truth Sleuth helps people submit reports about local election information they think might be inaccurate and lets partner organizations review."

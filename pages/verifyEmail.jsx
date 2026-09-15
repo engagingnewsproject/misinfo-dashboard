@@ -131,10 +131,18 @@ const VerifyEmail = () => {
 									<li>{t('verifyEmailAgencyStep2')}</li>
 									<li>{t('verifyEmailAgencyStep3')}</li>
 								</ol>
+								<p className="mt-3 text-sm text-gray-600">
+									{t('verifyEmailSpamTip')}
+								</p>
 							</div>
 						) : (
 							/* General user verification instructions */
-							<h3>{t('verifyEmailUserPrompt')}</h3>
+							<div>
+								<h3>{t('verifyEmailUserPrompt')}</h3>
+								<p className="mt-2 text-sm text-gray-600">
+									{t('verifyEmailSpamTip')}
+								</p>
+							</div>
 						)}
 					</div>
 
