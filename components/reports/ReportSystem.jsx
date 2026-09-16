@@ -734,10 +734,10 @@ const ReportSystem = ({
 				<div className={globalStyles.viewWrapperCenter}>
 					<Image
 						src='/img/reminder.png'
-						width={156}
-						height={120}
+						width={256}
+						height={196}
 						alt='reminderShow'
-						className='object-cover w-auto'
+						className='object-contain w-full max-w-[256px] h-auto'
 					/>
 					<Typography variant='h5' color='blue'>
 						{t("reminder")}

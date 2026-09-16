@@ -618,17 +618,9 @@ const Navbar = ({
 						</div>
 					)}
 
-					{/* Primary nav (scrollable) */}
-					<div
-						className={`min-h-0 flex-1 overflow-y-auto ${
-							showLabels ? 'px-3 pt-3' : 'flex flex-col items-center'
-						}`}>
-						{showLabels ? primaryNavExpanded : primaryNavCollapsed}
-					</div>
-
-					{/* Report CTA between primary and utility when labels are on */}
+					{/* Report CTA at top (matches collapsed icon placement under brand) */}
 					{showLabels && showReportCta && (
-						<div className="shrink-0 px-3 py-3">
+						<div className="shrink-0 px-3 pt-3 pb-1">
 							<ReportCta
 								customClaims={customClaims}
 								onAgencyNewReport={handleAgencyNewReport}
@@ -636,6 +628,14 @@ const Navbar = ({
 							/>
 						</div>
 					)}
+
+					{/* Primary nav (scrollable) */}
+					<div
+						className={`min-h-0 flex-1 overflow-y-auto ${
+							showLabels ? 'px-3 pt-3' : 'flex flex-col items-center'
+						}`}>
+						{showLabels ? primaryNavExpanded : primaryNavCollapsed}
+					</div>
 
 					{/* Utility + logout pinned to bottom */}
 					<div

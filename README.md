@@ -207,7 +207,7 @@ Links: [Chrome React Developer Tools](https://chrome.google.com/webstore/detail/
 
 ## Deployment
 
-Production is served by **[Firebase App Hosting](https://firebase.google.com/docs/app-hosting)** (Git-backed). When a pull request is merged into `main`, App Hosting builds from that commit and rolls out the new version. There is no separate Netlify or classic Firebase Hosting deploy step for this app.
+Production is served by **[Firebase App Hosting](https://firebase.google.com/docs/app-hosting)** (Git-backed). The live backend (`truthsleuthlocal`) builds from the **`prod`** branch — not from `main`. Merging a PR into `main` alone does **not** update the live site; you still need to update `prod` (usually by merging or fast-forwarding `main` into `prod`). There is no separate Netlify or classic Firebase Hosting deploy step for this app.
 
 **Live URL:** `https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app`
 
@@ -215,10 +215,11 @@ Production is served by **[Firebase App Hosting](https://firebase.google.com/doc
 
 1. Open a PR into `main` from your feature branch.
 2. Wait for the **`build`** GitHub Actions check (runs `npm ci` and `npm run build` in the same Node/npm toolchain as App Hosting).
-3. After review, merge to `main`. App Hosting picks up the merge and deploys automatically.
-4. Watch progress in [Firebase Console → App Hosting](https://console.firebase.google.com/project/misinfo-5d004/apphosting) (backend `truthsleuthlocal`).
+3. After review, merge to `main`.
+4. Update `prod` from `main` (merge or fast-forward). App Hosting picks up the push to `prod` and deploys automatically.
+5. Watch progress in [Firebase Console → App Hosting](https://console.firebase.google.com/project/misinfo-5d004/apphosting) (backend `truthsleuthlocal`).
 
-To redeploy the latest `main` without a new commit:
+To redeploy the latest `prod` without a new commit:
 
 ```bash
 firebase apphosting:rollouts:create truthsleuthlocal --project misinfo-5d004
@@ -228,13 +229,14 @@ firebase apphosting:rollouts:create truthsleuthlocal --project misinfo-5d004
 
 - **`apphosting.yaml`** — build/runtime env vars, secrets references, and backend wiring for App Hosting.
 - **Secrets** — create values in Google Cloud Secret Manager, then grant the App Hosting backend access (see comments in `apphosting.yaml`). `NEXT_PUBLIC_APP_URL` in that file should match the live App Hosting URL (or your custom domain) so auth email links resolve correctly.
+- **Deploy branch** — App Hosting rollout policy for `truthsleuthlocal` is `codebaseBranch: prod`. Keep `prod` in sync with the commits you want live.
 
 For a deeper walkthrough (lockfile regeneration, CI details, branch protection), see **[Technical Documentation – Deployment pipeline](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/technicalDocumentation#deployment-pipeline)**.
 
 ### Not used for this app’s frontend deploy
 
 - **Classic Firebase Hosting** (`firebase deploy`, `firebase experiments:enable webframeworks`) — not used for production here. This repo targets Next.js 16 on App Hosting; classic Hosting’s Next integration does not match that path.
-- **Netlify** — no longer the production path for this dashboard. Historical `dev` / `prod` Netlify flows are retired in favor of PRs + `main` + App Hosting.
+- **Netlify** — no longer the production path for this dashboard. Historical Netlify `dev` / `prod` site deploys are retired in favor of PRs → `main` → `prod` → App Hosting.
 
 ### Lockfile and dependency changes
 
@@ -271,7 +273,7 @@ npm ci
 npm run build
 ```
 
-Branch protection on `main` requires the **`build`** check to pass before merge. If CI is green, App Hosting should be green too.
+Branch protection on `main` requires the **`build`** check to pass before merge. If CI is green on `main`, the same commit should build cleanly on App Hosting once it lands on `prod`.
 
 **If `npm install` is blocked locally (wrong Node/npm):**
 
