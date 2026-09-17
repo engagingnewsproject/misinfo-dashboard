@@ -191,6 +191,28 @@ To deploy Firebase functions:
 firebase deploy --only functions
 ```
 
+## Firestore security rules
+
+App Hosting deploys the Next.js app only. It does **not** update Firestore (or Storage) security rules. After merging rule changes (e.g. `settings/pipeline`, `settings/pipelinePrompts`), deploy rules from the repo root with the Firebase CLI, targeting project `misinfo-5d004`:
+
+```bash
+# Preview what will change
+firebase deploy --only firestore:rules --project misinfo-5d004 --dry-run
+
+# Ship rules to production
+firebase deploy --only firestore:rules --project misinfo-5d004
+```
+
+Optional: include composite indexes from `firestore.indexes.json`:
+
+```bash
+firebase deploy --only firestore --project misinfo-5d004
+```
+
+You need Firebase/GCP permission to modify Firestore rules on `misinfo-5d004`. Confirm the active project with `firebase use` (or always pass `--project`). Rules file path is set in `firebase.json` → `firestore.rules`.
+
+Local / emulator: `npm run dev` loads `firestore.rules` into the Firestore emulator automatically; no separate rules deploy is needed for emulator work.
+
 #### Firebase Creds
 
 With proper permissions access Firebase Console or Firebase Cloud Console.
