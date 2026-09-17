@@ -11,6 +11,7 @@ import { Button } from '@material-tailwind/react'
 import PageTitle from '../layout/PageTitle'
 import AdminDataTable from './AdminDataTable'
 import PipelineSettings from './PipelineSettings'
+import PipelinePrompts from './PipelinePrompts'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import adminSectionStyles from '../../styles/adminSectionStyles'
 import { fetchPipelineRuns } from '../../utils/fetch-pipeline-runs'
@@ -353,6 +354,10 @@ const Pipeline = ({ fetchRuns = fetchPipelineRuns }) => {
 
 				<div className="mt-8">
 					<PipelineSettings />
+				</div>
+
+				<div className="mt-8">
+					<PipelinePrompts />
 				</div>
 			</div>
 		</div>
