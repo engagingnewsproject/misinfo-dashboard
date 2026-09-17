@@ -114,11 +114,10 @@ export function validatePromptText(key, text) {
 		}
 	}
 
-	// Reject braces that would break Python str.format (unescaped { or }).
-	if (field.requiredPlaceholders.length > 0) {
-		const err = validateFormatPlaceholders(trimmed, field.requiredPlaceholders)
-		if (err) return err
-	}
+	// Always validate braces (even when no placeholders are required). Swing
+	// prompts use Python str.format; election must not introduce stray { } either.
+	const err = validateFormatPlaceholders(trimmed, field.requiredPlaceholders)
+	if (err) return err
 
 	return null
 }

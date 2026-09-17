@@ -88,6 +88,18 @@ describe('validatePromptText', () => {
 			),
 		).toBeNull()
 	})
+
+	it('rejects unbalanced braces on election (no required placeholders)', () => {
+		expect(
+			validatePromptText('electionSystemPrompt', 'Here { is bad'),
+		).toMatch(/Unbalanced/)
+	})
+
+	it('rejects unknown placeholders on election', () => {
+		expect(
+			validatePromptText('electionSystemPrompt', 'Do not use {foo} here'),
+		).toMatch(/Unknown/)
+	})
 })
 
 describe('validateFormatPlaceholders', () => {
