@@ -54,6 +54,34 @@ jest.mock('../../../utils/pipeline-config', () => ({
 	validatePipelineConfig: jest.fn().mockReturnValue(null),
 }))
 
+jest.mock('../../../utils/pipeline-prompts', () => ({
+	PIPELINE_PROMPT_FIELDS: [
+		{
+			key: 'electionSystemPrompt',
+			label: 'Election classification prompt',
+			description: 'Step 3 system prompt.',
+			requiredPlaceholders: [],
+		},
+	],
+	normalizePipelinePrompts: jest.fn().mockReturnValue({
+		electionSystemPrompt: '',
+		swingMultiPrompt: '',
+		swingSinglePrompt: '',
+	}),
+	getPipelinePrompts: jest.fn().mockResolvedValue({
+		electionSystemPrompt: '',
+		swingMultiPrompt: '',
+		swingSinglePrompt: '',
+	}),
+	effectivePromptText: jest.fn().mockReturnValue({
+		text: 'bundled election default',
+		isOverride: false,
+	}),
+	savePipelinePrompts: jest.fn(),
+	clearPromptOverride: jest.fn(),
+	validatePromptText: jest.fn().mockReturnValue(null),
+}))
+
 jest.mock('../../../context/AuthContext', () => ({
 	useAuth: () => ({ user: { uid: 'admin-uid' } }),
 }))
@@ -100,6 +128,13 @@ describe('Pipeline', () => {
 		).toBeInTheDocument()
 		expect(
 			screen.getByText('Import curated articles to Firestore'),
+		).toBeInTheDocument()
+
+		expect(
+			await screen.findByRole('heading', { name: 'LLM prompts' }),
+		).toBeInTheDocument()
+		expect(
+			screen.getByText('Election classification prompt'),
 		).toBeInTheDocument()
 
 		expect(
