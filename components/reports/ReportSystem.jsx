@@ -526,15 +526,24 @@ const ReportSystem = ({
 		// Validate form
 		const newErrors = {}
 		if (!title.trim()) newErrors.title = "Title is required"
-		if (!detail.trim()) newErrors.detail = "Description is required"
+		// Match agency modal + on-screen copy: need link, photo, or detailed description
+		const hasImages = images.length > 0
+		const hasContent = Boolean(detail.trim()) || Boolean(link.trim())
+		if (!hasImages && !hasContent) {
+			newErrors.detail = "Description is required"
+		}
 		if (!selectedAgency) newErrors.agency = "Agency is required"
 		if (!selectedTopic) newErrors.topic = "Topic is required"
 		if (!selectedSource) newErrors.source = "Source is required"
 
 		if (Object.keys(newErrors).length > 0) {
 			setErrors(newErrors)
+			setTitleError(!!newErrors.title)
+			setDetailError(!!newErrors.detail)
 			return
 		}
+		setTitleError(false)
+		setDetailError(false)
 
 		// Submit report
 		await saveReport()
@@ -544,18 +553,27 @@ const ReportSystem = ({
 	 * Handles moving to review step (does not save report)
 	 */
 	const handleReviewStep = async () => {
+		const hasImages = images.length > 0
+		const hasContent = Boolean(detail.trim()) || Boolean(link.trim())
 		// Validate form
 		const newErrors = {}
 		if (!title.trim()) newErrors.title = "Title is required"
-		if (!detail.trim()) newErrors.detail = "Description is required"
+		// Match agency modal + on-screen copy: need link, photo, or detailed description
+		if (!hasImages && !hasContent) {
+			newErrors.detail = "Description is required"
+		}
 		if (!selectedAgency) newErrors.agency = "Agency is required"
 		if (!selectedTopic) newErrors.topic = "Topic is required"
 		if (!selectedSource) newErrors.source = "Source is required"
 
 		if (Object.keys(newErrors).length > 0) {
 			setErrors(newErrors)
+			setTitleError(!!newErrors.title)
+			setDetailError(!!newErrors.detail)
 			return
 		}
+		setTitleError(false)
+		setDetailError(false)
 
 		// Upload images if any are selected; keep URLs in state before leaving this step
 		if (images.length > 0) {
