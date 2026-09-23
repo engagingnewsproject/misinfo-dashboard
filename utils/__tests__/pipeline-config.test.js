@@ -23,6 +23,8 @@ describe('normalizePipelineConfig', () => {
 				minPublicationDate: '2026-06-01',
 				firestoreImportUserId: '  abc123  ',
 				firestoreImportAgencyName: '  Newsroom A  ',
+				maxDomainsTest: '10',
+				jobFilterProcessedUrlsTest: false,
 			}),
 		).toEqual({
 			importToFirestore: false,
@@ -35,6 +37,8 @@ describe('normalizePipelineConfig', () => {
 			minPublicationDate: '2026-06-01',
 			firestoreImportUserId: 'abc123',
 			firestoreImportAgencyName: 'Newsroom A',
+			maxDomainsTest: 10,
+			jobFilterProcessedUrlsTest: false,
 		})
 	})
 
@@ -46,6 +50,8 @@ describe('normalizePipelineConfig', () => {
 				curatedArticleLimit: 'nope',
 				minPublicationDate: '06-01-2026',
 				firestoreImportAgencyName: '   ',
+				maxDomainsTest: 0,
+				jobFilterProcessedUrlsTest: 'yes',
 			}),
 		).toMatchObject({
 			maxDomains: PROD_DEFAULTS.maxDomains,
@@ -53,6 +59,20 @@ describe('normalizePipelineConfig', () => {
 			curatedArticleLimit: PROD_DEFAULTS.curatedArticleLimit,
 			minPublicationDate: PROD_DEFAULTS.minPublicationDate,
 			firestoreImportAgencyName: PROD_DEFAULTS.firestoreImportAgencyName,
+			maxDomainsTest: null,
+			jobFilterProcessedUrlsTest: null,
+		})
+	})
+
+	it('treats empty test-job fields as inherit', () => {
+		expect(
+			normalizePipelineConfig({
+				maxDomainsTest: '',
+				jobFilterProcessedUrlsTest: 'inherit',
+			}),
+		).toMatchObject({
+			maxDomainsTest: null,
+			jobFilterProcessedUrlsTest: null,
 		})
 	})
 })
@@ -65,5 +85,15 @@ describe('validatePipelineConfig', () => {
 	it('rejects empty agency after normalize would fill default', () => {
 		// normalize fills agency; validation runs on normalized values
 		expect(validatePipelineConfig({ firestoreImportAgencyName: '' })).toBeNull()
+	})
+
+	it('rejects invalid maxDomainsTest when provided', () => {
+		expect(validatePipelineConfig({ maxDomainsTest: 0 })).toBe(
+			'Max domains (test job) must be empty or at least 1.',
+		)
+	})
+
+	it('accepts null maxDomainsTest', () => {
+		expect(validatePipelineConfig({ maxDomainsTest: null })).toBeNull()
 	})
 })

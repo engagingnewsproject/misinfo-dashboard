@@ -2,6 +2,10 @@
  * Nightly Truth Sleuth knobs stored in Firestore `settings/pipeline`.
  * Admin read/write from the Pipeline tab; the Cloud Run job applies overrides
  * at startup. Missing fields fall back to the job env (prod defaults below).
+ *
+ * Test-job-only fields (`maxDomainsTest`, `jobFilterProcessedUrlsTest`) apply
+ * only when Cloud Run job name is `truth-sleuth-test`. Null / inherit means
+ * use the shared Scrape knobs.
  */
 
 import { doc, getDoc, setDoc } from 'firebase/firestore'
@@ -24,10 +28,14 @@ export const PROD_DEFAULTS = {
 	minPublicationDate: '2026-01-01',
 	firestoreImportUserId: '',
 	firestoreImportAgencyName: 'Test Agency',
+	/** @type {number | null} */
+	maxDomainsTest: null,
+	/** @type {boolean | null} null = inherit shared jobFilterProcessedUrls */
+	jobFilterProcessedUrlsTest: null,
 }
 
 /**
- * @typedef {'switch' | 'number' | 'date' | 'text'} PipelineSettingType
+ * @typedef {'switch' | 'number' | 'date' | 'text' | 'nullableNumber' | 'triState'} PipelineSettingType
  */
 
 /**
@@ -52,6 +60,8 @@ export const PROD_DEFAULTS = {
  * @property {string} minPublicationDate
  * @property {string} firestoreImportUserId
  * @property {string} firestoreImportAgencyName
+ * @property {number | null} maxDomainsTest
+ * @property {boolean | null} jobFilterProcessedUrlsTest
  */
 
 /** @type {PipelineSettingField[]} */
@@ -109,6 +119,24 @@ export const PIPELINE_SETTING_FIELDS = [
 		description:
 			'Hard cap on curated articles after clustering/dedupe — upper bound on what can reach the dashboard import.',
 		defaultLabel: '200',
+	},
+	{
+		key: 'maxDomainsTest',
+		type: 'nullableNumber',
+		group: 'Test job',
+		label: 'Max domains (test job only)',
+		description:
+			'Optional cap used only when the Cloud Run job is truth-sleuth-test. Leave empty to inherit Max domains above. Does not change nightly.',
+		defaultLabel: '(empty → inherit Max domains)',
+	},
+	{
+		key: 'jobFilterProcessedUrlsTest',
+		type: 'triState',
+		group: 'Test job',
+		label: 'Skip URLs already processed (test job only)',
+		description:
+			'Optional override for truth-sleuth-test only. Inherit uses the shared Skip URLs setting; On/Off apply only to the test job.',
+		defaultLabel: 'inherit',
 	},
 	{
 		key: 'importToFirestore',
@@ -169,6 +197,33 @@ function normalizePositiveInt(value, fallback) {
 	const n = typeof value === 'number' ? value : Number(value)
 	if (!Number.isFinite(n) || n < 1) return fallback
 	return Math.trunc(n)
+}
+
+/**
+ * Optional positive int; empty / invalid → null (inherit shared knob).
+ * @param {unknown} value
+ * @returns {number | null}
+ */
+function normalizeOptionalPositiveInt(value) {
+	if (value === null || value === undefined || value === '') return null
+	const n = typeof value === 'number' ? value : Number(value)
+	if (!Number.isFinite(n) || n < 1) return null
+	return Math.trunc(n)
+}
+
+/**
+ * Tri-state for test-job bool overrides: null = inherit, true/false = override.
+ * @param {unknown} value
+ * @returns {boolean | null}
+ */
+function normalizeTriStateBool(value) {
+	if (value === null || value === undefined || value === '' || value === 'inherit') {
+		return null
+	}
+	if (typeof value === 'boolean') return value
+	if (value === 'true' || value === 'on') return true
+	if (value === 'false' || value === 'off') return false
+	return null
 }
 
 /**
@@ -234,6 +289,10 @@ export function normalizePipelineConfig(raw) {
 		firestoreImportUserId: normalizeText(source.firestoreImportUserId),
 		firestoreImportAgencyName:
 			agencyRaw || PROD_DEFAULTS.firestoreImportAgencyName,
+		maxDomainsTest: normalizeOptionalPositiveInt(source.maxDomainsTest),
+		jobFilterProcessedUrlsTest: normalizeTriStateBool(
+			source.jobFilterProcessedUrlsTest,
+		),
 	}
 }
 
@@ -248,6 +307,18 @@ export function validatePipelineConfig(config) {
 	if (n.maxDomains < 1) return 'Max domains must be at least 1.'
 	if (n.maxLinksPerDomain < 1) return 'Max links per domain must be at least 1.'
 	if (n.curatedArticleLimit < 1) return 'Curated article limit must be at least 1.'
+	if (
+		config &&
+		Object.prototype.hasOwnProperty.call(config, 'maxDomainsTest') &&
+		config.maxDomainsTest !== null &&
+		config.maxDomainsTest !== undefined &&
+		config.maxDomainsTest !== ''
+	) {
+		const raw = Number(config.maxDomainsTest)
+		if (!Number.isFinite(raw) || raw < 1) {
+			return 'Max domains (test job) must be empty or at least 1.'
+		}
+	}
 	if (!DATE_RE.test(n.minPublicationDate)) {
 		return 'Min publication date must be YYYY-MM-DD.'
 	}
