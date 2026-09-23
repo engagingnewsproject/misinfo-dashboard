@@ -1,6 +1,6 @@
 /**
- * Admin controls for nightly Truth Sleuth knobs (Firestore `settings/pipeline`).
- * Changes apply on the next scheduled run; Cloud Run env remains the deploy baseline.
+ * Admin controls for Truth Sleuth knobs (Firestore `settings/pipeline`).
+ * Changes apply on the next job run; Cloud Run env remains the deploy baseline.
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
@@ -23,6 +23,26 @@ import {
  */
 function setField(config, key, value) {
 	return { ...config, [key]: value }
+}
+
+/**
+ * @param {boolean | null} value
+ * @returns {'inherit' | 'on' | 'off'}
+ */
+function triStateToSelect(value) {
+	if (value === true) return 'on'
+	if (value === false) return 'off'
+	return 'inherit'
+}
+
+/**
+ * @param {string} raw
+ * @returns {boolean | null}
+ */
+function selectToTriState(raw) {
+	if (raw === 'on') return true
+	if (raw === 'off') return false
+	return null
 }
 
 const PipelineSettings = () => {
@@ -74,7 +94,9 @@ const PipelineSettings = () => {
 				updatedBy: user?.uid || user?.accountId || '',
 			})
 			setConfig(saved)
-			setStatus('Pipeline settings saved. They apply to the next nightly run.')
+			setStatus(
+				'Pipeline settings saved. They apply to the next job run (nightly or truth-sleuth-test).',
+			)
 		} catch (err) {
 			console.error(err)
 			setStatus(
@@ -95,10 +117,11 @@ const PipelineSettings = () => {
 				Pipeline settings
 			</Typography>
 			<p className="mb-4 text-sm text-gray-600">
-				Day-to-day knobs for the nightly Truth Sleuth job. Saved values live in
-				Firestore and override the Cloud Run env for the next run. The deploy
-				env file remains the baseline (and can still hard-disable Firestore
-				import).
+				Day-to-day knobs for Truth Sleuth. Saved values live in Firestore and
+				override the Cloud Run env for the next run. Shared Scrape / Freshness /
+				Curation fields apply to every job; the Test job group only affects{' '}
+				<code className="text-xs">truth-sleuth-test</code>. The deploy env file
+				remains the baseline (and can still hard-disable Firestore import).
 			</p>
 
 			{loading ? (
@@ -132,6 +155,55 @@ const PipelineSettings = () => {
 													{field.label}
 												</Typography>
 											</div>
+										) : field.type === 'triState' ? (
+											<label className="flex flex-col gap-1.5">
+												<span className="text-sm font-medium text-blue-gray-800">
+													{field.label}
+												</span>
+												<select
+													id={`pipeline-${field.key}`}
+													className="rounded-md border border-blue-gray-200 bg-white px-3 py-2 text-sm text-blue-gray-800"
+													value={triStateToSelect(
+														/** @type {boolean | null} */ (value),
+													)}
+													onChange={(e) =>
+														setConfig((prev) =>
+															setField(
+																prev,
+																field.key,
+																selectToTriState(e.target.value),
+															),
+														)
+													}>
+													<option value="inherit">Inherit (shared setting)</option>
+													<option value="on">On</option>
+													<option value="off">Off</option>
+												</select>
+											</label>
+										) : field.type === 'nullableNumber' ? (
+											<FormInput
+												id={`pipeline-${field.key}`}
+												label={field.label}
+												type="number"
+												value={value == null ? '' : String(value)}
+												onChange={(e) => {
+													const raw = e.target.value.trim()
+													if (raw === '') {
+														setConfig((prev) => setField(prev, field.key, null))
+														return
+													}
+													const n = Number(raw)
+													setConfig((prev) =>
+														setField(
+															prev,
+															field.key,
+															Number.isFinite(n) ? n : prev[field.key],
+														),
+													)
+												}}
+												min={1}
+												placeholder="Leave empty to inherit"
+											/>
 										) : (
 											<FormInput
 												id={`pipeline-${field.key}`}
