@@ -13,6 +13,7 @@ describe('normalizePipelinePrompts', () => {
 			electionSystemPrompt: '',
 			swingMultiPrompt: '',
 			swingSinglePrompt: '',
+			meatinessPrompt: '',
 		})
 	})
 
@@ -26,6 +27,7 @@ describe('normalizePipelinePrompts', () => {
 			electionSystemPrompt: 'a\nb',
 			swingMultiPrompt: '  keep  ',
 			swingSinglePrompt: '',
+			meatinessPrompt: '',
 		})
 	})
 })
@@ -86,6 +88,18 @@ describe('validatePromptText', () => {
 				'electionSystemPrompt',
 				PROMPT_DEFAULTS.electionSystemPrompt,
 			),
+		).toBeNull()
+	})
+
+	it('requires state for meatiness', () => {
+		expect(validatePromptText('meatinessPrompt', 'no placeholder here')).toMatch(
+			/\{state\}/,
+		)
+	})
+
+	it('accepts bundled meatiness default', () => {
+		expect(
+			validatePromptText('meatinessPrompt', PROMPT_DEFAULTS.meatinessPrompt),
 		).toBeNull()
 	})
 

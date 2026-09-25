@@ -67,11 +67,13 @@ jest.mock('../../../utils/pipeline-prompts', () => ({
 		electionSystemPrompt: '',
 		swingMultiPrompt: '',
 		swingSinglePrompt: '',
+		meatinessPrompt: '',
 	}),
 	getPipelinePrompts: jest.fn().mockResolvedValue({
 		electionSystemPrompt: '',
 		swingMultiPrompt: '',
 		swingSinglePrompt: '',
+		meatinessPrompt: '',
 	}),
 	effectivePromptText: jest.fn().mockReturnValue({
 		text: 'bundled election default',
