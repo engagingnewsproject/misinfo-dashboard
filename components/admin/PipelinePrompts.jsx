@@ -119,10 +119,10 @@ const PipelinePrompts = () => {
 				LLM prompts
 			</Typography>
 			<p className="mb-4 text-sm text-gray-600">
-				System prompts used by the nightly Truth Sleuth job for election and
-				swing-state classification. View the live text below. Admins can edit and
-				save; changes apply to the next nightly run. Empty / reset uses the job
-				repo default.
+				System prompts used by the nightly Truth Sleuth job for election
+				classification, swing-state relevance, and meatiness ranking. View the live
+				text below. Admins can edit and save; changes apply to the next nightly run.
+				Empty / reset uses the job repo default.
 			</p>
 
 			{loading ? (
