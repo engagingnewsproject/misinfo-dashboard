@@ -29,9 +29,11 @@ const {initializeApp} = require("firebase-admin/app");
 initializeApp();
 
 const axios = require("axios");
+const {sendHelpRequestEmail} = require("./help-request-email");
 
 // Define the Slack Webhook URL secret
 const slackWebhook = defineSecret("SLACK_WEBHOOK_URL");
+const sendgridApiKey = defineSecret("SENDGRID_API_KEY");
 
 /**
  * Posts a formatted message to Slack with user information and help request details.
@@ -112,31 +114,36 @@ const postToSlack = async (
 };
 
 /**
- * Firestore trigger that sends Slack notifications when new help requests are created.
+ * Firestore trigger that notifies Slack and emails the CME inbox when new
+ * help requests are created.
  * 
  * This function is automatically triggered whenever a new document is created
  * in the 'helpRequests' collection. It fetches user information from the
- * 'mobileUsers' collection and sends a formatted notification to Slack.
+ * 'mobileUsers' collection, posts a formatted notification to Slack, and
+ * emails the request to mediaengagement@austin.utexas.edu via SendGrid.
+ * Slack and email are sent independently so one failing never blocks the other.
  * 
  * @type {Function}
  * @param {Object} snap - Firestore document snapshot
  * @param {Object} snap.data - The help request data
  * @param {string} snap.data.userID - The user's ID
+ * @param {string} snap.data.email - Submitter email saved by the client
  * @param {string} snap.data.subject - Help request subject
  * @param {string} snap.data.message - Help request message
  * @param {Array} snap.data.images - Array of image URLs
- * @returns {Promise<void>} Resolves when notification is sent
+ * @param {Object} snap.data.createdDate - Firestore Timestamp of submission
+ * @returns {Promise<void>} Resolves when both notifications have settled
  * @example
  * // Triggered automatically when a new help request is created
  */
 exports.notifySlackOnNewHelpRequest = functions
-    .runWith({secrets: [slackWebhook]})
+    .runWith({secrets: [slackWebhook, sendgridApiKey]})
     .firestore.document("helpRequests/{requestId}")
-    .onCreate(async (snap) => {
+    .onCreate(async (snap, context) => {
       const newRequest = snap.data();
       const userID = newRequest.userID || "unknown user";
       let userName = "Unknown";
-      let userEmail = "No email provided";
+      let userEmail = newRequest.email || "No email provided";
       let userRole = "No role specified";
 
       // Fetch user data if the userID is valid
@@ -149,8 +156,7 @@ exports.notifySlackOnNewHelpRequest = functions
           userEmail = userData.email || userEmail;
           userRole = userData.userRole || userRole;
         } else {
-          console.log("User not found");
-          return; // Optionally exit if no user info is available
+          console.log("User not found in mobileUsers:", userID);
         }
       }
 
@@ -162,20 +168,40 @@ exports.notifySlackOnNewHelpRequest = functions
         newRequest.images[0] :
         "https://placehold.co/600x400";
 
-      // Secret is mounted at runtime; runWith({ secrets }) grants the
-      // default compute SA secretAccessor on this secret during deploy.
-      const slackHook = slackWebhook.value();
-      // Post the message to Slack using the Secret Webhook URL
-      await postToSlack(
+      // Secrets are mounted at runtime; runWith({ secrets }) grants the
+      // default compute SA secretAccessor on these secrets during deploy.
+      const [slackResult, emailResult] = await Promise.allSettled([
+        postToSlack(
+            userID,
+            userName,
+            userEmail,
+            userRole,
+            subject,
+            messageText,
+            imageUrl,
+            slackWebhook.value(),
+        ),
+        sendHelpRequestEmail({
+          requestId: context.params.requestId,
           userID,
           userName,
           userEmail,
           userRole,
           subject,
           messageText,
-          imageUrl,
-          slackHook,
-      );
+          images: newRequest.images || [],
+          createdDate: newRequest.createdDate,
+        }, sendgridApiKey.value()),
+      ]);
+
+      if (slackResult.status === "rejected") {
+        console.error("Help request Slack notification failed:",
+            slackResult.reason?.message);
+      }
+      if (emailResult.status === "rejected") {
+        console.error("Help request email failed:",
+            emailResult.reason?.response?.body || emailResult.reason?.message);
+      }
     });
 
 /**
