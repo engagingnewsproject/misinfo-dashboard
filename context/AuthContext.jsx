@@ -17,6 +17,7 @@ import { createContext, useContext, useEffect, useState, useMemo, useCallback } 
 import { 
     createUserWithEmailAndPassword,
     onAuthStateChanged,
+    onIdTokenChanged,
     signInWithEmailAndPassword,
     reauthenticateWithCredential,
     updatePassword,
@@ -41,6 +42,36 @@ import LoadingSpinner from '../components/ui/LoadingSpinner'
  * @type {React.Context<Object>}
  */
 const AuthContext = createContext({})
+
+export const SESSION_SYNC_FAILED = 'session/sync-failed'
+
+// Login, logout and the token listener fire for the same change; share the in-flight request.
+let lastSessionSync = null
+
+async function syncServerSession(firebaseUser) {
+    const idToken = firebaseUser ? await firebaseUser.getIdToken() : null
+    if (lastSessionSync?.idToken === idToken) return lastSessionSync.promise
+
+    const request = idToken
+        ? {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken }),
+        }
+        : { method: 'DELETE' }
+    const promise = fetch('/api/session', request)
+        .then((res) => {
+            if (!res.ok) throw new Error(`/api/session responded ${res.status}`)
+        })
+        .catch((cause) => {
+            if (lastSessionSync?.promise === promise) lastSessionSync = null
+            const error = new Error('Could not sync the server session', { cause })
+            error.code = SESSION_SYNC_FAILED
+            throw error
+        })
+    lastSessionSync = { idToken, promise }
+    return promise
+}
 
 /**
  * Custom hook to access the authentication context.
@@ -214,6 +245,14 @@ export const AuthContextProvider = ({children}) => {
         return () => unsubscribe()
     }, [])
 
+    useEffect(() => {
+        return onIdTokenChanged(auth, (firebaseUser) => {
+            syncServerSession(firebaseUser).catch((error) => {
+                console.warn('Server session sync failed:', error)
+            })
+        })
+    }, [])
+
     // Firebase Cloud Functions for user management - only when functions is available (browser); null during SSR/build
     const noopCallable = () => Promise.reject(new Error('Functions not available'))
     const callables = useMemo(() => {
@@ -345,8 +384,15 @@ export const AuthContextProvider = ({children}) => {
      * @example
      * const userCredential = await login('user@example.com', 'password123');
      */
-    const login = (email, password) => {
-        return signInWithEmailAndPassword(auth, email, password);
+    const login = async (email, password) => {
+        const credential = await signInWithEmailAndPassword(auth, email, password)
+        try {
+            await syncServerSession(credential.user)
+        } catch (error) {
+            await signOut(auth)
+            throw error
+        }
+        return credential
     }
 
     /**
@@ -358,7 +404,10 @@ export const AuthContextProvider = ({children}) => {
      */
     const logout = async () => {
         setUser(null)
-        return signOut(auth);
+        await signOut(auth)
+        await syncServerSession(null).catch((error) => {
+            console.warn('Server session clear failed:', error)
+        })
     }
 
     /**
