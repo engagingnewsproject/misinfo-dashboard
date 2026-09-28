@@ -48,7 +48,7 @@ import FormInput from '../components/ui/FormInput'
 // Dev-only UI: conditional require so production client bundles can tree-shake it away.
 const DevLoginShortcuts =
 	process.env.NODE_ENV === 'development'
-		? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+		? // eslint-disable-next-line global-require
 			require('../components/dev/DevLoginShortcuts').default
 		: null
 

@@ -12,7 +12,7 @@
 		"build": "next build --webpack && node scripts/copy-public-to-standalone.js",
 		"start": "next start",
 		"start:standalone": "node .next/standalone/server.js",
-		"lint": "next lint",
+		"lint": "eslint . --ext .js,.jsx,.ts,.tsx",
 		"test": "jest",
 		"test:watch": "jest --watch",
 		"lockfile:ci": "./scripts/lockfile-ci.sh ci",
