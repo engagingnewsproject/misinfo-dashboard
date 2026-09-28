@@ -50,6 +50,9 @@ echo "Starting Next.js development server..."
 echo ""
 echo ">>> Open the app at http://localhost:3000 (not the Hosting emulator URL)."
 echo ""
+# For the Admin SDK in the Next server only; exported after emulators:start on purpose.
+export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
+export FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099
 npx next dev --webpack
 
 # Wait for the Next.js server to exit before continuing
