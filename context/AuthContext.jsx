@@ -361,6 +361,12 @@ export const AuthContextProvider = ({ children, initialAuth }) => {
         return credential
     }
 
+    // For a client user who arrives without a server cookie; shares the listener's in-flight sync.
+    const ensureServerSession = useCallback(
+        () => syncServerSession(auth.currentUser),
+        [],
+    )
+
     /**
      * Signs out the current user and clears local state.
      * 
@@ -588,6 +594,7 @@ export const AuthContextProvider = ({ children, initialAuth }) => {
             setCustomClaims,
             functionsReady: !!functionsInstance,
             login,
+            ensureServerSession,
             signup,
             logout,
             resetPassword,
