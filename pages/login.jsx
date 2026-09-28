@@ -23,7 +23,7 @@
 import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useAuth } from '../context/AuthContext'
+import { SESSION_SYNC_FAILED, useAuth } from '../context/AuthContext'
 import { db, auth } from '../config/firebase'
 import {
 	DEFAULT_LOGIN_BLURB,
@@ -155,6 +155,9 @@ const Login = () => {
 			setError(t('not_found'))
 		} else if (err.code === 'auth/wrong-password') {
 			setError(t('incorrect'))
+		} else if (err.code === SESSION_SYNC_FAILED) {
+			console.warn(err)
+			setError(t('session_sync_failed'))
 		} else if (err.code === 'auth/network-request-failed') {
 			setError(
 				process.env.NEXT_PUBLIC_USE_EMULATORS === 'true'
