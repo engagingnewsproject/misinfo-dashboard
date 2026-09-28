@@ -13,7 +13,7 @@ export default function handler(req, res) {
 	}
 
 	// Dynamic require so production builds don't need this module at runtime.
-	// eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+	// eslint-disable-next-line global-require
 	const {
 		isLocalDevRequest,
 		readDevLoginCreds,

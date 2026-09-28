@@ -15,13 +15,17 @@ jest.mock('next-i18next', () => ({
 				editEmail: 'Edit email',
 				resetPassword: 'Reset password',
 				editPassword: 'Edit password',
-			}[key] || key),
+			})[key] || key,
 	}),
 }))
 
-jest.mock('../../partials/forms/LocationUpdate', () => () => (
-	<div data-testid="location-update" />
-))
+jest.mock(
+	'../../partials/forms/LocationUpdate',
+	() =>
+		function LocationUpdate() {
+			return <div data-testid="location-update" />
+		},
+)
 
 function renderForm(isAgency) {
 	const onEditEmail = jest.fn()
