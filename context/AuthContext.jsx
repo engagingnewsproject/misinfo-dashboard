@@ -13,7 +13,7 @@
  * @requires react
  */
 
-import { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { 
     createUserWithEmailAndPassword,
     onAuthStateChanged,
@@ -35,6 +35,7 @@ import { auth, app, db } from '../config/firebase'
 import { getDoc, doc, setDoc } from "firebase/firestore";
 import moment from 'moment'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
+import { initialAuthState, normalizeCustomClaims } from '../lib/session'
 
 /**
  * Authentication Context for managing user state and authentication operations.
@@ -99,56 +100,18 @@ export const useAuth = () => useContext(AuthContext)
  *   <App />
  * </AuthContextProvider>
  */
-export const AuthContextProvider = ({children}) => {
+export const AuthContextProvider = ({ children, initialAuth }) => {
 
-    const [user, setUser] = useState(null)
-    const [loading, setLoading] = useState(true)
+    const [seed] = useState(() => initialAuthState(initialAuth))
+    const [user, setUser] = useState(seed.user)
+    const [loading, setLoading] = useState(seed.loading)
     /** False until the first ID-token claims read finishes (or sign-out clears them). */
-    const [claimsReady, setClaimsReady] = useState(false)
+    const [claimsReady, setClaimsReady] = useState(seed.claimsReady)
+    const [clientAuthReady, setClientAuthReady] = useState(false)
     const [userRole, setUserRole] = useState('user')
-    const [customClaims, setCustomClaims] = useState({
-        agency: false,
-        admin: false,
-        agencyId: null,
-        agencyName: null,
-    })
-
-    /**
-     * Normalizes Auth token claims into the shape the app consumes.
-     *
-     * @param {Record<string, unknown>|undefined|null} claims
-     * @returns {{admin: boolean, agency: boolean, agencyId: string|null, agencyName: string|null}}
-     */
-    const normalizeCustomClaims = (claims) => {
-        if (claims?.admin) {
-            return {
-                admin: true,
-                agency: false,
-                agencyId: null,
-                agencyName: null,
-            }
-        }
-        if (claims?.agency) {
-            return {
-                admin: false,
-                agency: true,
-                agencyId:
-                    typeof claims.agencyId === 'string' && claims.agencyId
-                        ? claims.agencyId
-                        : null,
-                agencyName:
-                    typeof claims.agencyName === 'string' && claims.agencyName
-                        ? claims.agencyName
-                        : null,
-            }
-        }
-        return {
-            admin: false,
-            agency: false,
-            agencyId: null,
-            agencyName: null,
-        }
-    }
+    const [customClaims, setCustomClaims] = useState(seed.customClaims)
+    // Server-verified uid; its seeded claims stay valid until the client re-reads them.
+    const seededUid = useRef(seed.user?.accountId ?? null)
 
     // Functions instance created on the client so callables work (avoids null during SSR).
     // If the SDK throws "Service functions is not available" (e.g. in some Next.js/build envs), we degrade gracefully.
@@ -192,6 +155,9 @@ export const AuthContextProvider = ({children}) => {
      */
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
+            const keepSeededClaims = !!user && seededUid.current === user.uid
+            seededUid.current = null
+            setClientAuthReady(true)
             if (user) {
                 // Set auth user immediately so login → /dashboard is not bounced by
                 // ProtectedRoute while Firestore/App Check are still warming up.
@@ -205,7 +171,7 @@ export const AuthContextProvider = ({children}) => {
                     displayName: user.displayName,
                     email: user.email,
                 })
-                setClaimsReady(false)
+                if (!keepSeededClaims) setClaimsReady(false)
                 setLoading(false)
 
                 // Custom claims (includes agencyId) — non-blocking
@@ -617,6 +583,7 @@ export const AuthContextProvider = ({children}) => {
             user,
             loading,
             claimsReady,
+            clientAuthReady,
             customClaims,
             setCustomClaims,
             functionsReady: !!functionsInstance,
