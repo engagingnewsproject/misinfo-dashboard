@@ -23,6 +23,7 @@
     "not_found": "No se encontró una cuenta con el correo electrónico proporcionado. Haz clic en el enlace de registro abajo.",
     "error": "Se ha producido un error al iniciar sesión.",
     "session_sync_failed": "No pudimos completar el inicio de sesión. Inténtelo de nuevo.",
+    "signing_in": "Iniciando sesión…",
     "emulator_mode_banner": "Los emuladores locales de Firebase están activos. Use las cuentas de prueba del README, no contraseñas de producción. Para iniciar sesión en producción, detenga este servidor y ejecute npm run dev:live.",
     "login_network_emulator": "No se puede acceder al emulador de Auth (puerto 9099). Espere a que npm run dev indique que el emulador está listo, o use npm run dev:live para Firebase de producción.",
     "login_network_live": "No se pudo conectar con Firebase (red). Compruebe su conexión, VPN y la configuración de App Check / token de depuración.",

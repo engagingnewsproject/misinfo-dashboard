@@ -3,7 +3,6 @@
  *
  * This component provides a UI switch to mark a report as read or unread.
  * Features include:
- * - Fetching report and reporter data from Firestore
  * - Updating the "read" status of a report in Firestore
  * - Visual feedback with icons and text for read/unread state
  * - Accessible and responsive toggle UI
@@ -18,72 +17,38 @@
  * @since 2024
  */
 import { useEffect, useState } from "react"
-import { useRouter } from "next/router"
-import { getDoc, doc, updateDoc, collection } from "firebase/firestore"
+import { doc, updateDoc } from "firebase/firestore"
 import { db } from "../../config/firebase"
 import { Switch } from "@headlessui/react"
 import { MdMarkAsUnread, MdMarkEmailRead } from "react-icons/md"
-
-const dbInstance = collection(db, 'FKSpyOwuX6JoYF1fyv6b');
 
 /**
  * SwitchRead Component
  *
  * Renders a toggle switch for marking a report as read or unread.
- * Fetches report data, updates Firestore, and provides visual feedback.
  *
  * @param {Object} props
  * @param {string} props.setReportModalId - The ID of the report to toggle
+ * @param {boolean} [props.read] - The report's current "read" field
+ * @param {boolean} [props.disabled]
  * @returns {JSX.Element} The rendered read/unread toggle UI
  */
-export default function SwitchRead({ setReportModalId }) {
-	const [info, setInfo] = useState({})
-	const [reporterInfo, setReporterInfo] = useState({})
-	const [reportRead, setReportRead] = useState("")
-	const router = useRouter()
+export default function SwitchRead({ setReportModalId, read = false, disabled = false }) {
+	const [reportRead, setReportRead] = useState(!!read)
 	const reportId = setReportModalId
-	// Get firebase data
-	const getData = async () => {
-		// Reference to the firebase data
-		const infoRef = await getDoc(doc(db, "reports", reportId))
-		const reportData = infoRef.data() || {}
-		setInfo(reportData)
-		const submitterUid = reportData.userID
-		if (submitterUid) {
-			getDoc(doc(db, "mobileUsers", submitterUid)).then((mobileRef) =>
-				setReporterInfo(mobileRef.exists() ? mobileRef.data() : {})
-			)
-		} else {
-			setReporterInfo({})
-		}
-	}
 
-	/**
-	 * getData - Fetches report and reporter data from Firestore and updates state.
-	 */
 	useEffect(() => {
-		getData()
-	}, [])
+		setReportRead(!!read)
+	}, [read])
 
-	// Set the "read" field on firebase
-	useEffect(() => {
-		// If firebase info: read field changes set to the value
-		if (info["read"]) {
-			setReportRead(info["read"])
+	async function handleReadChange(checked) {
+		setReportRead(checked)
+		try {
+			await updateDoc(doc(db, "reports", reportId), { read: checked })
+		} catch (error) {
+			console.error("Error updating read status:", error)
+			setReportRead(!checked)
 		}
-	}, [info])
-
-	/**
-	 * handleReadChange - Handles toggling the read status and updates Firestore.
-	 * @param {boolean} e - The current read state
-	 */
-	async function handleReadChange(e) {
-		// Toggle the switch value (true/false)
-		e === !e
-		// Set a reference to the firebase doc.
-		const docRef = doc(db, "reports", reportId)
-		// Update firebase doc "read" field
-		await updateDoc(docRef, { read: !e })
 	}
 
 	return (
@@ -102,15 +67,12 @@ export default function SwitchRead({ setReportModalId }) {
 			</div>
 			<div className="text-md font-light flex gap-2">
 				<Switch
-					// Set checked to the initial reportRead value (false)
 					checked={reportRead}
-					// When switch toggled setReportRead
-					onChange={setReportRead}
-					// On click handler
-					onClick={() => setReportRead(handleReadChange)}
+					onChange={handleReadChange}
+					disabled={disabled}
 					className={`${
 						reportRead ? "bg-blue-600" : "bg-gray-200"
-					} relative inline-flex h-6 w-11 items-center rounded-full`}>
+					} relative inline-flex h-6 w-11 items-center rounded-full disabled:cursor-not-allowed`}>
 					<span className="sr-only">Mark me</span>
 					<span
 						aria-hidden="true"

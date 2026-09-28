@@ -21,7 +21,7 @@
  */
 import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
-import { getDoc, doc, updateDoc } from 'firebase/firestore'
+import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../../../config/firebase'
 import {
 	buildLabelOptions,
@@ -32,9 +32,9 @@ import {
 } from '../../../config/labels'
 import {
 	addAgencyCustomLabel,
+	agencyLabelsFromTagsDoc,
 	fetchAgencyActiveLabels,
-	fetchAgencyLabelColors,
-	resolveAgencyIdForReport,
+	knownAgencyIdForReport,
 } from '../../../utils/label-tags'
 import { RiMessage2Fill } from 'react-icons/ri'
 import { BiEditAlt } from 'react-icons/bi'
@@ -53,9 +53,16 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
 import { useAuth } from '../../../context/AuthContext'
 import {
-	fetchMergedTagLabelMapForAgencyId,
+	buildMergedAgencyTagLabelMap,
 	getTagLabel,
+	normalizeTagDefaults,
+	TAG_DEFAULTS_DOC_PATH,
 } from '../../../utils/tag-defaults'
+import { adminDb } from '../../../lib/firebase-admin'
+import { getSession } from '../../../lib/server-session'
+import { reportPageResult } from '../../../lib/report-access'
+import { serializeFirestore } from '../../../lib/serialize-firestore'
+import { toInitialAuth } from '../../../lib/session'
 
 /**
  * ReportDetails Page
@@ -65,23 +72,29 @@ import {
  *
  * @returns {JSX.Element} The rendered report details page
  */
-const ReportDetails = () => {
+const ReportDetails = ({ initialReport }) => {
 	const router = useRouter()
 	const { t, i18n } = useTranslation('NewReport')
-	const { customClaims } = useAuth()
-	const [info, setInfo] = useState({})
-	const [reporterInfo, setReporterInfo] = useState({})
+	const { clientAuthReady } = useAuth()
+	const [info, setInfo] = useState(initialReport.info)
+	const [reporterInfo, setReporterInfo] = useState(initialReport.reporterInfo)
 	const [postedDate, setPostedDate] = useState('')
-	const [selectedLabel, setSelectedLabel] = useState(DEFAULT_REPORT_LABEL)
+	const [selectedLabel, setSelectedLabel] = useState(
+		initialReport.info.label || DEFAULT_REPORT_LABEL,
+	)
 	const [changeStatus, setChangeStatus] = useState('')
 	const [update, setUpdate] = useState('')
-	const [modalAgencyLabels, setModalAgencyLabels] = useState([])
-	const [modalAgencyId, setModalAgencyId] = useState('')
-	const [agencyLabelColors, setAgencyLabelColors] = useState({})
+	const [modalAgencyLabels, setModalAgencyLabels] = useState(
+		initialReport.agencyLabels,
+	)
+	const [modalAgencyId, setModalAgencyId] = useState(initialReport.agencyId)
+	const [agencyLabelColors, setAgencyLabelColors] = useState(
+		initialReport.agencyLabelColors,
+	)
 	const [otherLabelDraft, setOtherLabelDraft] = useState('')
 	const [otherLabelError, setOtherLabelError] = useState('')
 	const [shareReportModal, setShareReportModal] = useState(false)
-	const [tagLabelMap, setTagLabelMap] = useState({})
+	const [tagLabelMap, setTagLabelMap] = useState(initialReport.tagLabelMap)
 
 	const { reportId } = router.query
 	const linkStyle = 'font-light mb-1 text-sm underline underline-offset-1'
@@ -90,47 +103,6 @@ const ReportDetails = () => {
 		const currentLabel = info?.label || DEFAULT_REPORT_LABEL
 		return buildLabelOptions(modalAgencyLabels, currentLabel)
 	}, [modalAgencyLabels, info?.label])
-
-	const getData = async () => {
-		const infoRef = await getDoc(doc(db, 'reports', reportId))
-		const reportData = infoRef.data() || {}
-		setInfo(reportData)
-		const reportLabel = reportData.label || DEFAULT_REPORT_LABEL
-		setSelectedLabel(reportLabel)
-		setOtherLabelDraft('')
-		setOtherLabelError('')
-
-		const submitterUid = reportData.userID
-		if (submitterUid) {
-			getDoc(doc(db, 'mobileUsers', submitterUid)).then((mobileRef) => {
-				setReporterInfo(mobileRef.exists() ? mobileRef.data() : {})
-			})
-		} else {
-			setReporterInfo({})
-		}
-
-		const resolvedAgencyId = await resolveAgencyIdForReport(
-			reportData,
-			customClaims?.agencyId,
-		)
-		setModalAgencyId(resolvedAgencyId || '')
-		try {
-			const map = await fetchMergedTagLabelMapForAgencyId(resolvedAgencyId)
-			setTagLabelMap(map)
-		} catch (err) {
-			console.error('Error loading tag labels for report details:', err)
-			setTagLabelMap({})
-		}
-		if (resolvedAgencyId) {
-			const labels = await fetchAgencyActiveLabels(resolvedAgencyId)
-			setModalAgencyLabels(labels)
-			const colors = await fetchAgencyLabelColors(resolvedAgencyId)
-			setAgencyLabelColors(colors)
-		} else {
-			setModalAgencyLabels([])
-			setAgencyLabelColors({})
-		}
-	}
 
 	const handleNotesChange = (e) => {
 		if (e.target.value != info['note']) {
@@ -231,12 +203,6 @@ const ReportDetails = () => {
 	}
 
 	useEffect(() => {
-		if (reportId) {
-			getData()
-		}
-	}, [reportId])
-
-	useEffect(() => {
 		if (info?.createdDate) {
 			const options = {
 				day: '2-digit',
@@ -246,8 +212,7 @@ const ReportDetails = () => {
 				minute: 'numeric',
 			}
 			setPostedDate(
-				info.createdDate
-					.toDate()
+				new Date(info.createdDate)
 					.toLocaleString('en-US', options)
 					.replace(/,/g, '')
 					.replace('at', ''),
@@ -320,6 +285,7 @@ const ReportDetails = () => {
 							selectedLabel={selectedLabel || DEFAULT_REPORT_LABEL}
 							agencyLabelColors={agencyLabelColors}
 							onLabelChange={handleLabelChange}
+							disabled={!clientAuthReady}
 						/>
 						{selectedLabel === OTHER_LABEL && (
 							<div className="mt-3">
@@ -337,6 +303,7 @@ const ReportDetails = () => {
 										}
 									}}
 									maxLength={CUSTOM_LABEL_MAX_LENGTH}
+									disabled={!clientAuthReady}
 									className="bg-white"
 								/>
 								{otherLabelError && (
@@ -387,7 +354,11 @@ const ReportDetails = () => {
 							<div className="text-md font-light">{postedDate}</div>
 						</div>
 						<div className="flex flex-row mb-3 items-center">
-							<SwitchRead setReportModalId={reportId} />
+							<SwitchRead
+								setReportModalId={reportId}
+								read={info.read}
+								disabled={!clientAuthReady}
+							/>
 						</div>
 					</div>
 					<div className="mb-8">
@@ -442,7 +413,8 @@ const ReportDetails = () => {
 							id="notes"
 							label="Newsroom's Notes"
 							onChange={handleNotesChange}
-							className="bg-white mb-12"
+							className="bg-white"
+							containerProps={{ className: 'mb-12' }}
 							rows={4}
 							defaultValue={info['note']}
 						/>
@@ -455,7 +427,8 @@ const ReportDetails = () => {
 								</button>
 								<button
 									onClick={saveChanges}
-									className="bg-white hover:bg-blue-500 hover:text-white text-sm text-[#2E3B4E] font-bold ml-4 py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
+									disabled={!clientAuthReady}
+									className="disabled:pointer-events-none bg-white hover:bg-blue-500 hover:text-white text-sm text-[#2E3B4E] font-bold ml-4 py-1.5 px-6 rounded-md focus:outline-none focus:shadow-outline"
 									type="submit">
 									Save Changes
 								</button>
@@ -466,9 +439,8 @@ const ReportDetails = () => {
 						<div className={`${globalStyles.heading.h2.black} mb-2`}>
 							Images
 						</div>
-						{console.log(info['images'])}
 						{info['images'] && info['images'][0] ? (
-							<div className="flex">
+							<div className="flex flex-wrap gap-y-2">
 								{info['images'].map((image, i) => {
 									return (
 										<div className="mr-2" key={i}>
@@ -503,11 +475,80 @@ const ReportDetails = () => {
 	)
 }
 
-export default ReportDetails
+// State is seeded from props once and the notes field is uncontrolled, so remount per report.
+export default function ReportDetailsPage(props) {
+	const { query } = useRouter()
+	return <ReportDetails key={query.reportId} {...props} />
+}
 
-export async function getServerSideProps({ locale }) {
+export async function getServerSideProps({
+	req,
+	res,
+	params,
+	locale,
+	defaultLocale,
+	resolvedUrl,
+}) {
+	res.setHeader('Cache-Control', 'private, no-store')
+	const session = await getSession(req)
+	const reportSnap = session
+		? await adminDb.collection('reports').doc(params.reportId).get()
+		: null
+	const report = reportSnap?.data()
+	const result = reportPageResult({
+		session,
+		report,
+		resolvedUrl,
+		locale,
+		defaultLocale,
+	})
+	if (!result.allowed) {
+		return result
+	}
+
+	const initialAuth = toInitialAuth(session)
+	const knownAgencyId = knownAgencyIdForReport(
+		report,
+		initialAuth.claims.agencyId,
+	)
+	const agencyIdPromise =
+		knownAgencyId || !report.agency
+			? Promise.resolve(knownAgencyId)
+			: adminDb
+					.collection('agency')
+					.where('name', '==', report.agency)
+					.limit(1)
+					.get()
+					.then((snap) => snap.docs[0]?.id ?? '')
+	const [reporterSnap, defaultsSnap, agencyId, agencyTagsSnap] =
+		await Promise.all([
+			report.userID
+				? adminDb.collection('mobileUsers').doc(report.userID).get()
+				: null,
+			adminDb.doc(TAG_DEFAULTS_DOC_PATH.join('/')).get(),
+			agencyIdPromise,
+			agencyIdPromise.then((id) =>
+				id ? adminDb.collection('tags').doc(id).get() : null,
+			),
+		])
+	const reporter = reporterSnap?.data()
+	const agencyTagsDoc = agencyTagsSnap?.data()
+	const agencyLabels = agencyLabelsFromTagsDoc(agencyTagsDoc)
+
 	return {
 		props: {
+			initialAuth,
+			initialReport: serializeFirestore({
+				info: report,
+				reporterInfo: { name: reporter?.name, email: reporter?.email },
+				agencyId,
+				agencyLabels: agencyLabels.active,
+				agencyLabelColors: agencyLabels.colors,
+				tagLabelMap: buildMergedAgencyTagLabelMap(
+					normalizeTagDefaults(defaultsSnap.data()),
+					agencyTagsDoc,
+				),
+			}),
 			...(await serverSideTranslations(locale, [
 				'Home',
 				'Report',

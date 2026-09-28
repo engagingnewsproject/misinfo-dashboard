@@ -24,6 +24,7 @@ import LabelOptionWithDot from './LabelOptionWithDot'
  * @param {string} props.selectedLabel
  * @param {Record<string, string>} [props.agencyLabelColors]
  * @param {(e: { preventDefault: () => void, target: { value: string } }) => void} props.onLabelChange
+ * @param {boolean} [props.disabled]
  */
 const LabelSelectMenu = ({
 	id = 'labels',
@@ -31,6 +32,7 @@ const LabelSelectMenu = ({
 	selectedLabel,
 	agencyLabelColors = {},
 	onLabelChange,
+	disabled = false,
 }) => {
 	const [openMenu, setOpenMenu] = useState(false)
 	const resolvedLabel = selectedLabel || DEFAULT_REPORT_LABEL
@@ -50,9 +52,11 @@ const LabelSelectMenu = ({
 				<Button
 					id={id}
 					type="button"
+					disabled={disabled}
 					variant="text"
 					size="sm"
-					className="flex items-center gap-2 text-sm normal-case px-8 py-1 rounded-md shadow hover:shadow-none"
+					// Only disabled briefly (until client auth is ready), so don't flash a dimmed pill.
+					className="flex items-center gap-2 text-sm normal-case px-8 py-1 rounded-md shadow hover:shadow-none disabled:opacity-100 disabled:shadow"
 					style={handlerStyle}
 					aria-haspopup="listbox"
 					aria-expanded={openMenu}>
