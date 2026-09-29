@@ -25,6 +25,7 @@ export const PROD_DEFAULTS = {
 	maxDomains: 6000,
 	maxLinksPerDomain: 10,
 	curatedArticleLimit: 200,
+	firestoreImportMaxPerState: 5,
 	minPublicationDate: '2026-01-01',
 	firestoreImportUserId: '',
 	firestoreImportAgencyName: 'Test Agency',
@@ -59,6 +60,7 @@ export const PROD_DEFAULTS = {
  * @property {number} maxDomains
  * @property {number} maxLinksPerDomain
  * @property {number} curatedArticleLimit
+ * @property {number} firestoreImportMaxPerState
  * @property {string} minPublicationDate
  * @property {string} firestoreImportUserId
  * @property {string} firestoreImportAgencyName
@@ -177,6 +179,15 @@ export const PIPELINE_SETTING_FIELDS = [
 		description:
 			'Smoke/test mode: send every imported article to the fallback agency only (no state fan-out). Leave off in production.',
 		defaultLabel: 'false',
+	},
+	{
+		key: 'firestoreImportMaxPerState',
+		type: 'number',
+		group: 'Firestore import',
+		label: 'Max articles per state (per night)',
+		description:
+			'Top N articles per state (by meatiness) go to that state’s newsrooms; the rest go to the fallback agency (state kept) for admins to reassign.',
+		defaultLabel: '5',
 	},
 	{
 		key: 'firestoreImportUserId',
@@ -318,6 +329,10 @@ export function normalizePipelineConfig(raw) {
 			source.curatedArticleLimit,
 			PROD_DEFAULTS.curatedArticleLimit,
 		),
+		firestoreImportMaxPerState: normalizePositiveInt(
+			source.firestoreImportMaxPerState,
+			PROD_DEFAULTS.firestoreImportMaxPerState,
+		),
 		minPublicationDate: normalizeDate(
 			source.minPublicationDate,
 			PROD_DEFAULTS.minPublicationDate,
@@ -351,6 +366,9 @@ export function validatePipelineConfig(config) {
 	if (n.maxDomains < 1) return 'Max domains must be at least 1.'
 	if (n.maxLinksPerDomain < 1) return 'Max links per domain must be at least 1.'
 	if (n.curatedArticleLimit < 1) return 'Curated article limit must be at least 1.'
+	if (n.firestoreImportMaxPerState < 1) {
+		return 'Max articles per state must be at least 1.'
+	}
 	if (
 		config &&
 		Object.prototype.hasOwnProperty.call(config, 'maxDomainsTest') &&

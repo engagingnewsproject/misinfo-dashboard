@@ -20,6 +20,7 @@ describe('normalizePipelineConfig', () => {
 				maxDomains: '100',
 				maxLinksPerDomain: 5,
 				curatedArticleLimit: 50,
+				firestoreImportMaxPerState: '3',
 				minPublicationDate: '2026-06-01',
 				firestoreImportUserId: '  abc123  ',
 				firestoreImportAgencyName: '  Newsroom A  ',
@@ -36,6 +37,7 @@ describe('normalizePipelineConfig', () => {
 			maxDomains: 100,
 			maxLinksPerDomain: 5,
 			curatedArticleLimit: 50,
+			firestoreImportMaxPerState: 3,
 			minPublicationDate: '2026-06-01',
 			firestoreImportUserId: 'abc123',
 			firestoreImportAgencyName: 'Newsroom A',
@@ -52,6 +54,7 @@ describe('normalizePipelineConfig', () => {
 				maxDomains: 0,
 				maxLinksPerDomain: -3,
 				curatedArticleLimit: 'nope',
+				firestoreImportMaxPerState: 0,
 				minPublicationDate: '06-01-2026',
 				firestoreImportAgencyName: '   ',
 				clusteringArticlesPerClusterTarget: 0,
@@ -66,6 +69,7 @@ describe('normalizePipelineConfig', () => {
 			maxDomains: PROD_DEFAULTS.maxDomains,
 			maxLinksPerDomain: PROD_DEFAULTS.maxLinksPerDomain,
 			curatedArticleLimit: PROD_DEFAULTS.curatedArticleLimit,
+			firestoreImportMaxPerState: PROD_DEFAULTS.firestoreImportMaxPerState,
 			minPublicationDate: PROD_DEFAULTS.minPublicationDate,
 			firestoreImportAgencyName: PROD_DEFAULTS.firestoreImportAgencyName,
 			maxDomainsTest: null,
@@ -100,6 +104,13 @@ describe('validatePipelineConfig', () => {
 		expect(validatePipelineConfig({ maxDomainsTest: 0 })).toBe(
 			'Max domains (test job) must be empty or at least 1.',
 		)
+	})
+
+	it('defaults max articles per state to 5 and accepts valid overrides', () => {
+		expect(PROD_DEFAULTS.firestoreImportMaxPerState).toBe(5)
+		expect(validatePipelineConfig({ firestoreImportMaxPerState: 3 })).toBeNull()
+		// Invalid values normalize back to the default, so save still validates
+		expect(validatePipelineConfig({ firestoreImportMaxPerState: 0 })).toBeNull()
 	})
 
 	it('accepts null maxDomainsTest', () => {
