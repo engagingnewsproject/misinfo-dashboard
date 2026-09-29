@@ -25,6 +25,14 @@ jest.mock('../../../utils/pipeline-config', () => ({
 			description: 'When off, skip dashboard import.',
 			defaultLabel: 'true',
 		},
+		{
+			key: 'clusterMergePersonMinCosine',
+			type: 'decimal',
+			group: 'Clustering',
+			label: 'Same-person merge similarity (0–1)',
+			description: 'Higher = fewer merges.',
+			defaultLabel: '0.45',
+		},
 	],
 	PROD_DEFAULTS: {
 		importToFirestore: true,
@@ -49,6 +57,7 @@ jest.mock('../../../utils/pipeline-config', () => ({
 		minPublicationDate: '2026-01-01',
 		firestoreImportUserId: '',
 		firestoreImportAgencyName: 'Test Agency',
+		clusterMergePersonMinCosine: 0.45,
 	}),
 	savePipelineConfig: jest.fn(),
 	validatePipelineConfig: jest.fn().mockReturnValue(null),
@@ -131,6 +140,7 @@ describe('Pipeline', () => {
 		expect(
 			screen.getByText('Import curated articles to Firestore'),
 		).toBeInTheDocument()
+		expect(screen.getByDisplayValue('0.45')).toBeInTheDocument()
 
 		expect(
 			await screen.findByRole('heading', { name: 'LLM prompts' }),

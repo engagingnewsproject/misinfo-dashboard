@@ -23,6 +23,8 @@ describe('normalizePipelineConfig', () => {
 				minPublicationDate: '2026-06-01',
 				firestoreImportUserId: '  abc123  ',
 				firestoreImportAgencyName: '  Newsroom A  ',
+				clusteringArticlesPerClusterTarget: '2',
+				clusterMergePersonMinCosine: '0.6',
 				maxDomainsTest: '10',
 				jobFilterProcessedUrlsTest: false,
 			}),
@@ -37,6 +39,8 @@ describe('normalizePipelineConfig', () => {
 			minPublicationDate: '2026-06-01',
 			firestoreImportUserId: 'abc123',
 			firestoreImportAgencyName: 'Newsroom A',
+			clusteringArticlesPerClusterTarget: 2,
+			clusterMergePersonMinCosine: 0.6,
 			maxDomainsTest: 10,
 			jobFilterProcessedUrlsTest: false,
 		})
@@ -50,10 +54,15 @@ describe('normalizePipelineConfig', () => {
 				curatedArticleLimit: 'nope',
 				minPublicationDate: '06-01-2026',
 				firestoreImportAgencyName: '   ',
+				clusteringArticlesPerClusterTarget: 0,
+				clusterMergePersonMinCosine: 1.5,
 				maxDomainsTest: 0,
 				jobFilterProcessedUrlsTest: 'yes',
 			}),
 		).toMatchObject({
+			clusteringArticlesPerClusterTarget:
+				PROD_DEFAULTS.clusteringArticlesPerClusterTarget,
+			clusterMergePersonMinCosine: PROD_DEFAULTS.clusterMergePersonMinCosine,
 			maxDomains: PROD_DEFAULTS.maxDomains,
 			maxLinksPerDomain: PROD_DEFAULTS.maxLinksPerDomain,
 			curatedArticleLimit: PROD_DEFAULTS.curatedArticleLimit,
@@ -95,5 +104,16 @@ describe('validatePipelineConfig', () => {
 
 	it('accepts null maxDomainsTest', () => {
 		expect(validatePipelineConfig({ maxDomainsTest: null })).toBeNull()
+	})
+
+	it('accepts merge similarity typed as text within 0–1', () => {
+		expect(validatePipelineConfig({ clusterMergePersonMinCosine: '0.6' })).toBeNull()
+	})
+
+	it('rejects merge similarity outside 0–1 or blank', () => {
+		const msg = 'Same-person merge similarity must be between 0 and 1.'
+		expect(validatePipelineConfig({ clusterMergePersonMinCosine: 1.2 })).toBe(msg)
+		expect(validatePipelineConfig({ clusterMergePersonMinCosine: '' })).toBe(msg)
+		expect(validatePipelineConfig({ clusterMergePersonMinCosine: 'abc' })).toBe(msg)
 	})
 })
