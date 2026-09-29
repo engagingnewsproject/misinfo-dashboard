@@ -119,7 +119,7 @@ const PipelineSettings = () => {
 			<p className="mb-4 text-sm text-gray-600">
 				Day-to-day knobs for Truth Sleuth. Saved values live in Firestore and
 				override the Cloud Run env for the next run. Shared Scrape / Freshness /
-				Curation fields apply to every job; the Test job group only affects{' '}
+				Curation / Clustering fields apply to every job; the Test job group only affects{' '}
 				<code className="text-xs">truth-sleuth-test</code>. The deploy env file
 				remains the baseline (and can still hard-disable Firestore import).
 			</p>
@@ -203,6 +203,21 @@ const PipelineSettings = () => {
 												}}
 												min={1}
 												placeholder="Leave empty to inherit"
+											/>
+										) : field.type === 'decimal' ? (
+											<FormInput
+												id={`pipeline-${field.key}`}
+												label={field.label}
+												type="number"
+												value={value == null ? '' : String(value)}
+												onChange={(e) =>
+													setConfig((prev) =>
+														setField(prev, field.key, e.target.value),
+													)
+												}
+												min={0}
+												max={1}
+												step={0.05}
 											/>
 										) : (
 											<FormInput

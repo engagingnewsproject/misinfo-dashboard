@@ -28,6 +28,8 @@ export const PROD_DEFAULTS = {
 	minPublicationDate: '2026-01-01',
 	firestoreImportUserId: '',
 	firestoreImportAgencyName: 'Test Agency',
+	clusteringArticlesPerClusterTarget: 3,
+	clusterMergePersonMinCosine: 0.45,
 	/** @type {number | null} */
 	maxDomainsTest: null,
 	/** @type {boolean | null} null = inherit shared jobFilterProcessedUrls */
@@ -35,7 +37,7 @@ export const PROD_DEFAULTS = {
 }
 
 /**
- * @typedef {'switch' | 'number' | 'date' | 'text' | 'nullableNumber' | 'triState'} PipelineSettingType
+ * @typedef {'switch' | 'number' | 'decimal' | 'date' | 'text' | 'nullableNumber' | 'triState'} PipelineSettingType
  */
 
 /**
@@ -60,6 +62,8 @@ export const PROD_DEFAULTS = {
  * @property {string} minPublicationDate
  * @property {string} firestoreImportUserId
  * @property {string} firestoreImportAgencyName
+ * @property {number} clusteringArticlesPerClusterTarget
+ * @property {number} clusterMergePersonMinCosine
  * @property {number | null} maxDomainsTest
  * @property {boolean | null} jobFilterProcessedUrlsTest
  */
@@ -119,6 +123,24 @@ export const PIPELINE_SETTING_FIELDS = [
 		description:
 			'Hard cap on curated articles after clustering/dedupe — upper bound on what can reach the dashboard import.',
 		defaultLabel: '200',
+	},
+	{
+		key: 'clusteringArticlesPerClusterTarget',
+		type: 'number',
+		group: 'Clustering',
+		label: 'Articles per topic group (target)',
+		description:
+			'Roughly how many articles share one topic group on a given night (topic count ≈ articles ÷ this, capped at 15). Lower = tighter, more specific groups; higher = looser, broader groups.',
+		defaultLabel: '3',
+	},
+	{
+		key: 'clusterMergePersonMinCosine',
+		type: 'decimal',
+		group: 'Clustering',
+		label: 'Same-person merge similarity (0–1)',
+		description:
+			'How similar two topic groups must be before they merge because they share a person’s name (e.g. two posts about the same candidate). Higher = fewer merges and tighter groups.',
+		defaultLabel: '0.45',
 	},
 	{
 		key: 'maxDomainsTest',
@@ -197,6 +219,20 @@ function normalizePositiveInt(value, fallback) {
 	const n = typeof value === 'number' ? value : Number(value)
 	if (!Number.isFinite(n) || n < 1) return fallback
 	return Math.trunc(n)
+}
+
+/**
+ * @param {unknown} value
+ * @param {number} fallback
+ * @returns {number}
+ */
+function normalizeUnitFloat(value, fallback) {
+	if (value === null || value === undefined || value === '' || typeof value === 'boolean') {
+		return fallback
+	}
+	const n = typeof value === 'number' ? value : Number(value)
+	if (!Number.isFinite(n) || n < 0 || n > 1) return fallback
+	return n
 }
 
 /**
@@ -289,6 +325,14 @@ export function normalizePipelineConfig(raw) {
 		firestoreImportUserId: normalizeText(source.firestoreImportUserId),
 		firestoreImportAgencyName:
 			agencyRaw || PROD_DEFAULTS.firestoreImportAgencyName,
+		clusteringArticlesPerClusterTarget: normalizePositiveInt(
+			source.clusteringArticlesPerClusterTarget,
+			PROD_DEFAULTS.clusteringArticlesPerClusterTarget,
+		),
+		clusterMergePersonMinCosine: normalizeUnitFloat(
+			source.clusterMergePersonMinCosine,
+			PROD_DEFAULTS.clusterMergePersonMinCosine,
+		),
 		maxDomainsTest: normalizeOptionalPositiveInt(source.maxDomainsTest),
 		jobFilterProcessedUrlsTest: normalizeTriStateBool(
 			source.jobFilterProcessedUrlsTest,
@@ -317,6 +361,16 @@ export function validatePipelineConfig(config) {
 		const raw = Number(config.maxDomainsTest)
 		if (!Number.isFinite(raw) || raw < 1) {
 			return 'Max domains (test job) must be empty or at least 1.'
+		}
+	}
+	if (
+		config &&
+		Object.prototype.hasOwnProperty.call(config, 'clusterMergePersonMinCosine')
+	) {
+		const raw = config.clusterMergePersonMinCosine
+		const x = typeof raw === 'number' ? raw : Number(raw)
+		if (raw === '' || raw === null || !Number.isFinite(x) || x < 0 || x > 1) {
+			return 'Same-person merge similarity must be between 0 and 1.'
 		}
 	}
 	if (!DATE_RE.test(n.minPublicationDate)) {
