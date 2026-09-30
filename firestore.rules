@@ -111,6 +111,12 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // Written by the nightly pipeline (Admin SDK); admins only mark them promoted.
+    match /leftOutArticles/{articleId} {
+      allow read, update: if isAdmin();
+      allow create, delete: if false;
+    }
+
     match /reports/{reportId} {
       allow read: if isAdmin()
         || sameAgency()
