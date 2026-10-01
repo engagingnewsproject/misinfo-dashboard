@@ -39,6 +39,7 @@ import Head from 'next/head'
 import HelpRequests from '../components/admin/HelpRequests'
 import Appearance from '../components/admin/Appearance'
 import Pipeline from '../components/admin/Pipeline'
+import LeftOutArticles from '../components/admin/LeftOutArticles'
 
 /** Stable view names synced to `?view=` so refresh restores the active tab. */
 const VIEW_BY_TAB = [
@@ -50,6 +51,7 @@ const VIEW_BY_TAB = [
 	'help',
 	'appearance',
 	'pipeline',
+	'leftOut',
 ]
 
 /**
@@ -64,13 +66,14 @@ function isTabAllowed(tabIndex, claims) {
 	if (tabIndex === 0 || tabIndex === 2) {
 		return !!(claims.admin || claims.agency)
 	}
-	// Users (3) and admin-only tools (agencies, help, appearance, pipeline)
+	// Users (3) and admin-only tools (agencies, help, appearance, pipeline, left out)
 	if (
 		tabIndex === 3 ||
 		tabIndex === 4 ||
 		tabIndex === 5 ||
 		tabIndex === 6 ||
-		tabIndex === 7
+		tabIndex === 7 ||
+		tabIndex === 8
 	) {
 		return !!claims.admin
 	}
@@ -239,6 +242,7 @@ function DashboardLayout({
 				{tab == 5 && customClaims.admin && <HelpRequests />}
 				{tab == 6 && customClaims.admin && <Appearance />}
 				{tab == 7 && customClaims.admin && <Pipeline />}
+				{tab == 8 && customClaims.admin && <LeftOutArticles />}
 			</div>
 			{newReportModal && (
 				<AgencyReportModal

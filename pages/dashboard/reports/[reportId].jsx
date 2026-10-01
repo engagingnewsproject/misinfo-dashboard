@@ -49,6 +49,8 @@ import FormInput from '../../../components/ui/FormInput'
 import FormTextarea from '../../../components/ui/FormTextarea'
 import LabelSelectMenu from '../../../components/reports/LabelSelectMenu'
 import ShareReportModal from '../../../components/partials/modals/ShareReportModal'
+import MoveReportModal from '../../../components/modals/reports/MoveReportModal'
+import { fetchAgencyOptions, moveReportToState } from '../../../utils/move-report'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
 import { useAuth } from '../../../context/AuthContext'
@@ -68,7 +70,7 @@ import {
 const ReportDetails = () => {
 	const router = useRouter()
 	const { t, i18n } = useTranslation('NewReport')
-	const { customClaims } = useAuth()
+	const { user, customClaims } = useAuth()
 	const [info, setInfo] = useState({})
 	const [reporterInfo, setReporterInfo] = useState({})
 	const [postedDate, setPostedDate] = useState("")
@@ -81,6 +83,8 @@ const ReportDetails = () => {
 	const [otherLabelDraft, setOtherLabelDraft] = useState('')
 	const [otherLabelError, setOtherLabelError] = useState('')
 	const [shareReportModal, setShareReportModal] = useState(false)
+	const [moveReportModal, setMoveReportModal] = useState(false)
+	const [moveStatus, setMoveStatus] = useState('')
 	const [tagLabelMap, setTagLabelMap] = useState({})
 
 	const { reportId } = router.query
@@ -423,6 +427,25 @@ const ReportDetails = () => {
 							<BsShareFill className="my-1" size={15} />
 							<div className="px-3 py-1">Share The Report</div>
 						</button>
+						{customClaims?.admin && (
+							<button
+								type="button"
+								className="mt-3 flex flex-row text-sm bg-white px-4 border-none text-black py-1 rounded-md shadow hover:shadow-none"
+								onClick={() => setMoveReportModal(true)}>
+								<div className="px-3 py-1">Move to agency</div>
+							</button>
+						)}
+						{info?.agency && customClaims?.admin && (
+							<p className="mt-2 text-sm font-light">
+								Currently in <span className="font-semibold">{info.agency}</span>
+								{info?.state ? ` (${info.state})` : ''}
+							</p>
+						)}
+						{moveStatus && (
+							<p className="mt-2 text-sm italic font-light" role="status">
+								{moveStatus}
+							</p>
+						)}
 					</div>
 				</div>
 			</div>
@@ -431,6 +454,23 @@ const ReportDetails = () => {
 					reportId={reportId}
 					reportTitle={info?.title || ''}
 					closeModal={setShareReportModal}
+				/>
+			)}
+			{moveReportModal && customClaims?.admin && (
+				<MoveReportModal
+					reportId={reportId}
+					reportState={info?.state || ''}
+					currentAgencyId={info?.agencyId || ''}
+					currentAgencyName={info?.agency || ''}
+					loadAgencies={() => fetchAgencyOptions(db)}
+					moveReport={(id, state) => moveReportToState(db, id, state, user)}
+					onMoved={(result) => {
+						setMoveStatus(
+							`Moved to ${result.agencies.map((a) => a.name).join(', ')}`,
+						)
+						getData()
+					}}
+					closeModal={setMoveReportModal}
 				/>
 			)}
 		</div>
