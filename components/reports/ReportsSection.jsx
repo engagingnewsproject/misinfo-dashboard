@@ -1,11 +1,11 @@
 /**
  * @fileoverview ReportsSection Component
- * 
+ *
  * A comprehensive reports management component that provides CRUD operations,
  * filtering, pagination, CSV import/export, and real-time data synchronization
  * for misinformation reports. This component handles both agency-specific and
  * admin views with role-based access control.
- * 
+ *
  * Key Features:
  * - Real-time data fetching from Firestore
  * - Advanced filtering (date range, read status, search)
@@ -14,7 +14,7 @@
  * - Report modal management
  * - Role-based access control (admin vs agency)
  * - Bulk read status updates
- * 
+ *
  * @author Misinformation Dashboard Team
  * @version 1.0.0
  * @since 2024
@@ -118,6 +118,47 @@ const readValues = [
 	{ label: 'Unread', value: 'false' },
 ]
 
+const CSV_IMPORT_REQUIRED_HEADERS = ['title', 'state', 'agency']
+
+function getCSVImportRowHint(row, index) {
+	const title = String(row?.title || '').trim()
+	return `Row ${index + 2}${title ? ` ("${title}")` : ''}`
+}
+
+function getShortErrorText(error) {
+	const message = String(error?.message || error || 'Unknown error')
+		.replace(/\s+/g, ' ')
+		.trim()
+	return message.length > 160 ? `${message.slice(0, 157)}...` : message
+}
+
+function formatCSVImportSummary(summary) {
+	const lines = [
+		'CSV import complete.',
+		'',
+		`Rows processed: ${summary.processed}`,
+		`Rows imported: ${summary.imported}`,
+		`Rows skipped: ${summary.skipped.length}`,
+		`Rows failed: ${summary.failed.length}`,
+	]
+
+	if (summary.skipped.length > 0) {
+		lines.push('', 'Skipped rows:')
+		summary.skipped.forEach(({ hint, reason }) => {
+			lines.push(`- ${hint}: ${reason}`)
+		})
+	}
+
+	if (summary.failed.length > 0) {
+		lines.push('', 'Failed rows:')
+		summary.failed.forEach(({ hint, error }) => {
+			lines.push(`- ${hint}: ${error}`)
+		})
+	}
+
+	return lines.join('\n')
+}
+
 /**
  * Detects a full email address so we can resolve the submitter via Auth / Firestore
  * instead of substring-matching the literal string in report text fields.
@@ -194,18 +235,18 @@ function getReportSearchText(report) {
 
 /**
  * ReportsSection Component
- * 
+ *
  * Main component for managing and displaying misinformation reports with
  * comprehensive filtering, pagination, and CRUD operations. Supports both
  * admin and agency user roles with different data access patterns.
- * 
+ *
  * @param {Object} props - Component props
  * @param {boolean} props.newReportSubmitted - Flag indicating if a new report was submitted
  * @param {Function} props.handleNewReportClick - Callback for new report button click
  * @returns {JSX.Element} The rendered reports section component
- * 
+ *
  * @example
- * <ReportsSection 
+ * <ReportsSection
  *   newReportSubmitted={false}
  *   handleNewReportClick={() => setShowNewReportModal(true)}
  * />
@@ -217,13 +258,13 @@ const ReportsSection = ({
 }) => {
 	// Get user ID from localStorage for data fetching
 	const userId = localStorage.getItem('userId')
-	
+
 	// Core data state
 	const [reports, setReports] = useState([]) // All reports from database
 	const ITEMS_PER_PAGE = 10 // Number of items per page for pagination
 	const [endIndex, setEndIndex] = useState(10)
 	const [isDataFetched, setIsDataFetched] = useState(false)
-	
+
 	// Filtering state
 	const [reportWeek, setReportWeek] = useState('4') // Week filter (4 weeks by default)
 	const [customDateStart, setCustomDateStart] = useState('')
@@ -248,7 +289,7 @@ const ReportsSection = ({
 	const [agencyFilter, setAgencyFilter] = useState('all') // Agency filter
 	const [typeFilter, setTypeFilter] = useState('all') // Type/source filter
 	const [agencies, setAgencies] = useState([]) // List of agencies for filter dropdown
-	
+
 	// Pagination state
 	const [rowsPerPage, setRowsPerPage] = useState(10) // Rows per page setting
 	const [currentPage, setCurrentPage] = useState(1) // Current page number
@@ -294,6 +335,9 @@ const ReportsSection = ({
 	const [open, setOpen] = useState(true) // Section open/close state
 	const [includeArchived, setIncludeArchived] = useState(false)
 	const [activeExperimentId, setActiveExperimentId] = useState('2026-main')
+	const [csvImportFile, setCSVImportFile] = useState(null)
+	const [csvImportModal, setCSVImportModal] = useState(false)
+	const [isCSVImporting, setIsCSVImporting] = useState(false)
 	/** Ignores stale getData responses when a newer fetch has already started. */
 	const getDataRequestIdRef = useRef(0)
 
@@ -562,7 +606,7 @@ const ReportsSection = ({
 	/**
 	 * Handles manual refresh of reports data with visual feedback
 	 * Shows checkmark icon for 2 seconds after successful refresh
-	 * 
+	 *
 	 * @async
 	 * @function handleRefresh
 	 * @returns {Promise<void>}
@@ -572,7 +616,7 @@ const ReportsSection = ({
 		await getData()
 		setReportsUpdated(true)
 		setShowCheckmark(true)
-		
+
 		// Hide checkmark after 2 seconds
 		setTimeout(() => {
 			setRefresh(false)
@@ -584,7 +628,7 @@ const ReportsSection = ({
 	/**
 	 * Filters reports by date range based on selected week
 	 * Week '100' shows all reports, other values filter by weeks ago
-	 * 
+	 *
 	 * @function handleDateChanged
 	 * @param {string} selectedWeek - Week filter value ('100' for all, or number of weeks ago)
 	 */
@@ -611,7 +655,7 @@ const ReportsSection = ({
 
 	/**
 	 * Filters reports by read status (read/unread/all)
-	 * 
+	 *
 	 * @function handleReadFilterChanged
 	 * @param {string} value - Filter value ('all', 'true', 'false')
 	 */
@@ -632,7 +676,7 @@ const ReportsSection = ({
 	/**
 	 * Opens the report modal and fetches detailed report data
 	 * Sets report as read for agency users, fetches submitter information
-	 * 
+	 *
 	 * @async
 	 * @function handleReportModalShow
 	 * @param {string} reportId - ID of the report to display
@@ -678,7 +722,7 @@ const ReportsSection = ({
 		} else {
 			setModalAgencyLabels([])
 		}
-		
+
 		// Only set report as read if an agency user clicks
 		// Admin users should not be changing the read status
 		if (customClaims.agency || customClaims.admin) {
@@ -704,7 +748,7 @@ const ReportsSection = ({
 	/**
 	 * Updates report read status with optimistic UI updates and error handling
 	 * Provides immediate visual feedback while updating Firestore in background
-	 * 
+	 *
 	 * @async
 	 * @function handleRowChangeRead
 	 * @param {string} reportId - ID of the report to update
@@ -758,7 +802,7 @@ const ReportsSection = ({
 	/**
 	 * Updates report read status from within the modal
 	 * Triggers data refresh after update
-	 * 
+	 *
 	 * @async
 	 * @function handleChangeReadModal
 	 * @param {string} reportId - ID of the report to update
@@ -772,7 +816,7 @@ const ReportsSection = ({
 
 	/**
 	 * Handles form submission in the report modal
-	 * 
+	 *
 	 * @async
 	 * @function handleFormSubmit
 	 * @param {Event} e - Form submission event
@@ -781,11 +825,11 @@ const ReportsSection = ({
 		e.preventDefault()
 		setReportModalShow(false)
 	}
-	
+
 	/**
 	 * Updates report note in Firestore when changed in modal
 	 * Only updates if the note value has actually changed
-	 * 
+	 *
 	 * @async
 	 * @function handleNoteChange
 	 * @param {Event} e - Input change event
@@ -805,7 +849,7 @@ const ReportsSection = ({
 	/**
 	 * Updates report label in Firestore when changed in modal
 	 * Only updates if the label value has actually changed
-	 * 
+	 *
 	 * @async
 	 * @function handleLabelChange
 	 * @param {Event} e - Input change event
@@ -889,7 +933,7 @@ const ReportsSection = ({
 	/**
 	 * Initiates report deletion process
 	 * Shows confirmation modal before actual deletion
-	 * 
+	 *
 	 * @async
 	 * @function handleReportDelete
 	 * @param {Event|string} e - Event object or report ID
@@ -898,11 +942,11 @@ const ReportsSection = ({
 		reportModalShow ? e.preventDefault() : setReportModalId(e)
 		setDeleteModal(true)
 	}
-	
+
 	/**
 	 * Performs actual report deletion from Firestore
 	 * Refreshes data and closes modals after successful deletion
-	 * 
+	 *
 	 * @async
 	 * @function handleDelete
 	 * @param {Event} e - Event object
@@ -923,7 +967,7 @@ const ReportsSection = ({
 	/**
 	 * Sorts reports by specified field and order
 	 * Handles null/undefined values and numeric sorting
-	 * 
+	 *
 	 * @function handleSorting
 	 * @param {string} sortField - Field name to sort by
 	 * @param {string} sortOrder - Sort order ('asc' or 'desc')
@@ -936,7 +980,7 @@ const ReportsSection = ({
 	/**
 	 * Dynamically extracts all unique keys from JSON objects for CSV headers
 	 * Handles nested objects and special cases like createdDate
-	 * 
+	 *
 	 * @function extractHeaders
 	 * @param {Array<Object>} jsonArray - Array of report objects
 	 * @returns {Array<string>} Array of header names
@@ -969,7 +1013,7 @@ const ReportsSection = ({
 
 	/**
 	 * Converts user ID to email address by querying mobileUsers collection
-	 * 
+	 *
 	 * @async
 	 * @function userIDToEmail
 	 * @param {string} userID - User ID to convert
@@ -989,7 +1033,7 @@ const ReportsSection = ({
 	/**
 	 * Converts JSON array of reports to CSV format
 	 * Handles date formatting, user email lookup, and CSV escaping
-	 * 
+	 *
 	 * @async
 	 * @function convertToCSV
 	 * @param {Array<Object>} jsonArray - Array of report objects
@@ -1041,7 +1085,7 @@ const ReportsSection = ({
 						keys.forEach((key) => {
 							value = value[key] !== undefined ? value[key] : '' // Safely access nested values
 						})
-						
+
 						if (header === 'label' && typeof value === 'string' && isCustomLabel(value)) {
 							value = `Other(${value})`
 						}
@@ -1067,7 +1111,7 @@ const ReportsSection = ({
 	/**
 	 * Triggers download of CSV file containing all reports
 	 * Creates blob and downloads file as 'reports.csv'
-	 * 
+	 *
 	 * @async
 	 * @function downloadCSV
 	 */
@@ -1088,7 +1132,7 @@ const ReportsSection = ({
 	/**
 	 * Handles CSV file import and bulk report creation
 	 * Parses CSV using Papa Parse and creates reports in Firestore
-	 * 
+	 *
 	 * @function handleCSVImport
 	 * @param {File} file - CSV file to import
 	 */
@@ -1097,88 +1141,173 @@ const ReportsSection = ({
 			alert('User not logged in')
 			return
 		}
+		if (!file || isCSVImporting) return
 
-		Papa.parse(file, {
-			header: true,
-			skipEmptyLines: true,
-			complete: async (results) => {
-				const data = results.data
+		setIsCSVImporting(true)
 
-				for (const row of data) {
-					let agencyName = ''
-					let matchedAgencyId = ''
-					if (row.state && row.agency) {
-						const agencyQuery = query(
-							collection(db, 'agency'),
-							where('state', '==', row.state),
-						)
-						const agencySnapshot = await getDocs(agencyQuery)
-
-						// Find agency with a name containing the CSV agency name (case-insensitive)
-						agencySnapshot.forEach((agencyDoc) => {
-							const fullAgencyName = agencyDoc.data().name.toLowerCase()
-							const csvAgencyName = row.agency.toLowerCase()
-
-							if (fullAgencyName.includes(csvAgencyName)) {
-								agencyName = agencyDoc.data().name // Use the full agency name from Firestore
-								matchedAgencyId = agencyDoc.id
-							}
-						})
-
-						if (!agencyName || !matchedAgencyId) {
-							console.warn(
-								`No matching agency found for state: ${row.state} and partial name: ${row.agency}`,
-							)
-						}
-					}
-
-					if (!matchedAgencyId) {
-						console.warn(
-							`Skipping CSV row without agencyId (title: ${row.title || 'untitled'})`,
-						)
-						continue
-					}
-
-					// Format row with correct types, and assign matched agency name + id
-					const formattedRow = {
-						...newReportAgencyFields({
-							agencyName,
-							agencyId: matchedAgencyId,
-						}),
-						city: String(row.city || ''),
-						createdDate: row.createdDate
-							? Timestamp.fromDate(new Date(row.createdDate))
-							: Timestamp.now(),
-						detail: String(row.detail || ''),
-						hearFrom: String(row.hearFrom || ''),
-						images: Array.isArray(row.images)
-							? row.images
-							: row.images
-								? row.images.split(',')
-								: [],
-						isApproved: row.isApproved === 'true' || row.isApproved === true,
-						label: String(row.label || DEFAULT_REPORT_LABEL),
-						link: String(row.link || ''),
-						read: row.read === 'true' || row.read === true,
-						secondLink: String(row.secondLink || ''),
-						state: String(row.state || ''),
-						title: String(row.title || ''),
-						topic: String(row.topic || ''),
-						userID: user.uid, // Set userID to current user’s UID
-						...newReportExperimentFields(activeExperimentId),
-					}
-
+		try {
+			Papa.parse(file, {
+				header: true,
+				skipEmptyLines: true,
+				complete: async (results) => {
 					try {
-						await addDoc(collection(db, 'reports'), formattedRow)
-						// console.log(`Report added: ${formattedRow.title}`)
+						if (results.errors.length > 0) {
+							const parseErrors = results.errors.map((error) => {
+								const rowNumber = Number.isInteger(error.row)
+									? `Row ${error.row + 2}: `
+									: ''
+								return `- ${rowNumber}${getShortErrorText(error)}`
+							})
+							alert(
+								[
+									'CSV import failed to parse. No rows were imported.',
+									'',
+									...parseErrors,
+								].join('\n'),
+							)
+							return
+						}
+
+						const headers = results.meta.fields || []
+						const missingHeaders = CSV_IMPORT_REQUIRED_HEADERS.filter(
+							(header) => !headers.includes(header),
+						)
+						if (missingHeaders.length > 0) {
+							alert(
+								`CSV import cancelled. Missing required ${
+									missingHeaders.length === 1 ? 'header' : 'headers'
+								}: ${missingHeaders.join(', ')}. No rows were imported.`,
+							)
+							return
+						}
+
+						const data = results.data
+						const summary = {
+							processed: data.length,
+							imported: 0,
+							skipped: [],
+							failed: [],
+						}
+
+						for (const [index, row] of data.entries()) {
+							const rowHint = getCSVImportRowHint(row, index)
+							try {
+								let agencyName = ''
+								let matchedAgencyId = ''
+								if (row.state && row.agency) {
+									const agencyQuery = query(
+										collection(db, 'agency'),
+										where('state', '==', row.state),
+									)
+									const agencySnapshot = await getDocs(agencyQuery)
+
+									// Find agency with a name containing the CSV agency name (case-insensitive)
+									agencySnapshot.forEach((agencyDoc) => {
+										const fullAgencyName = agencyDoc.data().name.toLowerCase()
+										const csvAgencyName = row.agency.toLowerCase()
+
+										if (fullAgencyName.includes(csvAgencyName)) {
+											agencyName = agencyDoc.data().name // Use the full agency name from Firestore
+											matchedAgencyId = agencyDoc.id
+										}
+									})
+
+									if (!agencyName || !matchedAgencyId) {
+										console.warn(
+											`No matching agency found for state: ${row.state} and partial name: ${row.agency}`,
+										)
+									}
+								}
+
+								if (!matchedAgencyId) {
+									const agency = String(row.agency || '').trim()
+									const state = String(row.state || '').trim()
+									const reason =
+										agency && state
+											? `No matching agency for "${agency}" in ${state}`
+											: 'Agency and state are required to match a report agency'
+									summary.skipped.push({ hint: rowHint, reason })
+									continue
+								}
+
+								// Format row with correct types, and assign matched agency name + id
+								const formattedRow = {
+									...newReportAgencyFields({
+										agencyName,
+										agencyId: matchedAgencyId,
+									}),
+									city: String(row.city || ''),
+									createdDate: row.createdDate
+										? Timestamp.fromDate(new Date(row.createdDate))
+										: Timestamp.now(),
+									detail: String(row.detail || ''),
+									hearFrom: String(row.hearFrom || ''),
+									images: Array.isArray(row.images)
+										? row.images
+										: row.images
+											? row.images.split(',')
+											: [],
+									isApproved:
+										row.isApproved === 'true' || row.isApproved === true,
+									label: String(row.label || DEFAULT_REPORT_LABEL),
+									link: String(row.link || ''),
+									read: row.read === 'true' || row.read === true,
+									secondLink: String(row.secondLink || ''),
+									state: String(row.state || ''),
+									title: String(row.title || ''),
+									topic: String(row.topic || ''),
+									userID: user.uid, // Set userID to current user’s UID
+									...newReportExperimentFields(activeExperimentId),
+								}
+
+								try {
+									await addDoc(collection(db, 'reports'), formattedRow)
+									summary.imported += 1
+								} catch (error) {
+									console.error('Error adding report:', error)
+									summary.failed.push({
+										hint: rowHint,
+										error: getShortErrorText(error),
+									})
+								}
+							} catch (error) {
+								console.error('Error processing CSV row:', error)
+								summary.failed.push({
+									hint: rowHint,
+									error: getShortErrorText(error),
+								})
+							}
+						}
+
+						alert(formatCSVImportSummary(summary))
+						if (summary.imported > 0) {
+							setUpdate((current) => !current)
+						}
 					} catch (error) {
-						console.error('Error adding report:', error)
+						console.error('Error importing CSV:', error)
+						alert(`CSV import failed: ${getShortErrorText(error)}`)
+					} finally {
+						setIsCSVImporting(false)
 					}
-				}
-				alert('CSV file successfully imported into Firestore')
-			},
-			error: (error) => console.error('Error parsing CSV:', error),
-		})
+				},
+				error: (error) => {
+					console.error('Error parsing CSV:', error)
+					alert(`CSV import failed to parse: ${getShortErrorText(error)}`)
+					setIsCSVImporting(false)
+				},
+			})
+		} catch (error) {
+			console.error('Error starting CSV import:', error)
+			alert(`CSV import failed to start: ${getShortErrorText(error)}`)
+			setIsCSVImporting(false)
+		}
+	}
+
+	const handleCSVImportConfirm = () => {
+		const file = csvImportFile
+		setCSVImportModal(false)
+		setCSVImportFile(null)
+		if (file) handleCSVImport(file)
 	}
 
 	// User role determination — must run before any report fetch
@@ -1387,7 +1516,7 @@ const ReportsSection = ({
 	/**
 	 * Navigates to the previous page in pagination
 	 * Ensures page number doesn't go below 1
-	 * 
+	 *
 	 * @function goToPreviousPage
 	 */
 	const goToPreviousPage = () => {
@@ -1397,7 +1526,7 @@ const ReportsSection = ({
 	/**
 	 * Navigates to the next page in pagination
 	 * Ensures page number doesn't exceed total pages
-	 * 
+	 *
 	 * @function goToNextPage
 	 */
 	const goToNextPage = () => {
@@ -1406,7 +1535,7 @@ const ReportsSection = ({
 
 	/**
 	 * Navigates to a specific page number
-	 * 
+	 *
 	 * @function goToPage
 	 * @param {number} pageNumber - Target page number
 	 */
@@ -1417,7 +1546,7 @@ const ReportsSection = ({
 	/**
 	 * Calculates which page numbers should be visible in pagination controls
 	 * Centers the current page with VISIBLE_PAGES number of buttons
-	 * 
+	 *
 	 * @function getVisiblePageNumbers
 	 * @returns {Array<number>} Array of page numbers to display
 	 */
@@ -1637,12 +1766,13 @@ const ReportsSection = ({
 								size="sm"
 								variant="outlined"
 								ripple={true}
+								disabled={isCSVImporting}
 								onClick={() =>
 									document.getElementById('csvImportInput').click()
 								}
 								className="flex items-center gap-2">
 								<FaFileImport />
-								Import
+								{isCSVImporting ? 'Importing…' : 'Import'}
 							</Button>
 						</Tooltip>
 						<input
@@ -1652,7 +1782,11 @@ const ReportsSection = ({
 							style={{ display: 'none' }}
 							onChange={(e) => {
 								const file = e.target.files[0]
-								if (file) handleCSVImport(file)
+								if (file) {
+									setCSVImportFile(file)
+									setCSVImportModal(true)
+								}
+								e.target.value = ''
 							}}
 						/>
 					</div>
@@ -1665,6 +1799,18 @@ const ReportsSection = ({
 					subtitle=""
 					CTA="Delete"
 					closeModal={setDeleteModal}
+				/>
+			)}
+			{csvImportModal && csvImportFile && (
+				<ConfirmModal
+					func={handleCSVImportConfirm}
+					title="Import reports from CSV?"
+					subtitle={`Import rows from ${csvImportFile.name}. Valid rows will be written immediately and cannot be rolled back as a group.`}
+					CTA="Import"
+					closeModal={(show) => {
+						setCSVImportModal(show)
+						if (!show) setCSVImportFile(null)
+					}}
 				/>
 			)}
 		</>
