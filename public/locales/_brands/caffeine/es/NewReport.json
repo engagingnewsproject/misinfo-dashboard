@@ -1,0 +1,20 @@
+{
+  "description": "Este sistema es solamente para reportar anuncios de bebidas con cafeína.",
+  "correct": "Anuncios de café, refrescos o bebidas energéticas.",
+  "incorrect": "Anuncios de leche, agua mineral o jugo.",
+  "imageDescription": "Puede subir capturas de pantalla o fotos del anuncio de bebida con cafeína",
+  "detailedDescription": "Por favor, proporcione más detalles del anuncio de bebida con cafeína, tal como dónde lo vio y qué decía.",
+  "custom_topic": "Producto personalizado",
+  "specify_topic": "Por favor especifica el producto (máx. {{max}} caracteres)",
+  "about": "¿De qué producto es el anuncio de bebida con cafeína?",
+  "where": "¿Dónde viste el anuncio de bebida con cafeína?",
+  "provide_title": "Proporcione un título para el anuncio de bebida con cafeína.",
+  "upload": "Puedes subir capturas de pantalla o fotografías del anuncio de bebida con cafeína.",
+  "topic": "Producto",
+  "topics": {
+    "Soda": "Refresco",
+    "Coffee": "Café",
+    "Energy Drink": "Bebida energética",
+    "EnergyDrink": "Bebida energética"
+  }
+}
