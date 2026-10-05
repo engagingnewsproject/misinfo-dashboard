@@ -126,7 +126,7 @@ function MyApp({ Component, pageProps }) {
 				/>
 			</Head>
 			<ThemeProvider value={style}>
-				<AuthContextProvider>
+				<AuthContextProvider initialAuth={pageProps.initialAuth}>
 					<div className={`${inter.variable} font-sans bg-[#D3D3D3] w-full max-w-full overflow-x-hidden min-h-screen-safe safe-area-pad`}>
 						<div className='w-screen content-center'>
 							{noAuthRequired.includes(router.pathname) ? (

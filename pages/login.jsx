@@ -21,10 +21,11 @@
  */
 
 import { useRouter } from 'next/router'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { useAuth } from '../context/AuthContext'
+import { SESSION_SYNC_FAILED, useAuth } from '../context/AuthContext'
 import { db, auth } from '../config/firebase'
+import { safeNextPath } from '../lib/session'
 import {
 	DEFAULT_LOGIN_BLURB,
 	getLoginBlurbConfig,
@@ -44,11 +45,12 @@ import { GiMagnifyingGlass } from "react-icons/gi";
 import Head from 'next/head';
 import { Button, Typography } from '@material-tailwind/react'
 import FormInput from '../components/ui/FormInput'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 // Dev-only UI: conditional require so production client bundles can tree-shake it away.
 const DevLoginShortcuts =
 	process.env.NODE_ENV === 'development'
-		? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+		? // eslint-disable-next-line global-require
 			require('../components/dev/DevLoginShortcuts').default
 		: null
 
@@ -64,7 +66,17 @@ const Login = () => {
 
   const { t } = useTranslation('Welcome');
 
-  const { user, login, verifyEmail, addAgencyRole, refreshCustomClaims } = useAuth()
+  const {
+    login,
+    ensureServerSession,
+    clientAuthReady,
+    verifyEmail,
+    addAgencyRole,
+    refreshCustomClaims,
+  } = useAuth()
+  const nextPath = safeNextPath(router.query.next)
+  const [resuming, setResuming] = useState(false)
+  const resumeChecked = useRef(false)
   const [loginBlurbs, setLoginBlurbs] = useState(DEFAULT_LOGIN_BLURB)
   const locale = router.locale === 'es' ? 'es' : 'en'
   const loginPurposeBlurb = getLoginBlurbForLocale(loginBlurbs, locale)
@@ -94,6 +106,21 @@ const Login = () => {
     // Prefetch the dashboard page
     router.prefetch('/dashboard')
   }, [router])
+
+  // A client-side user who reached /login?next= only lacks the server cookie.
+  useEffect(() => {
+    if (!router.isReady || !clientAuthReady || resumeChecked.current) return
+    resumeChecked.current = true
+    if (!nextPath || !auth.currentUser?.emailVerified) return
+    setResuming(true)
+    ensureServerSession()
+      .then(() => router.replace(nextPath))
+      .catch((err) => {
+        console.warn(err)
+        setError(t('session_sync_failed'))
+        setResuming(false)
+      })
+  }, [router, clientAuthReady, nextPath, ensureServerSession, t])
 
   useEffect(() => {
     let cancelled = false
@@ -135,15 +162,15 @@ const Login = () => {
 					await addAgencyRole({ email, agencyId })
 					await refreshCustomClaims()
 					console.log(`${email} has been made an agency user`)
-					await router.push('/dashboard')
+					await router.push(nextPath ?? '/dashboard')
 					return
 				}
 
-				await router.push('/report')
+				await router.push(nextPath ?? '/report')
 				return
 			}
 
-			await router.push('/dashboard')
+			await router.push(nextPath ?? '/dashboard')
 		} else {
 			await verifyEmail(auth.currentUser)
 			await router.push('/verifyEmail')
@@ -155,6 +182,9 @@ const Login = () => {
 			setError(t('not_found'))
 		} else if (err.code === 'auth/wrong-password') {
 			setError(t('incorrect'))
+		} else if (err.code === SESSION_SYNC_FAILED) {
+			console.warn(err)
+			setError(t('session_sync_failed'))
 		} else if (err.code === 'auth/network-request-failed') {
 			setError(
 				process.env.NEXT_PUBLIC_USE_EMULATORS === 'true'
@@ -192,6 +222,16 @@ const Login = () => {
     }))
   }
 
+	if (resuming) {
+		return (
+			<div
+				className="min-h-screen w-full flex flex-col items-center justify-center bg-[#D3D3D3] gap-3"
+				role="status">
+				<LoadingSpinner className="h-12 w-12 text-[#2E3B4E]" />
+				<p className="text-sm text-gray-600">{t('signing_in')}</p>
+			</div>
+		)
+	}
 
   return (
 		<>
