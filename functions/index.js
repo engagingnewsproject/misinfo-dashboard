@@ -1,7 +1,7 @@
 /**
  * @fileoverview Firebase Cloud Functions - Backend API and Triggers
  * 
- * This file contains all Firebase Cloud Functions for the Misinfo Dashboard application.
+ * This file contains all Firebase Cloud Functions for the dashboard application.
  * It includes HTTP callable functions for user management, Firestore triggers for
  * automated actions, and integration with external services like Slack for notifications.
  * 

@@ -326,6 +326,37 @@ To install:
 
 Project Lead Links: [Firebase CLI Tools](https://firebase.google.com/docs/firestore/security/get-started#use_the_firebase_cli) || [Firebase Console](https://console.firebase.google.com/) || [Firebase App Hosting (misinfo-5d004)](https://console.firebase.google.com/project/misinfo-5d004/apphosting) || [Firebase Cloud Console](https://console.cloud.google.com/welcome?project=misinfo-5d004) || [Syncing a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-command-line) || [ENP Prod Repo](https://github.com/engagingnewsproject/misinfo-dashboard-prod)
 
+## Brands (Truth Sleuth and Caffeine App)
+
+This one codebase powers two apps. The `NEXT_PUBLIC_BRAND` env var picks which one a build is:
+
+| `NEXT_PUBLIC_BRAND` | App | Firebase project | Hosting |
+|---|---|---|---|
+| unset or `misinfo` | Truth Sleuth Local | `misinfo-5d004` | Firebase App Hosting (this repo) |
+| `caffeine` | Caffeine App | `caffeine-app-d8cd8` | Netlify ([caffeine-app-v2](https://github.com/engagingnewsproject/caffeine-app-v2)) |
+
+Everything that differs between the apps lives in one of these places, so shared code never has to change per brand:
+
+- `config/brands/<brand>.js`: app name, icon, site URL, login blurb, help email wording, on-screen tag names (Caffeine shows "Product" for the `Topic` tag system; the Firestore field stays `Topic`), default topics for new agencies, and feature switches (`pipelineAdmin` hides the Pipeline and Left out tabs, `experimentSettings` hides experiment tools).
+- `public/locales/_brands/<brand>/<lng>/<ns>.json`: wording overrides. Only list the keys that change; they are merged over `public/locales/<lng>/<ns>.json` by `lib/brandServerSideTranslations.js`. Register new files in `lib/brand-locale-overrides.js`.
+- `public/brands/<brand>/`: icons and favicons. Any file here replaces the root `public/` file of the same name; the manifest name and description come from the brand config.
+
+In code, read brand values from `config/brand.js` (`brand`, `pageTitle()`, `tagDisplayName()`, `isFeatureEnabled()`) instead of hardcoding names. For translations, use `brandServerSideTranslations` in place of `serverSideTranslations`.
+
+**Preview Caffeine locally:** `NEXT_PUBLIC_BRAND=caffeine npm run dev` (uses this repo's Firebase env; see `.env.caffeine.example` for the full Caffeine env).
+
+**Keeping caffeine-app-v2 in sync:** it is a copy of this repo whose only differences are deploy settings (`.firebaserc` default, `netlify.toml`, the Netlify env vars, package name). To pull in new work:
+
+```bash
+cd caffeine-app-v2
+git remote add misinfo https://github.com/engagingnewsproject/misinfo-dashboard.git  # once
+git checkout -b chore/sync-misinfo-dashboard
+git fetch misinfo && git merge misinfo/main
+npm install && npm test && npm run build
+```
+
+Cloud Functions read `BRAND_NAME` (help-request email sender name) from the functions environment.
+
 ## Links
 
 #### [Firebase App Hosting (misinfo-5d004)](https://console.firebase.google.com/project/misinfo-5d004/apphosting)

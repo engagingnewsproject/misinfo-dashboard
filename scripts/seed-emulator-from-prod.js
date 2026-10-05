@@ -3,7 +3,7 @@
  * Copy Firestore data from production into a running Firestore emulator.
  *
  * Prerequisites:
- * - Service account JSON at repo root (misinfo-*-firebase-adminsdk*.json, gitignored)
+ * - Service account JSON at repo root (<project-id>-firebase-adminsdk*.json, gitignored)
  *   or GOOGLE_APPLICATION_CREDENTIALS / --service-account=path
  * - Firestore emulator listening (e.g. `npm run dev` or `firebase emulators:start --only firestore`)
  *
@@ -28,7 +28,10 @@ const { FieldPath } = require('firebase-admin/firestore')
 const fs = require('fs')
 const path = require('path')
 
-const PROJECT_ID = 'misinfo-5d004'
+const { brand } = require('../config/brand')
+
+// Set NEXT_PUBLIC_BRAND=caffeine (or FIREBASE_PROJECT_ID) to run against the Caffeine project.
+const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || brand.firebaseProjectId
 const DEFAULT_EMULATOR_HOST = '127.0.0.1:8080'
 const DEFAULT_AUTH_EMULATOR_HOST = '127.0.0.1:9099'
 const TEST_REPORTER_EMAIL = 'user@user.com'
@@ -135,7 +138,7 @@ dropped. Those test users must exist in the Auth emulator.
 Credentials (first match):
   GOOGLE_APPLICATION_CREDENTIALS
   --service-account=PATH
-  misinfo-*-firebase-adminsdk*.json in repo root
+  <project-id>-firebase-adminsdk*.json in repo root
 `)
 }
 
@@ -164,12 +167,12 @@ function resolveServiceAccountPath(explicitPath) {
 		.readdirSync(root)
 		.filter(
 			(name) =>
-				name.includes('firebase-adminsdk') && name.endsWith('.json'),
+				name.startsWith(`${PROJECT_ID}-firebase-adminsdk`) && name.endsWith('.json'),
 		)
 		.sort()
 	if (matches.length === 0) {
 		throw new Error(
-			'No service account JSON found. Place misinfo-*-firebase-adminsdk*.json at repo root or set GOOGLE_APPLICATION_CREDENTIALS.',
+			`No service account JSON found. Place ${PROJECT_ID}-firebase-adminsdk*.json at repo root or set GOOGLE_APPLICATION_CREDENTIALS.`,
 		)
 	}
 	return path.join(root, matches[0])

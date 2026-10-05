@@ -14,7 +14,7 @@
  * - Firebase Auth for user/role verification
  * - next/head for meta tags
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */
@@ -34,8 +34,9 @@ import {
 } from '../context/MobileNavContext'
 import Agencies from '../components/admin/Agencies'
 import AgencyReportModal from '../components/modals/reports/AgencyReportModal'
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import { brandServerSideTranslations } from '../lib/brandServerSideTranslations'
 import Head from 'next/head'
+import { isFeatureEnabled, pageTitle } from '../config/brand'
 import HelpRequests from '../components/admin/HelpRequests'
 import Appearance from '../components/admin/Appearance'
 import Pipeline from '../components/admin/Pipeline'
@@ -66,14 +67,16 @@ function isTabAllowed(tabIndex, claims) {
 	if (tabIndex === 0 || tabIndex === 2) {
 		return !!(claims.admin || claims.agency)
 	}
-	// Users (3) and admin-only tools (agencies, help, appearance, pipeline, left out)
+	// Pipeline (7) and Left out (8) only exist on brands with the Truth Sleuth pipeline
+	if (tabIndex === 7 || tabIndex === 8) {
+		return !!claims.admin && isFeatureEnabled('pipelineAdmin')
+	}
+	// Users (3) and admin-only tools (agencies, help, appearance)
 	if (
 		tabIndex === 3 ||
 		tabIndex === 4 ||
 		tabIndex === 5 ||
-		tabIndex === 6 ||
-		tabIndex === 7 ||
-		tabIndex === 8
+		tabIndex === 6
 	) {
 		return !!claims.admin
 	}
@@ -175,7 +178,7 @@ const Dashboard = () => {
 	return (
 		<>
 			<Head>
-				<title>Dashboard | Truth Sleuth Local</title>
+				<title>{pageTitle('Dashboard')}</title>
 			</Head>
 			<MobileNavProvider>
 				<DashboardLayout
@@ -241,8 +244,8 @@ function DashboardLayout({
 				)}
 				{tab == 5 && customClaims.admin && <HelpRequests />}
 				{tab == 6 && customClaims.admin && <Appearance />}
-				{tab == 7 && customClaims.admin && <Pipeline />}
-				{tab == 8 && customClaims.admin && <LeftOutArticles />}
+				{tab == 7 && customClaims.admin && isFeatureEnabled('pipelineAdmin') && <Pipeline />}
+				{tab == 8 && customClaims.admin && isFeatureEnabled('pipelineAdmin') && <LeftOutArticles />}
 			</div>
 			{newReportModal && (
 				<AgencyReportModal
@@ -263,7 +266,7 @@ export async function getStaticProps(context) {
 
 	return {
 		props: {
-			...(await serverSideTranslations(locale, [
+			...(await brandServerSideTranslations(locale, [
 				'Home',
 				'Report',
 				'NewReport',

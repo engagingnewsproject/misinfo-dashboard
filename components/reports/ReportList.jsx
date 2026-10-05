@@ -14,7 +14,7 @@
  * - Responsive design with hover effects
  * - Internationalization support
  * 
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */

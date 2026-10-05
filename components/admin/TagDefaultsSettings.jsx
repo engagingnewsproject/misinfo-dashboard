@@ -24,6 +24,7 @@ import {
 	validateLabeledTag,
 	validateTagDefaults,
 } from '../../utils/tag-defaults'
+import { tagDisplayName } from '../../config/brand'
 
 const MAX_ACTIVE_TOPICS = maxActiveTags[1]
 const MAX_ACTIVE_SOURCES = maxActiveTags[2]
@@ -430,7 +431,7 @@ const TagDefaultsSettings = () => {
 		<div data-component="TagDefaultsSettings" className="mb-8 p-6 bg-white rounded-md border border-blue-gray-100">
 			<div className={globalStyles.heading.h1.blue}>Global Tag Defaults</div>
 			<p className="text-sm text-gray-600 mb-4">
-				These Topic and Source tags are required for every newsroom. Agencies
+				These {tagDisplayName('Topic')} and Source tags are required for every newsroom. Agencies
 				cannot deactivate, rename, or remove them. Enter an English id (stored
 				in reports) plus English and Spanish display labels. Saving adds any
 				new required ids to all agencies; retired tags already on agencies are
@@ -439,7 +440,7 @@ const TagDefaultsSettings = () => {
 
 			<div className="flex flex-col lg:flex-row gap-8 mb-4">
 				<RequiredTagListEditor
-					title="Topic Defaults"
+					title={`${tagDisplayName('Topic')} Defaults`}
 					maxActive={MAX_ACTIVE_TOPICS}
 					tags={topicRequired}
 					setTags={setTopicRequired}

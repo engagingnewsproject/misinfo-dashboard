@@ -2,15 +2,16 @@
  * Public privacy policy page at `/privacy-policy` (and locale-prefixed routes) for OAuth / store compliance.
  */
 import Head from 'next/head'
+import { pageTitle } from '../config/brand'
 import Link from 'next/link'
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import { brandServerSideTranslations } from '../lib/brandServerSideTranslations'
 import PrivacyPolicyContent from '../components/legal/PrivacyPolicyContent'
 
 export default function PrivacyPolicyPage() {
 	return (
 		<>
 			<Head>
-				<title>Privacy Policy | Truth Sleuth</title>
+				<title>{pageTitle('Privacy Policy')}</title>
 			</Head>
 			<div data-component="privacy-policy" className="min-h-screen bg-[#D3D3D3] py-8 px-4">
 				<div className="max-w-3xl mx-auto shadow-lg">
@@ -29,7 +30,7 @@ export default function PrivacyPolicyPage() {
 export async function getStaticProps({ locale }) {
 	return {
 		props: {
-			...(await serverSideTranslations(locale, [])),
+			...(await brandServerSideTranslations(locale, [])),
 		},
 	}
 }

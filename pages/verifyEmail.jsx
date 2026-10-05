@@ -11,7 +11,7 @@
  * - Login navigation
  * - User role verification
  * 
- * @author Truth Sleuth Local Team
+ * @author Engaging News Project
  * @version 1.0.0
  */
 
@@ -21,12 +21,12 @@ import { useAuth } from '../context/AuthContext'
 import {signOut} from 'firebase/auth'
 import { auth } from '../config/firebase'
 import Head from 'next/head'
-import { GiMagnifyingGlass } from 'react-icons/gi'
+import { brand } from '../config/brand'
+import { BrandIcon } from '../components/layout/BrandLockup'
 import { Typography } from '@material-tailwind/react'
 import LanguageSwitcher from '../components/layout/LanguageSwitcher'
 import { useTranslation } from 'next-i18next'
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
-
+import { brandServerSideTranslations } from '../lib/brandServerSideTranslations'
 /**
  * VerifyEmail component for email verification flow
  * 
@@ -105,10 +105,10 @@ const VerifyEmail = () => {
 					{/* Logo/branding section */}
 					<div className="flex flex-col items-center justify-center mb-4">
 						<div className="bg-blue-600 p-7 rounded-full mb-2">
-							<GiMagnifyingGlass size={30} className="fill-white" />
+							<BrandIcon size={30} className="fill-white" />
 						</div>
 						<Typography variant="small" className="text-xs font-semibold text-[#2E3B4E]">
-							Truth Sleuth Local
+							{brand.appName}
 						</Typography>
 					</div>
 					
@@ -174,7 +174,7 @@ export async function getStaticProps(context) {
   const { locale } = context
   return {
     props: {
-      ...(await serverSideTranslations(locale, ['Welcome'])),
+      ...(await brandServerSideTranslations(locale, ['Welcome'])),
     },
   }
 }

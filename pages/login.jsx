@@ -15,7 +15,7 @@
  * - next-i18next for translations
  * - Material Tailwind for UI components
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */
@@ -33,7 +33,7 @@ import {
 } from '../utils/login-blurb-config'
 import LanguageSwitcher from '../components/layout/LanguageSwitcher'
 import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import { brandServerSideTranslations } from '../lib/brandServerSideTranslations'
 import { MdOutlineRemoveRedEye } from "react-icons/md"; // <MdOutlineRemoveRedEye />
 import {
 	collection,
@@ -41,8 +41,9 @@ import {
 	query,
 	where,
 } from "firebase/firestore"
-import { GiMagnifyingGlass } from "react-icons/gi";
+import { BrandIcon } from '../components/layout/BrandLockup'
 import Head from 'next/head';
+import { brand, pageTitle } from '../config/brand'
 import { Button, Typography } from '@material-tailwind/react'
 import FormInput from '../components/ui/FormInput'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
@@ -236,15 +237,15 @@ const Login = () => {
   return (
 		<>
 			<Head>
-				<title>Login | Truth Sleuth Local</title>
+				<title>{pageTitle('Login')}</title>
 			</Head>
 			<div data-component="login" className="w-screen h-screen overflow-auto flex justify-center items-start py-12 pb-8">
 				<div className="w-full max-w-md font-light bg-white rounded-md p-6">
 					<div className="flex flex-col items-center justify-center h-auto mb-2">
 						<div className="bg-blue-600 p-7 rounded-full mb-2">
-							<GiMagnifyingGlass size={30} className="fill-white" />
+							<BrandIcon size={30} className="fill-white" />
 						</div>
-						<Typography variant="small" className='text-xs font-semibold text-[#2E3B4E]'>Truth Sleuth Local</Typography>
+						<Typography variant="small" className='text-xs font-semibold text-[#2E3B4E]'>{brand.appName}</Typography>
 						<Typography
 							variant="small"
 							className="mt-3 text-center text-sm font-normal text-gray-600 leading-relaxed px-2">
@@ -366,7 +367,7 @@ export async function getStaticProps(context) {
   return {
     props: {
       // pass the translation props to the page component
-      ...(await serverSideTranslations(locale, ['Welcome'])),
+      ...(await brandServerSideTranslations(locale, ['Welcome'])),
     },
   }
 }
