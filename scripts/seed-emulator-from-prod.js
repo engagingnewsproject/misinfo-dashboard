@@ -11,6 +11,13 @@
  *   node scripts/seed-emulator-from-prod.js
  *   node scripts/seed-emulator-from-prod.js --limit=500 --with-settings
  *   node scripts/seed-emulator-from-prod.js --clear-reports --dry-run
+ *   node scripts/seed-emulator-from-prod.js --collections=agency,tags,leftOutArticles,locations
+ *
+ * Copied docs are scrubbed so the result is safe to export into emulator-data/
+ * (this repo is public): all emulator reports belong to user@user.com, admin
+ * actions point at admin@user.com, agencies list agency@user.com as their only
+ * user, and newsroom notes and image URLs are dropped. mobileUsers is never
+ * copied; the emulator's own test users stay as they are.
  *
  * After seeding, open Settings → "Initialize experiment fields" if reports lack
  * experimentId/archived, then test archive flows safely on the emulator.
@@ -23,6 +30,11 @@ const path = require('path')
 
 const PROJECT_ID = 'misinfo-5d004'
 const DEFAULT_EMULATOR_HOST = '127.0.0.1:8080'
+const DEFAULT_AUTH_EMULATOR_HOST = '127.0.0.1:9099'
+const TEST_REPORTER_EMAIL = 'user@user.com'
+const TEST_ADMIN_EMAIL = 'admin@user.com'
+const TEST_AGENCY_EMAIL = 'agency@user.com'
+const ADMIN_ACTOR_FIELDS = ['archivedBy', 'movedBy', 'promotedBy']
 const PAGE_SIZE = 500
 const WRITE_BATCH_SIZE = 400
 
@@ -32,6 +44,7 @@ const WRITE_BATCH_SIZE = 400
  * @property {boolean} dryRun
  * @property {boolean} withSettings
  * @property {boolean} clearReports
+ * @property {string[]} collections
  * @property {string} emulatorHost
  * @property {string | null} serviceAccountPath
  */
@@ -47,6 +60,7 @@ function parseArgs() {
 		dryRun: false,
 		withSettings: false,
 		clearReports: false,
+		collections: [],
 		emulatorHost: DEFAULT_EMULATOR_HOST,
 		serviceAccountPath: null,
 	}
@@ -64,6 +78,22 @@ function parseArgs() {
 				throw new Error('--limit must be a non-negative integer (0 = no limit)')
 			}
 			opts.limit = n
+		} else if (arg.startsWith('--collections=')) {
+			opts.collections = arg
+				.slice('--collections='.length)
+				.split(',')
+				.map((name) => name.trim())
+				.filter(Boolean)
+			if (opts.collections.includes('reports')) {
+				throw new Error(
+					'--collections cannot include reports; use --limit to control reports',
+				)
+			}
+			if (opts.collections.includes('mobileUsers')) {
+				throw new Error(
+					'--collections cannot include mobileUsers; it holds personal data',
+				)
+			}
 		} else if (arg.startsWith('--emulator-host=')) {
 			opts.emulatorHost = arg.slice('--emulator-host='.length)
 		} else if (arg.startsWith('--service-account=')) {
@@ -81,13 +111,21 @@ function parseArgs() {
 
 function printHelp() {
 	console.log(`\
-Copy production Firestore reports (and optional settings/experiment) into the emulator.
+Copy production Firestore reports (and optional settings/experiment and other
+collections) into the emulator.
 
   node scripts/seed-emulator-from-prod.js [options]
 
 Options:
   --limit=N              Max reports to copy (default: 200, 0 = all)
   --with-settings        Also copy settings/experiment
+  --collections=A,B      Also copy every doc in these top-level collections
+                         (e.g. agency,tags,leftOutArticles,locations).
+                         Subcollections are not copied. mobileUsers is refused.
+
+Reports are reassigned to ${TEST_REPORTER_EMAIL}, admin actions to
+${TEST_ADMIN_EMAIL}, agency users to ${TEST_AGENCY_EMAIL}; notes and images are
+dropped. Those test users must exist in the Auth emulator.
   --clear-reports        Delete emulator reports before import
   --emulator-host=HOST   Default: ${DEFAULT_EMULATOR_HOST}
   --service-account=PATH Override credentials JSON path
@@ -162,6 +200,7 @@ async function initProdApp(serviceAccountPath) {
  */
 async function initEmulatorApp(serviceAccountPath, emulatorHost) {
 	process.env.FIRESTORE_EMULATOR_HOST = emulatorHost
+	process.env.FIREBASE_AUTH_EMULATOR_HOST ||= DEFAULT_AUTH_EMULATOR_HOST
 	const credential = admin.credential.cert(
 		require(path.resolve(serviceAccountPath)),
 	)
@@ -182,10 +221,11 @@ async function deleteAdminApps() {
 
 /**
  * @param {import('firebase-admin').firestore.Firestore} db
- * @param {number} limit
+ * @param {string} collectionName
+ * @param {number} limit 0 = no limit
  * @returns {Promise<Array<{ id: string, data: FirebaseFirestore.DocumentData }>>}
  */
-async function fetchReportsFromProd(db, limit) {
+async function fetchCollectionFromProd(db, collectionName, limit) {
 	const out = []
 	let lastId = null
 
@@ -197,7 +237,7 @@ async function fetchReportsFromProd(db, limit) {
 		}
 
 		let q = db
-			.collection('reports')
+			.collection(collectionName)
 			.orderBy(FieldPath.documentId())
 			.limit(remaining)
 
@@ -274,22 +314,133 @@ async function clearEmulatorReports(db) {
 }
 
 /**
+ * @typedef {Object} TestUids
+ * @property {string} reporter
+ * @property {string} admin
+ */
+
+/**
+ * @param {import('firebase-admin').app.App} emuApp
+ * @returns {Promise<TestUids>}
+ */
+async function resolveTestUids(emuApp) {
+	const auth = emuApp.auth()
+	const lookup = async (email) => {
+		try {
+			return (await auth.getUserByEmail(email)).uid
+		} catch (err) {
+			throw new Error(
+				`Test user ${email} not found in the Auth emulator; start it with emulator-data imported`,
+				{ cause: err },
+			)
+		}
+	}
+	const [reporter, admin] = await Promise.all([
+		lookup(TEST_REPORTER_EMAIL),
+		lookup(TEST_ADMIN_EMAIL),
+	])
+	return { reporter, admin }
+}
+
+/**
+ * @param {FirebaseFirestore.DocumentData} data
+ * @param {TestUids} uids
+ */
+function scrubActorFields(data, uids) {
+	const out = { ...data }
+	for (const field of ADMIN_ACTOR_FIELDS) {
+		if (out[field]) out[field] = uids.admin
+	}
+	return out
+}
+
+/**
+ * @param {string} collectionName
+ * @param {Array<{ id: string, data: FirebaseFirestore.DocumentData }>} docs
+ * @param {TestUids} uids
+ */
+function scrubDocs(collectionName, docs, uids) {
+	return docs.map(({ id, data }) => {
+		let clean = scrubActorFields(data, uids)
+		if (collectionName === 'reports') {
+			clean = { ...clean, userID: uids.reporter, note: '', images: [] }
+		} else if (collectionName === 'agency') {
+			clean = { ...clean, agencyUsers: [TEST_AGENCY_EMAIL] }
+		}
+		return { id, data: clean }
+	})
+}
+
+/**
+ * Points every emulator report (including ones from earlier imports) at the test
+ * users, and every agency at the test agency user.
+ *
+ * @param {import('firebase-admin').firestore.Firestore} db
+ * @param {TestUids} uids
+ * @returns {Promise<{ reports: number, agencies: number }>}
+ */
+async function reassignAllToTestUsers(db, uids) {
+	const fixes = []
+	const reports = await db.collection('reports').get()
+	for (const doc of reports.docs) {
+		const data = doc.data()
+		const patch = {}
+		if (data.userID !== uids.reporter) patch.userID = uids.reporter
+		for (const field of ADMIN_ACTOR_FIELDS) {
+			if (data[field] && data[field] !== uids.admin) patch[field] = uids.admin
+		}
+		if (Object.keys(patch).length > 0) fixes.push({ ref: doc.ref, patch })
+	}
+	const reportFixes = fixes.length
+
+	const agencies = await db.collection('agency').get()
+	for (const doc of agencies.docs) {
+		const users = doc.data().agencyUsers || []
+		if (users.length !== 1 || users[0] !== TEST_AGENCY_EMAIL) {
+			fixes.push({ ref: doc.ref, patch: { agencyUsers: [TEST_AGENCY_EMAIL] } })
+		}
+	}
+
+	for (let i = 0; i < fixes.length; i += WRITE_BATCH_SIZE) {
+		const batch = db.batch()
+		for (const { ref, patch } of fixes.slice(i, i + WRITE_BATCH_SIZE)) {
+			batch.update(ref, patch)
+		}
+		await batch.commit()
+	}
+
+	return { reports: reportFixes, agencies: fixes.length - reportFixes }
+}
+
+/**
+ * @param {import('firebase-admin').firestore.Firestore} db
+ * @param {string} collectionName
+ * @param {Array<{ id: string, data: FirebaseFirestore.DocumentData }>} docs
+ * @returns {Promise<number>}
+ */
+async function writeCollectionToEmulator(db, collectionName, docs) {
+	let written = 0
+
+	for (let i = 0; i < docs.length; i += WRITE_BATCH_SIZE) {
+		const chunk = docs.slice(i, i + WRITE_BATCH_SIZE)
+		const batch = db.batch()
+		for (const { id, data } of chunk) {
+			batch.set(db.collection(collectionName).doc(id), data, { merge: false })
+		}
+		await batch.commit()
+		written += chunk.length
+	}
+
+	return written
+}
+
+/**
  * @param {import('firebase-admin').firestore.Firestore} db
  * @param {Array<{ id: string, data: FirebaseFirestore.DocumentData }>} reports
  * @param {{ id: string, data: FirebaseFirestore.DocumentData } | null} settings
  */
 async function writeToEmulator(db, reports, settings) {
-	let written = 0
-
-	for (let i = 0; i < reports.length; i += WRITE_BATCH_SIZE) {
-		const chunk = reports.slice(i, i + WRITE_BATCH_SIZE)
-		const batch = db.batch()
-		for (const { id, data } of chunk) {
-			batch.set(db.collection('reports').doc(id), data, { merge: false })
-		}
-		await batch.commit()
-		written += chunk.length
-	}
+	const written = await writeCollectionToEmulator(db, 'reports', reports)
 
 	if (settings) {
 		await db
@@ -309,6 +460,9 @@ async function main() {
 	console.log('Production project:', PROJECT_ID)
 	console.log('Emulator host:', opts.emulatorHost)
 	console.log('Report limit:', opts.limit === 0 ? 'none (all pages)' : opts.limit)
+	if (opts.collections.length > 0) {
+		console.log('Extra collections:', opts.collections.join(', '))
+	}
 	if (opts.dryRun) {
 		console.log('Dry run: yes (no emulator writes)')
 	}
@@ -317,14 +471,23 @@ async function main() {
 	const prodApp = await initProdApp(serviceAccountPath)
 	const prodDb = prodApp.firestore()
 
-	const [reports, settings] = await Promise.all([
-		fetchReportsFromProd(prodDb, opts.limit),
+	const [reports, settings, extras] = await Promise.all([
+		fetchCollectionFromProd(prodDb, 'reports', opts.limit),
 		opts.withSettings
 			? fetchExperimentSettings(prodDb)
 			: Promise.resolve(null),
+		Promise.all(
+			opts.collections.map(async (name) => ({
+				name,
+				docs: await fetchCollectionFromProd(prodDb, name, 0),
+			})),
+		),
 	])
 
 	console.log(`Fetched ${reports.length} report(s) from production.`)
+	for (const { name, docs } of extras) {
+		console.log(`Fetched ${docs.length} doc(s) from ${name}.`)
+	}
 	if (opts.withSettings) {
 		console.log(
 			settings
@@ -354,6 +517,16 @@ async function main() {
 		throw err
 	}
 
+	const uids = await resolveTestUids(emuApp)
+	console.log(
+		`Scrubbing: reports → ${TEST_REPORTER_EMAIL}, admin actions → ${TEST_ADMIN_EMAIL}, agency users → ${TEST_AGENCY_EMAIL}`,
+	)
+	const cleanReports = scrubDocs('reports', reports, uids)
+	const cleanExtras = extras.map(({ name, docs }) => ({
+		name,
+		docs: scrubDocs(name, docs, uids),
+	}))
+
 	if (opts.clearReports) {
 		const removed = await clearEmulatorReports(emuDb)
 		console.log(`Cleared ${removed} existing report(s) from emulator.`)
@@ -361,7 +534,7 @@ async function main() {
 
 	const { reportsWritten, settingsWritten } = await writeToEmulator(
 		emuDb,
-		reports,
+		cleanReports,
 		settings,
 	)
 
@@ -369,6 +542,14 @@ async function main() {
 	if (settingsWritten) {
 		console.log('Wrote settings/experiment to emulator.')
 	}
+	for (const { name, docs } of cleanExtras) {
+		const n = await writeCollectionToEmulator(emuDb, name, docs)
+		console.log(`Wrote ${n} doc(s) to ${name}.`)
+	}
+	const reassigned = await reassignAllToTestUsers(emuDb, uids)
+	console.log(
+		`Reassigned ${reassigned.reports} existing report(s) and ${reassigned.agencies} agency doc(s) to the test users.`,
+	)
 	console.log(
 		'\nNext: open http://localhost:3000 → Settings → Experiment & archive → Initialize experiment fields (if needed).',
 	)
