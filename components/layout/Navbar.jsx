@@ -43,6 +43,7 @@ import ConfirmModal from '../modals/common/ConfirmModal'
 import { useAuth } from '../../context/AuthContext'
 import { useNavBranding } from '../../hooks/useNavBranding'
 import BrandLockup, { BrandMark } from './BrandLockup'
+import { isFeatureEnabled } from '../../config/brand'
 import {
 	NAV_COLLAPSED_WIDTH,
 	NAV_DESKTOP_MIN_WIDTH,
@@ -300,6 +301,7 @@ const Navbar = ({
 
 	const icon = (Node) => <Node size={showLabels ? 22 : 25} />
 	const isAgencyUser = Boolean(customClaims?.agency)
+	const showPipelineAdmin = isFeatureEnabled('pipelineAdmin')
 	const showReportCta =
 		Boolean(customClaims?.agency) ||
 		(!customClaims?.admin && !customClaims?.agency)
@@ -316,7 +318,7 @@ const Navbar = ({
 					tooltipClass="tooltip-home"
 				/>
 			)}
-			{customClaims.admin && (
+			{customClaims.admin && showPipelineAdmin && (
 				<NavItem
 					expanded
 					icon={icon(IoPulseOutline)}
@@ -326,7 +328,7 @@ const Navbar = ({
 					tooltipClass="tooltip-pipeline"
 				/>
 			)}
-			{customClaims.admin && (
+			{customClaims.admin && showPipelineAdmin && (
 				<NavItem
 					expanded
 					icon={icon(IoArchiveOutline)}
@@ -391,7 +393,7 @@ const Navbar = ({
 					tooltipClass="tooltip-home"
 				/>
 			)}
-			{customClaims.admin && (
+			{customClaims.admin && showPipelineAdmin && (
 				<NavItem
 					expanded={false}
 					icon={icon(IoPulseOutline)}
@@ -401,7 +403,7 @@ const Navbar = ({
 					tooltipClass="tooltip-pipeline"
 				/>
 			)}
-			{customClaims.admin && (
+			{customClaims.admin && showPipelineAdmin && (
 				<NavItem
 					expanded={false}
 					icon={icon(IoArchiveOutline)}

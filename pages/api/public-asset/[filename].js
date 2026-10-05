@@ -1,5 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { BRAND_ID } from '../../../config/brand';
+import { brandManifest } from '../../../lib/brand-manifest';
 
 /** Root `public/` files we expose via rewrites when the host does not serve `public/` at /. */
 const CONTENT_TYPES = {
@@ -43,6 +45,24 @@ function contentTypeFor(filename) {
   return null;
 }
 
+/**
+ * Reads a public file, preferring `public/brands/<brand>/<file>` over the shared `public/<file>`.
+ *
+ * @param {string} publicDir
+ * @param {string} filename
+ * @returns {Promise<Buffer>}
+ */
+async function readBrandedFile(publicDir, filename) {
+  if (!PWA_JS_BASENAME.test(filename)) {
+    try {
+      return await fs.readFile(path.join(publicDir, 'brands', BRAND_ID, filename));
+    } catch {
+      // fall through to the shared file
+    }
+  }
+  return fs.readFile(path.join(publicDir, filename));
+}
+
 export default async function handler(req, res) {
   const raw = req.query.filename;
   const filename = Array.isArray(raw) ? raw[0] : raw;
@@ -58,7 +78,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const buf = await fs.readFile(filePath);
+    let buf = await readBrandedFile(publicDir, filename);
+    if (filename === 'manifest.json') buf = brandManifest(buf);
     res.setHeader('Content-Type', contentType);
     // Keep SW scripts fresh so clients pick up new precache manifests after deploy.
     if (PWA_JS_BASENAME.test(filename)) {
