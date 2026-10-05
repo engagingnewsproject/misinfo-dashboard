@@ -12,9 +12,10 @@
 		"build": "next build --webpack && node scripts/copy-public-to-standalone.js",
 		"start": "next start",
 		"start:standalone": "node .next/standalone/server.js",
-		"lint": "next lint",
+		"lint": "eslint . --ext .js,.jsx,.ts,.tsx",
 		"test": "jest",
 		"test:watch": "jest --watch",
+		"test:rules-parity": "firebase emulators:exec --only firestore \"jest lib/__tests__/report-access.rules.test.js\"",
 		"lockfile:ci": "./scripts/lockfile-ci.sh ci",
 		"lockfile:regen": "./scripts/lockfile-ci.sh regen",
 		"lockfile:regen:fresh": "./scripts/lockfile-ci.sh regen:fresh"
