@@ -11,7 +11,7 @@ import { Spinner } from '@material-tailwind/react'
  * Integrates with:
  * - next/router for navigation
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */

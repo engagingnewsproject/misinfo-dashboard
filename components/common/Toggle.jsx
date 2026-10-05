@@ -11,7 +11,7 @@
  * Integrates with:
  * - Parent dashboard or graph components for view state
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */

@@ -11,7 +11,7 @@
  * - react-switch for the toggle UI
  * - next-i18next and next/router for locale management
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */
