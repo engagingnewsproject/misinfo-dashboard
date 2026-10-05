@@ -16,7 +16,7 @@
  * - @material-tailwind/react for typography, buttons, and alerts
  * - Firebase Firestore for topic data
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */
@@ -44,6 +44,7 @@ import makeAnimated from 'react-select/animated';
 // Above chart layers (z-10) and MT Dialog overlay so portaled topic menus stay clickable.
 const MENU_Z_INDEX = 10050
 import firebaseHelper from '../../firebase/FirebaseHelper'
+import { tagDisplayName } from '../../config/brand'
 /**
  * ComparisonGraphSetup Component
  *
@@ -198,7 +199,7 @@ const ComparisonGraphSetup = ({privilege, agencyId}) => {
   return (
     <div data-component="ComparisonGraphSetup" className="relative h-full lg:h-1/2">
       <Typography variant="h4" color="blue" className="text-center tracking-wider">
-        Compare Topic Reports
+        Compare {tagDisplayName('Topic')} Reports
       </Typography>
               {/* Initial screen that appears when user selects the comparison view. Allows user to select three topics. */}
             {tab == 0 && 

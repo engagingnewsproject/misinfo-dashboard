@@ -9,7 +9,7 @@
  * - Image upload functionality
  * - Firebase integration
  * 
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 2.0.0
  * @since 2024
  */
@@ -85,6 +85,7 @@ import {
 	ReviewStep
 } from "./ReportSteps"
 import ViewReport from "../partials/report/ViewReport"
+import { tagDisplayName } from "../../config/brand"
 
 /**
  * ReportSystem Component - Multi-step form orchestrator
@@ -533,7 +534,7 @@ const ReportSystem = ({
 			newErrors.detail = "Description is required"
 		}
 		if (!selectedAgency) newErrors.agency = "Agency is required"
-		if (!selectedTopic) newErrors.topic = "Topic is required"
+		if (!selectedTopic) newErrors.topic = `${tagDisplayName('Topic')} is required`
 		if (!selectedSource) newErrors.source = "Source is required"
 
 		if (Object.keys(newErrors).length > 0) {
@@ -563,7 +564,7 @@ const ReportSystem = ({
 			newErrors.detail = "Description is required"
 		}
 		if (!selectedAgency) newErrors.agency = "Agency is required"
-		if (!selectedTopic) newErrors.topic = "Topic is required"
+		if (!selectedTopic) newErrors.topic = `${tagDisplayName('Topic')} is required`
 		if (!selectedSource) newErrors.source = "Source is required"
 
 		if (Object.keys(newErrors).length > 0) {

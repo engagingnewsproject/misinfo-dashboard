@@ -1,7 +1,7 @@
 /**
  * @fileoverview ReportModal Component
  * 
- * A comprehensive modal component for viewing and editing misinformation reports.
+ * A comprehensive modal component for viewing and editing reports.
  * Provides detailed report information display, editing capabilities, and sharing
  * functionality with role-based access control for admin and agency users.
  * 
@@ -16,7 +16,7 @@
  * - Report deletion with confirmation
  * - Responsive design with mobile support
  * 
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */

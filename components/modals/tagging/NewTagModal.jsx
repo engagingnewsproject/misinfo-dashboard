@@ -16,6 +16,7 @@ import {
 	isOtherTagName,
 	validateLabeledTag,
 } from '../../../utils/tag-defaults'
+import { tagDisplayName } from '../../../config/brand'
 
 /**
  * Modal to add a custom agency Topic/Source tag with EN id + EN/ES labels.
@@ -79,7 +80,7 @@ const NewTagModal = ({
 			<form onSubmit={handleAddNewTag}>
 				<DialogHeader className="justify-between gap-4">
 					<Typography variant="h3" color="blue" className="mt-0 mb-0">
-						{'Add New ' + tagSystems[tagSystem]}
+						{'Add New ' + tagDisplayName(tagSystems[tagSystem])}
 					</Typography>
 					<ModalCloseButton onClick={handleClose} />
 				</DialogHeader>
