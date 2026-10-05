@@ -13,7 +13,7 @@
  * - AuthContext and Firebase for user/role management
  * - next-i18next for translations
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */
@@ -43,9 +43,10 @@ import {
 	doc,
 } from "firebase/firestore"
 import { db, auth } from "../config/firebase"
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import { brandServerSideTranslations } from '../lib/brandServerSideTranslations'
 import Head from 'next/head';
 
+import { pageTitle } from '../config/brand'
 const tabList = ['Report', 'Profile'];
 
 export const reportSystems = ['Report History', 'Reminder', 'Location', 'What', 'Where', 'Detail', 'Thank You'];
@@ -133,7 +134,7 @@ const Report = () => {
 	return (
 		<>
 			<Head>
-				<title>Report | Truth Sleuth Local</title>
+				<title>{pageTitle('Report')}</title>
 			</Head>
 			<MobileNavProvider>
 				<ReportLayout
@@ -243,7 +244,7 @@ export async function getStaticProps(context) {
   return {
     props: {
       // pass the translation props to the page component
-      ...(await serverSideTranslations(locale, ['Home', 'Report', 'NewReport', 'Profile', 'Navbar'])),
+      ...(await brandServerSideTranslations(locale, ['Home', 'Report', 'NewReport', 'Profile', 'Navbar'])),
     },
   }
 }

@@ -4,15 +4,13 @@
  */
 
 import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore'
+import { brand } from '../config/brand'
 
 export const LOGIN_BLURB_SETTINGS_COLLECTION = 'settings'
 export const LOGIN_BLURB_SETTINGS_DOC_ID = 'login'
 
 /** @type {{ en: string, es: string }} */
-export const DEFAULT_LOGIN_BLURB = {
-	en: 'Truth Sleuth helps people submit reports about local election information they think might be inaccurate and lets partner organizations review.',
-	es: 'Truth Sleuth ayuda a las personas a enviar reportes sobre información electoral local que consideran inexacta y permite que las organizaciones asociadas los revisen.',
-}
+export const DEFAULT_LOGIN_BLURB = { ...brand.loginBlurb }
 
 /**
  * @param {unknown} value

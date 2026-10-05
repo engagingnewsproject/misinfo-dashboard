@@ -38,3 +38,22 @@ describe('BrandLockup', () => {
 		expect(screen.getByText('Truth Sleuth Local')).toBeInTheDocument()
 	})
 })
+
+describe('BrandLockup with NEXT_PUBLIC_BRAND=caffeine', () => {
+	const original = process.env.NEXT_PUBLIC_BRAND
+
+	afterEach(() => {
+		if (original === undefined) delete process.env.NEXT_PUBLIC_BRAND
+		else process.env.NEXT_PUBLIC_BRAND = original
+	})
+
+	it('shows Caffeine App for admin and public users', () => {
+		process.env.NEXT_PUBLIC_BRAND = 'caffeine'
+		let CaffeineTitle
+		jest.isolateModules(() => {
+			CaffeineTitle = require('../BrandLockup').BrandTitle
+		})
+		render(<CaffeineTitle customClaims={{ admin: true }} />)
+		expect(screen.getByText('Caffeine App')).toBeInTheDocument()
+	})
+})

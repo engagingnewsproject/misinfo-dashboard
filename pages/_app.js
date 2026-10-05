@@ -15,7 +15,7 @@
  * - next-i18next for i18n
  * - Next.js Head for meta tags and icons
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */
@@ -29,6 +29,7 @@ import { appWithTranslation } from "next-i18next"
 import { ThemeProvider } from "@material-tailwind/react"
 import style from '../styles/style.js'
 import Head from 'next/head'
+import { brand } from '../config/brand'
 import LoadingSpinner from "../components/ui/LoadingSpinner"
 import PwaInstallBanner from "../components/common/PwaInstallBanner"
 
@@ -77,7 +78,7 @@ function MyApp({ Component, pageProps }) {
 				<meta name="mobile-web-app-capable" content="yes" />
 				<meta name="apple-mobile-web-app-capable" content="yes" />
 				<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-				<meta name="apple-mobile-web-app-title" content="Truth Sleuth" />
+				<meta name="apple-mobile-web-app-title" content={brand.shortName} />
 				<meta
 					name="viewport"
 					content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
