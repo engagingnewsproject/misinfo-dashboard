@@ -100,6 +100,17 @@ const ReportDetails = ({ initialReport }) => {
 	const [moveStatus, setMoveStatus] = useState('')
 	const [tagLabelMap, setTagLabelMap] = useState(initialReport.tagLabelMap)
 
+	// useState only reads initialReport on mount; router.replace brings fresh props.
+	useEffect(() => {
+		setInfo(initialReport.info)
+		setReporterInfo(initialReport.reporterInfo)
+		setSelectedLabel(initialReport.info.label || DEFAULT_REPORT_LABEL)
+		setModalAgencyLabels(initialReport.agencyLabels)
+		setModalAgencyId(initialReport.agencyId)
+		setAgencyLabelColors(initialReport.agencyLabelColors)
+		setTagLabelMap(initialReport.tagLabelMap)
+	}, [initialReport])
+
 	const { reportId } = router.query
 	const linkStyle = 'font-light mb-1 text-sm underline underline-offset-1'
 
