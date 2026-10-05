@@ -23,11 +23,11 @@ export async function fetchAgencyLabelsData(agencyId) {
 	}
 
 	const tagsDoc = await getDoc(doc(db, 'tags', agencyId))
-	if (!tagsDoc.exists()) {
-		return { list: [], active: [], colors: {} }
-	}
+	return agencyLabelsFromTagsDoc(tagsDoc.data())
+}
 
-	const labels = tagsDoc.data()?.Labels || {}
+export function agencyLabelsFromTagsDoc(tagsDocData) {
+	const labels = tagsDocData?.Labels || {}
 	return {
 		list: labels.list || [],
 		active: labels.active || [],
@@ -86,13 +86,18 @@ export async function resolveAgencyIdByName(agencyName) {
  * @returns {Promise<string|null>}
  */
 export async function resolveAgencyIdForReport(report, claimAgencyId) {
+	return (
+		knownAgencyIdForReport(report, claimAgencyId) ||
+		resolveAgencyIdByName(report?.agency)
+	)
+}
+
+// The part of resolveAgencyIdForReport that needs no lookup; '' when the agency name must be queried.
+export function knownAgencyIdForReport(report, claimAgencyId) {
 	const fromReport =
 		typeof report?.agencyId === 'string' ? report.agencyId.trim() : ''
 	if (fromReport) return fromReport
-	const fromClaim =
-		typeof claimAgencyId === 'string' ? claimAgencyId.trim() : ''
-	if (fromClaim) return fromClaim
-	return resolveAgencyIdByName(report?.agency)
+	return typeof claimAgencyId === 'string' ? claimAgencyId.trim() : ''
 }
 
 /**
