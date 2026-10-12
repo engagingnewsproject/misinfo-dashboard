@@ -1,20 +1,20 @@
 /**
- * Caffeine App brand settings (deployed from the caffeine-app-v2 repo).
+ * Caffeine Dashboard brand settings (misinfo-dashboard `prod` branch, deployed on Netlify).
  */
 module.exports = {
 	id: 'caffeine',
-	appName: 'Caffeine App',
-	shortName: 'Caffeine App',
+	appName: 'Caffeine Dashboard',
+	shortName: 'Caffeine Dashboard',
 	description: 'Report caffeinated beverage ads for review by partner organizations.',
-	supportTeamName: 'Caffeine App Support Team',
-	helpRequestSubjectSuffix: 'Caffeine App Help Request',
-	shareReportSubject: 'Caffeine App Report',
+	supportTeamName: 'Caffeine Dashboard Support Team',
+	helpRequestSubjectSuffix: 'Caffeine Dashboard Help Request',
+	shareReportSubject: 'Caffeine Dashboard Report',
 	icon: 'coffeeCup',
 	appUrl: 'https://caffeine-dashboard.netlify.app',
 	firebaseProjectId: 'caffeine-app-d8cd8',
 	loginBlurb: {
-		en: 'Caffeine App helps people submit reports about caffeinated beverage ads they see and lets partner organizations review them.',
-		es: 'Caffeine App ayuda a las personas a enviar reportes sobre anuncios de bebidas con cafeína que ven y permite que las organizaciones asociadas los revisen.',
+		en: 'Caffeine Dashboard helps people submit reports about caffeinated beverage ads they see and lets partner organizations review them.',
+		es: 'Caffeine Dashboard ayuda a las personas a enviar reportes sobre anuncios de bebidas con cafeína que ven y permite que las organizaciones asociadas los revisen.',
 	},
 	privacyReportsPhrase: 'provide caffeine-related reports.',
 	tagDisplayNames: { Topic: 'Product' },
