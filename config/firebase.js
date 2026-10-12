@@ -6,7 +6,7 @@
  * - Loads configuration from environment variables
  * - Initializes Firebase app and services
  * - Connects to local emulators in development mode
- * - Sets up App Check with ReCaptcha Enterprise
+ * - Sets up App Check with ReCaptcha Enterprise (or reCAPTCHA v3 when its site key is set)
  * - Exports initialized services for use throughout the app
  *
  * Integrates with:
@@ -32,6 +32,7 @@ import { getPerformance } from 'firebase/performance'
 import {
 	initializeAppCheck,
 	ReCaptchaEnterpriseProvider,
+	ReCaptchaV3Provider,
 } from 'firebase/app-check'
 
 // UNCOMMENT "connectFunctionsEmulator" BELOW: enable connection to firebase functions emulator
@@ -128,13 +129,17 @@ if (typeof window !== 'undefined') {
 	} else if (liveLocalDev) {
 		self.FIREBASE_APPCHECK_DEBUG_TOKEN = true
 	}
-	// Initialize App Check with ReCaptcha Enterprise
+	// Initialize App Check with ReCaptcha Enterprise, or reCAPTCHA v3 when a v3 site key is set
+	// (Enterprise requires a billing account; Caffeine's project is on the free Spark plan).
 	// Docs: https://firebase.google.com/docs/app-check/web/debug-provider?authuser=0
+	const recaptchaV3SiteKey = process.env.NEXT_PUBLIC_FIREBASE_RECAPTCHA_V3_SITE_KEY
 	try {
 		initializeAppCheck(app, {
-			provider: new ReCaptchaEnterpriseProvider(
-				process.env.NEXT_PUBLIC_FIREBASE_RECAPTCHA_ENTERPRISE_SITE_KEY,
-			),
+			provider: recaptchaV3SiteKey
+				? new ReCaptchaV3Provider(recaptchaV3SiteKey)
+				: new ReCaptchaEnterpriseProvider(
+						process.env.NEXT_PUBLIC_FIREBASE_RECAPTCHA_ENTERPRISE_SITE_KEY,
+					),
 			isTokenAutoRefreshEnabled: true, // Set to true to allow token auto-refresh.
 		})
 		appCheck = true // optional: signal success
