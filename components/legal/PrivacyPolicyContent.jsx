@@ -1,6 +1,7 @@
 import React from 'react'
 import { Typography } from '@material-tailwind/react'
 import Link from 'next/link'
+import { brand } from '../../config/brand'
 
 /**
  * Renders the full privacy policy text used on the public `/privacy-policy` page.
@@ -22,8 +23,7 @@ export default function PrivacyPolicyContent() {
 			<Typography variant="paragraph" className="mb-3">
 				Those using our products, whether via our website or via a third-party (e.g., a news website)
 				using the tools, provide information such as names, usernames, email addresses, and passwords.
-				They also can create or answer quiz questions and provide reports or assessments of potential
-				misinformation.
+				They also can create or answer quiz questions and {brand.privacyReportsPhrase}
 			</Typography>
 			<Typography variant="paragraph" className="mb-3">
 				Your name, username, and email address are used to log your individual reports and to allow for

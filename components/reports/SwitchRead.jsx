@@ -12,7 +12,7 @@
  * - @headlessui/react for the switch UI
  * - react-icons for status icons
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */

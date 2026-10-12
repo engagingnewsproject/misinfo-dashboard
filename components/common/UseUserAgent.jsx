@@ -13,7 +13,7 @@
  * - window.matchMedia for PWA display mode
  * - navigator.standalone for iOS home-screen apps
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */

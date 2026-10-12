@@ -1,0 +1,20 @@
+{
+  "description": "This system is only for reports of caffeinated beverage advertisements.",
+  "correct": "Ads for coffee, soda, or energy drinks.",
+  "incorrect": "Ads for milk, sparkling water, or juice.",
+  "imageDescription": "You can upload screenshots or photos of the caffeinated beverage ad",
+  "detailedDescription": "Please provide more details about the caffeinated beverage ad, such as where you saw it and what it said.",
+  "custom_topic": "Custom product",
+  "specify_topic": "Please specify the product (max {{max}} characters)",
+  "about": "What product is the caffeinated beverage ad for?",
+  "where": "Where did you see the caffeinated beverage ad?",
+  "provide_title": "Please provide a title for the caffeinated beverage ad",
+  "upload": "You can upload screenshots or photos of the caffeinated beverage ad",
+  "topic": "Product",
+  "topics": {
+    "Soda": "Soda",
+    "Coffee": "Coffee",
+    "Energy Drink": "Energy Drink",
+    "EnergyDrink": "Energy Drink"
+  }
+}

@@ -3,24 +3,19 @@
  * App-wide defaults are fixed; agencies may add custom labels via the Other flow.
  */
 
-export const APP_WIDE_LABELS = [
-	'To Investigate',
-	'Misinfo',
-	'Not Misinfo',
-	'Other',
-]
+import { brand } from './brand'
+
+/** Per-brand defaults live in config/brands/<brand>.js (`appWideLabels`). */
+export const APP_WIDE_LABELS = brand.appWideLabels.map(({ name }) => name)
 
 export const DEFAULT_REPORT_LABEL = 'To Investigate'
 export const OTHER_LABEL = 'Other'
 export const CUSTOM_LABEL_MAX_LENGTH = 40
 export const MAX_CUSTOM_LABELS = 6
 
-export const DEFAULT_LABEL_COLORS = {
-	'To Investigate': '#071f31',
-	Misinfo: '#C42B47',
-	'Not Misinfo': '#95a8b5',
-	Other: '#d1dfea',
-}
+export const DEFAULT_LABEL_COLORS = Object.fromEntries(
+	brand.appWideLabels.map(({ name, color }) => [name, color]),
+)
 
 export const CUSTOM_LABEL_DEFAULT_COLOR = '#9ca3af'
 

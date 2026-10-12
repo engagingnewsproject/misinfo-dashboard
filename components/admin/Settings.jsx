@@ -15,7 +15,7 @@
  * - Firebase Firestore for agency/tag data
  * - country-state-city and react-select for location selection
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */
@@ -32,6 +32,7 @@ import { db, auth } from "../../config/firebase"
 import {List,ListItem} from "@material-tailwind/react"
 import FormSelect from '../ui/FormSelect';
 import { Country, State, City } from 'country-state-city';
+import { isFeatureEnabled, tagDisplayName } from '../../config/brand'
 
 /**
  * Settings Component
@@ -224,7 +225,7 @@ const Settings = () => {
           {agencyID && 
             <div>
               <div className="flex justify-between mx-6 my-6 tracking-normal items-center">
-                  <div className="font-light">Topic Tags</div>
+                  <div className="font-light">{tagDisplayName('Topic')} Tags</div>
                   <button
                       onClick={() => setTagSystem(1)}
                       className="bg-[#D3D3D3] hover:bg-[#ebebeb] text-[#2E3B4E] font-normal py-2 px-6 border border-[#868686] rounded-md">
@@ -260,7 +261,7 @@ const Settings = () => {
             </div> 
           }
         </div>
-        {customClaims.admin && <ExperimentSettings />}
+        {customClaims.admin && isFeatureEnabled('experimentSettings') && <ExperimentSettings />}
       </div>
     :
       <TagSystem tagSystem={tagSystem} setTagSystem={setTagSystem} agencyID={agencyID} stateSelected={stateSelected} agency={agency} />}

@@ -48,6 +48,7 @@ import {
 	removeAgencyTagFromLabelMap,
 	renameAgencyTagInLabelMap,
 } from '../../utils/tag-defaults'
+import { tagDisplayName } from '../../config/brand'
 
 const maxTags = maxActiveTags
 
@@ -463,7 +464,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 					<IoMdArrowRoundBack size={25} />
 				</button>
 				<div className="text-xl px-5 font-extrabold text-[#2E3B4E] tracking-wider">
-					{isLabelsMode ? 'Labels' : `${tagSystems[tagSystem]} Tags`}
+					{isLabelsMode ? 'Labels' : `${tagDisplayName(tagSystems[tagSystem])} Tags`}
 				</div>
 				<div className="text-sm font-light">
 					{isLabelsMode
@@ -505,7 +506,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 						onClick={handleAddNew}>
 						<FaPlus className="text-[#2E3B4E]" size={12} />
 						<div className="px-2 font-normal tracking-wide">
-							{`New ${tagSystems[tagSystem]}`}
+							{`New ${tagDisplayName(tagSystems[tagSystem])}`}
 						</div>
 					</button>
 				) : selectedIsRequired ? (
@@ -773,7 +774,7 @@ const TagSystem = ({ tagSystem, setTagSystem, agencyID }) => {
 			<div className="text-xs flex justify-center text-gray-500 mt-2">
 				<p>
 					{isLabelsMode
-						? 'To Investigate, Misinfo, Not Misinfo, and Other are defaults and cannot be edited or removed.'
+						? `${APP_WIDE_LABELS.slice(0, -1).join(', ')}, and ${APP_WIDE_LABELS[APP_WIDE_LABELS.length - 1]} are defaults and cannot be edited or removed.`
 						: '* Required defaults (set by admins) cannot be edited, deactivated, or removed. You can still add custom tags.'}
 				</p>
 			</div>

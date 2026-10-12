@@ -2,7 +2,7 @@
  * @fileoverview Users Management Component - Comprehensive user administration interface
  *
  * This component provides a complete user management interface for administrators
- * to view, edit, and manage users across the misinformation dashboard. Key features include:
+ * to view, edit, and manage users across the dashboard. Key features include:
  * - User listing with infinite scroll and real-time data
  * - Role-based access control (Admin, Agency, User)
  * - User editing with role and agency management
@@ -24,7 +24,7 @@
  * - Agency users: Limited view of users within their agency
  * - Real-time updates when user data changes
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */

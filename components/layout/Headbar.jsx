@@ -1,7 +1,7 @@
 /**
  * @fileoverview Headbar — mobile-only brand lockup + menu.
  * Fixed white bar with safe-area top so it stays visible while scrolling.
- * Branding (logo + agency / Truth Sleuth Local) lives here on mobile; desktop brand is in Navbar.
+ * Branding (logo + agency / app name) lives here on mobile; desktop brand is in Navbar.
  * View titles and actions live in each page via PageTitle / in-content chrome.
  *
  * `sm:` hide must stay aligned with NAV_DESKTOP_MIN_WIDTH in MobileNavContext

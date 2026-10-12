@@ -9,7 +9,7 @@
  * - Image upload functionality
  * - Firebase integration
  * 
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 2.0.0
  * @since 2024
  */
@@ -85,6 +85,9 @@ import {
 	ReviewStep
 } from "./ReportSteps"
 import ViewReport from "../partials/report/ViewReport"
+import { brand, tagDisplayName } from "../../config/brand"
+
+const fixedAgency = brand.fixedReportAgency
 
 /**
  * ReportSystem Component - Multi-step form orchestrator
@@ -154,8 +157,8 @@ const ReportSystem = ({
 	// Agency and topic selection
 	const [allTopicsArr, setAllTopicsArr] = useState([])
 	const [agencies, setAgencies] = useState([])
-	const [selectedAgency, setSelectedAgency] = useState("")
-	const [agencyID, setSelectedAgencyID] = useState("")
+	const [selectedAgency, setSelectedAgency] = useState(fixedAgency?.name || "")
+	const [agencyID, setSelectedAgencyID] = useState(fixedAgency?.id || "")
 	
 	// Source selection
 	const [selectedTopic, setSelectedTopic] = useState("")
@@ -221,6 +224,11 @@ const ReportSystem = ({
 		loadTagsForAgency(selectedAgency || "")
 	}, [selectedAgency])
 
+	// Brands with a fixed agency have no agency step
+	useEffect(() => {
+		if (fixedAgency && reportSystem === 2) setReportSystem(3)
+	}, [reportSystem])
+
 	// Reset form when component unmounts (cleanup)
 	useEffect(() => {
 		return () => {
@@ -271,17 +279,18 @@ const ReportSystem = ({
 				validPersistedData.formData &&
 				(validPersistedData.formData.title ||
 					validPersistedData.formData.detail ||
-					validPersistedData.formData.selectedAgency ||
+					(!fixedAgency && validPersistedData.formData.selectedAgency) ||
 					validPersistedData.formData.selectedTopic ||
 					validPersistedData.formData.selectedSource)
 
 			if (hasContent) {
 				// Check if current form is empty (to avoid overwriting user input)
-				const currentFormIsEmpty = !title && !detail && !selectedAgency && !selectedTopic && !selectedSource
+				const currentFormIsEmpty =
+					!title && !detail && (fixedAgency || !selectedAgency) && !selectedTopic && !selectedSource
 
 				if (currentFormIsEmpty) {
 					const { formData, currentStep } = validPersistedData
-					setSelectedAgency(formData.selectedAgency || '')
+					setSelectedAgency(fixedAgency?.name || formData.selectedAgency || '')
 					setSelectedTopic(formData.selectedTopic || '')
 					setSelectedSource(formData.selectedSource || '')
 					setOtherTopic(
@@ -356,7 +365,7 @@ const ReportSystem = ({
 			}
 			
 			// Global defaults until an agency is chosen
-			await loadTagsForAgency("")
+			await loadTagsForAgency(fixedAgency?.name || "")
 		} catch (error) {
 			console.error("Error fetching user data:", error)
 		}
@@ -392,7 +401,7 @@ const ReportSystem = ({
 			const topicIds = getRequiredIds(defaults, 'Topic')
 			const sourceIds = getRequiredIds(defaults, 'Source')
 			if (!agencyName) {
-				setSelectedAgencyID("")
+				setSelectedAgencyID(fixedAgency?.id || "")
 				setAllTopicsArr(topicIds)
 				setSources(sourceIds)
 				return
@@ -533,7 +542,7 @@ const ReportSystem = ({
 			newErrors.detail = "Description is required"
 		}
 		if (!selectedAgency) newErrors.agency = "Agency is required"
-		if (!selectedTopic) newErrors.topic = "Topic is required"
+		if (!selectedTopic) newErrors.topic = `${tagDisplayName('Topic')} is required`
 		if (!selectedSource) newErrors.source = "Source is required"
 
 		if (Object.keys(newErrors).length > 0) {
@@ -563,7 +572,7 @@ const ReportSystem = ({
 			newErrors.detail = "Description is required"
 		}
 		if (!selectedAgency) newErrors.agency = "Agency is required"
-		if (!selectedTopic) newErrors.topic = "Topic is required"
+		if (!selectedTopic) newErrors.topic = `${tagDisplayName('Topic')} is required`
 		if (!selectedSource) newErrors.source = "Source is required"
 
 		if (Object.keys(newErrors).length > 0) {
@@ -668,7 +677,7 @@ const ReportSystem = ({
 		setLink("")
 		setSecondLink("")
 		setDetail("")
-		setSelectedAgency("")
+		setSelectedAgency(fixedAgency?.name || "")
 		setSelectedTopic("")
 		setSelectedSource("")
 		setOtherTopic("")
@@ -727,7 +736,11 @@ const ReportSystem = ({
 	const BackArrow = () => (
 		<IconButton
 			color='blue-gray'
-			onClick={onReportSystemPrevStep}
+			onClick={
+				fixedAgency && reportSystem === 3
+					? () => setReportSystem(reminderShow === false ? 0 : 1)
+					: onReportSystemPrevStep
+			}
 			type='button'>
 			<IoMdArrowRoundBack size={30} />
 		</IconButton>
@@ -800,7 +813,7 @@ const ReportSystem = ({
 						id={key}>
 						
 						{/* Step 2: Agency Selection */}
-						{reportSystem === 2 && (
+						{reportSystem === 2 && !fixedAgency && (
 							<AgencySelectionStep
 								agencies={agencies}
 								selectedAgency={selectedAgency}
@@ -865,7 +878,7 @@ const ReportSystem = ({
 						{reportSystem === 6 && (
 							<ReviewStep
 								reportData={{
-									selectedAgency,
+									selectedAgency: fixedAgency ? "" : selectedAgency,
 									selectedTopic: isOtherTagName(selectedTopic) ? otherTopic : selectedTopic,
 									selectedSource: isOtherTagName(selectedSource) ? otherSource : selectedSource,
 									title,

@@ -2,6 +2,7 @@
  * Helpers for sharing a report by email or clipboard link.
  * Keeps share URLs and mailto payloads consistent across the dashboard.
  */
+import { brand } from '../config/brand'
 
 /** Relative dashboard path for a single report. */
 export function buildReportSharePath(reportId) {
@@ -42,8 +43,8 @@ export function openReportShareEmail({ email = '', title = '', url }) {
 	if (!url || typeof window === 'undefined') return
 
 	const subject = title?.trim()
-		? `Misinfo Report: ${title.trim()}`
-		: 'Misinfo Report'
+		? `${brand.shareReportSubject}: ${title.trim()}`
+		: brand.shareReportSubject
 	const body = `Link to report:\n${url}`
 	const to = typeof email === 'string' ? email.trim() : ''
 	const uri = `mailto:${to}?subject=${encodeURIComponent(

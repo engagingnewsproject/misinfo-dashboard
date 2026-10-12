@@ -12,7 +12,7 @@
  * - Firebase Firestore (modular SDK)
  * - Project-wide Firestore instance
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */

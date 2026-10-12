@@ -14,7 +14,7 @@
  * - react-select for topic selection
  * - @material-tailwind/react for actions, alerts, and loading
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */

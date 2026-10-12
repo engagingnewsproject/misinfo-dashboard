@@ -14,7 +14,7 @@
  * - next/link for navigation
  * - next/image for icons
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */
@@ -25,6 +25,7 @@ import Link from 'next/link'
 import Image from "next/image"
 import { useAuth } from '../context/AuthContext'
 import Head from 'next/head'
+import { pageTitle } from '../config/brand'
 import FormInput from '../components/ui/FormInput'
 
 /**
@@ -77,7 +78,7 @@ const ResetPassword = () => {
 	return (
 		<>
 			<Head>
-				<title>Reset Password | Truth Sleuth Local</title>
+				<title>{pageTitle('Reset Password')}</title>
 			</Head>
 
 			<div data-component="resetPassword" className="w-screen h-screen flex justify-center items-center">

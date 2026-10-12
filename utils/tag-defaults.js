@@ -16,6 +16,7 @@ import {
 import { db } from '../config/firebase'
 import { DEFAULT_AGENCY_LABELS } from '../config/labels'
 import { maxActiveTags } from '../config/tagSystems'
+import { brand } from '../config/brand'
 
 export const TAG_DEFAULTS_DOC_PATH = ['tagSystems', 'defaults']
 
@@ -226,9 +227,15 @@ export function isRequiredTag(name, requiredList) {
  */
 export function getFallbackTagDefaults() {
 	return {
-		Topic: { required: ensureOtherInLabeledRequired(FALLBACK_TOPIC_REQUIRED) },
+		Topic: {
+			required: ensureOtherInLabeledRequired(
+				brand.defaultTopics || FALLBACK_TOPIC_REQUIRED,
+			),
+		},
 		Source: {
-			required: ensureOtherInLabeledRequired(FALLBACK_SOURCE_REQUIRED),
+			required: ensureOtherInLabeledRequired(
+				brand.defaultSources || FALLBACK_SOURCE_REQUIRED,
+			),
 		},
 	}
 }

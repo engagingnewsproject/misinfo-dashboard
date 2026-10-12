@@ -1,7 +1,9 @@
 {
   "projects": {
     "default": "misinfo-5d004",
-    "dev": "misinfo-dashboard-dev"
+    "dev": "misinfo-dashboard-dev",
+    "misinfo": "misinfo-5d004",
+    "caffeine": "caffeine-app-d8cd8"
   },
   "targets": {},
   "etags": {}

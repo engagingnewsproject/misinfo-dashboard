@@ -1,6 +1,12 @@
 const admin = require('firebase-admin')
 const readline = require('readline')
-const serviceAccount = require('../misinfo-5d004-firebase-adminsdk-2ubvq-135d27238a.json') // Service account lives at the repo root (gitignored)
+const path = require('path')
+// Service account lives at the repo root (gitignored); point GOOGLE_APPLICATION_CREDENTIALS at it.
+const serviceAccount = require(
+	process.env.GOOGLE_APPLICATION_CREDENTIALS
+		? path.resolve(process.env.GOOGLE_APPLICATION_CREDENTIALS)
+		: path.join(__dirname, '..', 'misinfo-5d004-firebase-adminsdk-2ubvq-135d27238a.json'),
+)
 
 // process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080' // Comment out for production
 

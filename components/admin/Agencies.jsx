@@ -18,7 +18,7 @@
  * - NewAgencyModal: Create new agencies
  * - ConfirmModal: Delete confirmation
  * 
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */
@@ -67,7 +67,7 @@ const AGENCY_COLUMNS = [
  * Agencies Component - Comprehensive agency management interface
  * 
  * This component provides a complete CRUD interface for managing agencies in the
- * misinformation dashboard. It handles agency listing, creation, editing, and deletion
+ * dashboard. It handles agency listing, creation, editing, and deletion
  * with integrated user management and image upload capabilities.
  * 
  * Key functionality:

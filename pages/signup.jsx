@@ -13,7 +13,7 @@
  * - Privacy policy link (public page)
  * - Internationalization support
  * 
- * @author Truth Sleuth Local Team
+ * @author Engaging News Project
  * @version 1.0.0
  */
 
@@ -39,16 +39,17 @@ import FormSelect from '../components/ui/FormSelect'
 // import PhoneInput from 'react-phone-input-2'
 import LanguageSwitcher from '../components/layout/LanguageSwitcher'
 import { useTranslation } from 'next-i18next'
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import { brandServerSideTranslations } from '../lib/brandServerSideTranslations'
 // import 'react-phone-input-2/lib/style.css'
 import { MdOutlineRemoveRedEye } from 'react-icons/md'
 import { Country, State, City } from 'country-state-city'
 import moment from 'moment'
 import { RiContactsBookLine } from 'react-icons/ri'
 import { Button, Typography } from '@material-tailwind/react'
-import { GiMagnifyingGlass } from "react-icons/gi";
+import { BrandIcon } from '../components/layout/BrandLockup'
 import Head from 'next/head'
 
+import { brand, pageTitle } from '../config/brand'
 /**
  * SignUp component for user registration
  * 
@@ -310,16 +311,16 @@ const SignUp = () => {
 	return (
 		<>
 			<Head>
-				<title>Signup | Truth Sleuth Local</title>
+				<title>{pageTitle('Signup')}</title>
 			</Head>
 			<div data-component="signup" className="w-screen h-screen overflow-auto flex justify-center items-start pt-12 pb-8">
 				<div className="w-full max-w-sm font-light">
 					{/* Logo and branding section */}
 					<div className="flex flex-col items-center justify-center mb-2">
 						<div className="bg-blue-600 p-7 rounded-full mb-2">
-							<GiMagnifyingGlass size={30} className="fill-white" />
+							<BrandIcon size={30} className="fill-white" />
 						</div>
-						<Typography variant="small" className='text-xs font-semibold text-[#2E3B4E]'>Truth Sleuth Local</Typography>
+						<Typography variant="small" className='text-xs font-semibold text-[#2E3B4E]'>{brand.appName}</Typography>
 					</div>
 					
 					{/* Signup form */}
@@ -540,7 +541,7 @@ export async function getStaticProps(context) {
 	return {
 		props: {
 			// pass the translation props to the page component
-			...(await serverSideTranslations(locale, [
+			...(await brandServerSideTranslations(locale, [
 				'Welcome',
 				'Report',
 				'NewReport',

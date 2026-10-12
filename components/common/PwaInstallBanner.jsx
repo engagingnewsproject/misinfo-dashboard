@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { IoShareOutline } from 'react-icons/io5'
 import { MdClose, MdInstallMobile } from 'react-icons/md'
 import useUserAgent from './UseUserAgent'
+import { brand } from '../../config/brand'
 
 const DISMISS_KEY = 'tsl-pwa-install-dismissed'
 const DISMISS_MS = 14 * 24 * 60 * 60 * 1000
@@ -101,7 +102,9 @@ export default function PwaInstallBanner() {
 	if (!visible) return null
 
 	const canPromptInstall = Boolean(deferredPrompt)
-	const title = isIOS ? 'Add Truth Sleuth to your Home Screen' : 'Install Truth Sleuth'
+	const title = isIOS
+		? `Add ${brand.shortName} to your Home Screen`
+		: `Install ${brand.shortName}`
 	const subtitle = isIOS
 		? 'Use it like an app — full screen, from your home screen.'
 		: 'Install for a faster, full-screen experience.'

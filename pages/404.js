@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Button, Typography } from "@material-tailwind/react"
 import Link from 'next/link';
 import Head from 'next/head';
+import { pageTitle } from '../config/brand'
 /**
  * @fileoverview Custom 404 Page - Not Found handler with role-based redirect
  *
@@ -17,7 +18,7 @@ import Head from 'next/head';
  * - next/router for navigation
  * - Material Tailwind for UI components
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */
@@ -55,7 +56,7 @@ export default function Custom404() {
   return (
 		<>
 			<Head>
-				<title>Not Found | Truth Sleuth Local</title>
+				<title>{pageTitle('Not Found')}</title>
 			</Head>
 			<div data-component="404" className="flex flex-col gap-2 items-center justify-center h-screen">
 				<Typography variant="h2">404 - Page Not Found</Typography>

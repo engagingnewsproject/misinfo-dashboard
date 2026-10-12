@@ -4,10 +4,26 @@
 
 import React from 'react'
 import Image from 'next/image'
-import { GiMagnifyingGlass } from 'react-icons/gi'
+import { GiCoffeeCup, GiMagnifyingGlass } from 'react-icons/gi'
+import { brand } from '../../config/brand'
+
+const BRAND_ICONS = {
+	magnifyingGlass: GiMagnifyingGlass,
+	coffeeCup: GiCoffeeCup,
+}
 
 /**
- * Circular brand mark: agency logo when available, otherwise magnifying glass.
+ * The product icon for the active brand (magnifying glass, coffee cup, ...).
+ *
+ * @param {Object} props - Passed through to the react-icons component
+ */
+export function BrandIcon(props) {
+	const Icon = BRAND_ICONS[brand.icon] || GiMagnifyingGlass
+	return <Icon {...props} />
+}
+
+/**
+ * Circular brand mark: agency logo when available, otherwise the brand icon.
  * Always 40×40 so collapsed/expanded (and Headbar) stay consistent.
  *
  * @param {Object} props
@@ -28,7 +44,7 @@ export function BrandMark({ agencyLogo, isAgency }) {
 	}
 	return (
 		<div className="bg-brand rounded-full shrink-0 p-2.5 max-h-[40px] max-w-[40px]">
-			<GiMagnifyingGlass className="fill-white" size={18} />
+			<BrandIcon className="fill-white" size={18} />
 		</div>
 	)
 }
@@ -51,7 +67,7 @@ export function BrandTitle({
 	const label =
 		customClaims?.agency && !customClaims?.admin
 			? agencyName || 'Agency'
-			: 'Truth Sleuth Local'
+			: brand.appName
 
 	return (
 		<Tag
@@ -62,7 +78,7 @@ export function BrandTitle({
 }
 
 /**
- * Mark + title row. Agency users get agency branding; admin/public get Truth Sleuth.
+ * Mark + title row. Agency users get agency branding; admin/public get the app brand.
  *
  * @param {Object} props
  * @param {string} [props.agencyLogo]

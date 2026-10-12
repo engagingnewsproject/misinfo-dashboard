@@ -14,7 +14,7 @@
  * - AuthContext and Firebase Auth for user/role management
  * - next-i18next for translations
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */

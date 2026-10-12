@@ -2,30 +2,30 @@
  * Offline fallback shown by the service worker when a navigation fails.
  */
 import Head from 'next/head'
+import { brand, pageTitle } from '../config/brand'
 import { Typography } from '@material-tailwind/react'
-import { GiMagnifyingGlass } from 'react-icons/gi'
-
+import { BrandIcon } from '../components/layout/BrandLockup'
 const Offline = () => {
 	return (
 		<>
 			<Head>
-				<title>Offline | Truth Sleuth Local</title>
+				<title>{pageTitle('Offline')}</title>
 			</Head>
 			<div data-component="offline" className="w-screen min-h-screen flex justify-center items-center bg-[#D3D3D3] px-4">
 				<div className="w-full max-w-sm text-center">
 					<div className="flex flex-col items-center justify-center mb-6">
 						<div className="bg-blue-600 p-7 rounded-full mb-2">
-							<GiMagnifyingGlass size={30} className="fill-white" />
+							<BrandIcon size={30} className="fill-white" />
 						</div>
 						<Typography variant="small" className="text-xs font-semibold text-[#2E3B4E]">
-							Truth Sleuth Local
+							{brand.appName}
 						</Typography>
 					</div>
 					<Typography variant="h5" className="text-[#2E3B4E] font-semibold mb-2">
 						You&apos;re offline
 					</Typography>
 					<Typography className="text-sm text-gray-600 mb-6">
-						Reconnect to the internet to continue using Truth Sleuth Local.
+						Reconnect to the internet to continue using {brand.appName}.
 					</Typography>
 					<button
 						type="button"

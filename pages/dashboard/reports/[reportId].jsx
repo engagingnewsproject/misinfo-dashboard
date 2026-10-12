@@ -15,7 +15,7 @@
  * - next/image for image display
  * - react-icons for UI icons
  *
- * @author Misinformation Dashboard Team
+ * @author Engaging News Project
  * @version 1.0.0
  * @since 2024
  */
@@ -51,7 +51,7 @@ import LabelSelectMenu from '../../../components/reports/LabelSelectMenu'
 import ShareReportModal from '../../../components/partials/modals/ShareReportModal'
 import MoveReportModal from '../../../components/modals/reports/MoveReportModal'
 import { fetchAgencyOptions, moveReportToState } from '../../../utils/move-report'
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import { brandServerSideTranslations } from '../../../lib/brandServerSideTranslations'
 import { useTranslation } from 'next-i18next'
 import { useAuth } from '../../../context/AuthContext'
 import {
@@ -600,7 +600,7 @@ export async function getServerSideProps({
 					agencyTagsDoc,
 				),
 			}),
-			...(await serverSideTranslations(locale, [
+			...(await brandServerSideTranslations(locale, [
 				'Home',
 				'Report',
 				'NewReport',

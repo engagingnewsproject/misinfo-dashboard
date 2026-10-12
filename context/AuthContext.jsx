@@ -36,6 +36,7 @@ import { getDoc, doc, setDoc } from "firebase/firestore";
 import moment from 'moment'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import { initialAuthState, normalizeCustomClaims } from '../lib/session'
+import { brand } from '../config/brand'
 
 /**
  * Authentication Context for managing user state and authentication operations.
@@ -287,7 +288,7 @@ export const AuthContextProvider = ({ children, initialAuth }) => {
      */
     const verifyEmail = (user) => {
         return new Promise((resolve, reject) => {
-            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app';
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || brand.appUrl;
             const actionCodeSettings = {
                 'url': `${baseUrl}/login`,
                 'handleCodeInApp': true,
@@ -552,7 +553,7 @@ export const AuthContextProvider = ({ children, initialAuth }) => {
             isLocalHost && typeof window !== 'undefined'
                 ? window.location.origin
                 : process.env.NEXT_PUBLIC_APP_URL ||
-                  'https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app'
+                  brand.appUrl
         ).replace(/\/$/, '')
         const params = new URLSearchParams()
         const agencyId =

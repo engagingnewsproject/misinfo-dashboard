@@ -11,7 +11,7 @@ const sgMail = require("@sendgrid/mail");
 const HELP_EMAIL_TO = "mediaengagement@austin.utexas.edu";
 const HELP_EMAIL_FROM = {
   email: "noreply@mediaengagement.org",
-  name: "Misinfo Dashboard",
+  name: process.env.BRAND_NAME || "Misinfo Dashboard",
 };
 
 /**
