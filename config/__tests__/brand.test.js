@@ -73,6 +73,15 @@ describe('helpers', () => {
 		])
 	})
 
+	it('only caffeine sends every report to a fixed agency', () => {
+		const { BRANDS } = loadBrand(undefined)
+		expect(BRANDS.misinfo.fixedReportAgency).toBeNull()
+		expect(BRANDS.caffeine.fixedReportAgency).toEqual({
+			id: 'i2ef53bVPh9xciy0huIR',
+			name: 'Test Agency',
+		})
+	})
+
 	it('every brand defines the same top-level keys', () => {
 		const { BRANDS } = loadBrand(undefined)
 		const keys = Object.keys(BRANDS.misinfo).sort()

@@ -19,6 +19,8 @@ module.exports = {
 	},
 	privacyReportsPhrase: 'provide reports or assessments of potential misinformation.',
 	tagDisplayNames: {},
+	// null = reporters pick an agency in their state.
+	fixedReportAgency: null,
 	// Report labels every agency gets; must include 'To Investigate' and 'Other'.
 	appWideLabels: [
 		{ name: 'To Investigate', color: '#071f31' },
