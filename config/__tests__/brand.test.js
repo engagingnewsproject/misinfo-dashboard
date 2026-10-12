@@ -33,7 +33,7 @@ describe('brand selection', () => {
 	it('picks caffeine when NEXT_PUBLIC_BRAND=caffeine', () => {
 		const { BRAND_ID, brand } = loadBrand('caffeine')
 		expect(BRAND_ID).toBe('caffeine')
-		expect(brand.appName).toBe('Caffeine App')
+		expect(brand.appName).toBe('Caffeine Dashboard')
 		expect(brand.firebaseProjectId).toBe('caffeine-app-d8cd8')
 	})
 })
@@ -54,8 +54,8 @@ describe('helpers', () => {
 
 	it('pageTitle appends the app name', () => {
 		expect(loadBrand('misinfo').pageTitle('Login')).toBe('Login | Truth Sleuth Local')
-		expect(loadBrand('caffeine').pageTitle('Login')).toBe('Login | Caffeine App')
-		expect(loadBrand('caffeine').pageTitle('')).toBe('Caffeine App')
+		expect(loadBrand('caffeine').pageTitle('Login')).toBe('Login | Caffeine Dashboard')
+		expect(loadBrand('caffeine').pageTitle('')).toBe('Caffeine Dashboard')
 	})
 
 	it('every brand keeps the To Investigate and Other labels the code relies on', () => {
@@ -71,6 +71,15 @@ describe('helpers', () => {
 			'Not Flagged',
 			'Other',
 		])
+	})
+
+	it('only caffeine sends every report to a fixed agency', () => {
+		const { BRANDS } = loadBrand(undefined)
+		expect(BRANDS.misinfo.fixedReportAgency).toBeNull()
+		expect(BRANDS.caffeine.fixedReportAgency).toEqual({
+			id: 'i2ef53bVPh9xciy0huIR',
+			name: 'Test Agency',
+		})
 	})
 
 	it('every brand defines the same top-level keys', () => {

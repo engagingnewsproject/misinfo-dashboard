@@ -74,11 +74,13 @@ const ReviewStep = ({
       <Typography variant='h5'>{t("review")}</Typography>
       <div className="py-6">
         <div className="space-y-4">
-          {/* Agency */}
-          <div>
-            <Typography variant="h6" color="blue">{t("agency")}</Typography>
-            <Typography>{reportData.selectedAgency}</Typography>
-          </div>
+          {/* Agency (omitted when the brand assigns one automatically) */}
+          {reportData.selectedAgency && (
+            <div>
+              <Typography variant="h6" color="blue">{t("agency")}</Typography>
+              <Typography>{reportData.selectedAgency}</Typography>
+            </div>
+          )}
           
           {/* Topic */}
           <div>
