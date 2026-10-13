@@ -337,7 +337,7 @@ This one codebase powers two apps. The `NEXT_PUBLIC_BRAND` env var picks which o
 
 Everything that differs between the apps lives in one of these places, so shared code never has to change per brand:
 
-- `config/brands/<brand>.js`: app name, icon, site URL, login blurb, help email wording, on-screen tag names (Caffeine shows "Product" for the `Topic` tag system; the Firestore field stays `Topic`), default topics for new agencies, a fixed report agency (`fixedReportAgency`: Caffeine skips the agency step and sends every report to one agency), and feature switches (`pipelineAdmin` hides the Pipeline and Left out tabs, `experimentSettings` hides experiment tools).
+- `config/brands/<brand>.js`: app name, icon, site URL, login blurb, help email wording, on-screen tag names (Caffeine shows "Product" for the `Topic` tag system; the Firestore field stays `Topic`), default topics for new agencies, a fixed report agency (`fixedReportAgency`: Caffeine skips the agency step and sends every report to one agency; a deploy can override it, see [Online study copies](#online-study-copies)), and feature switches (`pipelineAdmin` hides the Pipeline and Left out tabs, `experimentSettings` hides experiment tools).
 - `public/locales/_brands/<brand>/<lng>/<ns>.json`: wording overrides. Only list the keys that change; they are merged over `public/locales/<lng>/<ns>.json` by `lib/brandServerSideTranslations.js`. Register new files in `lib/brand-locale-overrides.js`.
 - `public/brands/<brand>/`: icons and favicons. Any file here replaces the root `public/` file of the same name; the manifest name and description come from the brand config.
 
@@ -356,6 +356,34 @@ npm install && npm test && npm run build
 ```
 
 Cloud Functions read `BRAND_NAME` (help-request email sender name) from the functions environment.
+
+### Online study copies
+
+For studies where anyone in the US can enroll, each app has a second "study" website next to the live one (4 apps total). A study copy is the same code and the same Firebase project as its live app. The only difference is that it skips the "pick an agency" step and sends every report to one agency, **Prolific sample**.
+
+| Site | Hosting | Report goes to |
+|---|---|---|
+| Truth Sleuth (live) | App Hosting backend `truthsleuthlocal` | Newsroom the reporter picks in their state |
+| Truth Sleuth Study | App Hosting backend `truthsleuthstudy` (environment `study`) | Prolific sample |
+| Caffeine (live) | Netlify | Test Agency |
+| Caffeine Study | Second Netlify site, same `prod` branch | Prolific sample |
+
+How it works:
+
+- `NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID` + `NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME` override the brand's `fixedReportAgency` for one deploy. Both are required (the name must match the agency doc); if only one is set, the override is ignored with a console warning.
+- Agency docs with `hiddenFromPicker: true` are left out of the live report form's agency list and the admin "Move to agency" targets, so live reporters never see Prolific sample.
+- Study reports share the live database. Find them by the Prolific sample agency. Don't start a new study round in Truth Sleuth's experiment settings for this, because that setting is shared with the live app.
+
+Setup (once per Firebase project):
+
+1. In the admin Agencies page, create an agency named exactly `Prolific sample`. Use **Texas / Austin** as the location; the nightly pipeline only routes to swing-state newsrooms, so it won't send articles there.
+2. In the Firestore console, add `hiddenFromPicker: true` (boolean) to that agency doc and copy its document ID.
+3. **Truth Sleuth Study:** create an App Hosting backend `truthsleuthstudy` in `misinfo-5d004` from this repo and branch, and set its environment name to `study` so `apphosting.study.yaml` is merged over `apphosting.yaml`. Put the agency ID in `apphosting.study.yaml` and grant the backend the same secrets as the live one (`firebase apphosting:secrets:grantaccess FIREBASE_API_KEY,SENDGRID_API_KEY,SLACK_WEBHOOK_URL --backend truthsleuthstudy --project misinfo-5d004`).
+4. **Caffeine Study:** create a second Netlify site from the `prod` branch with the same env vars as live Caffeine, plus the two agency vars and its own `NEXT_PUBLIC_APP_URL` (see `.env.caffeine.example`).
+5. Add each study URL to Firebase Auth → Authorized domains and to the App Check reCAPTCHA key's allowed domains, or login and App Check fail.
+6. Researchers see study reports as admins, or as agency users of Prolific sample.
+
+To shut a study copy down, delete its backend or Netlify site. Its reports stay in the database under Prolific sample.
 
 ## Links
 

@@ -55,6 +55,7 @@ import {
 } from "../../utils/tag-defaults"
 import { CUSTOM_OTHER_TAG_MAX_LENGTH } from "../../config/tagSystems"
 import { formatLocationPart } from "../../utils/format-location"
+import { isPickableAgency } from "../../utils/agency-visibility"
 import { State, City } from "country-state-city"
 import moment from "moment"
 import Image from "next/image"
@@ -380,7 +381,10 @@ const ReportSystem = ({
 			const q = query(agencyCollection, where("state", "==", userState))
 			const querySnapshot = await getDocs(q)
 			
-			const agencyNames = querySnapshot.docs.map(doc => doc.data().name)
+			const agencyNames = querySnapshot.docs
+				.map(doc => doc.data())
+				.filter(isPickableAgency)
+				.map(data => data.name)
 			setAgencies(agencyNames)
 		} catch (error) {
 			console.error("Error fetching agencies:", error)

@@ -14,6 +14,7 @@ import {
 	getDocs,
 	writeBatch,
 } from 'firebase/firestore'
+import { isPickableAgency } from './agency-visibility'
 
 export const ROUTING_REASON_MOVED = 'moved_by_admin'
 
@@ -84,7 +85,7 @@ export function buildMovedReportUpdates(agency, { uid, fromAgency, movedAt = new
  */
 export async function fetchAgencyOptions(db) {
 	const snap = await getDocs(collection(db, 'agency'))
-	return snap.docs.map((d) => {
+	return snap.docs.filter((d) => isPickableAgency(d.data())).map((d) => {
 		const data = d.data() || {}
 		return {
 			id: d.id,

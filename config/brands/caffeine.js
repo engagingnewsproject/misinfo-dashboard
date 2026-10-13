@@ -19,6 +19,7 @@ module.exports = {
 	privacyReportsPhrase: 'provide caffeine-related reports.',
 	tagDisplayNames: { Topic: 'Product' },
 	// Every public report goes to this agency; the agency step is skipped. Name must match the agency doc.
+	// NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID/NAME override this per deploy.
 	fixedReportAgency: { id: 'i2ef53bVPh9xciy0huIR', name: 'Test Agency' },
 	// Report labels every agency gets; must include 'To Investigate' and 'Other'.
 	appWideLabels: [

@@ -10,7 +10,38 @@ const caffeine = require('./brands/caffeine')
 const BRANDS = { misinfo, caffeine }
 
 const BRAND_ID = BRANDS[process.env.NEXT_PUBLIC_BRAND] ? process.env.NEXT_PUBLIC_BRAND : 'misinfo'
-const brand = BRANDS[BRAND_ID]
+
+/**
+ * Which agency gets every public report, if any. A deploy can override the brand default
+ * (e.g. the "online study" copies send everything to "Prolific sample").
+ *
+ * Both env values are needed: the id is what rules and queries use, and the name must match
+ * the agency doc's `name` because the report form loads that agency's tags by name.
+ *
+ * @param {{ id: string, name: string } | null} brandDefault
+ * @param {{ id?: string, name?: string }} override - Raw env values
+ * @returns {{ id: string, name: string } | null}
+ */
+function resolveFixedReportAgency(brandDefault, override) {
+	const id = (override.id || '').trim()
+	const name = (override.name || '').trim()
+	if (id && name) return { id, name }
+	if (id || name) {
+		console.warn(
+			'NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID and NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME must both be set; ignoring the override.',
+		)
+	}
+	return brandDefault ?? null
+}
+
+// Env values are read literally so Next.js inlines them into the client bundle.
+const brand = {
+	...BRANDS[BRAND_ID],
+	fixedReportAgency: resolveFixedReportAgency(BRANDS[BRAND_ID].fixedReportAgency, {
+		id: process.env.NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID,
+		name: process.env.NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME,
+	}),
+}
 
 /**
  * On-screen name for a tag system. Firestore keys (e.g. `Topic`) never change.
@@ -42,4 +73,12 @@ function pageTitle(page) {
 	return page ? `${page} | ${brand.appName}` : brand.appName
 }
 
-module.exports = { BRANDS, BRAND_ID, brand, tagDisplayName, isFeatureEnabled, pageTitle }
+module.exports = {
+	BRANDS,
+	BRAND_ID,
+	brand,
+	resolveFixedReportAgency,
+	tagDisplayName,
+	isFeatureEnabled,
+	pageTitle,
+}

@@ -19,7 +19,7 @@ module.exports = {
 	},
 	privacyReportsPhrase: 'provide reports or assessments of potential misinformation.',
 	tagDisplayNames: {},
-	// null = reporters pick an agency in their state.
+	// null = reporters pick an agency in their state. NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID/NAME override this per deploy.
 	fixedReportAgency: null,
 	// Report labels every agency gets; must include 'To Investigate' and 'Other'.
 	appWideLabels: [
