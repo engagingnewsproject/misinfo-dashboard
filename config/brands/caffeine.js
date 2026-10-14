@@ -4,6 +4,8 @@
 module.exports = {
 	id: 'caffeine',
 	appName: 'Caffeine Dashboard',
+	// Replaces appName on online study copies; null keeps appName.
+	studyAppName: null,
 	shortName: 'Caffeine Dashboard',
 	description: 'Report caffeinated beverage ads for review by partner organizations.',
 	supportTeamName: 'Caffeine Dashboard Support Team',
