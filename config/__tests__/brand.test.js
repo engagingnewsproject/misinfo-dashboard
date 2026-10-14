@@ -121,6 +121,22 @@ describe('helpers', () => {
 		expect(warn).toHaveBeenCalledTimes(2)
 	})
 
+	it('tags new users with the site they signed up on', () => {
+		const study = { agencyId: 'p1', agencyName: 'Prolific sample' }
+		expect(loadBrand('misinfo').brand.signupSource).toBe('truthsleuth')
+		expect(loadBrand('caffeine').brand.signupSource).toBe('caffeine')
+		expect(loadBrand('misinfo', study).brand.signupSource).toBe('truthsleuth-study')
+		expect(loadBrand('caffeine', study).brand.signupSource).toBe('caffeine-study')
+	})
+
+	it('does not treat a half-set agency override as a study copy', () => {
+		jest.spyOn(console, 'warn').mockImplementation(() => {})
+		expect(loadBrand('misinfo', { agencyId: 'p1' }).brand.signupSource).toBe('truthsleuth')
+		expect(loadBrand('caffeine', { agencyName: 'Prolific sample' }).brand.signupSource).toBe(
+			'caffeine',
+		)
+	})
+
 	it('every brand defines the same top-level keys', () => {
 		const { BRANDS } = loadBrand(undefined)
 		const keys = Object.keys(BRANDS.misinfo).sort()

@@ -21,6 +21,8 @@ module.exports = {
 	tagDisplayNames: {},
 	// null = reporters pick an agency in their state. NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID/NAME override this per deploy.
 	fixedReportAgency: null,
+	// Saved on new mobileUsers docs; "-study" is appended on online study copies.
+	signupSource: 'truthsleuth',
 	// Report labels every agency gets; must include 'To Investigate' and 'Other'.
 	appWideLabels: [
 		{ name: 'To Investigate', color: '#071f31' },
