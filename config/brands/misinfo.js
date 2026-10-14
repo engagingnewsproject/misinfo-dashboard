@@ -5,8 +5,8 @@
 module.exports = {
 	id: 'misinfo',
 	appName: 'Truth Sleuth Local',
-	// Replaces appName on online study copies; null keeps appName.
-	studyAppName: 'Truth Sleuth',
+	// Settings replaced on online study copies (both fixed-agency env vars set).
+	studyOverrides: { appName: 'Truth Sleuth' },
 	shortName: 'Truth Sleuth',
 	description: 'Report misinformation in your location for submission to news agencies near that location.',
 	supportTeamName: 'Truth Sleuth Support Team',

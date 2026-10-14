@@ -4,8 +4,18 @@
 module.exports = {
 	id: 'caffeine',
 	appName: 'Caffeine Dashboard',
-	// Replaces appName on online study copies; null keeps appName.
-	studyAppName: null,
+	// Settings replaced on online study copies (both fixed-agency env vars set).
+	studyOverrides: {
+		appName: 'Caffeine Study',
+		shortName: 'Caffeine Study',
+		supportTeamName: 'Caffeine Study Support Team',
+		helpRequestSubjectSuffix: 'Caffeine Study Help Request',
+		shareReportSubject: 'Caffeine Study Report',
+		loginBlurb: {
+			en: 'Caffeine Study helps people submit reports about caffeinated beverage ads they see and lets partner organizations review them.',
+			es: 'Caffeine Study ayuda a las personas a enviar reportes sobre anuncios de bebidas con cafeína que ven y permite que las organizaciones asociadas los revisen.',
+		},
+	},
 	shortName: 'Caffeine Dashboard',
 	description: 'Report caffeinated beverage ads for review by partner organizations.',
 	supportTeamName: 'Caffeine Dashboard Support Team',

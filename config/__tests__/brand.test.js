@@ -68,14 +68,25 @@ describe('helpers', () => {
 		expect(loadBrand('caffeine').pageTitle('')).toBe('Caffeine Dashboard')
 	})
 
-	it('uses the brand study name on study copies only', () => {
+	it('uses the brand study names on study copies only', () => {
 		const studyEnv = { agencyId: 'p1', agencyName: 'Prolific sample' }
 		const study = loadBrand('misinfo', studyEnv)
 		expect(study.brand.appName).toBe('Truth Sleuth')
 		expect(study.pageTitle('Login')).toBe('Login | Truth Sleuth')
 		expect(study.BRANDS.misinfo.appName).toBe('Truth Sleuth Local')
 		expect(loadBrand('misinfo').brand.appName).toBe('Truth Sleuth Local')
-		expect(loadBrand('caffeine', studyEnv).brand.appName).toBe('Caffeine Dashboard')
+		expect(loadBrand('caffeine').brand.appName).toBe('Caffeine Dashboard')
+	})
+
+	it('renames every Caffeine Dashboard string on the Caffeine study copy', () => {
+		const { brand, pageTitle } = loadBrand('caffeine', {
+			agencyId: 'p1',
+			agencyName: 'Prolific sample',
+		})
+		expect(pageTitle('Login')).toBe('Login | Caffeine Study')
+		expect(brand.shortName).toBe('Caffeine Study')
+		expect(brand.fixedReportAgency).toEqual({ id: 'p1', name: 'Prolific sample' })
+		expect(JSON.stringify(brand)).not.toContain('Caffeine Dashboard')
 	})
 
 	it('does not rename on a half-set agency override', () => {
