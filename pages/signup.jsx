@@ -127,6 +127,7 @@ const SignUp = () => {
 			isBanned: false,
 			userRole: privilege,
 			contact: data.contact,
+			signupSource: brand.signupSource,
 		})
 	}
 

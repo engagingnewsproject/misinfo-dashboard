@@ -21,6 +21,8 @@ module.exports = {
 	// Every public report goes to this agency; the agency step is skipped. Name must match the agency doc.
 	// NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID/NAME override this per deploy.
 	fixedReportAgency: { id: 'i2ef53bVPh9xciy0huIR', name: 'Test Agency' },
+	// Saved on new mobileUsers docs; "-study" is appended on online study copies.
+	signupSource: 'caffeine',
 	// Report labels every agency gets; must include 'To Investigate' and 'Other'.
 	appWideLabels: [
 		{ name: 'To Investigate', color: '#071f31' },
