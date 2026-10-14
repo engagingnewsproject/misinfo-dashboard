@@ -30,7 +30,7 @@
     "phone": "Phone number (optional)",
     "contact": "I agree that my local newsroom can contact me to follow-up on the reports I share",
     "password_error": "Passwords don’t match.",
-    "verifyEmailPageTitle": "Verify Email | Truth Sleuth Local",
+    "verifyEmailPageTitle": "Verify Email",
     "verifyEmailHeading": "Email Verification",
     "verifyEmailAgencyIntro": "Upon creating an account, you will be asked to verify your email.",
     "verifyEmailAgencyStep1": "Click the link in the verification email.",
