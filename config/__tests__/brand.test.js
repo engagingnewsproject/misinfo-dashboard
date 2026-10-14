@@ -2,11 +2,21 @@
  * @fileoverview Brand selection via NEXT_PUBLIC_BRAND and brand helpers.
  */
 
-const ORIGINAL_BRAND = process.env.NEXT_PUBLIC_BRAND
+const ORIGINAL_ENV = {
+	NEXT_PUBLIC_BRAND: process.env.NEXT_PUBLIC_BRAND,
+	NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID: process.env.NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID,
+	NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME: process.env.NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME,
+}
 
-function loadBrand(value) {
-	if (value === undefined) delete process.env.NEXT_PUBLIC_BRAND
-	else process.env.NEXT_PUBLIC_BRAND = value
+function setEnv(key, value) {
+	if (value === undefined) delete process.env[key]
+	else process.env[key] = value
+}
+
+function loadBrand(value, { agencyId, agencyName } = {}) {
+	setEnv('NEXT_PUBLIC_BRAND', value)
+	setEnv('NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID', agencyId)
+	setEnv('NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME', agencyName)
 	let mod
 	jest.isolateModules(() => {
 		mod = require('../brand')
@@ -15,8 +25,8 @@ function loadBrand(value) {
 }
 
 afterEach(() => {
-	if (ORIGINAL_BRAND === undefined) delete process.env.NEXT_PUBLIC_BRAND
-	else process.env.NEXT_PUBLIC_BRAND = ORIGINAL_BRAND
+	for (const [key, value] of Object.entries(ORIGINAL_ENV)) setEnv(key, value)
+	jest.restoreAllMocks()
 })
 
 describe('brand selection', () => {
@@ -80,6 +90,35 @@ describe('helpers', () => {
 			id: 'i2ef53bVPh9xciy0huIR',
 			name: 'Test Agency',
 		})
+	})
+
+	it('keeps the brand default fixed agency when no override is set', () => {
+		expect(loadBrand('misinfo').brand.fixedReportAgency).toBeNull()
+		expect(loadBrand('caffeine').brand.fixedReportAgency).toEqual({
+			id: 'i2ef53bVPh9xciy0huIR',
+			name: 'Test Agency',
+		})
+	})
+
+	it('lets a deploy send every report to one agency (online study copies)', () => {
+		const study = { agencyId: ' prolific123 ', agencyName: 'Prolific sample' }
+		const expected = { id: 'prolific123', name: 'Prolific sample' }
+		expect(loadBrand('misinfo', study).brand.fixedReportAgency).toEqual(expected)
+		expect(loadBrand('caffeine', study).brand.fixedReportAgency).toEqual(expected)
+	})
+
+	it('does not change the shared brand configs when overridden', () => {
+		const { BRANDS } = loadBrand('misinfo', { agencyId: 'p1', agencyName: 'Prolific sample' })
+		expect(BRANDS.misinfo.fixedReportAgency).toBeNull()
+	})
+
+	it('ignores a half-set override and warns', () => {
+		const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+		expect(loadBrand('misinfo', { agencyId: 'p1' }).brand.fixedReportAgency).toBeNull()
+		expect(
+			loadBrand('caffeine', { agencyName: 'Prolific sample' }).brand.fixedReportAgency,
+		).toEqual({ id: 'i2ef53bVPh9xciy0huIR', name: 'Test Agency' })
+		expect(warn).toHaveBeenCalledTimes(2)
 	})
 
 	it('every brand defines the same top-level keys', () => {
