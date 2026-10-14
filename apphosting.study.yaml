@@ -1,0 +1,28 @@
+# Truth Sleuth Study (online study copy) — App Hosting overrides.
+# App Hosting merges this file over apphosting.yaml for any backend whose
+# environment name is "study" (Backend → Settings → Environment).
+# Same Firebase project and data as the live app; only these values differ.
+# See README → "Online study copies".
+
+env:
+  # Every report goes to this agency and the "pick an agency" step is skipped.
+  # Both values are required; the name must match the agency doc exactly.
+  # "Prolific sample" agency doc id in the misinfo-5d004 Firestore.
+  - variable: NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID
+    value: "DJuBydni2EqbezWzwDHJ"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME
+    value: "Prolific sample"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Used for auth email links; must be this backend's URL, not the live app's.
+  - variable: NEXT_PUBLIC_APP_URL
+    value: "https://truthsleuthstudy--misinfo-5d004.us-central1.hosted.app"
+    availability:
+      - BUILD
+      - RUNTIME
