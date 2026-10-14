@@ -7,9 +7,9 @@
 env:
   # Every report goes to this agency and the "pick an agency" step is skipped.
   # Both values are required; the name must match the agency doc exactly.
-  # Fill in the "Prolific sample" agency doc id from the misinfo-5d004 Firestore console.
+  # "Prolific sample" agency doc id in the misinfo-5d004 Firestore.
   - variable: NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID
-    value: ""
+    value: "DJuBydni2EqbezWzwDHJ"
     availability:
       - BUILD
       - RUNTIME
