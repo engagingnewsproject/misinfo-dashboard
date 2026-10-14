@@ -40,5 +40,9 @@
     "verifyEmailSpamTip": "If you don’t see it within a few minutes, check your spam or junk folder.",
     "verifyEmailResend": "Resend email",
     "verifyEmailSent": "New verification email sent.",
+    "verifyEmailSending": "Sending…",
+    "verifyEmailResendIn": "Resend email in {{seconds}}s",
+    "verifyEmailTooMany": "Too many requests. Please wait a few minutes and try again.",
+    "verifyEmailSendError": "We couldn't send the email. Please try again.",
     "loginPurposeBlurb": "Truth Sleuth helps people submit reports about local election information they think might be inaccurate and lets partner organizations review."
   }

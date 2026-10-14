@@ -40,5 +40,9 @@
     "verifyEmailSpamTip": "Si no lo ve en unos minutos, revise su carpeta de spam o correo no deseado.",
     "verifyEmailResend": "Reenviar correo",
     "verifyEmailSent": "Se envió un nuevo correo de verificación.",
+    "verifyEmailSending": "Enviando…",
+    "verifyEmailResendIn": "Reenviar correo en {{seconds}} s",
+    "verifyEmailTooMany": "Demasiadas solicitudes. Espere unos minutos e inténtelo de nuevo.",
+    "verifyEmailSendError": "No pudimos enviar el correo. Inténtelo de nuevo.",
     "loginPurposeBlurb": "Truth Sleuth ayuda a las personas a enviar reportes sobre información electoral local que consideran inexacta y permite que las organizaciones asociadas los revisen."
   }
