@@ -30,7 +30,7 @@
     "phone": "Numero de teléfono (opcional)",
     "contact": "Acepto que mi redacción local pueda contactarme para dar seguimiento a los informes que comparto.",
     "password_error": "Las contraseñas no coinciden.",
-    "verifyEmailPageTitle": "Verificar correo | Truth Sleuth Local",
+    "verifyEmailPageTitle": "Verificar correo",
     "verifyEmailHeading": "Verificación de correo",
     "verifyEmailAgencyIntro": "Al crear una cuenta, se le pedirá que verifique su correo electrónico.",
     "verifyEmailAgencyStep1": "Haga clic en el enlace del correo de verificación.",

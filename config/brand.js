@@ -46,8 +46,28 @@ function resolveFixedReportAgency(brandDefault, override) {
  * @returns {string}
  */
 function resolveSignupSource(brandSource, override) {
-	const isStudy = Boolean((override.id || '').trim() && (override.name || '').trim())
-	return isStudy ? `${brandSource}-study` : brandSource
+	return isStudyCopy(override) ? `${brandSource}-study` : brandSource
+}
+
+/**
+ * Display name for this deploy: the brand's `studyAppName` on study copies, else `appName`.
+ *
+ * @param {{ appName: string, studyAppName: string | null }} brandConfig
+ * @param {{ id?: string, name?: string }} override - Raw fixed-agency env values
+ * @returns {string}
+ */
+function resolveAppName(brandConfig, override) {
+	return isStudyCopy(override) && brandConfig.studyAppName
+		? brandConfig.studyAppName
+		: brandConfig.appName
+}
+
+/**
+ * @param {{ id?: string, name?: string }} override - Raw fixed-agency env values
+ * @returns {boolean}
+ */
+function isStudyCopy(override) {
+	return Boolean((override.id || '').trim() && (override.name || '').trim())
 }
 
 // Env values are read literally so Next.js inlines them into the client bundle.
@@ -62,6 +82,7 @@ const brand = {
 		fixedAgencyOverride,
 	),
 	signupSource: resolveSignupSource(BRANDS[BRAND_ID].signupSource, fixedAgencyOverride),
+	appName: resolveAppName(BRANDS[BRAND_ID], fixedAgencyOverride),
 }
 
 /**
@@ -100,6 +121,7 @@ module.exports = {
 	brand,
 	resolveFixedReportAgency,
 	resolveSignupSource,
+	resolveAppName,
 	tagDisplayName,
 	isFeatureEnabled,
 	pageTitle,

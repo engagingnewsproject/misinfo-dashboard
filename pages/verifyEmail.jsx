@@ -21,7 +21,7 @@ import { useAuth } from '../context/AuthContext'
 import {signOut} from 'firebase/auth'
 import { auth } from '../config/firebase'
 import Head from 'next/head'
-import { brand } from '../config/brand'
+import { brand, pageTitle } from '../config/brand'
 import { BrandIcon } from '../components/layout/BrandLockup'
 import { Typography } from '@material-tailwind/react'
 import LanguageSwitcher from '../components/layout/LanguageSwitcher'
@@ -98,7 +98,7 @@ const VerifyEmail = () => {
   return (
 		<>
 			<Head>
-				<title>{t('verifyEmailPageTitle')}</title>
+				<title>{pageTitle(t('verifyEmailPageTitle'))}</title>
 			</Head>
 			<div data-component="verifyEmail" className="w-screen h-screen flex justify-center items-center">
 				<div className="w-full max-w-md font-light bg-white rounded-md p-6">

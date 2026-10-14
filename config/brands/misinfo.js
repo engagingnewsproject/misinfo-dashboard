@@ -5,6 +5,8 @@
 module.exports = {
 	id: 'misinfo',
 	appName: 'Truth Sleuth Local',
+	// Replaces appName on online study copies; null keeps appName.
+	studyAppName: 'Truth Sleuth',
 	shortName: 'Truth Sleuth',
 	description: 'Report misinformation in your location for submission to news agencies near that location.',
 	supportTeamName: 'Truth Sleuth Support Team',
