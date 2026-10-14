@@ -34,13 +34,34 @@ function resolveFixedReportAgency(brandDefault, override) {
 	return brandDefault ?? null
 }
 
+/**
+ * Which site a new user signed up on, saved as `signupSource` on their mobileUsers doc.
+ * Study copies share the live app's Firebase project, so this is how researchers tell
+ * their users apart: "truthsleuth", "truthsleuth-study", "caffeine", "caffeine-study".
+ *
+ * A deploy counts as a study copy when it overrides the fixed agency (both env values set).
+ *
+ * @param {string} brandSource - The brand's `signupSource`
+ * @param {{ id?: string, name?: string }} override - Raw fixed-agency env values
+ * @returns {string}
+ */
+function resolveSignupSource(brandSource, override) {
+	const isStudy = Boolean((override.id || '').trim() && (override.name || '').trim())
+	return isStudy ? `${brandSource}-study` : brandSource
+}
+
 // Env values are read literally so Next.js inlines them into the client bundle.
+const fixedAgencyOverride = {
+	id: process.env.NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID,
+	name: process.env.NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME,
+}
 const brand = {
 	...BRANDS[BRAND_ID],
-	fixedReportAgency: resolveFixedReportAgency(BRANDS[BRAND_ID].fixedReportAgency, {
-		id: process.env.NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID,
-		name: process.env.NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME,
-	}),
+	fixedReportAgency: resolveFixedReportAgency(
+		BRANDS[BRAND_ID].fixedReportAgency,
+		fixedAgencyOverride,
+	),
+	signupSource: resolveSignupSource(BRANDS[BRAND_ID].signupSource, fixedAgencyOverride),
 }
 
 /**
@@ -78,6 +99,7 @@ module.exports = {
 	BRAND_ID,
 	brand,
 	resolveFixedReportAgency,
+	resolveSignupSource,
 	tagDisplayName,
 	isFeatureEnabled,
 	pageTitle,
