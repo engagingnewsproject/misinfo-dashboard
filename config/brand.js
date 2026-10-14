@@ -50,16 +50,15 @@ function resolveSignupSource(brandSource, override) {
 }
 
 /**
- * Display name for this deploy: the brand's `studyAppName` on study copies, else `appName`.
+ * Brand settings to swap in for this deploy: the brand's `studyOverrides` on study copies
+ * (e.g. "Caffeine Study" instead of "Caffeine Dashboard"), else nothing.
  *
- * @param {{ appName: string, studyAppName: string | null }} brandConfig
+ * @param {{ studyOverrides?: object }} brandConfig
  * @param {{ id?: string, name?: string }} override - Raw fixed-agency env values
- * @returns {string}
+ * @returns {object}
  */
-function resolveAppName(brandConfig, override) {
-	return isStudyCopy(override) && brandConfig.studyAppName
-		? brandConfig.studyAppName
-		: brandConfig.appName
+function resolveStudyOverrides(brandConfig, override) {
+	return isStudyCopy(override) ? brandConfig.studyOverrides ?? {} : {}
 }
 
 /**
@@ -77,12 +76,12 @@ const fixedAgencyOverride = {
 }
 const brand = {
 	...BRANDS[BRAND_ID],
+	...resolveStudyOverrides(BRANDS[BRAND_ID], fixedAgencyOverride),
 	fixedReportAgency: resolveFixedReportAgency(
 		BRANDS[BRAND_ID].fixedReportAgency,
 		fixedAgencyOverride,
 	),
 	signupSource: resolveSignupSource(BRANDS[BRAND_ID].signupSource, fixedAgencyOverride),
-	appName: resolveAppName(BRANDS[BRAND_ID], fixedAgencyOverride),
 }
 
 /**
@@ -121,7 +120,7 @@ module.exports = {
 	brand,
 	resolveFixedReportAgency,
 	resolveSignupSource,
-	resolveAppName,
+	resolveStudyOverrides,
 	tagDisplayName,
 	isFeatureEnabled,
 	pageTitle,
