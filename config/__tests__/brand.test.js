@@ -68,6 +68,21 @@ describe('helpers', () => {
 		expect(loadBrand('caffeine').pageTitle('')).toBe('Caffeine Dashboard')
 	})
 
+	it('uses the brand study name on study copies only', () => {
+		const studyEnv = { agencyId: 'p1', agencyName: 'Prolific sample' }
+		const study = loadBrand('misinfo', studyEnv)
+		expect(study.brand.appName).toBe('Truth Sleuth')
+		expect(study.pageTitle('Login')).toBe('Login | Truth Sleuth')
+		expect(study.BRANDS.misinfo.appName).toBe('Truth Sleuth Local')
+		expect(loadBrand('misinfo').brand.appName).toBe('Truth Sleuth Local')
+		expect(loadBrand('caffeine', studyEnv).brand.appName).toBe('Caffeine Dashboard')
+	})
+
+	it('does not rename on a half-set agency override', () => {
+		jest.spyOn(console, 'warn').mockImplementation(() => {})
+		expect(loadBrand('misinfo', { agencyId: 'p1' }).brand.appName).toBe('Truth Sleuth Local')
+	})
+
 	it('every brand keeps the To Investigate and Other labels the code relies on', () => {
 		const { BRANDS } = loadBrand(undefined)
 		for (const b of Object.values(BRANDS)) {

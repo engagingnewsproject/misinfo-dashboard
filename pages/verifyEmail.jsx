@@ -21,12 +21,14 @@ import { useAuth } from '../context/AuthContext'
 import {signOut} from 'firebase/auth'
 import { auth } from '../config/firebase'
 import Head from 'next/head'
-import { brand } from '../config/brand'
+import { brand, pageTitle } from '../config/brand'
 import { BrandIcon } from '../components/layout/BrandLockup'
 import { Typography } from '@material-tailwind/react'
 import LanguageSwitcher from '../components/layout/LanguageSwitcher'
 import { useTranslation } from 'next-i18next'
 import { brandServerSideTranslations } from '../lib/brandServerSideTranslations'
+
+const RESEND_COOLDOWN_SECONDS = 60
 /**
  * VerifyEmail component for email verification flow
  * 
@@ -43,8 +45,11 @@ const VerifyEmail = () => {
     // Authentication context and verification functions
     const { verifyEmail, verifyRole } = useAuth()
     
-    // Shown after user requests a new verification email
-    const [emailResent, setEmailResent] = useState(false)
+    // Resend status: null | 'sending' | 'sent' | 'tooMany' | 'error'
+    const [resendStatus, setResendStatus] = useState(null)
+
+    // Seconds left before the resend button unlocks after a successful send
+    const [cooldown, setCooldown] = useState(0)
 
     // User role state for conditional rendering
     const [userRole, setUserRole] = useState(null)
@@ -63,25 +68,33 @@ const VerifyEmail = () => {
 
     }, [])
 
+    useEffect(() => {
+      if (cooldown <= 0) return
+      const timer = setTimeout(() => setCooldown((s) => s - 1), 1000)
+      return () => clearTimeout(timer)
+    }, [cooldown])
+
     /**
      * Handles resending verification email
      * 
-     * Sends a new verification email to the current user and updates
-     * the UI to show confirmation message.
+     * Sends a new verification email to the current user and shows whether
+     * it was sent, rate-limited by Firebase, or failed for another reason.
      * 
-     * @param {Event} e - Click event
      * @returns {Promise<void>}
      */
-    const handleVerifyEmail = async (e) => {
-      setEmailResent(true)
-
-        try {
-          await verifyEmail(auth.currentUser)
-            
-        } catch (err) {
-          console.log(err)
-        }
+    const handleVerifyEmail = async () => {
+      setResendStatus('sending')
+      try {
+        await verifyEmail(auth.currentUser)
+        setResendStatus('sent')
+        setCooldown(RESEND_COOLDOWN_SECONDS)
+      } catch (err) {
+        console.error(err)
+        setResendStatus(err?.code === 'auth/too-many-requests' ? 'tooMany' : 'error')
+      }
   }
+
+    const resendDisabled = resendStatus === 'sending' || cooldown > 0
 
     /**
      * Handles logout and navigation to login page
@@ -98,7 +111,7 @@ const VerifyEmail = () => {
   return (
 		<>
 			<Head>
-				<title>{t('verifyEmailPageTitle')}</title>
+				<title>{pageTitle(t('verifyEmailPageTitle'))}</title>
 			</Head>
 			<div data-component="verifyEmail" className="w-screen h-screen flex justify-center items-center">
 				<div className="w-full max-w-md font-light bg-white rounded-md p-6">
@@ -114,7 +127,15 @@ const VerifyEmail = () => {
 					
 					{/* Main content section */}
 					<div className="mb-4">
-						{emailResent && <div>{t('verifyEmailSent')}</div>}
+						<div role="status" aria-live="polite">
+							{resendStatus === 'sent' && <div>{t('verifyEmailSent')}</div>}
+							{resendStatus === 'tooMany' && (
+								<div className="text-red-600">{t('verifyEmailTooMany')}</div>
+							)}
+							{resendStatus === 'error' && (
+								<div className="text-red-600">{t('verifyEmailSendError')}</div>
+							)}
+						</div>
 						
 						{/* Agency-specific verification instructions */}
 						{userRole?.agency ? (
@@ -149,9 +170,14 @@ const VerifyEmail = () => {
 					{/* Action buttons */}
 					<p className="text-center text-gray-500 text-sm">
 						<button
-							className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline"
-							onClick={handleVerifyEmail}>
-							{t('verifyEmailResend')}
+							className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-500"
+							onClick={handleVerifyEmail}
+							disabled={resendDisabled}>
+							{resendStatus === 'sending'
+								? t('verifyEmailSending')
+								: cooldown > 0
+									? t('verifyEmailResendIn', { seconds: cooldown })
+									: t('verifyEmailResend')}
 						</button>
 						<button
 							className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mb-2 px-6 rounded focus:outline-none focus:shadow-outline"
