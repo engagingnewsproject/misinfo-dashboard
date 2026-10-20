@@ -356,7 +356,7 @@ Cloud Functions read `BRAND_NAME` (help-request email sender name) from the func
 
 ### Online study copies
 
-For studies where anyone in the US can enroll, each app has a second "study" website next to the live one (4 apps total). A study copy is the same code and the same Firebase project as its live app. It skips the "pick an agency" step and sends every report to one agency, **Prolific sample**. It also skips the confirm-your-email step. Live sites still require that step.
+For studies where anyone in the US can enroll, each app has a second "study" website next to the live one (4 apps total). A study copy is the same code and the same Firebase project as its live app. It skips the "pick an agency" step and sends every report to one agency, **Prolific sample**. It also skips the confirm-your-email step. Live sites still require that step. Study sign-up asks for a Prolific ID stored separately from the name, leaves the name blank, and does not show the newsroom-contact checkbox.
 
 | Site | URL | Hosting | Report goes to |
 |---|---|---|---|

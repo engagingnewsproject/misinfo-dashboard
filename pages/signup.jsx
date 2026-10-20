@@ -89,6 +89,7 @@ const SignUp = () => {
 	// Form data state
 	const [data, setData] = useState({
 		name: '',
+		prolificId: '',
 		email: '',
 		// phone: '',
 		password: '',
@@ -118,8 +119,10 @@ const SignUp = () => {
 			throw new Error('No signed-in user to create profile for')
 		}
 		const uid = currentUser.uid
+		const prolificId = brand.isStudyCopy ? data.prolificId.trim() : ''
 		await setDoc(doc(db, 'mobileUsers', uid), {
-			name: data.name,
+			name: brand.isStudyCopy ? '' : data.name,
+			...(prolificId ? { prolificId } : {}),
 			email: data.email,
 			joiningDate: moment().utc().unix(),
 			state: data.state,
@@ -232,7 +235,13 @@ const SignUp = () => {
 			} else {
 				console.log('DEV LOG - handleSignUp - self signup')
 
-				await signup(data.name, data.email, data.password, data.state, data.city)
+				await signup(
+					brand.isStudyCopy ? '' : data.name,
+					data.email,
+					data.password,
+					data.state,
+					data.city,
+				)
 				setSignUpError('')
 				await addMobileUser('User')
 				router.push(brand.isStudyCopy ? '/report' : '/verifyEmail')
@@ -334,9 +343,9 @@ const SignUp = () => {
 								</Typography>
 							</div>
 						) : null}
-						{/* Name input (hidden for agency invites) */}
+						{/* Name on live sites. Study sites ask for a Prolific ID instead. Hidden for agency invites. */}
 						<div className="mb-4">
-							{!isAgencyInvite && (
+							{!isAgencyInvite && !brand.isStudyCopy && (
 								<FormInput
 									id="name"
 									type="text"
@@ -345,6 +354,17 @@ const SignUp = () => {
 									value={data.name}
 									onChange={handleChange}
 									autoComplete="name"
+								/>
+							)}
+							{!isAgencyInvite && brand.isStudyCopy && (
+								<FormInput
+									id="prolificId"
+									type="text"
+									label={t('prolificId')}
+									required
+									value={data.prolificId}
+									onChange={handleChange}
+									autoComplete="off"
 								/>
 							)}
 						</div>
@@ -460,19 +480,21 @@ const SignUp = () => {
 							/>
 						</div>
 
-						{/* Contact permission checkbox */}
-						<div className="mb-1">
-							<input
-								className="shadow border-white rounded-md mx-1"
-								id="contact"
-								type="checkbox"
-								value={data.contact}
-								checked={data.contact}
-								onChange={handleChecked}
-								autoComplete="contact"
-							/>
-							<label htmlFor="contact">{t('contact')}</label>
-						</div>
+						{/* Contact permission checkbox. Study sites do not ask. */}
+						{!brand.isStudyCopy && (
+							<div className="mb-1">
+								<input
+									className="shadow border-white rounded-md mx-1"
+									id="contact"
+									type="checkbox"
+									value={data.contact}
+									checked={data.contact}
+									onChange={handleChecked}
+									autoComplete="contact"
+								/>
+								<label htmlFor="contact">{t('contact')}</label>
+							</div>
+						)}
 						
 						{/* Password confirmation validation */}
 						{data.password !== data.confirmPW && (
