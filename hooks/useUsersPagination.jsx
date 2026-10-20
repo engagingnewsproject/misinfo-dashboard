@@ -15,6 +15,7 @@ function appendUsersWithoutDuplicates(prev, incoming) {
  * @param {Object} options - Configuration options
  * @param {number} options.pageSize - Number of users to fetch per batch (default: 50)
  * @param {string} options.userRole - Filter by user role
+ * @param {string} options.signupSource - Filter by signup source
  * @param {string} options.agencyId - Filter by agency ID
  * @param {string} options.searchTerm - Search term for filtering
  * @param {string} options.orderField - Field to order by (default: 'joiningDate')
@@ -26,6 +27,7 @@ function appendUsersWithoutDuplicates(prev, incoming) {
 export function useUsersPagination({
   pageSize = 50,
   userRole = null,
+  signupSource = null,
   agencyId = null,
   searchTerm = null,
   orderField = 'joiningDate',
@@ -42,6 +44,7 @@ export function useUsersPagination({
   // Keep track of the current filters to detect changes
   const prevFiltersRef = useRef({
     userRole,
+    signupSource,
     agencyId,
     searchTerm,
     orderField,
@@ -66,6 +69,7 @@ export function useUsersPagination({
         pageSize,
         lastDoc,
         userRole,
+        signupSource,
         agencyId,
         searchTerm,
         orderField,
@@ -88,6 +92,7 @@ export function useUsersPagination({
     pageSize,
     lastDoc,
     userRole,
+    signupSource,
     agencyId,
     searchTerm,
     orderField,
@@ -117,6 +122,7 @@ export function useUsersPagination({
         pageSize,
         lastDoc: null,
         userRole,
+        signupSource,
         agencyId,
         searchTerm,
         orderField,
@@ -134,7 +140,7 @@ export function useUsersPagination({
       setLoading(false);
       setInitialLoading(false);
     }
-  }, [pageSize, userRole, agencyId, searchTerm, orderField, orderDirection]);
+  }, [pageSize, userRole, signupSource, agencyId, searchTerm, orderField, orderDirection]);
 
   /**
    * Refreshes the current page (keeps existing users and refetches)
@@ -153,6 +159,7 @@ export function useUsersPagination({
         pageSize: pagesToLoad * pageSize,
         lastDoc: null,
         userRole,
+        signupSource,
         agencyId,
         searchTerm,
         orderField,
@@ -168,7 +175,7 @@ export function useUsersPagination({
     } finally {
       setLoading(false);
     }
-  }, [users.length, pageSize, userRole, agencyId, searchTerm, orderField, orderDirection]);
+  }, [users.length, pageSize, userRole, signupSource, agencyId, searchTerm, orderField, orderDirection]);
 
   /**
    * Manually loads first batch (for when autoLoad is false)
@@ -204,6 +211,7 @@ export function useUsersPagination({
     const prevFilters = prevFiltersRef.current;
     const filtersChanged =
       prevFilters.userRole !== userRole ||
+      prevFilters.signupSource !== signupSource ||
       prevFilters.agencyId !== agencyId ||
       prevFilters.searchTerm !== searchTerm ||
       prevFilters.orderField !== orderField ||
@@ -217,12 +225,13 @@ export function useUsersPagination({
     // Update ref with current filters
     prevFiltersRef.current = {
       userRole,
+      signupSource,
       agencyId,
       searchTerm,
       orderField,
       orderDirection,
     };
-  }, [userRole, agencyId, searchTerm, orderField, orderDirection]);
+  }, [userRole, signupSource, agencyId, searchTerm, orderField, orderDirection]);
 
   return {
     users,

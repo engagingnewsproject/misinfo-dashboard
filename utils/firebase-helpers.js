@@ -19,6 +19,7 @@ import { db } from '../config/firebase';
  * @param {number} options.pageSize - Number of users to fetch per batch (default: 50)
  * @param {import('firebase/firestore').DocumentSnapshot} options.lastDoc - Last document from previous batch for cursor pagination
  * @param {string} options.userRole - Filter by user role (optional)
+ * @param {string} options.signupSource - Filter by signup source (optional)
  * @param {string} options.agencyId - Filter by agency ID (optional)
  * @param {string} options.searchTerm - Search term for filtering users (optional)
  * @param {string} options.orderField - Field to order by (default: 'joiningDate')
@@ -29,6 +30,7 @@ export async function fetchUsersBatch({
   pageSize = 50,
   lastDoc = null,
   userRole = null,
+  signupSource = null,
   agencyId = null,
   searchTerm = null,
   orderField = 'joiningDate',
@@ -45,6 +47,10 @@ export async function fetchUsersBatch({
 
     if (userRole && userRole !== 'all') {
       queryConstraints.push(where('userRole', '==', userRole));
+    }
+
+    if (signupSource && signupSource !== 'all') {
+      queryConstraints.push(where('signupSource', '==', signupSource));
     }
 
     // Email prefix search must order by email (cannot mix range filter with unrelated orderBy).
@@ -197,7 +203,7 @@ export async function getUsersCount(filters = {}) {
 }
 
 /**
- * Searches users by email or name
+ * Searches users by email, name, or Prolific ID.
  * This is a client-side implementation for now
  * For production, consider using a dedicated search service
  *
@@ -216,11 +222,13 @@ export function searchUsers(users, searchTerm) {
     const email = user.email?.toLowerCase() || '';
     const name = user.name?.toLowerCase() || '';
     const displayName = user.displayName?.toLowerCase() || '';
+    const prolificId = user.prolificId?.toLowerCase() || '';
 
     return (
       email.includes(lowerSearch) ||
       name.includes(lowerSearch) ||
-      displayName.includes(lowerSearch)
+      displayName.includes(lowerSearch) ||
+      prolificId.includes(lowerSearch)
     );
   });
 }

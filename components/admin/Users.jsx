@@ -107,6 +107,33 @@ const ROLE_TABS = [
 	{ label: 'User', value: 'User' },
 ]
 
+/** Admin signup-source filter. Values match `mobileUsers.signupSource`. */
+const SIGNUP_SOURCE_TABS = [
+	{ label: 'All', value: 'all' },
+	{ label: 'Truth Sleuth', value: 'truthsleuth' },
+	{ label: 'Truth Sleuth Study', value: 'truthsleuth-study' },
+	{ label: 'Caffeine', value: 'caffeine' },
+	{ label: 'Caffeine Study', value: 'caffeine-study' },
+]
+
+const SIGNUP_SOURCE_LABELS = Object.fromEntries(
+	SIGNUP_SOURCE_TABS.filter((tab) => tab.value !== 'all').map((tab) => [
+		tab.value,
+		tab.label,
+	]),
+)
+
+/**
+ * Friendly label for a stored signup source. Blank when the account predates the field.
+ *
+ * @param {string} [value]
+ * @returns {string}
+ */
+const signupSourceLabel = (value) => {
+	if (!value) return ''
+	return SIGNUP_SOURCE_LABELS[value] || value
+}
+
 /**
  * Retrieves the user's join date based on available data.
  *
@@ -432,6 +459,7 @@ const Users = () => {
 	const [userRole, setUserRole] = useState('') // Current user's role being edited
 	const [searchTerm, setSearchTerm] = useState('') // Search term for filtering users
 	const [roleFilter, setRoleFilter] = useState('all') // Role filter for users
+	const [signupSourceFilter, setSignupSourceFilter] = useState('all')
 	const [joinDateSort, setJoinDateSort] = useState(
 		/** @type {'asc' | 'desc'} */ ('desc'),
 	) // Join Date column sort; default newest-first
@@ -484,6 +512,7 @@ const Users = () => {
 	} = useUsersPagination({
 		pageSize: 50,
 		userRole: roleFilter !== 'all' ? roleFilter : null,
+		signupSource: signupSourceFilter !== 'all' ? signupSourceFilter : null,
 		autoLoad: false, // We'll manually trigger loading after setup
 		orderField: 'joiningDate',
 		orderDirection: 'desc',
@@ -1528,18 +1557,32 @@ const Users = () => {
 					</div>
 					<div className="flex flex-col items-center justify-between gap-4 md:flex-row">
 						{customClaims.admin ? (
-							<Tabs value={roleFilter} className="w-full md:w-max">
-								<TabsHeader>
-									{ROLE_TABS.map(({ label, value }) => (
-										<Tab
-											key={value}
-											value={value}
-											onClick={() => setRoleFilter(value)}>
-											&nbsp;&nbsp;{label}&nbsp;&nbsp;
-										</Tab>
-									))}
-								</TabsHeader>
-							</Tabs>
+							<div className="flex w-full flex-col gap-2 md:w-max">
+								<Tabs value={roleFilter} className="w-full md:w-max">
+									<TabsHeader>
+										{ROLE_TABS.map(({ label, value }) => (
+											<Tab
+												key={value}
+												value={value}
+												onClick={() => setRoleFilter(value)}>
+												&nbsp;&nbsp;{label}&nbsp;&nbsp;
+											</Tab>
+										))}
+									</TabsHeader>
+								</Tabs>
+								<Tabs value={signupSourceFilter} className="w-full md:w-max">
+									<TabsHeader>
+										{SIGNUP_SOURCE_TABS.map(({ label, value }) => (
+											<Tab
+												key={value}
+												value={value}
+												onClick={() => setSignupSourceFilter(value)}>
+												&nbsp;&nbsp;{label}&nbsp;&nbsp;
+											</Tab>
+										))}
+									</TabsHeader>
+								</Tabs>
+							</div>
 						) : (
 							<div className="hidden md:block" />
 						)}
@@ -1677,6 +1720,16 @@ const Users = () => {
 												</Typography>
 											</th>
 										)}
+										{customClaims.admin && (
+											<th scope="col" className={tableThCenter}>
+												<Typography
+													variant="small"
+													color="blue-gray"
+													className="font-normal leading-none opacity-70">
+													Signup Source
+												</Typography>
+											</th>
+										)}
 										<th scope="col" className={tableThCenter}>
 											<Typography
 												variant="small"
@@ -1805,6 +1858,16 @@ const Users = () => {
 																color="blue-gray"
 																className="font-normal">
 																{userObj.userRole ?? ''}
+															</Typography>
+														</td>
+													)}
+													{customClaims.admin && (
+														<td className={cellClassCenter}>
+															<Typography
+																variant="small"
+																color="blue-gray"
+																className="font-normal">
+																{signupSourceLabel(userObj.signupSource)}
 															</Typography>
 														</td>
 													)}
