@@ -328,7 +328,7 @@ Project Lead Links: [Firebase CLI Tools](https://firebase.google.com/docs/firest
 
 ## Brands (Truth Sleuth and Caffeine Dashboard)
 
-This one codebase powers two apps. The `NEXT_PUBLIC_BRAND` env var picks which one a build is:
+This one codebase powers two apps and four deploys. Each app has a live site and a study site (see [Online study copies](#online-study-copies)). The `NEXT_PUBLIC_BRAND` env var picks which app a build is:
 
 | `NEXT_PUBLIC_BRAND` | App | Firebase project | Hosting |
 |---|---|---|---|
@@ -353,12 +353,12 @@ Cloud Functions read `BRAND_NAME` (help-request email sender name) from the func
 
 For studies where anyone in the US can enroll, each app has a second "study" website next to the live one (4 apps total). A study copy is the same code and the same Firebase project as its live app. It skips the "pick an agency" step and sends every report to one agency, **Prolific sample**. It also skips the confirm-your-email step. Live sites still require that step.
 
-| Site | Hosting | Report goes to |
-|---|---|---|
-| Truth Sleuth (live) | App Hosting backend `truthsleuthlocal` | Newsroom the reporter picks in their state |
-| Truth Sleuth Study | App Hosting backend `truthsleuthstudy` (environment `study`) | Prolific sample |
-| Caffeine (live) | Netlify | Test Agency |
-| Caffeine Study | Second Netlify site, same `prod` branch | Prolific sample |
+| Site | URL | Hosting | Report goes to |
+|---|---|---|---|
+| Truth Sleuth (live) | https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app/login | App Hosting backend `truthsleuthlocal` | Newsroom the reporter picks in their state |
+| Truth Sleuth Study | https://truthsleuth-study.netlify.app/login | Netlify | Prolific sample |
+| Caffeine (live) | https://caffeine-dashboard.netlify.app/login | Netlify | Test Agency |
+| Caffeine Study | https://caffeine-study.netlify.app/login | Netlify, same `prod` branch | Prolific sample |
 
 How it works:
 
@@ -370,12 +370,12 @@ Setup (once per Firebase project):
 
 1. In the admin Agencies page, create an agency named exactly `Prolific sample`. Use **Texas / Austin** as the location; the nightly pipeline only routes to swing-state newsrooms, so it won't send articles there.
 2. In the Firestore console, add `hiddenFromPicker: true` (boolean) to that agency doc and copy its document ID.
-3. **Truth Sleuth Study:** create an App Hosting backend `truthsleuthstudy` in `misinfo-5d004` from this repo and branch, and set its environment name to `study` so `apphosting.study.yaml` is merged over `apphosting.yaml`. Put the agency ID in `apphosting.study.yaml` and grant the backend the same secrets as the live one (`firebase apphosting:secrets:grantaccess FIREBASE_API_KEY,SENDGRID_API_KEY,SLACK_WEBHOOK_URL --backend truthsleuthstudy --project misinfo-5d004`).
+3. **Truth Sleuth Study:** Netlify site https://truthsleuth-study.netlify.app. It uses the same Firebase project as live Truth Sleuth (`misinfo-5d004`), both agency env vars, and `NEXT_PUBLIC_APP_URL` set to `https://truthsleuth-study.netlify.app`. `apphosting.study.yaml` (`https://truthsleuthstudy--misinfo-5d004.us-central1.hosted.app`) is not that public site.
 4. **Caffeine Study:** create a second Netlify site from the `prod` branch with the same env vars as live Caffeine, plus the two agency vars and its own `NEXT_PUBLIC_APP_URL` (see `.env.caffeine.example`).
 5. Add each study URL to Firebase Auth → Authorized domains and to the App Check reCAPTCHA key's allowed domains, or login and App Check fail.
 6. Researchers see study reports as admins, or as agency users of Prolific sample.
 
-To shut a study copy down, delete its backend or Netlify site. Its reports stay in the database under Prolific sample.
+To shut a study copy down, delete its Netlify site. Its reports stay in the database under Prolific sample.
 
 ## Links
 
