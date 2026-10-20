@@ -82,6 +82,9 @@ const brand = {
 		fixedAgencyOverride,
 	),
 	signupSource: resolveSignupSource(BRANDS[BRAND_ID].signupSource, fixedAgencyOverride),
+	// True only when both agency env values are set. Live Caffeine has a fixed
+	// agency in the brand file, so that alone must not count as a study copy.
+	isStudyCopy: isStudyCopy(fixedAgencyOverride),
 }
 
 /**
