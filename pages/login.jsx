@@ -112,7 +112,7 @@ const Login = () => {
   useEffect(() => {
     if (!router.isReady || !clientAuthReady || resumeChecked.current) return
     resumeChecked.current = true
-    if (!nextPath || !auth.currentUser?.emailVerified) return
+    if (!nextPath || !(auth.currentUser?.emailVerified || brand.isStudyCopy)) return
     setResuming(true)
     ensureServerSession()
       .then(() => router.replace(nextPath))
@@ -144,7 +144,8 @@ const Login = () => {
 	 */
 	const signInAndRedirect = async (email, password) => {
 		await login(email, password)
-		if (auth.currentUser?.emailVerified) {
+		// Study sites let people in without a confirmation email.
+		if (auth.currentUser?.emailVerified || brand.isStudyCopy) {
 			const idTokenResult = await auth.currentUser.getIdTokenResult(true)
 
 			// Agency/admin users must not run a collection-wide agencyUsers query:

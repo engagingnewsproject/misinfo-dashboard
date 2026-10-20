@@ -321,7 +321,12 @@ export const AuthContextProvider = ({ children, initialAuth }) => {
         return new Promise((resolve, reject) => {
             createUserWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
-                    // Perform email verification after user creation
+                    // Study sites skip the confirmation email. Prolific inboxes
+                    // only accept mail from the research team's UT address.
+                    if (brand.isStudyCopy) {
+                        resolve(userCredential)
+                        return
+                    }
                     verifyEmail(userCredential.user)
                         .then((verified) => {
                             if (verified) {
