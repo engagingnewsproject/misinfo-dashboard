@@ -1557,25 +1557,27 @@ const Users = () => {
 					</div>
 					<div className="flex flex-col items-center justify-between gap-4 md:flex-row">
 						{customClaims.admin ? (
-							<div className="flex w-full flex-col gap-2 md:w-max">
-								<Tabs value={roleFilter} className="w-full md:w-max">
+							<div className="flex w-max max-w-full shrink-0 flex-col gap-2 md:flex-row md:flex-nowrap md:items-center">
+								<Tabs value={roleFilter} className="w-max shrink-0">
 									<TabsHeader>
 										{ROLE_TABS.map(({ label, value }) => (
 											<Tab
 												key={value}
 												value={value}
+												className="whitespace-nowrap"
 												onClick={() => setRoleFilter(value)}>
 												&nbsp;&nbsp;{label}&nbsp;&nbsp;
 											</Tab>
 										))}
 									</TabsHeader>
 								</Tabs>
-								<Tabs value={signupSourceFilter} className="w-full md:w-max">
+								<Tabs value={signupSourceFilter} className="w-max shrink-0">
 									<TabsHeader>
 										{SIGNUP_SOURCE_TABS.map(({ label, value }) => (
 											<Tab
 												key={value}
 												value={value}
+												className="whitespace-nowrap"
 												onClick={() => setSignupSourceFilter(value)}>
 												&nbsp;&nbsp;{label}&nbsp;&nbsp;
 											</Tab>
@@ -1692,6 +1694,16 @@ const Users = () => {
 												Name
 											</Typography>
 										</th>
+										{customClaims.admin && (
+											<th scope="col" className={tableTh}>
+												<Typography
+													variant="small"
+													color="blue-gray"
+													className="font-normal leading-none opacity-70">
+													Prolific ID
+												</Typography>
+											</th>
+										)}
 										<th scope="col" className={tableThCenter}>
 											<Typography
 												variant="small"
@@ -1833,6 +1845,16 @@ const Users = () => {
 															{userObj.name ?? ''}
 														</Typography>
 													</td>
+													{customClaims.admin && (
+														<td className={cellClass}>
+															<Typography
+																variant="small"
+																color="blue-gray"
+																className="font-normal">
+																{userObj.prolificId ?? ''}
+															</Typography>
+														</td>
+													)}
 													<td className={cellClassCenter}>
 														<Typography
 															variant="small"
