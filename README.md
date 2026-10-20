@@ -76,7 +76,12 @@ This command starts the [Firebase Emulator UI](https://firebase.google.com/docs/
 
 ```
 npm run dev:live
+npm run dev:live -- ts-study
+npm run dev:live -- caffeine
+npm run dev:live -- caffeine-study
 ```
+
+No argument is Truth Sleuth live (`misinfo-5d004`), using `.env.local`. `ts-study` is that same project with every report sent to Prolific sample. `caffeine` and `caffeine-study` use `.env.caffeine.local` (copy `.env.caffeine.example` and fill it in). Caffeine Study also needs `STUDY_AGENCY_ID` in that file: the Prolific sample agency id in the Caffeine Firebase project.
 
 `npm run dev:live` starts **only** Next.js (`next dev`), sets `NEXT_PUBLIC_USE_EMULATORS=false`, and **unsets** common `*_EMULATOR_HOST` variables for that process. If your shell profile exports `FIRESTORE_EMULATOR_HOST` (or similar) for other work, leaving it set can still point the SDK at a local port with no emulator running, which looks like “offline” Firestore. This script clears that mismatch. It also opts the browser into Firestore long-polling auto-detect when not using emulators, which avoids some flaky WebChannel errors under `next dev`.
 
@@ -343,7 +348,7 @@ Everything that differs between the apps lives in one of these places, so shared
 
 In code, read brand values from `config/brand.js` (`brand`, `pageTitle()`, `tagDisplayName()`, `isFeatureEnabled()`) instead of hardcoding names. For translations, use `brandServerSideTranslations` in place of `serverSideTranslations`.
 
-**Preview Caffeine locally:** `NEXT_PUBLIC_BRAND=caffeine npm run dev` (uses this repo's Firebase env; see `.env.caffeine.example` for the full Caffeine env).
+**Preview Caffeine locally:** `npm run dev:live -- caffeine` (needs `.env.caffeine.local`; see `.env.caffeine.example`). Study copies: `npm run dev:live -- ts-study` and `npm run dev:live -- caffeine-study`.
 
 **One repo for all four sites.** Truth Sleuth, Truth Sleuth Study, Caffeine, and Caffeine Study all deploy from this repo. There is no separate Caffeine copy to keep in sync.
 
