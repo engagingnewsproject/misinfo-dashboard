@@ -161,6 +161,18 @@ describe('helpers', () => {
 		expect(loadBrand('caffeine', { agencyName: 'Prolific sample' }).brand.signupSource).toBe(
 			'caffeine',
 		)
+		expect(loadBrand('misinfo', { agencyId: 'p1' }).brand.isStudyCopy).toBe(false)
+		expect(loadBrand('caffeine', { agencyName: 'Prolific sample' }).brand.isStudyCopy).toBe(
+			false,
+		)
+	})
+
+	it('marks a deploy as a study copy only when both agency env values are set', () => {
+		const study = { agencyId: 'p1', agencyName: 'Prolific sample' }
+		expect(loadBrand('misinfo').brand.isStudyCopy).toBe(false)
+		expect(loadBrand('caffeine').brand.isStudyCopy).toBe(false)
+		expect(loadBrand('misinfo', study).brand.isStudyCopy).toBe(true)
+		expect(loadBrand('caffeine', study).brand.isStudyCopy).toBe(true)
 	})
 
 	it('every brand defines the same top-level keys', () => {

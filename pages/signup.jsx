@@ -235,7 +235,7 @@ const SignUp = () => {
 				await signup(data.name, data.email, data.password, data.state, data.city)
 				setSignUpError('')
 				await addMobileUser('User')
-				router.push('/verifyEmail')
+				router.push(brand.isStudyCopy ? '/report' : '/verifyEmail')
 			}
 		} catch (err) {
 			if (isEmailLinkInvite || isAgencyInvite) {
