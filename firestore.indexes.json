@@ -11,6 +11,16 @@
     {
       "collectionGroup": "reports",
       "queryScope": "COLLECTION",
+      "density": "SPARSE_ALL",
+      "fields": [
+        { "fieldPath": "agency", "order": "ASCENDING" },
+        { "fieldPath": "topic", "order": "ASCENDING" },
+        { "fieldPath": "createdDate", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "reports",
+      "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "archived", "order": "ASCENDING" },
         { "fieldPath": "experimentId", "order": "ASCENDING" },
@@ -134,6 +144,23 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "userRole", "order": "ASCENDING" },
+        { "fieldPath": "joiningDate", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "mobileUsers",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "signupSource", "order": "ASCENDING" },
+        { "fieldPath": "joiningDate", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "mobileUsers",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userRole", "order": "ASCENDING" },
+        { "fieldPath": "signupSource", "order": "ASCENDING" },
         { "fieldPath": "joiningDate", "order": "DESCENDING" }
       ]
     }
