@@ -345,21 +345,13 @@ In code, read brand values from `config/brand.js` (`brand`, `pageTitle()`, `tagD
 
 **Preview Caffeine locally:** `NEXT_PUBLIC_BRAND=caffeine npm run dev` (uses this repo's Firebase env; see `.env.caffeine.example` for the full Caffeine env).
 
-**Keeping caffeine-app-v2 in sync:** it is a copy of this repo whose only differences are deploy settings (`.firebaserc` default, `netlify.toml`, the Netlify env vars, package name). To pull in new work:
-
-```bash
-cd caffeine-app-v2
-git remote add misinfo https://github.com/engagingnewsproject/misinfo-dashboard.git  # once
-git checkout -b chore/sync-misinfo-dashboard
-git fetch misinfo && git merge misinfo/main
-npm install && npm test && npm run build
-```
+**One repo for all four sites.** Truth Sleuth, Truth Sleuth Study, Caffeine, and Caffeine Study all deploy from this repo. There is no separate Caffeine copy to keep in sync.
 
 Cloud Functions read `BRAND_NAME` (help-request email sender name) from the functions environment.
 
 ### Online study copies
 
-For studies where anyone in the US can enroll, each app has a second "study" website next to the live one (4 apps total). A study copy is the same code and the same Firebase project as its live app. The only difference is that it skips the "pick an agency" step and sends every report to one agency, **Prolific sample**.
+For studies where anyone in the US can enroll, each app has a second "study" website next to the live one (4 apps total). A study copy is the same code and the same Firebase project as its live app. It skips the "pick an agency" step and sends every report to one agency, **Prolific sample**. It also skips the confirm-your-email step. Live sites still require that step.
 
 | Site | Hosting | Report goes to |
 |---|---|---|
@@ -370,7 +362,7 @@ For studies where anyone in the US can enroll, each app has a second "study" web
 
 How it works:
 
-- `NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID` + `NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME` override the brand's `fixedReportAgency` for one deploy. Both are required (the name must match the agency doc); if only one is set, the override is ignored with a console warning.
+- `NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID` + `NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME` override the brand's `fixedReportAgency` for one deploy. Both are required (the name must match the agency doc); if only one is set, the override is ignored with a console warning. Those two values are also what turns off the confirm-your-email step. Live Caffeine always uses Test Agency from the brand file, so it still asks people to confirm their email.
 - Agency docs with `hiddenFromPicker: true` are left out of the live report form's agency list and the admin "Move to agency" targets, so live reporters never see Prolific sample.
 - Study reports share the live database. Find them by the Prolific sample agency. Don't start a new study round in Truth Sleuth's experiment settings for this, because that setting is shared with the live app.
 
