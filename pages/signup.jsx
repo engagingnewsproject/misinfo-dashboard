@@ -126,7 +126,7 @@ const SignUp = () => {
 			email: data.email,
 			joiningDate: moment().utc().unix(),
 			state: data.state,
-			city: data.city,
+			city: brand.isStudyCopy ? null : data.city,
 			isBanned: false,
 			userRole: privilege,
 			contact: data.contact,
@@ -192,7 +192,7 @@ const SignUp = () => {
 			console.log('state error')
 			allErrors.state = t('NewReport:state')
 		}
-		if (data.city == null) {
+		if (!brand.isStudyCopy && data.city == null) {
 			console.log('city error')
 			allErrors.city = t('NewReport:city')
 			if (
@@ -395,7 +395,8 @@ const SignUp = () => {
 							)}
 						</div>
 
-						{/* City selection dropdown */}
+						{/* City stays on live sites. Study signups do not collect it. */}
+						{!brand.isStudyCopy && (
 						<div className="mb-4">
 							<FormSelect
 								id="city"
@@ -410,14 +411,15 @@ const SignUp = () => {
 								onChange={handleCityChange}
 							/>
 						</div>
-						
+						)}
+
 						{/* Email input */}
 						<div className="mb-4">
 							<FormInput
 								className={isEmailLinkInvite ? 'mb-1' : ''}
 								id="email"
 								type="email"
-								label={t('email')}
+								label={brand.isStudyCopy ? t('prolificEmail') : t('email')}
 								required
 								value={data.email}
 								onChange={handleChange}
