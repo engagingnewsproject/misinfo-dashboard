@@ -25,8 +25,10 @@ import Link from 'next/link'
 import Image from "next/image"
 import { useAuth } from '../context/AuthContext'
 import Head from 'next/head'
-import { pageTitle } from '../config/brand'
+import { brand, pageTitle } from '../config/brand'
 import FormInput from '../components/ui/FormInput'
+import StudyForgotPasswordNote from '../components/auth/StudyForgotPasswordNote'
+import { brandServerSideTranslations } from '../lib/brandServerSideTranslations'
 
 /**
  * ResetPassword Page
@@ -74,6 +76,30 @@ const ResetPassword = () => {
         setEmail(e.target.value)
     }
 
+
+	if (brand.isStudyCopy) {
+		return (
+			<>
+				<Head>
+					<title>{pageTitle('Reset Password')}</title>
+				</Head>
+				<div
+					data-component="resetPassword"
+					className="w-screen h-screen flex justify-center items-center">
+					<div className="w-full max-w-sm px-8 font-light text-center">
+						<StudyForgotPasswordNote />
+						<p className="text-center text-gray-500 text-sm mt-4">
+							<Link
+								href="/login"
+								className="inline-block align-baseline font-bold text-sm text-[#2E3B4E] hover:text-blue-800">
+								Log In
+							</Link>
+						</p>
+					</div>
+				</div>
+			</>
+		)
+	}
 
 	return (
 		<>
@@ -140,3 +166,12 @@ const ResetPassword = () => {
 }
 
 export default ResetPassword
+
+export async function getStaticProps(context) {
+	const { locale } = context
+	return {
+		props: {
+			...(await brandServerSideTranslations(locale, ['Welcome'])),
+		},
+	}
+}

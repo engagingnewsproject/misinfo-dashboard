@@ -235,6 +235,8 @@ export const AuthContextProvider = ({ children, initialAuth }) => {
                 disableUser: noopCallable,
                 getUserRecord: noopCallable,
                 authGetUserList: noopCallable,
+                setTemporaryPassword: noopCallable,
+                replaceTemporaryPassword: noopCallable,
             }
         }
         return {
@@ -251,6 +253,11 @@ export const AuthContextProvider = ({ children, initialAuth }) => {
             disableUser: httpsCallable(functionsInstance, 'disableUser'),
             getUserRecord: httpsCallable(functionsInstance, 'getUserRecord'),
             authGetUserList: httpsCallable(functionsInstance, 'authGetUserList'),
+            setTemporaryPassword: httpsCallable(functionsInstance, 'setTemporaryPassword'),
+            replaceTemporaryPassword: httpsCallable(
+                functionsInstance,
+                'replaceTemporaryPassword',
+            ),
         }
     }, [functionsInstance])
     /**
@@ -523,6 +530,29 @@ export const AuthContextProvider = ({ children, initialAuth }) => {
      * @example
      * await setPassword('newpassword123');
      */
+    /**
+     * Asks the server to set a random one-time password for a participant.
+     * The password is returned once and is not stored.
+     *
+     * @param {string} uid - Auth uid / mobileUsers doc id
+     * @returns {Promise<{ password: string }>}
+     */
+    const setTemporaryPassword = async (uid) => {
+        const result = await callables.setTemporaryPassword({ uid })
+        return result.data
+    }
+
+    /**
+     * Replaces the signed-in participant's temporary password.
+     *
+     * @param {string} password
+     * @returns {Promise<{ ok: boolean }>}
+     */
+    const replaceTemporaryPassword = async (password) => {
+        const result = await callables.replaceTemporaryPassword({ password })
+        return result.data
+    }
+
     const setPassword = async (newPassword) => {
         try {
             await updatePassword(auth.currentUser, newPassword);
@@ -620,6 +650,8 @@ export const AuthContextProvider = ({ children, initialAuth }) => {
             getUserByEmail: callables.getUserByEmail,
             deleteUser: callables.deleteUser,
             disableUser: disableUserFunction,
+            setTemporaryPassword,
+            replaceTemporaryPassword,
             fetchUserRecord,
             getUserRecord: callables.getUserRecord,
             authGetUserList: callables.authGetUserList,
