@@ -5,6 +5,8 @@ import FormTextarea from '../../ui/FormTextarea'
 import FormSelect from '../../ui/FormSelect'
 import ModalCloseButton from '../../ui/ModalCloseButton'
 import { State, City } from "country-state-city"
+import { brand } from "../../../config/brand"
+import TemporaryPasswordPanel from "./TemporaryPasswordPanel"
 import { useDelayedDialogOpen } from '../../../hooks/useDelayedDialogOpen'
 import {
 	Button,
@@ -1123,6 +1125,11 @@ const EditUserModal = ({
 								{mobileFieldFormError}
 							</Typography>
 						)}
+						{brand.isStudyCopy && isAdmin && userId ? (
+							<div className="md:col-span-2">
+								<TemporaryPasswordPanel userId={userId} />
+							</div>
+						) : null}
 						<div className="md:col-span-2 flex justify-end gap-3 pt-2">
 							<Button
 								type="button"

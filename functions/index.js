@@ -464,6 +464,11 @@ const pipelineRunFunctions = require("./pipeline-runs");
 
 exports.getPipelineRuns = pipelineRunFunctions.getPipelineRuns;
 
+const temporaryPassword = require("./temporary-password");
+
+exports.setTemporaryPassword = temporaryPassword.setTemporaryPassword;
+exports.replaceTemporaryPassword = temporaryPassword.replaceTemporaryPassword;
+
 exports.authGetUserList = functions.https.onCall(async (data, context) => {
   // Ensure that the user is authenticated
   if (!context.auth) {

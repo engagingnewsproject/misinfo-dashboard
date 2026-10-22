@@ -4,5 +4,6 @@
   "potential": "Información que cree errónea",
   "history": "Historial de reportes",
   "noReports": "No tiene ningún reporte",
-  "startReporting":"Empezar a informar"
+  "startReporting":"Empezar a informar",
+  "studyReportHint": "Haga clic en el botón Reporte de abajo para reportar cualquier posible información errónea que vea."
 }

@@ -4,5 +4,6 @@
   "potential": "Potentially inaccurate information",
   "history": "Report History",
   "noReports": "You don’t have any reports",
-  "startReporting":"Start Reporting"
+  "startReporting":"Start Reporting",
+  "studyReportHint": "Click the Report button below to report any potential misinformation that you see."
 }

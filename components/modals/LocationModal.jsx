@@ -4,6 +4,7 @@ import { db } from '../../config/firebase'
 import { updateDoc, doc } from 'firebase/firestore'
 import { useTranslation } from 'next-i18next'
 import { State, City } from 'country-state-city'
+import { brand } from '../../config/brand'
 import FormSelect from '../ui/FormSelect'
 import ModalCloseButton from '../ui/ModalCloseButton'
 import { useDelayedDialogOpen } from '../../hooks/useDelayedDialogOpen'
@@ -96,21 +97,23 @@ const LocationModal = ({ setLocationModal }) => {
 							onChange={handleStateChange}
 						/>
 					</div>
-					<div className="mb-0.5">
-						<FormSelect
-							id="city"
-							name="city"
-							label={t('NewReport:city_text')}
-							value={userLocation?.city}
-							options={City.getCitiesOfState(
-								userLocation?.state?.countryCode,
-								userLocation?.state?.isoCode,
-							)}
-							getOptionLabel={(options) => options['name']}
-							getOptionValue={(options) => options['name']}
-							onChange={handleCityChange}
-						/>
-					</div>
+					{!brand.isStudyCopy && (
+						<div className="mb-0.5">
+							<FormSelect
+								id="city"
+								name="city"
+								label={t('NewReport:city_text')}
+								value={userLocation?.city}
+								options={City.getCitiesOfState(
+									userLocation?.state?.countryCode,
+									userLocation?.state?.isoCode,
+								)}
+								getOptionLabel={(options) => options['name']}
+								getOptionValue={(options) => options['name']}
+								onChange={handleCityChange}
+							/>
+						</div>
+					)}
 					{errors.userState && !userLocation?.state && (
 						<span className="text-red-500">{errors.userState}</span>
 					)}

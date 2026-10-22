@@ -37,10 +37,13 @@ import { brandServerSideTranslations } from '../lib/brandServerSideTranslations'
 import { MdOutlineRemoveRedEye } from "react-icons/md"; // <MdOutlineRemoveRedEye />
 import {
 	collection,
+	doc,
+	getDoc,
 	getDocs,
 	query,
 	where,
 } from "firebase/firestore"
+import StudyForgotPasswordNote from '../components/auth/StudyForgotPasswordNote'
 import { BrandIcon } from '../components/layout/BrandLockup'
 import Head from 'next/head';
 import { brand, pageTitle } from '../config/brand'
@@ -146,6 +149,16 @@ const Login = () => {
 		await login(email, password)
 		// Study sites let people in without a confirmation email.
 		if (auth.currentUser?.emailVerified || brand.isStudyCopy) {
+			if (brand.isStudyCopy) {
+				const profile = await getDoc(
+					doc(db, 'mobileUsers', auth.currentUser.uid),
+				)
+				if (profile.data()?.mustChangePassword === true) {
+					await router.push('/choose-password')
+					return
+				}
+			}
+
 			const idTokenResult = await auth.currentUser.getIdTokenResult(true)
 
 			// Agency/admin users must not run a collection-wide agencyUsers query:
@@ -265,7 +278,7 @@ const Login = () => {
 							<FormInput
 								id="email"
 								type="text"
-								label={t('email')}
+								label={brand.isStudyCopy ? t('prolificEmail') : t('email')}
 								required
 								value={data.email}
 								onChange={handleChange}
@@ -312,12 +325,15 @@ const Login = () => {
 										{t('remember')}
 									</label>
 								</div>
-								<Link
-									href="/resetPassword"
-									className="inline-block align-baseline font-bold text-sm text-[#2E3B4E] hover:text-blue-800">
-									{t('forgot')}
-								</Link>
+								{!brand.isStudyCopy && (
+									<Link
+										href="/resetPassword"
+										className="inline-block align-baseline font-bold text-sm text-[#2E3B4E] hover:text-blue-800">
+										{t('forgot')}
+									</Link>
+								)}
 							</div>
+							<StudyForgotPasswordNote />
 						</div>
 					</form>
 					{DevLoginShortcuts && (
