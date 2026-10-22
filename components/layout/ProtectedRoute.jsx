@@ -9,13 +9,23 @@
  * @returns {JSX.Element|null} The rendered children or null if not authenticated
  */
 import { useRouter } from 'next/router'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
+import { doc, getDoc } from 'firebase/firestore'
 import { useAuth } from '../../context/AuthContext'
+import { db } from '../../config/firebase'
+import { brand } from '../../config/brand'
 import LoadingSpinner from '../ui/LoadingSpinner'
 
 const ProtectedRoute = ({ children }) => {
 	const { user, loading } = useAuth()
 	const router = useRouter()
+	const [checkedUid, setCheckedUid] = useState(null)
+	const onChoosePassword = router.pathname === '/choose-password'
+	const waitingOnPasswordCheck =
+		brand.isStudyCopy &&
+		!onChoosePassword &&
+		Boolean(user) &&
+		checkedUid !== user.accountId
 
 	useEffect(() => {
 		// Wait until auth has resolved — redirecting while loading===true and
@@ -25,7 +35,28 @@ const ProtectedRoute = ({ children }) => {
 		}
 	}, [router, user, loading])
 
-	if (loading) {
+	useEffect(() => {
+		if (!brand.isStudyCopy || loading || !user || onChoosePassword) return
+		let cancelled = false
+		getDoc(doc(db, 'mobileUsers', user.accountId))
+			.then((snap) => {
+				if (cancelled) return
+				if (snap.data()?.mustChangePassword === true) {
+					router.replace('/choose-password')
+					return
+				}
+				setCheckedUid(user.accountId)
+			})
+			.catch((error) => {
+				console.warn('Temporary password check failed', error)
+				if (!cancelled) setCheckedUid(user.accountId)
+			})
+		return () => {
+			cancelled = true
+		}
+	}, [loading, onChoosePassword, router, user])
+
+	if (loading || waitingOnPasswordCheck) {
 		return (
 			<div data-component="ProtectedRoute" className="min-h-screen w-full flex flex-col items-center justify-center bg-[#D3D3D3] gap-3">
 				<LoadingSpinner className="h-12 w-12 text-[#2E3B4E]" />

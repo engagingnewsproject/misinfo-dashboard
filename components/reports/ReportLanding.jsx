@@ -28,6 +28,7 @@ import { IoChevronForward } from "react-icons/io5";
 import { auth } from '../../config/firebase'
 
 import { useTranslation } from 'next-i18next';
+import StudyReportHint from './StudyReportHint';
 
 /** Report card image (bundled so it works on Firebase App Hosting where public/ may not be served). */
 import reportImg from '../../public/img/report.png';
@@ -97,6 +98,7 @@ const ReportLanding = ({
 			<div className={style.headerWrap}>
 				<h2 className={style.header}>{t("hello")}</h2>
 			</div>
+			<StudyReportHint />
 			<button onClick={onReportStartClick} className={style.buttonLg}>
 				<Image src={reportImg} width={200} height={120} priority alt="report" className='h-auto max-w-36 sm:h-auto' />
 				<span className='flex flex-col text-left'>

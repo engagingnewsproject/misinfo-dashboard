@@ -202,3 +202,5 @@ exports.backfillAgencyClaims = functions.https.onCall(async (data, context) => {
     errors,
   };
 });
+
+exports.requireAdmin = requireAdmin;
