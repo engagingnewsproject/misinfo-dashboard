@@ -764,8 +764,8 @@ const ReportSystem = ({
 
 	return (
 		<div data-component="ReportSystem" className={globalStyles.sectionContainer} key={key}>
-			{/* Reminder Step */}
-			{reminderShow !== false && reportSystem === 1 && (
+			{/* Reminder Step — show whenever we are on step 1; skip/back uses reminderShow */}
+			{reportSystem === 1 && (
 				<div className={globalStyles.viewWrapperCenter}>
 					<Image
 						src='/img/reminder.png'

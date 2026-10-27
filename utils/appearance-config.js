@@ -130,7 +130,7 @@ export function resolveShowReminderStep(config, isStudyCopy) {
  * @param {{ reportTable?: { investigationRow?: { bg?: string, hover?: string } }, reporting?: { showReminderStep?: { live?: boolean, study?: boolean } } }} partial
  * @returns {ReturnType<typeof normalizeAppearanceConfig>}
  */
-function mergeAppearanceConfig(existing, partial) {
+export function mergeAppearanceConfig(existing, partial) {
 	const next = {
 		reportTable: {
 			investigationRow: {

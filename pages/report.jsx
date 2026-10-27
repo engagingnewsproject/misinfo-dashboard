@@ -89,14 +89,11 @@ const Report = () => {
 		}
 	}, [])
 
-	// Admin off → hide Reminder. Admin on → show it only if this user has not
-	// checked "Do not show this again" for the session (disableReminder).
+	// Always derive session visibility from admin flag + "Do not show again".
+	// (ReportSystem still renders step 1 while you are on it, so checking the
+	// box does not blank the current screen; reminderShow gates later visits.)
 	useEffect(() => {
-		if (!showReminderStep) {
-			setReminderShow(false)
-		} else if (!disableReminder) {
-			setReminderShow(true)
-		}
+		setReminderShow(Boolean(showReminderStep && !disableReminder))
 	}, [showReminderStep, disableReminder])
   
 	const handleChangeCheckbox = (e) => {
@@ -106,14 +103,11 @@ const Report = () => {
 	const handleReminderStart = (e) => {
 			e.preventDefault()
 			setReportSystem(reportSystem + 1)
-			if (disableReminder == true) {
-					setReminderShow(false)
-			}
 	}
 
 	const handleReportSystemPrevStep = () => {
 			if (reminderShow == false && reportSystem <= 2) {
-				setReportSystem(reportSystem == 0)         
+				setReportSystem(0)
 			} else{
 				setReportSystem(reportSystem - 1)
 			}

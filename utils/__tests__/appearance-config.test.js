@@ -1,5 +1,6 @@
 import {
 	DEFAULT_APPEARANCE_CONFIG,
+	mergeAppearanceConfig,
 	normalizeAppearanceConfig,
 	resolveShowReminderStep,
 } from '../appearance-config'
@@ -74,5 +75,53 @@ describe('resolveShowReminderStep', () => {
 		}
 		expect(resolveShowReminderStep(config, false)).toBe(false)
 		expect(resolveShowReminderStep(config, true)).toBe(true)
+	})
+})
+
+describe('mergeAppearanceConfig', () => {
+	const existing = {
+		reportTable: {
+			investigationRow: { bg: '#111111', hover: '#222222' },
+		},
+		reporting: {
+			showReminderStep: { live: true, study: false },
+		},
+	}
+
+	it('updates reporting without wiping investigation row colors', () => {
+		expect(
+			mergeAppearanceConfig(existing, {
+				reporting: { showReminderStep: { study: true } },
+			}),
+		).toEqual({
+			reportTable: {
+				investigationRow: { bg: '#111111', hover: '#222222' },
+			},
+			reporting: {
+				showReminderStep: { live: true, study: true },
+			},
+		})
+	})
+
+	it('updates investigation row colors without wiping reporting flags', () => {
+		expect(
+			mergeAppearanceConfig(existing, {
+				reportTable: {
+					investigationRow: { bg: '#abcdef' },
+				},
+			}),
+		).toEqual({
+			reportTable: {
+				investigationRow: { bg: '#abcdef', hover: '#222222' },
+			},
+			reporting: {
+				showReminderStep: { live: true, study: false },
+			},
+		})
+	})
+
+	it('returns a normalized config when partial is empty', () => {
+		expect(mergeAppearanceConfig(existing, {})).toEqual(existing)
+		expect(mergeAppearanceConfig(existing, null)).toEqual(existing)
 	})
 })
