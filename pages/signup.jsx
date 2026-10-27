@@ -89,7 +89,6 @@ const SignUp = () => {
 	// Form data state
 	const [data, setData] = useState({
 		name: '',
-		prolificId: '',
 		email: '',
 		// phone: '',
 		password: '',
@@ -119,10 +118,8 @@ const SignUp = () => {
 			throw new Error('No signed-in user to create profile for')
 		}
 		const uid = currentUser.uid
-		const prolificId = brand.isStudyCopy ? data.prolificId.trim() : ''
 		await setDoc(doc(db, 'mobileUsers', uid), {
 			name: brand.isStudyCopy ? '' : data.name,
-			...(prolificId ? { prolificId } : {}),
 			email: data.email,
 			joiningDate: moment().utc().unix(),
 			state: data.state,
@@ -343,9 +340,9 @@ const SignUp = () => {
 								</Typography>
 							</div>
 						) : null}
-						{/* Name on live sites. Study sites ask for a Prolific ID instead. Hidden for agency invites. */}
-						<div className="mb-4">
-							{!isAgencyInvite && !brand.isStudyCopy && (
+						{/* Name on live sites only. Hidden for agency invites. */}
+						{!isAgencyInvite && !brand.isStudyCopy && (
+							<div className="mb-4">
 								<FormInput
 									id="name"
 									type="text"
@@ -355,19 +352,8 @@ const SignUp = () => {
 									onChange={handleChange}
 									autoComplete="name"
 								/>
-							)}
-							{!isAgencyInvite && brand.isStudyCopy && (
-								<FormInput
-									id="prolificId"
-									type="text"
-									label={t('prolificId')}
-									required
-									value={data.prolificId}
-									onChange={handleChange}
-									autoComplete="off"
-								/>
-							)}
-						</div>
+							</div>
+						)}
 						{/* <div className="mb-4">
 						<PhoneInput
 							placeholder={t('phone')}
@@ -377,6 +363,27 @@ const SignUp = () => {
 							onChange={handlePhoneNumber}
 						/>
 					</div> */}
+
+						{/* Study: Prolific email first so password managers save/fill the email, not a prior text field. */}
+						{brand.isStudyCopy && (
+							<div className="mb-4">
+								<FormInput
+									className={isEmailLinkInvite ? 'mb-1' : ''}
+									id="email"
+									type="email"
+									label={t('prolificEmail')}
+									required
+									value={data.email}
+									onChange={handleChange}
+									autoComplete="email"
+								/>
+								{isEmailLinkInvite && (
+									<div className="mb-1 text-sm italic">
+										** Must be the email you were sent the invite.
+									</div>
+								)}
+							</div>
+						)}
 						
 						{/* State selection dropdown */}
 						<div className="mb-4">
@@ -413,24 +420,26 @@ const SignUp = () => {
 						</div>
 						)}
 
-						{/* Email input */}
-						<div className="mb-4">
-							<FormInput
-								className={isEmailLinkInvite ? 'mb-1' : ''}
-								id="email"
-								type="email"
-								label={brand.isStudyCopy ? t('prolificEmail') : t('email')}
-								required
-								value={data.email}
-								onChange={handleChange}
-								autoComplete="email"
-							/>
-							{isEmailLinkInvite && (
-								<div className="mb-1 text-sm italic">
-									** Must be the email you were sent the invite.
-								</div>
-							)}
-						</div>
+						{/* Live / invite: email after location fields (unchanged order). */}
+						{!brand.isStudyCopy && (
+							<div className="mb-4">
+								<FormInput
+									className={isEmailLinkInvite ? 'mb-1' : ''}
+									id="email"
+									type="email"
+									label={t('email')}
+									required
+									value={data.email}
+									onChange={handleChange}
+									autoComplete="email"
+								/>
+								{isEmailLinkInvite && (
+									<div className="mb-1 text-sm italic">
+										** Must be the email you were sent the invite.
+									</div>
+								)}
+							</div>
+						)}
 						
 						{/* Password input with visibility toggle */}
 						<>
