@@ -46,7 +46,12 @@ import { db, auth } from "../config/firebase"
 import { brandServerSideTranslations } from '../lib/brandServerSideTranslations'
 import Head from 'next/head';
 
-import { pageTitle } from '../config/brand'
+import { brand, pageTitle } from '../config/brand'
+import {
+	DEFAULT_APPEARANCE_CONFIG,
+	getAppearanceConfig,
+	resolveShowReminderStep,
+} from '../utils/appearance-config'
 const tabList = ['Report', 'Profile'];
 
 export const reportSystems = ['Report History', 'Reminder', 'Location', 'What', 'Where', 'Detail', 'Thank You'];
@@ -60,10 +65,39 @@ const Report = () => {
 
 	const [disableReminder, setDisableReminder] = useState(false)
 	const [reminderShow, setReminderShow] = useState(true)
+	const [showReminderStep, setShowReminderStep] = useState(() =>
+		resolveShowReminderStep(DEFAULT_APPEARANCE_CONFIG, brand.isStudyCopy),
+	)
 
 
   const [userData, setUserData] = useState(null)
   const [locationModal, setLocationModal] = useState(false)
+
+	useEffect(() => {
+		let cancelled = false
+		getAppearanceConfig(db)
+			.then((config) => {
+				if (cancelled) return
+				const next = resolveShowReminderStep(config, brand.isStudyCopy)
+				setShowReminderStep((prev) => (prev === next ? prev : next))
+			})
+			.catch((err) => {
+				console.error(err)
+			})
+		return () => {
+			cancelled = true
+		}
+	}, [])
+
+	// Admin off → hide Reminder. Admin on → show it only if this user has not
+	// checked "Do not show this again" for the session (disableReminder).
+	useEffect(() => {
+		if (!showReminderStep) {
+			setReminderShow(false)
+		} else if (!disableReminder) {
+			setReminderShow(true)
+		}
+	}, [showReminderStep, disableReminder])
   
 	const handleChangeCheckbox = (e) => {
 			setDisableReminder(e.target.checked)
@@ -73,7 +107,7 @@ const Report = () => {
 			e.preventDefault()
 			setReportSystem(reportSystem + 1)
 			if (disableReminder == true) {
-					setReminderShow(!reminderShow)
+					setReminderShow(false)
 			}
 	}
 
@@ -86,7 +120,9 @@ const Report = () => {
 	}
 	
 	const handleReportStartClick = () => {
-			disableReminder ? setReportSystem(2) : setReportSystem(1)
+			!showReminderStep || disableReminder
+				? setReportSystem(2)
+				: setReportSystem(1)
   }
   
   const handleReportTabClick = () => {
