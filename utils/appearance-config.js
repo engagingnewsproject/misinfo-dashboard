@@ -1,6 +1,9 @@
 /**
  * Shared appearance / UI theme defaults for the dashboard.
  * Stored in Firestore `settings/appearance` (signed-in read, admin write).
+ *
+ * Live and study deploys for a brand share one Firebase project, so reporting
+ * flags are stored as `{ live, study }` and each site reads the matching key.
  */
 
 import { doc, getDoc, setDoc } from 'firebase/firestore'
@@ -14,10 +17,16 @@ export const DEFAULT_INVESTIGATION_ROW = {
 	hover: '#fee2e2',
 }
 
-/** @type {{ reportTable: { investigationRow: { bg: string, hover: string } } }} */
+/** @type {{ reportTable: { investigationRow: { bg: string, hover: string } }, reporting: { showReminderStep: { live: boolean, study: boolean } } }} */
 export const DEFAULT_APPEARANCE_CONFIG = {
 	reportTable: {
 		investigationRow: { ...DEFAULT_INVESTIGATION_ROW },
+	},
+	reporting: {
+		showReminderStep: {
+			live: true,
+			study: true,
+		},
 	},
 }
 
@@ -39,10 +48,20 @@ function normalizeHex(value) {
 }
 
 /**
+ * @param {unknown} value
+ * @param {boolean} fallback
+ * @returns {boolean}
+ */
+function normalizeBool(value, fallback) {
+	if (typeof value === 'boolean') return value
+	return fallback
+}
+
+/**
  * Merges raw Firestore data with defaults so missing fields are safe.
  *
  * @param {unknown} raw
- * @returns {{ reportTable: { investigationRow: { bg: string, hover: string } } }}
+ * @returns {{ reportTable: { investigationRow: { bg: string, hover: string } }, reporting: { showReminderStep: { live: boolean, study: boolean } } }}
  */
 export function normalizeAppearanceConfig(raw) {
 	const source =
@@ -54,6 +73,14 @@ export function normalizeAppearanceConfig(raw) {
 	const investigationRow =
 		reportTable.investigationRow && typeof reportTable.investigationRow === 'object'
 			? /** @type {Record<string, unknown>} */ (reportTable.investigationRow)
+			: {}
+	const reporting =
+		source.reporting && typeof source.reporting === 'object'
+			? /** @type {Record<string, unknown>} */ (source.reporting)
+			: {}
+	const showReminderStep =
+		reporting.showReminderStep && typeof reporting.showReminderStep === 'object'
+			? /** @type {Record<string, unknown>} */ (reporting.showReminderStep)
 			: {}
 
 	return {
@@ -67,12 +94,63 @@ export function normalizeAppearanceConfig(raw) {
 					DEFAULT_APPEARANCE_CONFIG.reportTable.investigationRow.hover,
 			},
 		},
+		reporting: {
+			showReminderStep: {
+				live: normalizeBool(
+					showReminderStep.live,
+					DEFAULT_APPEARANCE_CONFIG.reporting.showReminderStep.live,
+				),
+				study: normalizeBool(
+					showReminderStep.study,
+					DEFAULT_APPEARANCE_CONFIG.reporting.showReminderStep.study,
+				),
+			},
+		},
 	}
 }
 
 /**
+ * Which Reminder-step flag this deploy should use.
+ *
+ * @param {{ reporting?: { showReminderStep?: { live?: boolean, study?: boolean } } } | null | undefined} config
+ * @param {boolean} isStudyCopy
+ * @returns {boolean}
+ */
+export function resolveShowReminderStep(config, isStudyCopy) {
+	const normalized = normalizeAppearanceConfig(config ?? null)
+	return isStudyCopy
+		? normalized.reporting.showReminderStep.study
+		: normalized.reporting.showReminderStep.live
+}
+
+/**
+ * Deep-merges a partial update onto an existing normalized config.
+ *
+ * @param {ReturnType<typeof normalizeAppearanceConfig>} existing
+ * @param {{ reportTable?: { investigationRow?: { bg?: string, hover?: string } }, reporting?: { showReminderStep?: { live?: boolean, study?: boolean } } }} partial
+ * @returns {ReturnType<typeof normalizeAppearanceConfig>}
+ */
+function mergeAppearanceConfig(existing, partial) {
+	const next = {
+		reportTable: {
+			investigationRow: {
+				...existing.reportTable.investigationRow,
+				...(partial?.reportTable?.investigationRow || {}),
+			},
+		},
+		reporting: {
+			showReminderStep: {
+				...existing.reporting.showReminderStep,
+				...(partial?.reporting?.showReminderStep || {}),
+			},
+		},
+	}
+	return normalizeAppearanceConfig(next)
+}
+
+/**
  * @param {import('firebase/firestore').Firestore} db
- * @returns {Promise<{ reportTable: { investigationRow: { bg: string, hover: string } } }>}
+ * @returns {Promise<ReturnType<typeof normalizeAppearanceConfig>>}
  */
 export async function getAppearanceConfig(db) {
 	const ref = doc(db, APPEARANCE_SETTINGS_COLLECTION, APPEARANCE_SETTINGS_DOC_ID)
@@ -84,12 +162,16 @@ export async function getAppearanceConfig(db) {
 }
 
 /**
+ * Saves appearance settings without wiping unrelated sections.
+ * Reads the current doc, merges the partial update, then writes the full config.
+ *
  * @param {import('firebase/firestore').Firestore} db
- * @param {{ reportTable?: { investigationRow?: { bg?: string, hover?: string } } }} config
- * @returns {Promise<{ reportTable: { investigationRow: { bg: string, hover: string } } }>}
+ * @param {{ reportTable?: { investigationRow?: { bg?: string, hover?: string } }, reporting?: { showReminderStep?: { live?: boolean, study?: boolean } } }} config
+ * @returns {Promise<ReturnType<typeof normalizeAppearanceConfig>>}
  */
 export async function saveAppearanceConfig(db, config) {
-	const normalized = normalizeAppearanceConfig(config)
+	const existing = await getAppearanceConfig(db)
+	const normalized = mergeAppearanceConfig(existing, config || {})
 	const ref = doc(db, APPEARANCE_SETTINGS_COLLECTION, APPEARANCE_SETTINGS_DOC_ID)
 	await setDoc(ref, normalized, { merge: true })
 	return normalized
