@@ -2,25 +2,16 @@
 # App Hosting merges this file over apphosting.yaml for any backend whose
 # environment name is "study" (Backend → Settings → Environment).
 # Same Firebase project and data as the live app; only these values differ.
-# See README → "Online study copies".
+#
+# Do not commit fixed-agency document ids here. Set them in App Hosting /
+# Netlify env (or secrets) for the study backend. See the private ops repo:
+# https://github.com/engagingnewsproject/misinfo-dashboard-ops
+# Public overview: wiki → Sites.
 
 env:
-  # Every report goes to this agency and the "pick an agency" step is skipped.
-  # Both values are required; the name must match the agency doc exactly.
-  # "Prolific sample" agency doc id in the misinfo-5d004 Firestore.
-  - variable: NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID
-    value: "DJuBydni2EqbezWzwDHJ"
-    availability:
-      - BUILD
-      - RUNTIME
-
-  - variable: NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME
-    value: "Prolific sample"
-    availability:
-      - BUILD
-      - RUNTIME
-
   # Used for auth email links; must be this backend's URL, not the live app's.
+  # Public Truth Sleuth Study is on Netlify (truthsleuth-study.netlify.app);
+  # this App Hosting URL is a separate/legacy study backend if still used.
   - variable: NEXT_PUBLIC_APP_URL
     value: "https://truthsleuthstudy--misinfo-5d004.us-central1.hosted.app"
     availability:

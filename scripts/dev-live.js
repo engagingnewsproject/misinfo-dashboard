@@ -16,8 +16,7 @@ const dotenv = require('dotenv')
 
 const ROOT = path.join(__dirname, '..')
 
-/** Prolific sample agency doc in misinfo-5d004. Same id as apphosting.study.yaml. */
-const TRUTH_SLEUTH_STUDY_AGENCY_ID = 'DJuBydni2EqbezWzwDHJ'
+/** Display name for the fixed study agency (must match the Firestore agency doc). */
 const PROLIFIC_SAMPLE_NAME = 'Prolific sample'
 
 const EMULATOR_HOST_VARS = [
@@ -104,19 +103,19 @@ function isCopiedEnvKey(key) {
 }
 
 /**
- * Agency id for a study target. Truth Sleuth's id is in the repo. Caffeine's
- * id lives in `.env.caffeine.local` as STUDY_AGENCY_ID.
- * @param {{ study: boolean, brand: string }} target
+ * Agency id for a study target. Both brands read STUDY_AGENCY_ID from the
+ * target env file (never hardcode ids in this public repo). See private ops:
+ * https://github.com/engagingnewsproject/misinfo-dashboard-ops
+ * @param {{ study: boolean, brand: string, envFile: string }} target
  * @param {Record<string, string>} targetFileEnv
  * @returns {string}
  */
 function resolveStudyAgencyId(target, targetFileEnv) {
 	if (!target.study) return ''
-	if (target.brand === 'misinfo') return TRUTH_SLEUTH_STUDY_AGENCY_ID
 	const id = (targetFileEnv.STUDY_AGENCY_ID || '').trim()
 	if (!id) {
 		throw new Error(
-			'caffeine-study needs STUDY_AGENCY_ID in .env.caffeine.local (the Prolific sample agency id in the Caffeine Firebase project).',
+			`${target.envFile || 'env file'} needs STUDY_AGENCY_ID for study targets (fixed study agency doc id). See https://github.com/engagingnewsproject/misinfo-dashboard-ops`,
 		)
 	}
 	return id
@@ -232,7 +231,6 @@ function main(args = process.argv.slice(2)) {
 }
 
 module.exports = {
-	TRUTH_SLEUTH_STUDY_AGENCY_ID,
 	PROLIFIC_SAMPLE_NAME,
 	EMULATOR_HOST_VARS,
 	usage,
