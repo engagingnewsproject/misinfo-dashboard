@@ -10,11 +10,11 @@
 
 This project project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) of the [Next.js](https://nextjs.org/) framework. To learn more about Next.js features and API, take a look at [Next.js Documentation](https://nextjs.org/docs).
 
-**See [Technical Documentation](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/technicalDocumentation)** for Project Structure, Firebase, Components and Git Usage docs.
+**Docs live in the [project wiki](https://github.com/engagingnewsproject/misinfo-dashboard/wiki)** — [Architecture](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/Architecture), [Sites](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/Sites), [Firestore schema](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/Firestore-Schema), [Environment](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/Environment), [Cloud Functions](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/Cloud-Functions), [Testing](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/Testing), [Technical Documentation](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/technicalDocumentation). See also [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **Code quality:** [Fallow triage guide](docs/fallow-triage.md) — what to fix vs ignore when Fallow flags duplication, cycles, or dead code.
 
-**Admins:** [Archiving and study waves](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/Archiving) — how to run bulk archive, set the active experiment, and use **Show archived** on the reports list.
+**Admins:** [Archiving and study waves](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/Archiving). Study deploy ops (private): [misinfo-dashboard-ops](https://github.com/engagingnewsproject/misinfo-dashboard-ops).
 
 ## Getting Started
 
@@ -81,7 +81,7 @@ npm run dev:live -- caffeine
 npm run dev:live -- caffeine-study
 ```
 
-No argument is Truth Sleuth live (`misinfo-5d004`), using `.env.local`. `ts-study` is that same project with every report sent to Prolific sample. `caffeine` and `caffeine-study` use `.env.caffeine.local` (copy `.env.caffeine.example` and fill it in). Caffeine Study also needs `STUDY_AGENCY_ID` in that file: the Prolific sample agency id in the Caffeine Firebase project.
+No argument is Truth Sleuth live (`misinfo-5d004`), using `.env.local`. Study targets (`ts-study`, `caffeine-study`) need `STUDY_AGENCY_ID` in the brand env file (`.env.local` or `.env.caffeine.local`). Agency ids and study setup live in the private [misinfo-dashboard-ops](https://github.com/engagingnewsproject/misinfo-dashboard-ops) repo. Caffeine live uses `.env.caffeine.local` (copy `.env.caffeine.example`).
 
 `npm run dev:live` starts **only** Next.js (`next dev`), sets `NEXT_PUBLIC_USE_EMULATORS=false`, and **unsets** common `*_EMULATOR_HOST` variables for that process. If your shell profile exports `FIRESTORE_EMULATOR_HOST` (or similar) for other work, leaving it set can still point the SDK at a local port with no emulator running, which looks like “offline” Firestore. This script clears that mismatch. It also opts the browser into Firestore long-polling auto-detect when not using emulators, which avoids some flaky WebChannel errors under `next dev`.
 
@@ -356,31 +356,14 @@ Cloud Functions read `BRAND_NAME` (help-request email sender name) from the func
 
 ### Online study copies
 
-For studies where anyone in the US can enroll, each app has a second "study" website next to the live one (4 apps total). A study copy is the same code and the same Firebase project as its live app. It skips the "pick an agency" step and sends every report to one agency, **Prolific sample**. It also skips the confirm-your-email step. Live sites still require that step. Study sign-up asks for a Prolific ID stored separately from the name, leaves the name blank, and does not show the newsroom-contact checkbox.
+Each brand has a live site and a study site (four deploys total). A study copy is marked when **both** `NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID` and `NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME` are set. Details: [wiki Sites](https://github.com/engagingnewsproject/misinfo-dashboard/wiki/Sites). Deploy/setup ops and agency ids: private [misinfo-dashboard-ops](https://github.com/engagingnewsproject/misinfo-dashboard-ops) (ask a maintainer for access).
 
-| Site | URL | Hosting | Report goes to |
-|---|---|---|---|
-| Truth Sleuth (live) | https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app/login | App Hosting backend `truthsleuthlocal` | Newsroom the reporter picks in their state |
-| Truth Sleuth Study | https://truthsleuth-study.netlify.app/login | Netlify | Prolific sample |
-| Caffeine (live) | https://caffeine-dashboard.netlify.app/login | Netlify | Test Agency |
-| Caffeine Study | https://caffeine-study.netlify.app/login | Netlify, same `prod` branch | Prolific sample |
-
-How it works:
-
-- `NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID` + `NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME` override the brand's `fixedReportAgency` for one deploy. Both are required (the name must match the agency doc); if only one is set, the override is ignored with a console warning. Those two values are also what turns off the confirm-your-email step. Live Caffeine always uses Test Agency from the brand file, so it still asks people to confirm their email.
-- Agency docs with `hiddenFromPicker: true` are left out of the live report form's agency list and the admin "Move to agency" targets, so live reporters never see Prolific sample.
-- Study reports share the live database. Find them by the Prolific sample agency. Don't start a new study round in Truth Sleuth's experiment settings for this, because that setting is shared with the live app.
-
-Setup (once per Firebase project):
-
-1. In the admin Agencies page, create an agency named exactly `Prolific sample`. Use **Texas / Austin** as the location; the nightly pipeline only routes to swing-state newsrooms, so it won't send articles there.
-2. In the Firestore console, add `hiddenFromPicker: true` (boolean) to that agency doc and copy its document ID.
-3. **Truth Sleuth Study:** Netlify site https://truthsleuth-study.netlify.app. It uses the same Firebase project as live Truth Sleuth (`misinfo-5d004`), both agency env vars, and `NEXT_PUBLIC_APP_URL` set to `https://truthsleuth-study.netlify.app`. `apphosting.study.yaml` (`https://truthsleuthstudy--misinfo-5d004.us-central1.hosted.app`) is not that public site.
-4. **Caffeine Study:** create a second Netlify site from the `prod` branch with the same env vars as live Caffeine, plus the two agency vars and its own `NEXT_PUBLIC_APP_URL` (see `.env.caffeine.example`).
-5. Add each study URL to Firebase Auth → Authorized domains and to the App Check reCAPTCHA key's allowed domains, or login and App Check fail.
-6. Researchers see study reports as admins, or as agency users of Prolific sample.
-
-To shut a study copy down, delete its Netlify site. Its reports stay in the database under Prolific sample.
+| Site | URL | Hosting |
+|---|---|---|
+| Truth Sleuth (live) | https://truthsleuthlocal--misinfo-5d004.us-central1.hosted.app/login | App Hosting |
+| Truth Sleuth Study | https://truthsleuth-study.netlify.app/login | Netlify |
+| Caffeine (live) | https://caffeine-dashboard.netlify.app/login | Netlify |
+| Caffeine Study | https://caffeine-study.netlify.app/login | Netlify |
 
 ## Links
 

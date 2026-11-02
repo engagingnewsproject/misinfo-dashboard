@@ -5,23 +5,12 @@
  * For each email: create Auth + mobileUsers, or if Auth already exists, set the
  * shared temp password and mustChangePassword so first login hits /choose-password.
  *
- * Runbook
- * -------
- * Truth Sleuth study (misinfo-5d004, Prolific sample agency):
- *   NEXT_PUBLIC_BRAND=misinfo \
- *   NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID=DJuBydni2EqbezWzwDHJ \
- *   NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME='Prolific sample' \
- *   node scripts/bulk-create-prolific-users.js \
- *     --file=LOCAL/csv-import/profilic-truthSleuth-batch.md \
- *     --emulator --dry-run
+ * Runbook (agency ids and full examples): private ops repo
+ *   https://github.com/engagingnewsproject/misinfo-dashboard-ops
  *
- * Caffeine study (caffeine-app-d8cd8; set STUDY agency id from .env.caffeine.local):
- *   NEXT_PUBLIC_BRAND=caffeine \
- *   NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID=<STUDY_AGENCY_ID> \
- *   NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME='Prolific sample' \
- *   node scripts/bulk-create-prolific-users.js \
- *     --file=LOCAL/csv-import/profilic-caffeine-batch.md \
- *     --emulator --dry-run
+ * Set NEXT_PUBLIC_BRAND and both NEXT_PUBLIC_FIXED_REPORT_AGENCY_* for the
+ * study deploy, then:
+ *   node scripts/bulk-create-prolific-users.js --file=... [--emulator] [--dry-run]
  *
  * Emulator: --emulator points Auth at 127.0.0.1:9099 and Firestore at 127.0.0.1:8080.
  * Prod: omit --emulator; needs a service account JSON (see Credentials below).

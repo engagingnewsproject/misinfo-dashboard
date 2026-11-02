@@ -3,7 +3,6 @@
  */
 
 const {
-	TRUTH_SLEUTH_STUDY_AGENCY_ID,
 	PROLIFIC_SAMPLE_NAME,
 	resolveTarget,
 	resolveStudyAgencyId,
@@ -62,15 +61,16 @@ describe('dev-live env overlay', () => {
 		expect(env.NEXT_PUBLIC_USE_EMULATORS).toBe('false')
 	})
 
-	it('sets both agency variables for Truth Sleuth Study', () => {
+	it('requires STUDY_AGENCY_ID for Truth Sleuth Study and then sets both agency variables', () => {
 		const target = resolveTarget('ts-study')
+		expect(() => resolveStudyAgencyId(target, {})).toThrow(/STUDY_AGENCY_ID/)
 		const env = buildLiveEnv({
 			baseEnv,
-			targetEnv: baseEnv,
+			targetEnv: { STUDY_AGENCY_ID: 'ts-prolific' },
 			target,
-			studyAgencyId: resolveStudyAgencyId(target, {}),
+			studyAgencyId: resolveStudyAgencyId(target, { STUDY_AGENCY_ID: 'ts-prolific' }),
 		})
-		expect(env.NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID).toBe(TRUTH_SLEUTH_STUDY_AGENCY_ID)
+		expect(env.NEXT_PUBLIC_FIXED_REPORT_AGENCY_ID).toBe('ts-prolific')
 		expect(env.NEXT_PUBLIC_FIXED_REPORT_AGENCY_NAME).toBe(PROLIFIC_SAMPLE_NAME)
 	})
 
